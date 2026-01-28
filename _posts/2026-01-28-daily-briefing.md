@@ -1,8 +1,16 @@
 ---
 title: "2026년 1월 28일 데일리 브리핑"
+headline: "AI 투자 $2,258억 역대 최고 · TypeScript GitHub 1위 · 코스닥 시총 최대"
+summary: "2025년 AI 투자가 역대 최고치를 경신하고, TypeScript가 Python을 제치고 GitHub 1위에 올랐다. 한국 코스닥은 시총 582조로 사상 최대, CZ는 비트코인 4년 주기 종료를 예측했다."
 date: 2026-01-28
 categories: [briefing]
 tags: [AI, GitHub, 경제, 블록체인, 게임]
+highlights:
+  - "🤖 AI 투자 $2,258억 — 역대 최고, Anthropic 혼자 $175억 유치"
+  - "💻 TypeScript가 Python 제치고 GitHub 기여자 수 1위 달성"
+  - "💰 코스닥 시총 582조 9천억 — 사상 최대, 하지만 쏠림 경고"
+  - "🔗 CZ: 비트코인 4년 주기 깨질 것, 블록체인 실사용 급증"
+  - "🎮 33 원정대 더 게임 어워드 9관왕 — 인디게임의 시대"
 ---
 
 ## 🤖 AI 시장 동향 분석

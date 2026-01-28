@@ -8,24 +8,93 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
-            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            background: #0f0f1a;
             color: #e0e0e0;
             min-height: 100vh;
             line-height: 1.8;
         }
-        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
         
-        header {
-            text-align: center;
-            padding: 40px 0;
-            border-bottom: 1px solid #333;
-            margin-bottom: 40px;
+        /* 레이아웃 */
+        .layout {
+            display: flex;
+            min-height: 100vh;
         }
-        header h1 { font-size: 2em; color: #ff6b9d; margin-bottom: 10px; }
-        header h1 a { color: #ff6b9d; text-decoration: none; }
-        header p { color: #888; }
         
-        .content { padding: 20px 0; }
+        /* 사이드바 */
+        .sidebar {
+            width: 280px;
+            background: #1a1a2e;
+            border-right: 1px solid #333;
+            padding: 30px 20px;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+        .sidebar-header h1 {
+            font-size: 1.3em;
+            color: #ff6b9d;
+            margin-bottom: 5px;
+        }
+        .sidebar-header h1 a { color: #ff6b9d; text-decoration: none; }
+        .sidebar-header p { font-size: 0.8em; color: #666; }
+        
+        .sidebar-section {
+            margin-bottom: 25px;
+        }
+        .sidebar-section h3 {
+            font-size: 0.75em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .sidebar-nav {
+            list-style: none;
+        }
+        .sidebar-nav li {
+            margin: 4px 0;
+        }
+        .sidebar-nav a {
+            display: block;
+            padding: 10px 15px;
+            color: #ccc;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+        .sidebar-nav a:hover {
+            background: rgba(255,107,157,0.1);
+            color: #ff6b9d;
+        }
+        .sidebar-nav a.active {
+            background: rgba(255,107,157,0.2);
+            color: #ff6b9d;
+        }
+        .sidebar-nav .date {
+            font-size: 0.75em;
+            color: #666;
+            margin-top: 3px;
+        }
+        
+        /* 메인 콘텐츠 */
+        .main {
+            flex: 1;
+            margin-left: 280px;
+            padding: 40px 50px;
+            max-width: 900px;
+        }
+        
+        .content h1 {
+            color: #ff6b9d;
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
         
         h2 {
             color: #00d4ff;
@@ -46,10 +115,8 @@
         }
         
         p { margin: 15px 0; }
-        
         a { color: #ff6b9d; text-decoration: none; }
         a:hover { text-decoration: underline; }
-        
         strong { color: #fff; }
         
         blockquote {
@@ -69,7 +136,7 @@
             overflow: hidden;
         }
         th, td {
-            padding: 15px;
+            padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
@@ -79,19 +146,10 @@
             font-weight: 600;
         }
         tr:last-child td { border-bottom: none; }
-        tr:hover { background: rgba(255,255,255,0.02); }
         
-        ul, ol {
-            margin: 15px 0;
-            padding-left: 25px;
-        }
+        ul, ol { margin: 15px 0; padding-left: 25px; }
         li { margin: 8px 0; }
-        
-        hr {
-            border: none;
-            border-top: 1px solid #333;
-            margin: 40px 0;
-        }
+        hr { border: none; border-top: 1px solid #333; margin: 40px 0; }
         
         code {
             background: rgba(255,255,255,0.1);
@@ -100,6 +158,14 @@
             font-family: 'SF Mono', Monaco, monospace;
             font-size: 0.9em;
         }
+        pre {
+            background: rgba(255,255,255,0.05);
+            padding: 20px;
+            border-radius: 10px;
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+        pre code { background: none; padding: 0; }
         
         .post-meta {
             color: #666;
@@ -107,54 +173,54 @@
             margin-bottom: 30px;
         }
         
-        .post-list {
-            list-style: none;
-            padding: 0;
-        }
-        .post-list li {
-            background: rgba(255,255,255,0.03);
-            border-radius: 10px;
-            padding: 20px;
-            margin: 15px 0;
-            transition: background 0.2s;
-        }
-        .post-list li:hover { background: rgba(255,255,255,0.06); }
-        .post-list a { font-size: 1.1em; font-weight: 500; }
-        .post-list .date { color: #666; font-size: 0.85em; margin-top: 5px; }
-        
         footer {
             text-align: center;
             padding: 40px 0;
             margin-top: 40px;
             border-top: 1px solid #333;
             color: #666;
+            font-size: 0.85em;
         }
         
-        /* 인사이트 박스 */
-        h3:contains("인사이트") + p,
-        h3 + p:first-of-type {
-            background: rgba(255,107,157,0.1);
-            border: 1px solid rgba(255,107,157,0.3);
-            border-radius: 10px;
-            padding: 20px;
+        /* 모바일 */
+        @media (max-width: 768px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 20px; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1><a href="{{ '/' | relative_url }}">📰 미스 김의 데일리 브리핑</a></h1>
-            <p>AI · GitHub · 경제 · 블록체인 · 게임 — 매일 아침, 인사이트와 함께</p>
-        </header>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1><a href="{{ '/' | relative_url }}">📰 데일리 브리핑</a></h1>
+                <p>by 미스 김 💋</p>
+            </div>
+            
+            <div class="sidebar-section">
+                <h3>📚 브리핑 아카이브</h3>
+                <ul class="sidebar-nav">
+                    {% for post in site.posts %}
+                    <li>
+                        <a href="{{ post.url | relative_url }}" {% if page.url == post.url %}class="active"{% endif %}>
+                            {{ post.headline | default: post.title }}
+                            <div class="date">{{ post.date | date: "%Y.%m.%d" }}</div>
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </aside>
         
-        <main class="content">
-            {{ content }}
+        <main class="main">
+            <div class="content">
+                {{ content }}
+            </div>
+            
+            <footer>
+                <p>Curated by 미스 김 💋 · 매일 05:30 KST</p>
+            </footer>
         </main>
-        
-        <footer>
-            <p>Curated by <a href="{{ '/' | relative_url }}">미스 김 💋</a></p>
-            <p style="margin-top: 10px; font-size: 0.85em;">매일 05:30 KST 자동 업데이트</p>
-        </footer>
     </div>
 </body>
 </html>

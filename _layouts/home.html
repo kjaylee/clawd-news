@@ -1,24 +1,30 @@
 ---
 layout: default
 ---
-<section style="background: rgba(255,107,157,0.1); border: 1px solid rgba(255,107,157,0.3); border-radius: 20px; padding: 40px; text-align: center; margin-bottom: 50px;">
-    <h2 style="color: #ff6b9d; border: none; margin: 0 0 20px;">🔥 최신 브리핑</h2>
-    {% for post in site.posts limit:1 %}
-    <div style="font-size: 1.3em; color: #fff; margin-bottom: 20px;">{{ post.date | date: "%Y년 %m월 %d일" }}</div>
-    <a href="{{ post.url | relative_url }}" style="display: inline-block; background: #ff6b9d; color: #000; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 1.1em;">오늘의 분석 읽기 →</a>
-    {% endfor %}
-</section>
+<h1>🔥 최신 브리핑</h1>
 
-<section>
-    <h2 style="color: #fff; border-color: #333;">📚 아카이브</h2>
-    <ul class="post-list">
-        {% for post in site.posts %}
-        <li>
-            <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-            <div class="date">{{ post.date | date: "%Y년 %m월 %d일" }}</div>
-        </li>
-        {% endfor %}
-    </ul>
-</section>
+{% for post in site.posts limit:1 %}
+<p class="post-meta">{{ post.date | date: "%Y년 %m월 %d일" }} 업데이트</p>
+
+<div style="background: rgba(255,107,157,0.1); border: 1px solid rgba(255,107,157,0.3); border-radius: 15px; padding: 30px; margin: 30px 0;">
+    <h2 style="color: #ff6b9d; border: none; margin: 0 0 15px; font-size: 1.4em;">{{ post.headline | default: post.title }}</h2>
+    <p style="color: #ccc; margin-bottom: 20px;">{{ post.summary | default: post.excerpt | strip_html | truncate: 200 }}</p>
+    <a href="{{ post.url | relative_url }}" style="display: inline-block; background: #ff6b9d; color: #000; padding: 12px 30px; border-radius: 25px; text-decoration: none; font-weight: bold;">전체 분석 읽기 →</a>
+</div>
+{% endfor %}
+
+<h2 style="color: #fff; border-color: #333; margin-top: 50px;">📋 오늘의 핵심 포인트</h2>
+
+{% for post in site.posts limit:1 %}
+{% if post.highlights %}
+<ul style="list-style: none; padding: 0;">
+{% for item in post.highlights %}
+    <li style="background: rgba(255,255,255,0.03); padding: 15px 20px; margin: 10px 0; border-radius: 10px; border-left: 3px solid #00d4ff;">
+        {{ item }}
+    </li>
+{% endfor %}
+</ul>
+{% endif %}
+{% endfor %}
 
 {{ content }}
