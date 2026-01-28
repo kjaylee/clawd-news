@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🟢 Idle Slime Merge</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#header {
+  width: 100%;
+  max-width: 420px;
+  padding: 16px 20px 8px;
+  text-align: center;
+}
+
+#header h1 {
+  font-size: 22px;
+  margin-bottom: 6px;
+  background: linear-gradient(90deg, #7EC8E3, #5CB85C, #F0AD4E, #FFD700);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.stats {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 15px;
+}
+
+.stats span { opacity: 0.9; }
+.stats .gold { color: #FFD700; font-weight: bold; }
+.stats .rate { color: #7EC8E3; }
+
+#prestige-info {
+  font-size: 12px;
+  color: #F0AD4E;
+  margin-top: 4px;
+}
+
+#grid-container {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  padding: 10px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 6px;
+  width: 100%;
+  max-width: 380px;
+  aspect-ratio: 5/4;
+}
+
+.cell {
+  background: rgba(255,255,255,0.06);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 2px solid rgba(255,255,255,0.08);
+  transition: border-color 0.2s, transform 0.15s;
+  aspect-ratio: 1;
+}
+
+.cell.highlight {
+  border-color: #5CB85C;
+  background: rgba(92,184,92,0.15);
+  transform: scale(1.05);
+}
+
+.cell.no-match {
+  border-color: #D9534F;
+  background: rgba(217,83,79,0.15);
+}
+
+.slime {
+  width: 80%;
+  height: 80%;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: bold;
+  cursor: grab;
+  transition: transform 0.2s, box-shadow 0.2s;
+  position: relative;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.slime:active { cursor: grabbing; }
+
+.slime .level {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.slime .name {
+  font-size: 9px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+
+.slime .gps {
+  font-size: 8px;
+  opacity: 0.6;
+  margin-top: 1px;
+}
+
+.slime.bounce {
+  animation: bounce 0.4s ease;
+}
+
+@keyframes bounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.3); }
+  50% { transform: scale(0.9); }
+  70% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.slime.glow {
+  animation: glow 0.6s ease;
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 10px currentColor; }
+  50% { box-shadow: 0 0 30px currentColor, 0 0 60px currentColor; }
+  100% { box-shadow: 0 0 10px currentColor; }
+}
+
+#drag-ghost {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.7;
+  transform: translate(-50%, -50%) scale(1.1);
+  display: none;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+}
+
+.particle {
+  position: fixed;
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 999;
+}
+
+@keyframes particleFly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+}
+
+#controls {
+  width: 100%;
+  max-width: 420px;
+  padding: 12px 20px 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  flex: 1;
+  padding: 14px 8px;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: transform 0.1s, opacity 0.2s;
+  color: #fff;
+}
+
+.btn:active { transform: scale(0.95); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+#btn-summon {
+  background: linear-gradient(135deg, #5CB85C, #4CAF50);
+  box-shadow: 0 4px 15px rgba(76,175,80,0.3);
+}
+
+#btn-prestige {
+  background: linear-gradient(135deg, #F0AD4E, #E67E22);
+  box-shadow: 0 4px 15px rgba(230,126,34,0.3);
+}
+
+#btn-boost {
+  background: linear-gradient(135deg, #9B59B6, #8E44AD);
+  box-shadow: 0 4px 15px rgba(142,68,173,0.3);
+  flex: 0.7;
+}
+
+#toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.85);
+  color: #FFD700;
+  padding: 16px 28px;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: bold;
+  z-index: 2000;
+  display: none;
+  text-align: center;
+  border: 2px solid #FFD700;
+}
+
+#offline-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(15,12,41,0.95);
+  border: 2px solid #7EC8E3;
+  border-radius: 16px;
+  padding: 24px;
+  z-index: 3000;
+  text-align: center;
+  display: none;
+  max-width: 300px;
+}
+
+#offline-popup h3 { color: #7EC8E3; margin-bottom: 8px; }
+#offline-popup .amount { color: #FFD700; font-size: 24px; font-weight: bold; margin: 12px 0; }
+#offline-popup button {
+  background: linear-gradient(135deg, #5CB85C, #4CAF50);
+  border: none;
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#highest-badge {
+  position: absolute;
+  top: 4px;
+  right: 8px;
+  font-size: 11px;
+  color: #FFD700;
+  opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-height: 600px) {
+  #header { padding: 8px 16px 4px; }
+  #header h1 { font-size: 18px; }
+  .stats { font-size: 13px; }
+  #controls { padding: 8px 16px 12px; }
+  .btn { padding: 10px 6px; font-size: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>🟢 Idle Slime Merge</h1>
+  <div class="stats">
+    <span class="gold">💰 <span id="gold-display">0</span></span>
+    <span class="rate">⚡ <span id="rate-display">0</span>/s</span>
+  </div>
+  <div id="prestige-info"></div>
+</div>
+
+<div id="grid-container">
+  <div id="grid"></div>
+  <div id="highest-badge"></div>
+</div>
+
+<div id="controls">
+  <button class="btn" id="btn-summon">🆕 소환: 50G</button>
+  <button class="btn" id="btn-prestige" disabled>⭐ 프레스티지</button>
+  <button class="btn" id="btn-boost">🚀 2x 30s</button>
+</div>
+
+<div id="drag-ghost"></div>
+<div id="toast"></div>
+<div id="offline-popup">
+  <h3>💤 오프라인 수익</h3>
+  <p>방치하는 동안 슬라임들이 열심히 일했어요!</p>
+  <div class="amount" id="offline-amount">+0</div>
+  <button onclick="closeOffline()">받기!</button>
+</div>
+
+<script>
+// ──────── CONFIG ────────
+const COLS = 5, ROWS = 4, TOTAL_CELLS = COLS * ROWS;
+const MAX_LEVEL = 10;
+const SUMMON_COST = 50;
+const PRESTIGE_MIN_LEVEL = 7;
+const PRESTIGE_BONUS = 0.10;
+const OFFLINE_RATE = 0.5;
+const BOOST_DURATION = 30000;
+
+const SLIME_DATA = [
+  null, // index 0 unused
+  { name: '물방울', color: '#7EC8E3', gps: 1, shadow: '#5BA0B5' },
+  { name: '젤리',   color: '#5CB85C', gps: 3, shadow: '#3D8B3D' },
+  { name: '슬라임', color: '#F0AD4E', gps: 8, shadow: '#C88A2E' },
+  { name: '젤라틴', color: '#D9534F', gps: 20, shadow: '#B03A37' },
+  { name: '블롭',   color: '#9B59B6', gps: 50, shadow: '#7D3F92' },
+  { name: '우즈',   color: '#E74C3C', gps: 130, shadow: '#BF2718' },
+  { name: '겔',     color: '#1ABC9C', gps: 350, shadow: '#148F77' },
+  { name: '플라즈마', color: '#F39C12', gps: 1000, shadow: '#C87F0A' },
+  { name: '코스믹', color: '#3498DB', gps: 3000, shadow: '#2471A3' },
+  { name: '킹슬라임', color: '#FFD700', gps: 10000, shadow: '#CCB100' },
+];
+
+// ──────── STATE ────────
+let state = {
+  gold: 100,
+  grid: new Array(TOTAL_CELLS).fill(null),
+  prestigeCount: 0,
+  prestigeBonus: 0,
+  highestLevel: 0,
+  totalEarned: 0,
+  lastTime: Date.now(),
+  boostEnd: 0
+};
+
+// ──────── PERSISTENCE ────────
+function save() {
+  state.lastTime = Date.now();
+  localStorage.setItem('idleSlimeMerge', JSON.stringify(state));
+}
+
+function load() {
+  const raw = localStorage.getItem('idleSlimeMerge');
+  if (raw) {
+    try {
+      const s = JSON.parse(raw);
+      Object.assign(state, s);
+    } catch(e) {}
+  }
+}
+
+// ──────── FORMAT ────────
+function fmt(n) {
+  if (n >= 1e12) return (n/1e12).toFixed(1) + 'T';
+  if (n >= 1e9) return (n/1e9).toFixed(1) + 'B';
+  if (n >= 1e6) return (n/1e6).toFixed(1) + 'M';
+  if (n >= 1e3) return (n/1e3).toFixed(1) + 'K';
+  return Math.floor(n).toLocaleString();
+}
+
+// ──────── GRID RENDERING ────────
+const gridEl = document.getElementById('grid');
+const cells = [];
+
+function createGrid() {
+  gridEl.innerHTML = '';
+  cells.length = 0;
+  for (let i = 0; i < TOTAL_CELLS; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.index = i;
+    gridEl.appendChild(cell);
+    cells.push(cell);
+  }
+}
+
+function renderGrid() {
+  for (let i = 0; i < TOTAL_CELLS; i++) {
+    const cell = cells[i];
+    const sl = state.grid[i];
+    if (sl) {
+      const d = SLIME_DATA[sl.level];
+      cell.innerHTML = `
+        <div class="slime" style="background: radial-gradient(circle at 35% 35%, ${d.color}, ${d.shadow}); box-shadow: 0 4px 12px ${d.shadow}80; color: #fff;" data-index="${i}">
+          <div class="level">Lv.${sl.level}</div>
+          <div class="name">${d.name}</div>
+          <div class="gps">${fmt(d.gps)}/s</div>
+        </div>`;
+    } else {
+      cell.innerHTML = '';
+    }
+  }
+}
+
+function renderSingle(idx) {
+  const cell = cells[idx];
+  const sl = state.grid[idx];
+  if (sl) {
+    const d = SLIME_DATA[sl.level];
+    cell.innerHTML = `
+      <div class="slime" style="background: radial-gradient(circle at 35% 35%, ${d.color}, ${d.shadow}); box-shadow: 0 4px 12px ${d.shadow}80; color: #fff;" data-index="${idx}">
+        <div class="level">Lv.${sl.level}</div>
+        <div class="name">${d.name}</div>
+        <div class="gps">${fmt(d.gps)}/s</div>
+      </div>`;
+  } else {
+    cell.innerHTML = '';
+  }
+}
+
+// ──────── IDLE PRODUCTION ────────
+function calcRate() {
+  let rate = 0;
+  for (const sl of state.grid) {
+    if (sl) rate += SLIME_DATA[sl.level].gps;
+  }
+  const mult = 1 + state.prestigeBonus;
+  const boost = Date.now() < state.boostEnd ? 2 : 1;
+  return rate * mult * boost;
+}
+
+function tick() {
+  const rate = calcRate();
+  state.gold += rate;
+  state.totalEarned += rate;
+  updateUI();
+}
+
+// ──────── UI UPDATE ────────
+function updateUI() {
+  document.getElementById('gold-display').textContent = fmt(state.gold);
+  document.getElementById('rate-display').textContent = fmt(calcRate());
+
+  const pInfo = document.getElementById('prestige-info');
+  if (state.prestigeCount > 0) {
+    pInfo.textContent = `⭐ 프레스티지 ${state.prestigeCount}회 (보너스 +${Math.round(state.prestigeBonus * 100)}%)`;
+  } else {
+    pInfo.textContent = '';
+  }
+
+  const badge = document.getElementById('highest-badge');
+  if (state.highestLevel > 0) {
+    badge.textContent = `최고 Lv.${state.highestLevel}`;
+  }
+
+  // Button states
+  document.getElementById('btn-summon').disabled = state.gold < SUMMON_COST || !hasEmptyCell();
+  document.getElementById('btn-summon').textContent = `🆕 소환: ${fmt(SUMMON_COST)}G`;
+
+  const canPrestige = state.grid.some(s => s && s.level >= PRESTIGE_MIN_LEVEL);
+  document.getElementById('btn-prestige').disabled = !canPrestige;
+
+  const boostActive = Date.now() < state.boostEnd;
+  const boostBtn = document.getElementById('btn-boost');
+  if (boostActive) {
+    const secs = Math.ceil((state.boostEnd - Date.now()) / 1000);
+    boostBtn.textContent = `🚀 ${secs}s`;
+    boostBtn.disabled = true;
+  } else {
+    boostBtn.textContent = '🚀 2x 30s';
+    boostBtn.disabled = false;
+  }
+}
+
+function hasEmptyCell() {
+  return state.grid.some(s => s === null);
+}
+
+// ──────── ACTIONS ────────
+function summon() {
+  if (state.gold < SUMMON_COST) return;
+  const empties = [];
+  state.grid.forEach((s, i) => { if (!s) empties.push(i); });
+  if (!empties.length) return;
+
+  state.gold -= SUMMON_COST;
+  const idx = empties[Math.floor(Math.random() * empties.length)];
+  state.grid[idx] = { level: 1 };
+  renderSingle(idx);
+
+  // bounce animation
+  const slimeEl = cells[idx].querySelector('.slime');
+  if (slimeEl) {
+    slimeEl.classList.add('bounce');
+    setTimeout(() => slimeEl.classList.remove('bounce'), 400);
+  }
+
+  updateUI();
+  save();
+}
+
+function merge(fromIdx, toIdx) {
+  const a = state.grid[fromIdx];
+  const b = state.grid[toIdx];
+  if (!a || !b || fromIdx === toIdx) return false;
+  if (a.level !== b.level || a.level >= MAX_LEVEL) return false;
+
+  const newLevel = b.level + 1;
+  state.grid[fromIdx] = null;
+  state.grid[toIdx] = { level: newLevel };
+
+  if (newLevel > state.highestLevel) {
+    state.highestLevel = newLevel;
+    showToast(`🎉 새로운 Lv.${newLevel} ${SLIME_DATA[newLevel].name} 발견!`);
+  }
+
+  renderSingle(fromIdx);
+  renderSingle(toIdx);
+
+  // animations
+  const slimeEl = cells[toIdx].querySelector('.slime');
+  if (slimeEl) {
+    slimeEl.classList.add('bounce', 'glow');
+    setTimeout(() => slimeEl.classList.remove('bounce', 'glow'), 600);
+  }
+
+  spawnParticles(toIdx, SLIME_DATA[newLevel].color);
+  updateUI();
+  save();
+  return true;
+}
+
+function prestige() {
+  const canPrestige = state.grid.some(s => s && s.level >= PRESTIGE_MIN_LEVEL);
+  if (!canPrestige) return;
+
+  state.prestigeCount++;
+  state.prestigeBonus += PRESTIGE_BONUS;
+  state.gold = 100;
+  state.grid = new Array(TOTAL_CELLS).fill(null);
+
+  showToast(`⭐ 프레스티지 ${state.prestigeCount}회!\n보너스 +${Math.round(state.prestigeBonus * 100)}%`);
+  renderGrid();
+  updateUI();
+  save();
+}
+
+function activateBoost() {
+  if (Date.now() < state.boostEnd) return;
+  state.boostEnd = Date.now() + BOOST_DURATION;
+  showToast('🚀 2배 부스트 30초!');
+  updateUI();
+  save();
+}
+
+// ──────── PARTICLES ────────
+function spawnParticles(cellIdx, color) {
+  const cell = cells[cellIdx];
+  const rect = cell.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 4 + Math.random() * 6;
+    const angle = (Math.PI * 2 * i) / 8;
+    const dist = 30 + Math.random() * 40;
+    p.style.cssText = `
+      left: ${cx}px; top: ${cy}px;
+      width: ${size}px; height: ${size}px;
+      background: ${color};
+      --dx: ${Math.cos(angle) * dist}px;
+      --dy: ${Math.sin(angle) * dist}px;
+      animation: particleFly 0.5s ease-out forwards;
+    `;
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 500);
+  }
+}
+
+// ──────── TOAST ────────
+function showToast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text;
+  el.style.display = 'block';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.display = 'none'; }, 2000);
+}
+
+// ──────── OFFLINE EARNINGS ────────
+function checkOffline() {
+  const elapsed = (Date.now() - state.lastTime) / 1000;
+  if (elapsed < 60) return; // 1분 미만 무시
+
+  let rate = 0;
+  for (const sl of state.grid) {
+    if (sl) rate += SLIME_DATA[sl.level].gps;
+  }
+  rate *= (1 + state.prestigeBonus);
+  const earned = Math.floor(rate * elapsed * OFFLINE_RATE);
+
+  if (earned > 0) {
+    document.getElementById('offline-amount').textContent = '+' + fmt(earned);
+    document.getElementById('offline-popup').style.display = 'block';
+    state.gold += earned;
+    state.totalEarned += earned;
+  }
+}
+
+function closeOffline() {
+  document.getElementById('offline-popup').style.display = 'none';
+  updateUI();
+  save();
+}
+
+// ──────── DRAG & DROP ────────
+let dragFrom = -1;
+let dragging = false;
+const ghost = document.getElementById('drag-ghost');
+
+function getSlimeIndex(el) {
+  const slime = el.closest('.slime');
+  if (slime) return parseInt(slime.dataset.index);
+  const cell = el.closest('.cell');
+  if (cell) return parseInt(cell.dataset.index);
+  return -1;
+}
+
+function getCellIndex(x, y) {
+  for (let i = 0; i < cells.length; i++) {
+    const rect = cells[i].getBoundingClientRect();
+    if (x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function startDrag(idx, x, y) {
+  if (!state.grid[idx]) return;
+  dragFrom = idx;
+  dragging = true;
+
+  const d = SLIME_DATA[state.grid[idx].level];
+  ghost.style.background = `radial-gradient(circle at 35% 35%, ${d.color}, ${d.shadow})`;
+  ghost.style.width = '56px';
+  ghost.style.height = '56px';
+  ghost.style.display = 'block';
+  ghost.style.left = x + 'px';
+  ghost.style.top = y + 'px';
+
+  cells[idx].style.opacity = '0.3';
+}
+
+function moveDrag(x, y) {
+  if (!dragging) return;
+  ghost.style.left = x + 'px';
+  ghost.style.top = y + 'px';
+
+  // Highlight potential merge target
+  const overIdx = getCellIndex(x, y);
+  cells.forEach((c, i) => {
+    c.classList.remove('highlight', 'no-match');
+    if (i === overIdx && i !== dragFrom && state.grid[i]) {
+      if (state.grid[i].level === state.grid[dragFrom].level && state.grid[i].level < MAX_LEVEL) {
+        c.classList.add('highlight');
+      } else {
+        c.classList.add('no-match');
+      }
+    } else if (i === overIdx && !state.grid[i] && i !== dragFrom) {
+      c.classList.add('highlight');
+    }
+  });
+}
+
+function endDrag(x, y) {
+  if (!dragging) return;
+  dragging = false;
+  ghost.style.display = 'none';
+  cells[dragFrom].style.opacity = '1';
+  cells.forEach(c => c.classList.remove('highlight', 'no-match'));
+
+  const toIdx = getCellIndex(x, y);
+  if (toIdx < 0 || toIdx === dragFrom) return;
+
+  // Try merge
+  if (state.grid[toIdx] && state.grid[dragFrom]) {
+    if (!merge(dragFrom, toIdx)) {
+      // Swap if can't merge
+      if (state.grid[toIdx]) {
+        const tmp = state.grid[dragFrom];
+        state.grid[dragFrom] = state.grid[toIdx];
+        state.grid[toIdx] = tmp;
+        renderSingle(dragFrom);
+        renderSingle(toIdx);
+        save();
+      }
+    }
+  } else if (!state.grid[toIdx]) {
+    // Move to empty cell
+    state.grid[toIdx] = state.grid[dragFrom];
+    state.grid[dragFrom] = null;
+    renderSingle(dragFrom);
+    renderSingle(toIdx);
+    save();
+  }
+}
+
+// Touch events
+gridEl.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  const idx = getSlimeIndex(e.target);
+  if (idx >= 0) startDrag(idx, t.clientX, t.clientY);
+}, { passive: false });
+
+gridEl.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const t = e.touches[0];
+  moveDrag(t.clientX, t.clientY);
+}, { passive: false });
+
+gridEl.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (dragging) {
+    const t = e.changedTouches[0];
+    endDrag(t.clientX, t.clientY);
+  }
+});
+
+// Mouse events
+gridEl.addEventListener('mousedown', e => {
+  const idx = getSlimeIndex(e.target);
+  if (idx >= 0) startDrag(idx, e.clientX, e.clientY);
+});
+
+document.addEventListener('mousemove', e => {
+  moveDrag(e.clientX, e.clientY);
+});
+
+document.addEventListener('mouseup', e => {
+  if (dragging) endDrag(e.clientX, e.clientY);
+});
+
+// Buttons
+document.getElementById('btn-summon').addEventListener('click', summon);
+document.getElementById('btn-prestige').addEventListener('click', () => {
+  if (confirm('프레스티지 하시겠습니까?\n모든 슬라임이 리셋되고 영구 보너스 +10%를 받습니다.')) {
+    prestige();
+  }
+});
+document.getElementById('btn-boost').addEventListener('click', activateBoost);
+
+// ──────── INIT ────────
+load();
+createGrid();
+renderGrid();
+checkOffline();
+updateUI();
+
+// Main loop
+setInterval(tick, 1000);
+setInterval(save, 10000);
+setInterval(updateUI, 1000);
+
+// Boost timer update
+setInterval(() => {
+  if (Date.now() < state.boostEnd) updateUI();
+}, 1000);
+</script>
+</body>
+</html>
