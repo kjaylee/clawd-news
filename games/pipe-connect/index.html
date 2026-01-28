@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Pipe Connect</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a0e27;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+#menu {
+  text-align: center;
+}
+#menu h1 {
+  font-size: 2.5em;
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 10px;
+}
+#menu p {
+  color: #8892b0;
+  margin-bottom: 30px;
+  font-size: 1.1em;
+}
+#menu .level-info {
+  color: #64ffda;
+  font-size: 1.2em;
+  margin-bottom: 20px;
+}
+.btn {
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  border: none;
+  color: #fff;
+  padding: 15px 50px;
+  font-size: 1.2em;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(0,180,216,0.4); }
+.btn:active { transform: scale(0.95); }
+
+#gameScreen { display: none; text-align: center; }
+#topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 420px;
+  padding: 10px 5px;
+  margin-bottom: 10px;
+}
+#topBar span {
+  font-size: 1em;
+  color: #8892b0;
+}
+#topBar .val {
+  color: #64ffda;
+  font-weight: bold;
+}
+#hintBtn {
+  background: rgba(100,255,218,0.15);
+  border: 1px solid #64ffda;
+  color: #64ffda;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+#hintBtn:hover { background: rgba(100,255,218,0.3); }
+
+canvas {
+  border-radius: 12px;
+  background: #111633;
+  box-shadow: 0 0 30px rgba(0,180,216,0.15);
+}
+
+#winOverlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(10,14,39,0.9);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+#winOverlay h2 {
+  font-size: 2em;
+  color: #64ffda;
+  margin-bottom: 10px;
+}
+#winOverlay .stars {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+}
+#winOverlay .stats {
+  color: #8892b0;
+  margin-bottom: 25px;
+  font-size: 1.1em;
+}
+</style>
+</head>
+<body>
+
+<div id="menu">
+  <h1>🔧 Pipe Connect</h1>
+  <p>파이프를 회전시켜 물길을 연결하세요!</p>
+  <div class="level-info">Level <span id="menuLevel">1</span></div>
+  <button class="btn" onclick="startGame()">▶ Play</button>
+</div>
+
+<div id="gameScreen">
+  <div id="topBar">
+    <span>Lv.<span class="val" id="lvl">1</span></span>
+    <span>Moves: <span class="val" id="moves">0</span></span>
+    <button id="hintBtn" onclick="useHint()">💡 Hint</button>
+  </div>
+  <canvas id="c"></canvas>
+</div>
+
+<div id="winOverlay">
+  <h2>✅ Level Clear!</h2>
+  <div class="stars" id="winStars">⭐⭐⭐</div>
+  <div class="stats" id="winStats">Moves: 0</div>
+  <button class="btn" onclick="nextLevel()">Next Level →</button>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+// State
+let level = parseInt(localStorage.getItem('pipeLevel') || '1');
+let grid = [];
+let gridSize = 5;
+let cellSize = 70;
+let moves = 0;
+let minMoves = 0;
+let solved = false;
+let flowProgress = 0;
+let flowPath = [];
+let animating = false;
+let hintUsed = false;
+let solutionRotations = [];
+
+// Pipe types: connections as directions [top, right, bottom, left]
+const PIPE_TYPES = {
+  STRAIGHT: { connections: [1,0,1,0], symbol: '│' },
+  CURVE:    { connections: [1,1,0,0], symbol: '┘' },
+  TEE:      { connections: [1,1,1,0], symbol: '├' },
+  CROSS:    { connections: [1,1,1,1], symbol: '┼' },
+  END:      { connections: [1,0,0,0], symbol: '╵' },
+};
+
+const DIR = [[0,-1],[1,0],[0,1],[-1,0]]; // top, right, bottom, left
+const OPP = [2,3,0,1];
+
+function getGridSize(lv) {
+  if (lv <= 10) return 5;
+  if (lv <= 25) return 6;
+  return 7;
+}
+
+function getPathLength(lv) {
+  if (lv <= 5) return 5 + Math.floor(lv/2);
+  if (lv <= 10) return 7 + Math.floor(lv/3);
+  if (lv <= 25) return 8 + Math.floor(lv/3);
+  return 10 + Math.floor(lv/4);
+}
+
+// Generate a valid puzzle
+function generatePuzzle(lv) {
+  gridSize = getGridSize(lv);
+  const pathLen = Math.min(getPathLength(lv), gridSize * gridSize - 2);
+  
+  // Generate a random path through the grid
+  let path = [];
+  let visited = new Set();
+  
+  // Start from a random edge cell
+  let sx = 0, sy = Math.floor(Math.random() * gridSize);
+  path.push([sx, sy]);
+  visited.add(`${sx},${sy}`);
+  
+  for (let i = 1; i < pathLen; i++) {
+    let options = [];
+    let [cx, cy] = path[path.length - 1];
+    for (let d = 0; d < 4; d++) {
+      let nx = cx + DIR[d][0], ny = cy + DIR[d][1];
+      if (nx >= 0 && nx < gridSize && ny >= 0 && ny < gridSize && !visited.has(`${nx},${ny}`)) {
+        options.push([nx, ny]);
+      }
+    }
+    if (options.length === 0) break;
+    let next = options[Math.floor(Math.random() * options.length)];
+    path.push(next);
+    visited.add(`${next[0]},${next[1]}`);
+  }
+  
+  // Create grid
+  grid = [];
+  solutionRotations = [];
+  for (let y = 0; y < gridSize; y++) {
+    grid[y] = [];
+    solutionRotations[y] = [];
+    for (let x = 0; x < gridSize; x++) {
+      grid[y][x] = null;
+      solutionRotations[y][x] = 0;
+    }
+  }
+  
+  // Place pipes along the path
+  for (let i = 0; i < path.length; i++) {
+    let [x, y] = path[i];
+    let connections = [0,0,0,0]; // top, right, bottom, left
+    
+    if (i > 0) {
+      let [px, py] = path[i-1];
+      let dx = px - x, dy = py - y;
+      for (let d = 0; d < 4; d++) {
+        if (DIR[d][0] === dx && DIR[d][1] === dy) connections[d] = 1;
+      }
+    }
+    if (i < path.length - 1) {
+      let [nx, ny] = path[i+1];
+      let dx = nx - x, dy = ny - y;
+      for (let d = 0; d < 4; d++) {
+        if (DIR[d][0] === dx && DIR[d][1] === dy) connections[d] = 1;
+      }
+    }
+    
+    grid[y][x] = {
+      connections: [...connections],
+      solvedConnections: [...connections],
+      rotation: 0,
+      isStart: i === 0,
+      isEnd: i === path.length - 1,
+      pathIndex: i,
+      filled: false
+    };
+  }
+  
+  // Fill empty cells with random pipes
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+      if (!grid[y][x]) {
+        let types = Object.values(PIPE_TYPES);
+        let t = types[Math.floor(Math.random() * (types.length - 1))]; // exclude END for filler
+        grid[y][x] = {
+          connections: [...t.connections],
+          solvedConnections: [...t.connections],
+          rotation: 0,
+          isStart: false,
+          isEnd: false,
+          pathIndex: -1,
+          filled: false
+        };
+        // Random initial rotation for fillers
+        let rots = Math.floor(Math.random() * 4);
+        for (let r = 0; r < rots; r++) {
+          grid[y][x].connections = rotateConnections(grid[y][x].connections);
+          grid[y][x].solvedConnections = [...grid[y][x].connections];
+        }
+      }
+    }
+  }
+  
+  // Store solution and randomize path pipe rotations
+  minMoves = 0;
+  for (let i = 0; i < path.length; i++) {
+    let [x, y] = path[i];
+    let cell = grid[y][x];
+    cell.solvedConnections = [...cell.connections];
+    let rots = Math.floor(Math.random() * 3) + 1; // 1-3 rotations
+    solutionRotations[y][x] = (4 - rots) % 4;
+    for (let r = 0; r < rots; r++) {
+      cell.connections = rotateConnections(cell.connections);
+    }
+    cell.rotation = 0;
+    minMoves += Math.min(rots, 4 - rots);
+  }
+  
+  flowPath = path;
+}
+
+function rotateConnections(c) {
+  return [c[3], c[0], c[1], c[2]];
+}
+
+function rotatePipe(x, y) {
+  if (solved || animating) return;
+  let cell = grid[y][x];
+  cell.connections = rotateConnections(cell.connections);
+  cell.rotation = (cell.rotation + 1) % 4;
+  moves++;
+  document.getElementById('moves').textContent = moves;
+  
+  drawGrid();
+  checkSolution();
+}
+
+function checkSolution() {
+  // BFS from start
+  let start = null, end = null;
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+      if (grid[y][x].isStart) start = [x, y];
+      if (grid[y][x].isEnd) end = [x, y];
+    }
+  }
+  
+  if (!start || !end) return;
+  
+  let visited = new Set();
+  let queue = [start];
+  visited.add(`${start[0]},${start[1]}`);
+  
+  while (queue.length > 0) {
+    let [cx, cy] = queue.shift();
+    let cell = grid[cy][cx];
+    
+    for (let d = 0; d < 4; d++) {
+      if (!cell.connections[d]) continue;
+      let nx = cx + DIR[d][0], ny = cy + DIR[d][1];
+      if (nx < 0 || nx >= gridSize || ny < 0 || ny >= gridSize) continue;
+      if (visited.has(`${nx},${ny}`)) continue;
+      
+      let neighbor = grid[ny][nx];
+      if (neighbor.connections[OPP[d]]) {
+        visited.add(`${nx},${ny}`);
+        queue.push([nx, ny]);
+      }
+    }
+  }
+  
+  if (visited.has(`${end[0]},${end[1]}`)) {
+    solved = true;
+    animateFlow();
+  }
+}
+
+function animateFlow() {
+  animating = true;
+  flowProgress = 0;
+  
+  function step() {
+    flowProgress += 0.8;
+    if (flowProgress >= flowPath.length) {
+      flowProgress = flowPath.length;
+      drawGrid();
+      setTimeout(showWin, 500);
+      return;
+    }
+    drawGrid();
+    requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function showWin() {
+  animating = false;
+  let stars = 3;
+  if (moves > minMoves * 2) stars = 2;
+  if (moves > minMoves * 3) stars = 1;
+  
+  document.getElementById('winStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3-stars);
+  document.getElementById('winStats').textContent = `Moves: ${moves} (Optimal: ${minMoves})`;
+  document.getElementById('winOverlay').style.display = 'flex';
+}
+
+function drawGrid() {
+  const pad = 15;
+  const totalSize = gridSize * cellSize + pad * 2;
+  canvas.width = totalSize;
+  canvas.height = totalSize;
+  
+  ctx.fillStyle = '#111633';
+  ctx.fillRect(0, 0, totalSize, totalSize);
+  
+  // Draw grid lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= gridSize; i++) {
+    ctx.beginPath();
+    ctx.moveTo(pad + i * cellSize, pad);
+    ctx.lineTo(pad + i * cellSize, pad + gridSize * cellSize);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pad, pad + i * cellSize);
+    ctx.lineTo(pad + gridSize * cellSize, pad + i * cellSize);
+    ctx.stroke();
+  }
+  
+  // Draw pipes
+  for (let y = 0; y < gridSize; y++) {
+    for (let x = 0; x < gridSize; x++) {
+      drawPipe(x, y, pad);
+    }
+  }
+}
+
+function drawPipe(x, y, pad) {
+  let cell = grid[y][x];
+  let cx = pad + x * cellSize + cellSize / 2;
+  let cy = pad + y * cellSize + cellSize / 2;
+  let r = cellSize * 0.35;
+  let conn = cell.connections;
+  
+  // Determine color
+  let isFilled = false;
+  if (solved && cell.pathIndex >= 0 && cell.pathIndex < flowProgress) {
+    isFilled = true;
+  }
+  
+  let pipeColor = cell.pathIndex >= 0 ? '#4a5568' : '#2d3748';
+  if (isFilled) pipeColor = '#00b4d8';
+  if (cell.isStart) pipeColor = isFilled ? '#00e5ff' : '#48bb78';
+  if (cell.isEnd) pipeColor = isFilled ? '#00e5ff' : '#f56565';
+  
+  let pipeWidth = cellSize * 0.22;
+  
+  ctx.strokeStyle = pipeColor;
+  ctx.lineWidth = pipeWidth;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  
+  // Draw connections
+  let segments = [];
+  if (conn[0]) segments.push([cx, cy, cx, cy - cellSize/2]); // top
+  if (conn[1]) segments.push([cx, cy, cx + cellSize/2, cy]); // right
+  if (conn[2]) segments.push([cx, cy, cx, cy + cellSize/2]); // bottom
+  if (conn[3]) segments.push([cx, cy, cx - cellSize/2, cy]); // left
+  
+  // Draw pipe segments
+  for (let seg of segments) {
+    ctx.beginPath();
+    ctx.moveTo(seg[0], seg[1]);
+    ctx.lineTo(seg[2], seg[3]);
+    ctx.stroke();
+  }
+  
+  // Draw center circle
+  let connCount = conn.reduce((a,b) => a+b, 0);
+  if (connCount > 0) {
+    ctx.fillStyle = pipeColor;
+    ctx.beginPath();
+    ctx.arc(cx, cy, pipeWidth/2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  // Start/End markers
+  if (cell.isStart) {
+    ctx.fillStyle = isFilled ? '#00e5ff' : '#48bb78';
+    ctx.beginPath();
+    ctx.arc(cx, cy, pipeWidth * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${cellSize*0.25}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('S', cx, cy);
+  }
+  if (cell.isEnd) {
+    ctx.fillStyle = isFilled ? '#00e5ff' : '#f56565';
+    ctx.beginPath();
+    ctx.arc(cx, cy, pipeWidth * 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${cellSize*0.25}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('E', cx, cy);
+  }
+  
+  // Water glow effect
+  if (isFilled) {
+    ctx.shadowColor = '#00b4d8';
+    ctx.shadowBlur = 12;
+    ctx.strokeStyle = 'rgba(0,180,216,0.3)';
+    ctx.lineWidth = pipeWidth + 8;
+    for (let seg of segments) {
+      ctx.beginPath();
+      ctx.moveTo(seg[0], seg[1]);
+      ctx.lineTo(seg[2], seg[3]);
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+  }
+}
+
+function useHint() {
+  if (solved || animating || hintUsed) return;
+  hintUsed = true;
+  
+  // Find a path pipe that's not in correct rotation and fix it
+  for (let i = 0; i < flowPath.length; i++) {
+    let [x, y] = flowPath[i];
+    let cell = grid[y][x];
+    let match = cell.connections.every((v, idx) => v === cell.solvedConnections[idx]);
+    if (!match) {
+      // Rotate to solved state
+      for (let r = 0; r < 4; r++) {
+        let m = cell.connections.every((v, idx) => v === cell.solvedConnections[idx]);
+        if (m) break;
+        cell.connections = rotateConnections(cell.connections);
+      }
+      drawGrid();
+      document.getElementById('hintBtn').style.opacity = 0.4;
+      document.getElementById('hintBtn').textContent = '💡 Used';
+      checkSolution();
+      return;
+    }
+  }
+}
+
+// Input handling
+canvas.addEventListener('click', (e) => {
+  if (solved || animating) return;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  const mx = (e.clientX - rect.left) * scaleX - 15;
+  const my = (e.clientY - rect.top) * scaleY - 15;
+  const gx = Math.floor(mx / cellSize);
+  const gy = Math.floor(my / cellSize);
+  if (gx >= 0 && gx < gridSize && gy >= 0 && gy < gridSize) {
+    rotatePipe(gx, gy);
+  }
+});
+
+function startGame() {
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  
+  solved = false;
+  animating = false;
+  moves = 0;
+  hintUsed = false;
+  flowProgress = 0;
+  
+  document.getElementById('lvl').textContent = level;
+  document.getElementById('moves').textContent = '0';
+  document.getElementById('hintBtn').style.opacity = 1;
+  document.getElementById('hintBtn').textContent = '💡 Hint';
+  
+  // Adjust cell size for screen
+  let maxSize = Math.min(window.innerWidth - 40, window.innerHeight - 120, 420);
+  gridSize = getGridSize(level);
+  cellSize = Math.floor((maxSize - 30) / gridSize);
+  
+  generatePuzzle(level);
+  drawGrid();
+}
+
+function nextLevel() {
+  level++;
+  localStorage.setItem('pipeLevel', level);
+  document.getElementById('winOverlay').style.display = 'none';
+  document.getElementById('menuLevel').textContent = level;
+  startGame();
+}
+
+// Init
+document.getElementById('menuLevel').textContent = level;
+</script>
+</body>
+</html>
