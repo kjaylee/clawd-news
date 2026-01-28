@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script data-goatcounter="https://jaygames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🧟 좀비 서바이버 타운</title>
+    <!--
+    ============================================
+    에셋 출처 (Asset Credits)
+    ============================================
+    모든 게임 스프라이트는 Kenney.nl의 "Top-down Shooter" 에셋 팩에서 가져왔습니다.
+    
+    Asset Pack: Top-down Shooter
+    URL: https://kenney.nl/assets/top-down-shooter
+    License: Creative Commons CC0 (Public Domain)
+    Author: Kenney (https://kenney.nl)
+    
+    사용된 스프라이트:
+    - 플레이어: survivor1_machine.png (Survivor 1)
+    - 일반 좀비: zoimbie1_stand.png (Zombie 1)
+    - 빠른 좀비: hitman1_stand.png (Hitman 1)
+    - 탱커 좀비: manOld_stand.png (Man Old)
+    
+    CC0 라이선스에 따라 상업적/비상업적 용도로 자유롭게 사용 가능합니다.
+    ============================================
+    -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        body {
+            background: #1a1a2e;
+            overflow: hidden;
+            font-family: 'Segoe UI', sans-serif;
+        }
+        #gameCanvas {
+            display: block;
+            background: #2d3436;
+        }
+        #ui {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 16px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 100;
+        }
+        .stat {
+            margin: 5px 0;
+            padding: 5px 10px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 5px;
+        }
+        #healthBar {
+            width: 150px;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        #healthFill {
+            height: 100%;
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+            transition: width 0.3s;
+        }
+        #expBar {
+            width: 150px;
+            height: 10px;
+            background: #333;
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        #expFill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+            transition: width 0.3s;
+        }
+        #startScreen, #gameOverScreen, #levelUpScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            color: #fff;
+        }
+        #gameOverScreen, #levelUpScreen {
+            display: none;
+        }
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px #e74c3c;
+        }
+        .btn {
+            padding: 15px 40px;
+            font-size: 24px;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(231,76,60,0.5);
+        }
+        .btn {
+            touch-action: auto;
+            -webkit-touch-callout: default;
+        }
+        .upgrade-btn {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            margin: 5px;
+        }
+        #waveAnnounce {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: #e74c3c;
+            text-shadow: 0 0 30px #e74c3c;
+            opacity: 0;
+            z-index: 150;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        #joystickArea {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 120px;
+            height: 120px;
+            z-index: 100;
+        }
+        #joystickBase {
+            width: 120px;
+            height: 120px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.4);
+            position: relative;
+        }
+        #joystickThumb {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            transition: none;
+        }
+        #mobileControls {
+            display: none;
+        }
+        @media (max-width: 768px) {
+            #mobileControls {
+                display: block;
+            }
+            h1 { font-size: 32px; }
+            .btn { font-size: 18px; padding: 12px 30px; }
+            .upgrade-btn { font-size: 14px; padding: 10px 20px; }
+        }
+        #loadingScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #1a1a2e;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 300;
+            color: #fff;
+        }
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #333;
+            border-top-color: #e74c3c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 20px;">에셋 로딩 중...</p>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="ui">
+        <div class="stat">🧟 웨이브: <span id="wave">1</span></div>
+        <div class="stat">💀 킬: <span id="kills">0</span></div>
+        <div class="stat">⭐ 레벨: <span id="level">1</span></div>
+        <div class="stat">
+            ❤️ 체력
+            <div id="healthBar"><div id="healthFill"></div></div>
+        </div>
+        <div class="stat">
+            ✨ 경험치
+            <div id="expBar"><div id="expFill"></div></div>
+        </div>
+    </div>
+    
+    <div id="waveAnnounce"></div>
+    
+    <div id="mobileControls">
+        <div id="joystickArea">
+            <div id="joystickBase">
+                <div id="joystickThumb"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="startScreen" style="display: none;">
+        <h1>🧟 좀비 서바이버 타운</h1>
+        <p style="margin-bottom: 30px; font-size: 18px;">생존하고, 레벨업하고, 좀비를 처치하라!</p>
+        <button class="btn" id="startBtn">🎮 게임 시작</button>
+        <p style="margin-top: 20px; color: #888;">WASD/방향키 또는 조이스틱으로 이동</p>
+    </div>
+    
+    <div id="gameOverScreen">
+        <h1>💀 게임 오버</h1>
+        <p style="font-size: 24px;">웨이브: <span id="finalWave">1</span></p>
+        <p style="font-size: 24px;">킬: <span id="finalKills">0</span></p>
+        <p style="font-size: 24px;">레벨: <span id="finalLevel">1</span></p>
+        <button class="btn" id="restartBtn">🔄 다시 시작</button>
+    </div>
+    
+    <div id="levelUpScreen">
+        <h1>⬆️ 레벨 업!</h1>
+        <p style="margin-bottom: 20px;">업그레이드를 선택하세요</p>
+        <div id="upgradeOptions"></div>
+    </div>
+
+    <script>
+        // ============================================
+        // 스프라이트 에셋 (Base64 인코딩)
+        // 출처: Kenney.nl Top-down Shooter Pack (CC0)
+        // ============================================
+        const SPRITE_DATA = {
+            // 플레이어 - Survivor with machine gun
+            player: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADMAAAArCAYAAADVJLDcAAAFtElEQVR42u2aSU9bVxTHiVpV6iJFLBpV3aBkEbUMocxhSIBgjG0wz7Njg2c8YYxnMwQwwQzBoXFIIAMdCEWVolYqiy5CN2WTrOki6qoSFV+AfoNT32tf82w/AzY2uFKf9N+85/t0fj73nHvvOa+oKIOrmWcr7RJ5w11i3y5St3QUiMg99Jzd664qKuQrBnFIBzhOXRLfXkGCdAo9GmKkULcIA/YXWAb/VlzkHnrOkY/j36JxBQXSIXS1EZBkgHSSmcNxD7GEXqpgYNhi7z4y6q71yalAiJCHYrF0WBggkUBGBvX2BzICIeIpJgvHOyyRN4CMERtCWcGgcRgm8p4Lg1DeuVqqZZdvKHpYhxyJG6TGr7OCQeMQDFvs27gQEDWrjNKyKw/1nEpAMvBvgs4eTjBy2LsCTu8yo5IzXNQz7veRV38a0YfnBjLAvl5FIIapGphQNsG0qgVM7mfY0EWXAVadvfDC2X2sQi41+D0zMOhZj2e1yOs/j+mTcwEhHvHJGjAE0YpTdCIAkxC4TDmCYarbZWIa0OW8wkRiZA+BeKT1CSBIdAOfuXpgzS3AeuqRwC8hM7xdd8Hvq1b43p/qtSGtHsO09wwt02CQPs5PnLC/0CAQK/+rFJD7mtbov+wRQdivheVxKyxPDKdoM+SHN+sz8Nv6FPy0OAirDh4e59BrgCtxgYSiDno7Wx1JQLmPIW13+T6CGZU3psDM6W5HIRgA0mnOY4LJYRXM2eUwZZGDTkaBSsjBUvBZ76vKyhpiMFfyEvRG3o0UEKQFhyIjEKIFnxnuDWvi8hgVoJf1YiBlH/uABnQ551MMZa9kkHm7LCsQuofoQEhDAyIM1C9g/xMD+iyiSzkK/LIAgnGK6hJAZk28M4EQzTgNKUCWfkF8yuU0GaSDCfmNOYFZGhtKgRkfUoFWwsNAsaRQkjeYXHnlOO84dDIMI+vtfBObavmBmbeJcwoT9BgZvUMyXGyqfZAXmAduTU5hFv2WFBgkkt26m+vQ7uCj/zTMoJz/P0xGMNkulOk07zUzwqhF3PzDBM38nMLcd6VmM7QjSEoAl/ICE9B25BRmyq5Nu3DGUvOVvC6auUrPTGmZ7pWmllYor218W17TsFFy7VpxfvZm6ttn3gWg1X+SAYTECofVATfqbsZVUdOQUvgoq6ujKmobdytrGg7pvz1Sw15Fbb3jxF3zjJ4FD8csWYGExm0wPaJjXPWRpIIe6KbEwKYkcIvFBWZDT6+rXzaXJpxnyJmfruBgFzway8xDD0atCSA+kxJMiqMzjYDqwxB01TTdOtbYdg4/ZQxSXXMbfl5Z39SWEDdMx4CAugWeO7mw4us/dRpeDQzDxrwdlkbEMGGSg0wU9YhSwIUeSsholFBtBKnBllZcieJ0MNLakmJSzGA6bZLz/JqLD4/9agiP6rFeh8ex0HH53Y+L8PfOU/jz51nYeWSIj0HHZlQD4Il0jMbkHAZdqq7KNlwn4zJUZ2ysrKozSFqVJVoIFB4PQ4w68zRLzmxII8JamOxvxjB2RxA83oWMSk4zbgcuFpK6GZu6mxakg9sHVfVNZ0oA18urqxgrmvFqJjcKNWh/GK9SomLglMeHC33JmnNbcfHP6nueUNG802c7lUEifjdsBo2O5NR80ji0Rp1QEKzY1nKqgRJocL8lm1oz6dO08Qwnghj6RfBNwAg/BE3bBd0FSC68P32yBfBHog52HsPWvCXiGfNuQfdnlLa1hPuh5VSQ10s2DPNq1hQuuM4ZmWKov5n8bG5xA/76dRnebU7HIbBX5kx7L0elxXmDIT1NZJTKsX4qEAROshhTvCFPTThHjiCC5v3NoOl8GlKoWUTvNus8rxghNK7v4r1MMj2R4ShmkPpUs1jk+aDeGf72nqH0QlqCmXwHcOJ3AiJvuOgiL5QQWFLf9rFGki816IoYjv4M1KhF07aWZcpLXPwLFF0Ysr/j2kIAAAAtdEVYdFNvZnR3YXJlAGJ5LmJsb29kZHkuY3J5cHRvLmltYWdlLlBORzI0RW5jb2RlcqgGf+4AAAAASUVORK5CYII=',
+            
+            // 일반 좀비 - Green zombie
+            zombieNormal: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAArCAYAAAD2f+EJAAAFDUlEQVR42sWY/09TVxTAazQkZGGbmUBbnCCML3ZjqP0CSklbClRLaQGxlOJYv1cqoVCErmKKVecUcQwU0UoUEzeDLmNbljGXxW0JLNvc9+z3/QnjP7jruXDfXtvX8l4fbC85P/S9+04/75xzzz3nCAQsrhvOfYWzXtnkLW/11yDR3mpEhNyD59OOA1WCrbhA+Wyv/G/6H6eT2175r5sKcNOjeJMoXxiqQ0/CWizLl3SUkHvwfM5Xg9fCe5sD4JarCEDiH6eST0JqyiJhn8zEG4L4/nNXKfqpv5wVBAhYxOevReJQPT+3QCACwH3vQfSHbReWH4JSVhBXZlpRQbgBFYxqkcAjfSFzK7jlfoD41F1OQfzSW7QhwNx7Laj8IxsqfLcFQxSE1JnHxm2PbIy4gi3El5ePIMt9CzI+6EK6aRM6PKJGymHVIu94+Maxh4LgEhcQyPD+jFv2Z0xdbkx2ZAyx7NhNQXwXrmMNAUJ2SUydeF2e58KQRRQ8swvR74589P2Zak4AdAi3trSBBpLDBmC7ojinjCj4cXg/Wr4QnyOeXjyCPgwbsXxwthXNn2nH9xIhHgzUYh0R62t+GgRI9kYQuYGW0mPw8r2+Q5TCL87r0eRpCzp10oU8Hg+jwLMrASuGI/kC9Iy/UTWRACFOFyNgKvFoW6UdXoYvAWUzI+aUf5wo1iEXMkzY0fS0ES0GVRjiuku2wgCRxwSwLSZCWDBsqYnOeGvwl1wYOMEaAESyYMN5AqRvyoisgTpUHKpH2fVlCgaQpPiAyBVLJBKFyWRCx1pbUL+rixMACAEgQpJW/qBygQFCuP7x1IWtoNfrlwDCbDZzBgBRzNmTQHZHmjBICmtQQbqDbgUQp9OZEQTERCJEcfQ4hhAOqZYElaKKBIidBOI5uKHVasMA0NnZmREAEWPEmQRScFabyi1CAvEi3RXd3d28IECaxuNB9l5vWzvQmN2yHSBegh/Nzc0rAGGz2XhDJO6U4jvH0cuxhAYQu3prwwkQWVsGQQ/SV+YtqPCq4d/Y+L8gXn1nbbuKBmqj/xkE3R2F10iRo1ll2CFZVKLS6XRRgLBarbwB9G/HByaJh1xvtZ8hV2yjtqhSqbQDREdHBy8AyBV0K5Q+PEHtDAYr5MUlK5FIVBGDWOXjkkQAerISj2iYDrKd9LQNROLGxsYJPtZ4/f14gLJHPVTlncIV2UnHOLGGpd2Azp1s5Z2y94wb0lkhL+VRbj8qs8NR/jCgxFXToM/BGWL/4x50+poBN0HSYfUq26OcClBpUU4FvaiB0o1tXQG5AUr+j6/qqaJm0naQ6RjPTVvewSJSY9JrRlLiBfuYgxZAoeakt4Og41LXgTDDoZW2BYDDRAj9Aij49mIT5yp7JaJGP58qQfM+OYaAmpVroYu3bM1g3XJ77EsmLh/lBhGrzH9ziXGfwtB3CNkC4EsUql+EqC65a8aBBu3d2Gwb9nU6COjSAACaJloHxsoFSZfwLfUYQOy90RYX8RtBkG7tibMEQ0w5pUvrCYl7G5gf1PoBomjKREFAy7+ROwgEdPN4YuOWRjJuiPOCyiqAgCKVuINNTJB4gLnGGoRcxWtQIgpp/gIQSazNh7afDcSzoUo8TgAAGLbxHheJgxoTQAT6D6OvzjWwgvhsVEPtik0bnvX0H5qkT+9S5Y2n5xup5IRnmx7FvU0dI8LUhu0cE9bB+i0ZqMKk9pZXtpgOAJ5nOtH9B903lUzFjAVEAAAALXRFWHRTb2Z0d2FyZQBieS5ibG9vZGR5LmNyeXB0by5pbWFnZS5QTkcyNEVuY29kZXKoBn/uAAAAAElFTkSuQmCC',
+            
+            // 빠른 좀비 - Hitman (darker, stealthy look)
+            zombieFast: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAArCAYAAAD2f+EJAAAEQUlEQVR42sWYa0gUURTHFUWJKIowlv1SCorvZ66Kr6wkwiJKiCzKNrboQawkScXmtuma+Vh7bcJqrmVp75a0pKTSapMoUEM3IkP0S36wkvwUEac5V+84bTP7mJ3cgT+us3fO/e2Zc+899/j4uHAFBwcvi4mJqYuOjn6Oio2NBSp6D78PCwuL8/kfFxpn9J07sRP1SQrAGCykxpOTkyEjI4MoJyeHFb2H38fFxVGQQqk8kE0B7CcWUmpqKuuRyMjIjVJ4YQSNpaWluQRAhR7B5/AVegSAAYaGEhIS3AKgio+P99wbTLRr0YhCoRAFgc/NZI7WY4iUlBRREPgcPh8VFWX2BIKsBenp6aIgMJDx+dzcXCtjLoiRv2gIV7PCXtnZ2eSv0WgExpx8RgvdYQigaUaNuSulUgnNzc0Egvm8hgOywBUAv8DAwDAKwTeBans+FKkKiDSHCqG58jD5vHXzBhZgdHQUurq6CIRGo1FzIFDznEEEhYSE5NunJ058+9xR+PLsEkB/i6BeXK+EsZFhmJiYgO7ubgKh1+tr7CDkjmIEXSUPDQ1VIkRiYiKsX7cWXraUO5yYT1Oj/WC1WgmEwWCw8kAs5QPwZSTDAetz003JSQkk18UAUI28aYfG2lK4WnEAtuWlKXhA/okPjFw5Dm7R74MGrQp6r5VNGxy6CzDcNa0PD9wCsV4pBbRXr9l1kwdCNvPj2Yt4wXRC2YkPPW88Pmvs46NZCNRAq1sg9wxqAiLgDTZI/bleQE29bpg19Onx3xDv29yCGG6vITbxB66MWR5uB7GYQszHG4biglIcjC78yxBOSkFsFlHx0VZ5gIBc1qoG7UBkFGIR91XY7p8RHYxC+txRy4KcL9lhn7J+CLEE/2nUqqw4aPzpRckhvnbXw7vWUwTCfHLPmB1EwJxA/LCaYPDO6WmIsr2TXoPoNB5hA9QrEPRVoIq2rF7DB0EWKuOxnSYcNHBLLzlEx4ViAoAZyLNW+LIpqtu/SYkDn9SXSAqAaw71gqM9hCxWmL8YNFK/ErpYCSzdi7nLNhLJMYel9MbPt2a4ceYggTi6e0O+o2Wb3capNy4e3wXG0n0eQ+AeJJARvNs5u5WvW7VCiVt5UlISVJbscVrI8On3QBt86O0EU105NFUUTfLsGYKlHglQmUymoEUNVlXuFja/hizwbXyMrayqq6v5vBDksLzDQQiBh1tubYk1JJZ4nx6e5Z28704VNFWVgM1mI+WdxWIRKu9kzo4AuJnIHBW6zpSXlwc9PT1gNpsJhFqtzne30CUpy5ycXiFEZmamKBCUTqcjEExshXM8MG/ODj/0BMaU/4OuvgLe7gwawX6DGAjap4iIiLg5syD5e+1UzrxWndf7E9jt8UqnhtMyGpGsZ4XrhatZgsA0vT32Ar2wycHt3gmd0rOysthelcfNEUdB6qo8ahG50tF1Mvl9sR3dP9AVglYs+ilOAAAALXRFWHRTb2Z0d2FyZQBieS5ibG9vZGR5LmNyeXB0by5pbWFnZS5QTkcyNEVuY29kZXKoBn/uAAAAAElFTkSuQmCC',
+            
+            // 탱커 좀비 - Old man (bigger, tougher)
+            zombieTank: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACEAAAArCAYAAAD2f+EJAAAEiklEQVR42tWYbUhUWRjHjSKJMJJwGebLroIy+P6Co+I79UWiBIPIJFvTQsowNqxYSnsxd1rcjLLCmUJzqB2lDN1JQTN3UZPY0VkWg6BdgiBaiEiKhY0+nO7/NOdyup77MvfOLuzA/8Pce+5zfuc5zznnOU9UlIFffHz8l2lpaV2pqalTUHp6OmFiz/A+KSkpI+rf+MG4pDd8xzoKRhRAMribGc/NzSVFRUVU5eXlstgzvM/IyGAguyPlgVIGoOxYTfn5+bJHkpOTKyPhhWcwVlBQYAiACR7Bd5hCSwAIMBjKysoKC4ApMzPTujekaG+DEafTaQoC34VWTptliLy8PFMQ+A7fp6Sk9FqBoHtBYWGhKQgEcsgTi5K5OEmrTEMYXRVKlZaWyqtEMmcPaV04DKuZARgzAwExG3a7fRMHEmMEYGV0dHQSMyAyXlNTQ+rr66mamppIR0cHOdRQTXZUbfmsXXZ2NrWRmJjYzEFAa/Qg4hISErYplyc67urqIuPj4yQQCCwT+c1LFbz9PQXi9wuHw9GpgLBrxQhcZZfI6/AxRlJRUUH6+vqEHTP9HngoQzBNe9v5FTIrgPhCBLBCkg0NKisr3RgF1roeAPQ2eGcZBDR08ShprN5MPG0NZOfmAqcAZFl8IHLttbW1zsHBQdLf30cGBgaEo34y/wvV8/lx8k/QJwRgmr3RSrxnG8nV418PCCBsocHLP+oFaeRjgPD7/bTTYOAR7exD8KZmZ1oaOt9MQVS8IQfpKt4L0NzcHIV4s3DXdOdMf/zUSSHcJ+rGytK+ciggYhnEWjzo7u5uBcDo6CgF+GvBb7ijv4ODmu9/dO2nINfbGhYVIDYGsZ6fisnJSWHEi/RiYYy21fPan/4fZJCLR3Ypl+xKQGzAH6/XOwuI6elpGgdanSNGHgdmPgtarSB9/fNVErh1mkL0ntz7XAGxWgiBEep5gAd4Nn9fs/3bWTdZvP3dJ4gz+5YiAoF44SGwirQ8AYixyy1ygBqC0BsZhDY8CKZHrS2bCujQ9o2bRBB0o/J4PG5ATExM0JEZCUyMHl55Oj9FNzC1/cR/6TAFOH+4ulWwV6yQl6jL5aoDxMjICB3Zq4URy3sE9O6hR/aC1hlCN6uysjKHz+dbYlMCb+it/3A2K5WtO5bftkFk7+np6eS9ARDMvdlt+/2vvcR37gCFOLZnyzatbVs+xpk33G43aW9v1z3A9Dw1de1btRUhPM7lo1zKIepwlOfk5JCWlhbVRIZJFDvv5q6REwd3keqtG8m5b3YuCc4M1VSPBqjNZnOypAYZkpHEhp+ulw+u0OyKJTXSBUjkhTjN9A6N8DEut3zOWFVVRVO84eFhYWLz9N4F4jqyV24PT6qkdza9KwAOE5tWohvuVRA5a7iJLl2yUl44AwPFxcWWU/6YmBgH54E1/9nlR3EDMzQFwuoMjKDeYAaC1SlCQRlr9hoYkVu5NK2n/t/1CSuVGjYVlis1fM0K+4XRVQJgrrTYHJHiGYocfPVO7ZZeUlIi3z0tF0e0gtSoLJWIjFR0dTq/a7ai+xFTMFkegzv1xgAAAC10RVh0U29mdHdhcmUAYnkuYmxvb2RkeS5jcnlwdG8uaW1hZ2UuUE5HMjRFbmNvZGVyqAZ/7gAAAABJRU5ErkJggg=='
+        };
+        
+        // 이미지 객체 저장소
+        const sprites = {};
+        let assetsLoaded = 0;
+        const totalAssets = Object.keys(SPRITE_DATA).length;
+        
+        // 스프라이트 로드 함수
+        function loadSprites() {
+            return new Promise((resolve) => {
+                for (const [name, src] of Object.entries(SPRITE_DATA)) {
+                    const img = new Image();
+                    img.onload = () => {
+                        assetsLoaded++;
+                        if (assetsLoaded >= totalAssets) {
+                            resolve();
+                        }
+                    };
+                    img.onerror = () => {
+                        console.error(`Failed to load sprite: ${name}`);
+                        assetsLoaded++;
+                        if (assetsLoaded >= totalAssets) {
+                            resolve();
+                        }
+                    };
+                    img.src = src;
+                    sprites[name] = img;
+                }
+            });
+        }
+        
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 반응형 캔버스
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+        
+        // 게임 상태
+        let gameRunning = false;
+        let gamePaused = false;
+        
+        // 플레이어
+        const player = {
+            x: 0, y: 0,
+            size: 25,
+            speed: 4,
+            health: 100,
+            maxHealth: 100,
+            damage: 20,
+            attackRange: 150,
+            attackSpeed: 500,
+            lastAttack: 0,
+            bulletSpeed: 10,
+            bulletPierce: 1,
+            exp: 0,
+            level: 1,
+            expToLevel: 50,
+            kills: 0,
+            invincible: false,
+            invincibleTime: 0,
+            angle: 0 // 플레이어 회전 각도
+        };
+        
+        // 좀비들
+        let zombies = [];
+        let bullets = [];
+        let items = [];
+        let particles = [];
+        let damageNumbers = [];
+        
+        // 웨이브 시스템
+        let wave = 1;
+        let zombiesToSpawn = 5;
+        let spawnInterval = 2000;
+        let lastSpawn = 0;
+        let waveTimer = 0;
+        let waveDelay = 5000;
+        let zombiesInWave = 0;
+        let zombiesKilledInWave = 0;
+        
+        // 입력
+        const keys = {};
+        const joystick = { active: false, x: 0, y: 0 };
+        
+        // 업그레이드 옵션
+        const upgrades = [
+            { name: '❤️ 체력 증가', desc: '최대 체력 +30', apply: () => { player.maxHealth += 30; player.health = Math.min(player.health + 30, player.maxHealth); }},
+            { name: '⚔️ 공격력 증가', desc: '공격력 +10', apply: () => { player.damage += 10; }},
+            { name: '🏃 이동 속도', desc: '이동 속도 +1', apply: () => { player.speed += 1; }},
+            { name: '🎯 공격 범위', desc: '공격 범위 +30', apply: () => { player.attackRange += 30; }},
+            { name: '⚡ 공격 속도', desc: '공격 속도 +20%', apply: () => { player.attackSpeed *= 0.8; }},
+            { name: '💨 탄속 증가', desc: '탄환 속도 +3', apply: () => { player.bulletSpeed += 3; }},
+            { name: '🔥 관통 탄환', desc: '탄환 관통 +1', apply: () => { player.bulletPierce += 1; }},
+        ];
+        
+        // 키보드 입력
+        document.addEventListener('keydown', e => { keys[e.code] = true; });
+        document.addEventListener('keyup', e => { keys[e.code] = false; });
+        
+        // 조이스틱
+        const joystickArea = document.getElementById('joystickArea');
+        const joystickThumb = document.getElementById('joystickThumb');
+        const joystickBase = document.getElementById('joystickBase');
+        
+        function handleJoystickStart(e) {
+            e.preventDefault();
+            joystick.active = true;
+            handleJoystickMove(e);
+        }
+        
+        function handleJoystickMove(e) {
+            if (!joystick.active) return;
+            e.preventDefault();
+            
+            const touch = e.touches ? e.touches[0] : e;
+            const rect = joystickBase.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            let dx = touch.clientX - centerX;
+            let dy = touch.clientY - centerY;
+            
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const maxDist = 40;
+            
+            if (dist > maxDist) {
+                dx = (dx / dist) * maxDist;
+                dy = (dy / dist) * maxDist;
+            }
+            
+            joystick.x = dx / maxDist;
+            joystick.y = dy / maxDist;
+            
+            joystickThumb.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+        }
+        
+        function handleJoystickEnd(e) {
+            e.preventDefault();
+            joystick.active = false;
+            joystick.x = 0;
+            joystick.y = 0;
+            joystickThumb.style.transform = 'translate(-50%, -50%)';
+        }
+        
+        joystickArea.addEventListener('touchstart', handleJoystickStart, { passive: false });
+        document.addEventListener('touchmove', handleJoystickMove, { passive: false });
+        document.addEventListener('touchend', handleJoystickEnd, { passive: false });
+        joystickArea.addEventListener('mousedown', handleJoystickStart);
+        document.addEventListener('mousemove', handleJoystickMove);
+        document.addEventListener('mouseup', handleJoystickEnd);
+        
+        // 좀비 생성
+        function spawnZombie() {
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            const margin = 50;
+            
+            switch(side) {
+                case 0: x = Math.random() * canvas.width; y = -margin; break;
+                case 1: x = canvas.width + margin; y = Math.random() * canvas.height; break;
+                case 2: x = Math.random() * canvas.width; y = canvas.height + margin; break;
+                case 3: x = -margin; y = Math.random() * canvas.height; break;
+            }
+            
+            const type = Math.random();
+            let zombie;
+            
+            if (type < 0.7) {
+                // 일반 좀비
+                zombie = {
+                    x, y,
+                    size: 20,
+                    speed: 1.5 + wave * 0.1,
+                    health: 30 + wave * 5,
+                    maxHealth: 30 + wave * 5,
+                    damage: 10 + wave * 2,
+                    exp: 10,
+                    sprite: 'zombieNormal',
+                    type: 'normal',
+                    angle: 0
+                };
+            } else if (type < 0.9) {
+                // 빠른 좀비
+                zombie = {
+                    x, y,
+                    size: 15,
+                    speed: 3 + wave * 0.15,
+                    health: 20 + wave * 3,
+                    maxHealth: 20 + wave * 3,
+                    damage: 8 + wave,
+                    exp: 15,
+                    sprite: 'zombieFast',
+                    type: 'fast',
+                    angle: 0
+                };
+            } else {
+                // 탱커 좀비
+                zombie = {
+                    x, y,
+                    size: 30,
+                    speed: 0.8 + wave * 0.05,
+                    health: 100 + wave * 20,
+                    maxHealth: 100 + wave * 20,
+                    damage: 25 + wave * 3,
+                    exp: 30,
+                    sprite: 'zombieTank',
+                    type: 'tank',
+                    angle: 0
+                };
+            }
+            
+            zombies.push(zombie);
+            zombiesInWave++;
+        }
+        
+        // 아이템 드롭
+        function dropItem(x, y) {
+            if (Math.random() > 0.3) return;
+            
+            const type = Math.random();
+            let item;
+            
+            if (type < 0.7) {
+                item = { x, y, type: 'health', color: '#e74c3c', emoji: '❤️', value: 20 };
+            } else {
+                item = { x, y, type: 'exp', color: '#3498db', emoji: '⭐', value: 20 };
+            }
+            
+            items.push(item);
+        }
+        
+        // 파티클 생성
+        function createParticles(x, y, color, count) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x, y,
+                    vx: (Math.random() - 0.5) * 8,
+                    vy: (Math.random() - 0.5) * 8,
+                    size: Math.random() * 5 + 2,
+                    color,
+                    life: 30
+                });
+            }
+        }
+        
+        // 데미지 숫자
+        function showDamage(x, y, damage, color = '#fff') {
+            damageNumbers.push({
+                x, y,
+                text: typeof damage === 'number' ? Math.floor(damage).toString() : damage,
+                color,
+                life: 40,
+                vy: -2
+            });
+        }
+        
+        // 가장 가까운 좀비 찾기
+        function findNearestZombie() {
+            let nearest = null;
+            let minDist = player.attackRange;
+            
+            for (const zombie of zombies) {
+                const dist = Math.hypot(zombie.x - player.x, zombie.y - player.y);
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearest = zombie;
+                }
+            }
+            
+            return nearest;
+        }
+        
+        // 자동 공격
+        function autoAttack(now) {
+            if (now - player.lastAttack < player.attackSpeed) return;
+            
+            const target = findNearestZombie();
+            if (!target) return;
+            
+            player.lastAttack = now;
+            
+            const angle = Math.atan2(target.y - player.y, target.x - player.x);
+            player.angle = angle; // 플레이어가 타겟을 바라보도록
+            
+            bullets.push({
+                x: player.x,
+                y: player.y,
+                vx: Math.cos(angle) * player.bulletSpeed,
+                vy: Math.sin(angle) * player.bulletSpeed,
+                damage: player.damage,
+                pierce: player.bulletPierce,
+                hit: [],
+                angle: angle
+            });
+        }
+        
+        // 플레이어 이동
+        function movePlayer() {
+            let dx = 0, dy = 0;
+            
+            if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
+            if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
+            
+            if (joystick.active) {
+                dx = joystick.x;
+                dy = joystick.y;
+            }
+            
+            if (dx !== 0 || dy !== 0) {
+                const len = Math.hypot(dx, dy);
+                player.x += (dx / len) * player.speed;
+                player.y += (dy / len) * player.speed;
+            }
+            
+            // 경계 체크
+            player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
+            player.y = Math.max(player.size, Math.min(canvas.height - player.size, player.y));
+        }
+        
+        // 좀비 업데이트
+        function updateZombies() {
+            for (const zombie of zombies) {
+                const angle = Math.atan2(player.y - zombie.y, player.x - zombie.x);
+                zombie.angle = angle;
+                zombie.x += Math.cos(angle) * zombie.speed;
+                zombie.y += Math.sin(angle) * zombie.speed;
+                
+                // 플레이어 충돌
+                const dist = Math.hypot(player.x - zombie.x, player.y - zombie.y);
+                if (dist < player.size + zombie.size && !player.invincible) {
+                    player.health -= zombie.damage;
+                    player.invincible = true;
+                    player.invincibleTime = 30;
+                    showDamage(player.x, player.y - 30, zombie.damage, '#e74c3c');
+                    createParticles(player.x, player.y, '#e74c3c', 5);
+                    
+                    if (player.health <= 0) {
+                        gameOver();
+                    }
+                }
+            }
+        }
+        
+        // 탄환 업데이트
+        function updateBullets() {
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                bullet.x += bullet.vx;
+                bullet.y += bullet.vy;
+                
+                // 화면 밖
+                if (bullet.x < -50 || bullet.x > canvas.width + 50 ||
+                    bullet.y < -50 || bullet.y > canvas.height + 50) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+                
+                // 좀비 충돌
+                for (let j = zombies.length - 1; j >= 0; j--) {
+                    const zombie = zombies[j];
+                    if (bullet.hit.includes(zombie)) continue;
+                    
+                    const dist = Math.hypot(bullet.x - zombie.x, bullet.y - zombie.y);
+                    if (dist < zombie.size + 8) {
+                        zombie.health -= bullet.damage;
+                        showDamage(zombie.x, zombie.y - zombie.size, bullet.damage, '#fff');
+                        createParticles(zombie.x, zombie.y, '#ff6b6b', 3);
+                        
+                        bullet.hit.push(zombie);
+                        bullet.pierce--;
+                        
+                        if (bullet.pierce <= 0) {
+                            bullets.splice(i, 1);
+                        }
+                        
+                        if (zombie.health <= 0) {
+                            player.exp += zombie.exp;
+                            player.kills++;
+                            zombiesKilledInWave++;
+                            dropItem(zombie.x, zombie.y);
+                            createParticles(zombie.x, zombie.y, '#2ecc71', 10);
+                            zombies.splice(j, 1);
+                            
+                            // 레벨업 체크 (중복 호출 방지)
+                            if (player.exp >= player.expToLevel && !gamePaused) {
+                                levelUp();
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        
+        // 아이템 업데이트
+        function updateItems() {
+            for (let i = items.length - 1; i >= 0; i--) {
+                const item = items[i];
+                const dist = Math.hypot(player.x - item.x, player.y - item.y);
+                
+                if (dist < player.size + 15) {
+                    if (item.type === 'health') {
+                        player.health = Math.min(player.maxHealth, player.health + item.value);
+                        showDamage(player.x, player.y - 30, '+' + item.value, '#2ecc71');
+                    } else if (item.type === 'exp') {
+                        player.exp += item.value;
+                        showDamage(player.x, player.y - 30, '+' + item.value + ' XP', '#3498db');
+                        if (player.exp >= player.expToLevel && !gamePaused) {
+                            levelUp();
+                        }
+                    }
+                    createParticles(item.x, item.y, item.color, 5);
+                    items.splice(i, 1);
+                }
+            }
+        }
+        
+        // 파티클 업데이트
+        function updateParticles() {
+            for (let i = particles.length - 1; i >= 0; i--) {
+                const p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vx *= 0.95;
+                p.vy *= 0.95;
+                p.life--;
+                if (p.life <= 0) particles.splice(i, 1);
+            }
+        }
+        
+        // 데미지 숫자 업데이트
+        function updateDamageNumbers() {
+            for (let i = damageNumbers.length - 1; i >= 0; i--) {
+                const d = damageNumbers[i];
+                d.y += d.vy;
+                d.life--;
+                if (d.life <= 0) damageNumbers.splice(i, 1);
+            }
+        }
+        
+        // 웨이브 관리
+        function updateWave(now) {
+            // 좀비 스폰
+            if (zombiesInWave < zombiesToSpawn && now - lastSpawn > spawnInterval) {
+                spawnZombie();
+                lastSpawn = now;
+            }
+            
+            // 웨이브 클리어
+            if (zombiesKilledInWave >= zombiesToSpawn && zombies.length === 0) {
+                if (waveTimer === 0) {
+                    waveTimer = now;
+                    announceWave(wave + 1);
+                }
+                
+                if (now - waveTimer > waveDelay) {
+                    wave++;
+                    zombiesToSpawn = 5 + wave * 3;
+                    spawnInterval = Math.max(500, 2000 - wave * 100);
+                    zombiesInWave = 0;
+                    zombiesKilledInWave = 0;
+                    waveTimer = 0;
+                }
+            }
+        }
+        
+        // 웨이브 알림
+        function announceWave(num) {
+            const announce = document.getElementById('waveAnnounce');
+            announce.textContent = `🧟 웨이브 ${num}`;
+            announce.style.opacity = 1;
+            setTimeout(() => { announce.style.opacity = 0; }, 2000);
+        }
+        
+        // 레벨업
+        function levelUp() {
+            player.level++;
+            player.exp -= player.expToLevel;
+            player.expToLevel = Math.floor(player.expToLevel * 1.3);
+            gamePaused = true;
+            
+            // 랜덤 업그레이드 3개 선택
+            const options = [...upgrades].sort(() => Math.random() - 0.5).slice(0, 3);
+            const container = document.getElementById('upgradeOptions');
+            container.innerHTML = '';
+            
+            options.forEach(upgrade => {
+                const btn = document.createElement('button');
+                btn.className = 'btn upgrade-btn';
+                btn.innerHTML = `${upgrade.name}<br><small>${upgrade.desc}</small>`;
+                
+                const selectUpgrade = () => {
+                    upgrade.apply();
+                    document.getElementById('levelUpScreen').style.display = 'none';
+                    gamePaused = false;
+                    // 연속 레벨업 체크
+                    if (player.exp >= player.expToLevel) {
+                        setTimeout(() => levelUp(), 100);
+                    }
+                };
+                
+                btn.onclick = selectUpgrade;
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    selectUpgrade();
+                });
+                
+                container.appendChild(btn);
+            });
+            
+            document.getElementById('levelUpScreen').style.display = 'flex';
+        }
+        
+        // 스프라이트 그리기 함수
+        function drawSprite(spriteName, x, y, size, angle = 0) {
+            const sprite = sprites[spriteName];
+            if (!sprite || !sprite.complete) return;
+            
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle - Math.PI / 2); // 스프라이트가 이동 방향을 향하도록 보정
+            
+            const scale = (size * 2) / Math.max(sprite.width, sprite.height);
+            const w = sprite.width * scale;
+            const h = sprite.height * scale;
+            
+            ctx.drawImage(sprite, -w / 2, -h / 2, w, h);
+            ctx.restore();
+        }
+        
+        // 그리기
+        function draw() {
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 격자 배경
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+            ctx.lineWidth = 1;
+            const gridSize = 50;
+            for (let x = 0; x < canvas.width; x += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += gridSize) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // 공격 범위 표시
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, player.attackRange, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // 아이템
+            items.forEach(item => {
+                // 아이템 글로우 효과
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = item.color;
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(item.emoji, item.x, item.y + 8);
+                ctx.shadowBlur = 0;
+            });
+            
+            // 좀비
+            zombies.forEach(zombie => {
+                // 그림자
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(zombie.x, zombie.y + zombie.size * 0.8, zombie.size * 0.8, zombie.size * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 스프라이트 그리기
+                drawSprite(zombie.sprite, zombie.x, zombie.y, zombie.size, zombie.angle);
+                
+                // 체력바
+                const hpWidth = zombie.size * 2;
+                const hpHeight = 4;
+                ctx.fillStyle = '#333';
+                ctx.fillRect(zombie.x - hpWidth/2, zombie.y - zombie.size - 15, hpWidth, hpHeight);
+                ctx.fillStyle = zombie.type === 'tank' ? '#9b59b6' : (zombie.type === 'fast' ? '#f39c12' : '#e74c3c');
+                ctx.fillRect(zombie.x - hpWidth/2, zombie.y - zombie.size - 15, hpWidth * (zombie.health / zombie.maxHealth), hpHeight);
+            });
+            
+            // 탄환
+            bullets.forEach(bullet => {
+                ctx.save();
+                ctx.translate(bullet.x, bullet.y);
+                ctx.rotate(bullet.angle);
+                
+                // 탄환 트레일 효과
+                const gradient = ctx.createLinearGradient(-15, 0, 10, 0);
+                gradient.addColorStop(0, 'rgba(241, 196, 15, 0)');
+                gradient.addColorStop(0.5, 'rgba(241, 196, 15, 0.5)');
+                gradient.addColorStop(1, '#f1c40f');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 12, 4, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 탄환 코어
+                ctx.fillStyle = '#fff';
+                ctx.beginPath();
+                ctx.arc(5, 0, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            });
+            
+            // 플레이어
+            if (!player.invincible || Math.floor(Date.now() / 50) % 2) {
+                // 그림자
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.beginPath();
+                ctx.ellipse(player.x, player.y + player.size * 0.8, player.size * 0.8, player.size * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 플레이어 스프라이트
+                drawSprite('player', player.x, player.y, player.size, player.angle);
+            }
+            
+            // 파티클
+            particles.forEach(p => {
+                ctx.globalAlpha = p.life / 30;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            
+            // 데미지 숫자
+            damageNumbers.forEach(d => {
+                ctx.globalAlpha = d.life / 40;
+                ctx.font = 'bold 18px Arial';
+                ctx.fillStyle = d.color;
+                ctx.textAlign = 'center';
+                ctx.shadowBlur = 3;
+                ctx.shadowColor = '#000';
+                ctx.fillText(d.text, d.x, d.y);
+                ctx.shadowBlur = 0;
+            });
+            ctx.globalAlpha = 1;
+        }
+        
+        // UI 업데이트
+        function updateUI() {
+            document.getElementById('wave').textContent = wave;
+            document.getElementById('kills').textContent = player.kills;
+            document.getElementById('level').textContent = player.level;
+            document.getElementById('healthFill').style.width = (player.health / player.maxHealth * 100) + '%';
+            document.getElementById('expFill').style.width = (player.exp / player.expToLevel * 100) + '%';
+        }
+        
+        // 게임 오버
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('finalWave').textContent = wave;
+            document.getElementById('finalKills').textContent = player.kills;
+            document.getElementById('finalLevel').textContent = player.level;
+            document.getElementById('gameOverScreen').style.display = 'flex';
+        }
+        
+        // 게임 루프
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+            
+            if (!gamePaused) {
+                movePlayer();
+                updateZombies();
+                autoAttack(timestamp);
+                updateBullets();
+                updateItems();
+                updateParticles();
+                updateDamageNumbers();
+                updateWave(timestamp);
+                
+                if (player.invincible) {
+                    player.invincibleTime--;
+                    if (player.invincibleTime <= 0) {
+                        player.invincible = false;
+                    }
+                }
+            }
+            
+            draw();
+            updateUI();
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 게임 시작
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            resetGame();
+            gameRunning = true;
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 게임 재시작
+        function restartGame() {
+            document.getElementById('gameOverScreen').style.display = 'none';
+            resetGame();
+            gameRunning = true;
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // 게임 리셋
+        function resetGame() {
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            player.health = 100;
+            player.maxHealth = 100;
+            player.damage = 20;
+            player.attackRange = 150;
+            player.attackSpeed = 500;
+            player.bulletSpeed = 10;
+            player.bulletPierce = 1;
+            player.speed = 4;
+            player.exp = 0;
+            player.level = 1;
+            player.expToLevel = 50;
+            player.kills = 0;
+            player.invincible = false;
+            player.lastAttack = 0;
+            player.angle = 0;
+            
+            zombies = [];
+            bullets = [];
+            items = [];
+            particles = [];
+            damageNumbers = [];
+            
+            wave = 1;
+            zombiesToSpawn = 5;
+            spawnInterval = 2000;
+            lastSpawn = 0;
+            waveTimer = 0;
+            zombiesInWave = 0;
+            zombiesKilledInWave = 0;
+            gamePaused = false;
+            
+            announceWave(1);
+        }
+        
+        // 초기화
+        async function init() {
+            // 스프라이트 로드 (3초 타임아웃)
+            const loadPromise = loadSprites();
+            const timeoutPromise = new Promise(resolve => setTimeout(resolve, 3000));
+            await Promise.race([loadPromise, timeoutPromise]);
+            
+            // 로딩 화면 숨기기
+            document.getElementById('loadingScreen').style.display = 'none';
+            
+            // 시작 화면 표시
+            document.getElementById('startScreen').style.display = 'flex';
+            
+            // 버튼 이벤트 설정
+            const startBtn = document.getElementById('startBtn');
+            const restartBtn = document.getElementById('restartBtn');
+            
+            startBtn.addEventListener('click', startGame);
+            startBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                startGame();
+            });
+            
+            restartBtn.addEventListener('click', restartGame);
+            restartBtn.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                restartGame();
+            });
+            
+            // 모바일 체크
+            if ('ontouchstart' in window) {
+                document.getElementById('mobileControls').style.display = 'block';
+            }
+        }
+        
+        // 페이지 로드 시 초기화
+        init();
+    </script>
+</body>
+</html>
