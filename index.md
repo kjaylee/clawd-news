@@ -27,7 +27,7 @@ title: 홈
 <div class="card-grid">
 <div class="card">
     <a href="{{ '/games/' | relative_url }}">
-        <h3>🎮 전체 게임 포털 (27종)</h3>
+        <h3>🎮 전체 게임 포털 (28종)</h3>
         <p>퍼즐 · 아케이드 · 액션 · 리듬 — 브라우저에서 바로 플레이!</p>
     </a>
 </div>
@@ -63,7 +63,7 @@ title: 홈
 </div>
 </div>
 
-[🎮 전체 27종 게임 포털 →]({{ '/games/' | relative_url }})
+[🎮 전체 28종 게임 포털 →]({{ '/games/' | relative_url }})
 
 ---
 
