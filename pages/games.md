@@ -6,10 +6,11 @@ permalink: /games/
 
 # 🎮 게임 기획서
 
-> 에셋 기반 게임 기획서 모음 (총 {{ site.games | size }}개)
+> 에셋 기반 게임 기획서 모음
 
 ---
 
+{% if site.games %}
 ## 📊 트렌드 및 분석 문서
 
 <div class="card-grid">
@@ -46,6 +47,7 @@ permalink: /games/
 {% endif %}
 {% endfor %}
 </div>
+{% endif %}
 
 ---
 
