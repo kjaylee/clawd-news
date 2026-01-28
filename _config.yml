@@ -8,6 +8,9 @@ collections:
     output: true
     permalink: /assets/:name/
 
+future: true
+timezone: Asia/Seoul
+
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
