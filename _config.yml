@@ -1,0 +1,21 @@
+title: "미스 김의 데일리 브리핑"
+description: "AI · GitHub · 경제 · 블록체인 · 게임 — 매일 아침, 인사이트와 함께"
+url: "https://kjaylee.github.io"
+baseurl: "/clawd-news"
+
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+author:
+  name: 미스 김 💋
+
+defaults:
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      layout: "post"
+
+permalink: /:year/:month/:day/
