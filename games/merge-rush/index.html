@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Merge Rush - 머지 러시</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #game-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 15px;
+            position: relative;
+        }
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            font-size: 1.3rem;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stats {
+            display: flex;
+            gap: 12px;
+            font-size: 0.85rem;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.1);
+            padding: 6px 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-label {
+            font-size: 0.7rem;
+            color: #888;
+        }
+        .stat-value {
+            font-weight: bold;
+            color: #f5576c;
+        }
+        /* Timer */
+        .timer-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            display: none;
+        }
+        .timer-bar.show {
+            display: block;
+        }
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f5576c, #f093fb);
+            border-radius: 4px;
+            transition: width 0.1s linear;
+        }
+        .timer-fill.warning {
+            background: linear-gradient(90deg, #ff4444, #ff8800);
+            animation: pulse 0.5s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        /* Grid */
+        #grid-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            position: relative;
+        }
+        .cell {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        .tile {
+            position: absolute;
+            width: calc(25% - 8px);
+            aspect-ratio: 1;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.5rem;
+            transition: all 0.15s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        .tile.new {
+            animation: appear 0.2s ease;
+        }
+        .tile.merge {
+            animation: pop 0.2s ease;
+        }
+        @keyframes appear {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        /* Tile colors */
+        .tile-2 { background: linear-gradient(135deg, #eee4da, #ede0c8); color: #776e65; }
+        .tile-4 { background: linear-gradient(135deg, #ede0c8, #edc850); color: #776e65; }
+        .tile-8 { background: linear-gradient(135deg, #f2b179, #f59563); color: white; }
+        .tile-16 { background: linear-gradient(135deg, #f67c5f, #f65e3b); color: white; }
+        .tile-32 { background: linear-gradient(135deg, #f65e3b, #edcf72); color: white; }
+        .tile-64 { background: linear-gradient(135deg, #edcf72, #edcc61); color: white; }
+        .tile-128 { background: linear-gradient(135deg, #edc850, #edc22e); color: white; font-size: 1.3rem; }
+        .tile-256 { background: linear-gradient(135deg, #edc22e, #f2e000); color: white; font-size: 1.3rem; }
+        .tile-512 { background: linear-gradient(135deg, #f2e000, #a1e044); color: white; font-size: 1.3rem; }
+        .tile-1024 { background: linear-gradient(135deg, #a1e044, #5dc86b); color: white; font-size: 1.1rem; }
+        .tile-2048 { background: linear-gradient(135deg, #5dc86b, #00bcd4); color: white; font-size: 1.1rem; }
+        .tile-4096 { background: linear-gradient(135deg, #00bcd4, #9c27b0); color: white; font-size: 1rem; }
+        .tile-8192 { background: linear-gradient(135deg, #9c27b0, #e91e63); color: white; font-size: 1rem; }
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 35px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 90%;
+            width: 350px;
+        }
+        .modal h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .modal p {
+            color: #aaa;
+            margin-bottom: 20px;
+        }
+        .modal .stats-display {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        .modal .stat-item {
+            text-align: center;
+        }
+        .modal .stat-big {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #f5576c;
+        }
+        .modal .stat-label {
+            color: #888;
+            font-size: 0.85rem;
+        }
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        /* Start Screen */
+        #start-screen {
+            text-align: center;
+        }
+        #start-screen .icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        #start-screen h1 {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        #start-screen .subtitle {
+            color: #888;
+            margin-bottom: 25px;
+        }
+        .mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .mode-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .mode-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.3);
+        }
+        .mode-btn.classic {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .mode-btn.rush {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        .player-stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+        }
+        .player-stat {
+            text-align: center;
+        }
+        .player-stat .value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #f5576c;
+        }
+        .player-stat .label {
+            font-size: 0.75rem;
+            color: #888;
+        }
+        /* Game Over overlay */
+        .game-over-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .game-over-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .game-over-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f5576c;
+        }
+        /* Responsive */
+        @media (max-width: 400px) {
+            #game-container { padding: 10px; }
+            .tile { font-size: 1.2rem; }
+            .tile-128, .tile-256, .tile-512 { font-size: 1rem; }
+            .tile-1024, .tile-2048, .tile-4096, .tile-8192 { font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen">
+            <div class="icon">🚀</div>
+            <h1>MERGE RUSH</h1>
+            <p class="subtitle">스와이프로 블록을 합쳐라!</p>
+            
+            <div class="mode-buttons">
+                <button class="mode-btn classic" onclick="startGame('classic')">
+                    ♾️ 클래식 모드
+                </button>
+                <button class="mode-btn rush" onclick="startGame('rush')">
+                    ⏱️ 러시 모드 (60초)
+                </button>
+            </div>
+            
+            <div class="player-stats">
+                <div class="player-stat">
+                    <div class="value" id="total-coins">0</div>
+                    <div class="label">💰 코인</div>
+                </div>
+                <div class="player-stat">
+                    <div class="value" id="best-classic">0</div>
+                    <div class="label">🏆 클래식 베스트</div>
+                </div>
+                <div class="player-stat">
+                    <div class="value" id="best-rush">0</div>
+                    <div class="label">⏱️ 러시 베스트</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" style="display: none;">
+            <div class="header">
+                <h1>🚀 <span id="mode-label">클래식</span></h1>
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-label">SCORE</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-label">BEST</div>
+                        <div class="stat-value" id="best">0</div>
+                    </div>
+                    <div class="stat-box" id="timer-box" style="display: none;">
+                        <div class="stat-label">TIME</div>
+                        <div class="stat-value" id="timer">60</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="timer-bar" id="timer-bar">
+                <div class="timer-fill" id="timer-fill"></div>
+            </div>
+            
+            <div id="grid-container">
+                <div id="grid">
+                    <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+                    <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+                    <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+                    <div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+                </div>
+                <div class="game-over-overlay" id="game-over-overlay">
+                    <div class="game-over-text">GAME OVER</div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="undoMove()" id="undo-btn" disabled>↩️ Undo</button>
+                <button class="btn btn-secondary" onclick="restartGame()">🔄 Restart</button>
+                <button class="btn btn-secondary" onclick="goHome()">🏠 Home</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <h2 id="result-title">🎉 게임 종료!</h2>
+            <div class="stats-display">
+                <div class="stat-item">
+                    <div class="stat-big" id="result-score">0</div>
+                    <div class="stat-label">점수</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-big" id="result-best">0</div>
+                    <div class="stat-label">베스트</div>
+                </div>
+            </div>
+            <p id="coins-earned">💰 +0 코인 획득!</p>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="restartGame()">▶ 다시하기</button>
+                <button class="btn btn-secondary" onclick="goHome()">🏠 홈으로</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Constants
+        const GRID_SIZE = 4;
+        const INITIAL_TILES = 2;
+        const RUSH_TIME = 60;
+
+        // Game State
+        let state = {
+            grid: [],
+            score: 0,
+            mode: 'classic',
+            timeLeft: RUSH_TIME,
+            timerInterval: null,
+            gameOver: false,
+            history: [],
+            coins: 0,
+            bestClassic: 0,
+            bestRush: 0
+        };
+
+        // Load saved data
+        function loadData() {
+            const saved = localStorage.getItem('mergeRushData');
+            if (saved) {
+                const data = JSON.parse(saved);
+                state.coins = data.coins || 0;
+                state.bestClassic = data.bestClassic || 0;
+                state.bestRush = data.bestRush || 0;
+            }
+            updateStartScreen();
+        }
+
+        // Save data
+        function saveData() {
+            localStorage.setItem('mergeRushData', JSON.stringify({
+                coins: state.coins,
+                bestClassic: state.bestClassic,
+                bestRush: state.bestRush
+            }));
+        }
+
+        // Update start screen stats
+        function updateStartScreen() {
+            document.getElementById('total-coins').textContent = state.coins.toLocaleString();
+            document.getElementById('best-classic').textContent = state.bestClassic.toLocaleString();
+            document.getElementById('best-rush').textContent = state.bestRush.toLocaleString();
+        }
+
+        // Initialize grid
+        function initGrid() {
+            state.grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0));
+            state.score = 0;
+            state.gameOver = false;
+            state.history = [];
+            
+            // Add initial tiles
+            for (let i = 0; i < INITIAL_TILES; i++) {
+                addRandomTile();
+            }
+        }
+
+        // Add random tile
+        function addRandomTile() {
+            const empty = [];
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (state.grid[r][c] === 0) {
+                        empty.push({ r, c });
+                    }
+                }
+            }
+            if (empty.length === 0) return false;
+            
+            const { r, c } = empty[Math.floor(Math.random() * empty.length)];
+            state.grid[r][c] = Math.random() < 0.9 ? 2 : 4;
+            return { r, c };
+        }
+
+        // Calculate tile position
+        function getTilePosition(r, c) {
+            const gap = 8;
+            const cellSize = (100 - 6) / 4; // percentage including gap
+            return {
+                left: `calc(${c * 25}% + ${gap / 2 + c * 2}px)`,
+                top: `calc(${r * 25}% + ${gap / 2 + r * 2}px)`
+            };
+        }
+
+        // Render grid
+        function renderGrid(newTilePos = null) {
+            const grid = document.getElementById('grid');
+            
+            // Remove old tiles
+            grid.querySelectorAll('.tile').forEach(t => t.remove());
+            
+            // Add tiles
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const value = state.grid[r][c];
+                    if (value > 0) {
+                        const tile = document.createElement('div');
+                        tile.className = `tile tile-${value}`;
+                        if (newTilePos && newTilePos.r === r && newTilePos.c === c) {
+                            tile.classList.add('new');
+                        }
+                        tile.textContent = value;
+                        const pos = getTilePosition(r, c);
+                        tile.style.left = pos.left;
+                        tile.style.top = pos.top;
+                        grid.appendChild(tile);
+                    }
+                }
+            }
+            
+            // Update score
+            document.getElementById('score').textContent = state.score.toLocaleString();
+            const best = state.mode === 'classic' ? state.bestClassic : state.bestRush;
+            document.getElementById('best').textContent = best.toLocaleString();
+            
+            // Update undo button
+            document.getElementById('undo-btn').disabled = state.history.length === 0;
+        }
+
+        // Clone grid for history
+        function cloneGrid() {
+            return {
+                grid: state.grid.map(row => [...row]),
+                score: state.score
+            };
+        }
+
+        // Move tiles
+        function move(direction) {
+            if (state.gameOver) return false;
+            
+            // Save state for undo
+            const prevState = cloneGrid();
+            
+            let moved = false;
+            const merged = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(false));
+            
+            const processLine = (line, mergedLine) => {
+                const newLine = line.filter(v => v !== 0);
+                const result = [];
+                const newMerged = [];
+                
+                for (let i = 0; i < newLine.length; i++) {
+                    if (i + 1 < newLine.length && newLine[i] === newLine[i + 1] && !mergedLine[i]) {
+                        result.push(newLine[i] * 2);
+                        newMerged.push(true);
+                        state.score += newLine[i] * 2;
+                        i++;
+                    } else {
+                        result.push(newLine[i]);
+                        newMerged.push(false);
+                    }
+                }
+                
+                while (result.length < GRID_SIZE) {
+                    result.push(0);
+                    newMerged.push(false);
+                }
+                
+                return { result, newMerged };
+            };
+            
+            if (direction === 'left') {
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    const { result, newMerged } = processLine(state.grid[r], merged[r]);
+                    if (result.join() !== state.grid[r].join()) moved = true;
+                    state.grid[r] = result;
+                }
+            } else if (direction === 'right') {
+                for (let r = 0; r < GRID_SIZE; r++) {
+                    const { result } = processLine([...state.grid[r]].reverse(), [...merged[r]].reverse());
+                    const newRow = result.reverse();
+                    if (newRow.join() !== state.grid[r].join()) moved = true;
+                    state.grid[r] = newRow;
+                }
+            } else if (direction === 'up') {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const col = state.grid.map(row => row[c]);
+                    const mergedCol = merged.map(row => row[c]);
+                    const { result } = processLine(col, mergedCol);
+                    for (let r = 0; r < GRID_SIZE; r++) {
+                        if (state.grid[r][c] !== result[r]) moved = true;
+                        state.grid[r][c] = result[r];
+                    }
+                }
+            } else if (direction === 'down') {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const col = state.grid.map(row => row[c]).reverse();
+                    const mergedCol = merged.map(row => row[c]).reverse();
+                    const { result } = processLine(col, mergedCol);
+                    const newCol = result.reverse();
+                    for (let r = 0; r < GRID_SIZE; r++) {
+                        if (state.grid[r][c] !== newCol[r]) moved = true;
+                        state.grid[r][c] = newCol[r];
+                    }
+                }
+            }
+            
+            if (moved) {
+                state.history.push(prevState);
+                if (state.history.length > 10) state.history.shift(); // Limit history
+                
+                const newTile = addRandomTile();
+                renderGrid(newTile);
+                
+                // Check game over
+                if (isGameOver()) {
+                    endGame();
+                }
+            }
+            
+            return moved;
+        }
+
+        // Check if game is over
+        function isGameOver() {
+            // Check for empty cells
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    if (state.grid[r][c] === 0) return false;
+                }
+            }
+            
+            // Check for possible merges
+            for (let r = 0; r < GRID_SIZE; r++) {
+                for (let c = 0; c < GRID_SIZE; c++) {
+                    const val = state.grid[r][c];
+                    if (r + 1 < GRID_SIZE && state.grid[r + 1][c] === val) return false;
+                    if (c + 1 < GRID_SIZE && state.grid[r][c + 1] === val) return false;
+                }
+            }
+            
+            return true;
+        }
+
+        // Undo move
+        function undoMove() {
+            if (state.history.length === 0 || state.gameOver) return;
+            
+            const prev = state.history.pop();
+            state.grid = prev.grid;
+            state.score = prev.score;
+            renderGrid();
+        }
+
+        // End game
+        function endGame() {
+            state.gameOver = true;
+            
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+            
+            // Update best score
+            let isNewBest = false;
+            if (state.mode === 'classic') {
+                if (state.score > state.bestClassic) {
+                    state.bestClassic = state.score;
+                    isNewBest = true;
+                }
+            } else {
+                if (state.score > state.bestRush) {
+                    state.bestRush = state.score;
+                    isNewBest = true;
+                }
+            }
+            
+            // Calculate coins
+            const coinDivisor = state.mode === 'classic' ? 100 : 50;
+            const coinsEarned = Math.floor(state.score / coinDivisor);
+            state.coins += coinsEarned;
+            
+            saveData();
+            
+            // Show game over overlay briefly, then modal
+            document.getElementById('game-over-overlay').classList.add('show');
+            
+            setTimeout(() => {
+                showResultModal(isNewBest, coinsEarned);
+            }, 800);
+        }
+
+        // Show result modal
+        function showResultModal(isNewBest, coinsEarned) {
+            const best = state.mode === 'classic' ? state.bestClassic : state.bestRush;
+            
+            document.getElementById('result-title').textContent = isNewBest ? '🎉 새 기록!' : '⏱️ 게임 종료!';
+            document.getElementById('result-score').textContent = state.score.toLocaleString();
+            document.getElementById('result-best').textContent = best.toLocaleString();
+            document.getElementById('coins-earned').textContent = `💰 +${coinsEarned} 코인 획득!`;
+            
+            document.getElementById('result-modal').classList.add('show');
+        }
+
+        // Start timer (for rush mode)
+        function startTimer() {
+            state.timeLeft = RUSH_TIME;
+            updateTimerDisplay();
+            
+            state.timerInterval = setInterval(() => {
+                state.timeLeft--;
+                updateTimerDisplay();
+                
+                if (state.timeLeft <= 0) {
+                    endGame();
+                }
+            }, 1000);
+        }
+
+        // Update timer display
+        function updateTimerDisplay() {
+            document.getElementById('timer').textContent = state.timeLeft;
+            
+            const percentage = (state.timeLeft / RUSH_TIME) * 100;
+            const timerFill = document.getElementById('timer-fill');
+            timerFill.style.width = `${percentage}%`;
+            
+            if (state.timeLeft <= 10) {
+                timerFill.classList.add('warning');
+            } else {
+                timerFill.classList.remove('warning');
+            }
+        }
+
+        // Start game
+        function startGame(mode) {
+            state.mode = mode;
+            
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            document.getElementById('result-modal').classList.remove('show');
+            document.getElementById('game-over-overlay').classList.remove('show');
+            
+            // Update UI for mode
+            if (mode === 'rush') {
+                document.getElementById('mode-label').textContent = '러시 모드';
+                document.getElementById('timer-box').style.display = 'block';
+                document.getElementById('timer-bar').classList.add('show');
+                startTimer();
+            } else {
+                document.getElementById('mode-label').textContent = '클래식';
+                document.getElementById('timer-box').style.display = 'none';
+                document.getElementById('timer-bar').classList.remove('show');
+            }
+            
+            initGrid();
+            renderGrid();
+        }
+
+        // Restart game
+        function restartGame() {
+            document.getElementById('result-modal').classList.remove('show');
+            document.getElementById('game-over-overlay').classList.remove('show');
+            
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+            
+            if (state.mode === 'rush') {
+                startTimer();
+            }
+            
+            initGrid();
+            renderGrid();
+        }
+
+        // Go home
+        function goHome() {
+            document.getElementById('result-modal').classList.remove('show');
+            document.getElementById('game-over-overlay').classList.remove('show');
+            document.getElementById('game-screen').style.display = 'none';
+            document.getElementById('start-screen').style.display = 'block';
+            
+            if (state.timerInterval) {
+                clearInterval(state.timerInterval);
+                state.timerInterval = null;
+            }
+            
+            updateStartScreen();
+        }
+
+        // Input handling
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchStartTime = 0;
+        const MIN_SWIPE = 30;
+        const MAX_SWIPE_TIME = 500;
+
+        function handleTouchStart(e) {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchStartTime = Date.now();
+        }
+
+        function handleTouchEnd(e) {
+            if (state.gameOver) return;
+            
+            const touch = e.changedTouches[0];
+            const deltaX = touch.clientX - touchStartX;
+            const deltaY = touch.clientY - touchStartY;
+            const deltaTime = Date.now() - touchStartTime;
+            
+            if (deltaTime > MAX_SWIPE_TIME) return;
+            
+            const absX = Math.abs(deltaX);
+            const absY = Math.abs(deltaY);
+            
+            if (absX < MIN_SWIPE && absY < MIN_SWIPE) return;
+            
+            if (absX > absY) {
+                move(deltaX > 0 ? 'right' : 'left');
+            } else {
+                move(deltaY > 0 ? 'down' : 'up');
+            }
+        }
+
+        function handleKeyDown(e) {
+            if (state.gameOver) return;
+            
+            const keyMap = {
+                'ArrowUp': 'up',
+                'ArrowDown': 'down',
+                'ArrowLeft': 'left',
+                'ArrowRight': 'right',
+                'w': 'up',
+                's': 'down',
+                'a': 'left',
+                'd': 'right'
+            };
+            
+            const direction = keyMap[e.key];
+            if (direction) {
+                e.preventDefault();
+                move(direction);
+            }
+        }
+
+        // Event listeners
+        document.addEventListener('touchstart', handleTouchStart, { passive: true });
+        document.addEventListener('touchend', handleTouchEnd, { passive: true });
+        document.addEventListener('keydown', handleKeyDown);
+
+        // Prevent scrolling on touch
+        document.body.addEventListener('touchmove', (e) => {
+            if (document.getElementById('game-screen').style.display !== 'none') {
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        // Initialize
+        loadData();
+    </script>
+</body>
+</html>
