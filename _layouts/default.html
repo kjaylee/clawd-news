@@ -167,10 +167,14 @@
                 </ul>
             </div>
             
-            <!-- 게임 기획서 -->
+            <!-- 게임 -->
             <div class="sidebar-section">
-                <div class="sidebar-title">🎮 게임 기획서</div>
+                <div class="sidebar-title">🎮 게임</div>
                 <ul class="sidebar-nav">
+                    <li><a href="{{ '/games/' | relative_url }}" {% if page.url == '/games/' %}class="active"{% endif %} style="font-weight:600;color:#ff6b9d;">
+                        🕹️ 게임 포털 (27종)
+                        <div class="sub">퍼즐 · 아케이드 · 액션 · 리듬</div>
+                    </a></li>
                     {% if site.games %}
                     {% assign sorted_games = site.games | sort: "order" %}
                     {% for game in sorted_games %}

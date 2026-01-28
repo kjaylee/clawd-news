@@ -22,36 +22,48 @@ title: 홈
 
 ---
 
-## 🎮 게임 프로젝트
+## 🎮 게임 아케이드
 
 <div class="card-grid">
 <div class="card">
-    <a href="https://kjaylee.github.io/jay-projects/games/dice-master/" target="_blank">
-        <h3>🎲 럭키 다이스 마스터</h3>
-        <p>야찌 족보 로그라이크 덱빌더</p>
+    <a href="{{ '/games/' | relative_url }}">
+        <h3>🎮 전체 게임 포털 (27종)</h3>
+        <p>퍼즐 · 아케이드 · 액션 · 리듬 — 브라우저에서 바로 플레이!</p>
     </a>
 </div>
 <div class="card">
-    <a href="https://kjaylee.github.io/jay-projects/games/slime-survivor/" target="_blank">
+    <a href="{{ '/games/rhythm-pulse/' | relative_url }}">
+        <h3>🎵 Rhythm Pulse</h3>
+        <p>비트에 맞춰 노트 탭! 리듬 게임</p>
+    </a>
+</div>
+<div class="card">
+    <a href="{{ '/games/block-bounce/' | relative_url }}">
+        <h3>🧱 Block Bounce</h3>
+        <p>블록 블라스트 스타일 퍼즐</p>
+    </a>
+</div>
+<div class="card">
+    <a href="{{ '/games/idle-slime-merge/' | relative_url }}">
+        <h3>🟢 Idle Slime Merge</h3>
+        <p>아이들 + 머지 하이브리드</p>
+    </a>
+</div>
+<div class="card">
+    <a href="{{ '/games/gravity-orbit/' | relative_url }}">
+        <h3>🌌 Gravity Orbit</h3>
+        <p>행성 궤도 물리 아케이드</p>
+    </a>
+</div>
+<div class="card">
+    <a href="https://eastsea.monster/games/slime-survivor/" target="_blank">
         <h3>🟢 슬라임 서바이버</h3>
         <p>뱀서라이크 액션</p>
     </a>
 </div>
-<div class="card">
-    <a href="https://kjaylee.github.io/jay-projects/games/stack-kingdom/" target="_blank">
-        <h3>🏰 스택 킹덤</h3>
-        <p>스태킹 + 왕국 건설</p>
-    </a>
-</div>
-<div class="card">
-    <a href="https://kjaylee.github.io/jay-projects/games/merge-tower/" target="_blank">
-        <h3>🗼 머지 몬스터 타워</h3>
-        <p>머지 + 타워디펜스</p>
-    </a>
-</div>
 </div>
 
-[전체 게임 (15종) →](https://kjaylee.github.io/jay-projects/games/) ｜ [기획서 →](https://kjaylee.github.io/jay-projects/)
+[🎮 전체 27종 게임 포털 →]({{ '/games/' | relative_url }})
 
 ---
 

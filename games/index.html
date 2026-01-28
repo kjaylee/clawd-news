@@ -3,256 +3,767 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jay's Games - 게임 포털</title>
+    <title>🎮 Jay's Game Arcade — 27 Games</title>
+    <meta name="description" content="HTML5 캐주얼 게임 포털 — 27개 게임을 브라우저에서 바로 플레이!">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg-primary: #0a0a12;
+            --bg-card: #12121f;
+            --bg-card-hover: #1a1a2e;
+            --border: #1f1f2e;
+            --accent: #667eea;
+            --accent2: #764ba2;
+            --pink: #ff6b9d;
+            --cyan: #00d4ff;
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --text-dim: #555;
+            --radius: 14px;
         }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text);
             min-height: 100vh;
-            color: white;
-            padding: 40px 20px;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
         }
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-        h1 {
+
+        /* ===== HEADER ===== */
+        .hero {
             text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 50px 20px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at center, rgba(102,126,234,0.08) 0%, transparent 60%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        .hero-content { position: relative; z-index: 1; }
+        .hero h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--pink) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
+            margin-bottom: 8px;
         }
-        .subtitle {
-            text-align: center;
-            color: #888;
-            margin-bottom: 40px;
+        .hero-subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+        .hero-count {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(102,126,234,0.15);
+            color: var(--accent);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+        .hero-count .dot {
+            width: 8px; height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            animation: blink 2s infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+        .back-link:hover { color: var(--pink); }
+
+        /* ===== SEARCH ===== */
+        .search-wrap {
+            max-width: 500px;
+            margin: 0 auto 10px;
+            position: relative;
+        }
+        .search-wrap svg {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px; height: 18px;
+            color: var(--text-dim);
+            pointer-events: none;
+        }
+        .search-input {
+            width: 100%;
+            padding: 14px 18px 14px 46px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .search-input::placeholder { color: var(--text-dim); }
+        .search-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+        }
+
+        /* ===== FILTERS ===== */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 20px;
+            margin-bottom: 35px;
+        }
+        .filter-btn {
+            padding: 8px 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .filter-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-color: transparent;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* ===== SECTION HEADERS ===== */
+        .section-header {
+            max-width: 1200px;
+            margin: 0 auto 18px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-header h2 {
+            font-size: 1.1rem;
+            color: var(--cyan);
+            font-weight: 700;
+        }
+        .section-header .line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+        .section-header .count {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            background: rgba(255,255,255,0.05);
+            padding: 3px 10px;
+            border-radius: 10px;
+        }
+
+        /* ===== GAMES GRID ===== */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
         }
         .games-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 18px;
+            margin-bottom: 40px;
         }
         .game-card {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
             overflow: hidden;
-            transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
             text-decoration: none;
-            color: white;
+            color: var(--text);
+            transition: transform 0.25s cubic-bezier(.4,0,.2,1), 
+                        border-color 0.25s,
+                        box-shadow 0.25s;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
         .game-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 12px 40px rgba(102,126,234,0.15);
         }
-        .game-preview {
-            height: 180px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .game-card[data-hidden="true"] {
+            display: none;
+        }
+
+        .card-preview {
+            height: 140px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 4rem;
+            font-size: 3.5rem;
+            position: relative;
+            overflow: hidden;
         }
-        .game-info {
-            padding: 20px;
+        .card-preview::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40px;
+            background: linear-gradient(transparent, var(--bg-card));
         }
-        .game-title {
-            font-size: 1.3rem;
-            font-weight: bold;
-            margin-bottom: 8px;
-        }
-        .game-desc {
-            color: #aaa;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-        .game-tags {
-            margin-top: 15px;
+
+        .card-body {
+            padding: 16px 18px 18px;
+            flex: 1;
             display: flex;
+            flex-direction: column;
+        }
+        .card-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
             gap: 8px;
+        }
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            flex: 1;
+            margin-bottom: 12px;
+        }
+        .card-tags {
+            display: flex;
             flex-wrap: wrap;
+            gap: 6px;
         }
         .tag {
-            background: rgba(102, 126, 234, 0.3);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.75rem;
+            background: rgba(102,126,234,0.12);
             color: #a8b4ff;
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 500;
         }
+        .badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            z-index: 2;
+        }
+        .badge-new {
+            background: linear-gradient(135deg, #4ade80, #22d3ee);
+            color: #0a0a12;
+        }
+        .badge-external {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-muted);
+            backdrop-filter: blur(4px);
+        }
+
+        /* ===== NO RESULTS ===== */
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+            display: none;
+        }
+        .no-results.show { display: block; }
+        .no-results .emoji { font-size: 3rem; margin-bottom: 12px; }
+
+        /* ===== FOOTER ===== */
         footer {
             text-align: center;
-            margin-top: 60px;
-            color: #555;
-            font-size: 0.9rem;
+            padding: 40px 20px 30px;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
         }
-        footer a {
-            color: #667eea;
+        footer p { color: var(--text-dim); font-size: 0.85rem; }
+        footer a { color: var(--accent); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            .hero { padding: 35px 16px 20px; }
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .card-preview { height: 110px; font-size: 2.8rem; }
+            .filter-bar { gap: 6px; }
+            .filter-btn { padding: 7px 14px; font-size: 0.78rem; }
+            .container { padding: 0 14px; }
+        }
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .games-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        .game-card {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 0.4s forwards;
+        }
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎮 Jay's Games</h1>
-        <p class="subtitle">HTML5 캐주얼 게임 포털</p>
-        
-        <div class="games-grid">
-            <a href="block-bounce/" class="game-card">
-                <div class="game-preview">🧱</div>
-                <div class="game-info">
-                    <div class="game-title">Block Bounce</div>
-                    <div class="game-desc">블록을 배치해서 라인을 완성하는 중독성 퍼즐 게임. 블록 블라스트 스타일의 클래식 퍼즐!</div>
-                    <div class="game-tags">
-                        <span class="tag">퍼즐</span>
-                        <span class="tag">캐주얼</span>
-                        <span class="tag">무한모드</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="color-sort/" class="game-card">
-                <div class="game-preview" style="background: linear-gradient(135deg, #4ECDC4 0%, #FF6B6B 100%);">🧪</div>
-                <div class="game-info">
-                    <div class="game-title">Color Sort</div>
-                    <div class="game-desc">색상을 정렬하는 힐링 퍼즐 게임. 같은 색끼리 모아 튜브를 채우세요!</div>
-                    <div class="game-tags">
-                        <span class="tag">퍼즐</span>
-                        <span class="tag">힐링</span>
-                        <span class="tag">무한레벨</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="merge-rush/" class="game-card">
-                <div class="game-preview" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">🚀</div>
-                <div class="game-info">
-                    <div class="game-title">Merge Rush</div>
-                    <div class="game-desc">2048 스타일 스와이프 머지 게임! 클래식 모드와 60초 러시 모드로 도전하세요.</div>
-                    <div class="game-tags">
-                        <span class="tag">퍼즐</span>
-                        <span class="tag">타임어택</span>
-                        <span class="tag">2048</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="stack-tower/" class="game-card">
-                <div class="game-preview" style="background: linear-gradient(135deg, #00d4ff 0%, #0099ff 100%);">🏗️</div>
-                <div class="game-info">
-                    <div class="game-title">Stack Tower</div>
-                    <div class="game-desc">타이밍 맞춰 블록 쌓기! Perfect 연속으로 콤보 점수를 올려보세요.</div>
-                    <div class="game-tags">
-                        <span class="tag">아케이드</span>
-                        <span class="tag">타이밍</span>
-                        <span class="tag">하이스코어</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="brick-breaker/" class="game-card">
-                <div class="game-preview" style="background: linear-gradient(135deg, #ff6b6b 0%, #ffd93d 100%);">🧱</div>
-                <div class="game-info">
-                    <div class="game-title">Brick Breaker Blast</div>
-                    <div class="game-desc">클래식 벽돌깨기 + 파워업 폭발! 🔥파이어볼, ⚡멀티볼로 화면을 폭발시켜라!</div>
-                    <div class="game-tags">
-                        <span class="tag">아케이드</span>
-                        <span class="tag">클래식</span>
-                        <span class="tag">파워업</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="hex-drop/" class="game-card">
-                <div class="game-preview" style="background: linear-gradient(135deg, #4ECDC4 0%, #DDA0DD 100%);">⬡</div>
-                <div class="game-info">
-                    <div class="game-title">Hex Drop Puzzle</div>
-                    <div class="game-desc">헥사곤 그리드 위에 블록을 배치하여 줄을 완성하는 전략 퍼즐! 6방향 라인 클리어의 쾌감!</div>
-                    <div class="game-tags">
-                        <span class="tag">퍼즐</span>
-                        <span class="tag">헥사곤</span>
-                        <span class="tag">무한모드</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="gravity-orbit/" class="game-card">
-                <div class="game-preview" style="background: linear-gradient(135deg, #0a0a2e 0%, #4dc9f6 50%, #c44dff 100%);">🌌</div>
-                <div class="game-info">
-                    <div class="game-title">Gravity Orbit</div>
-                    <div class="game-desc">행성 궤도를 타고 우주를 여행하세요! 탭으로 궤도 이탈, 다음 행성으로 체인 점프!</div>
-                    <div class="game-tags">
-                        <span class="tag">물리</span>
-                        <span class="tag">아케이드</span>
-                        <span class="tag">원터치</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="pipe-connect/" class="game-card">
-                <div class="game-preview" style="background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);">🔧</div>
-                <div class="game-info">
-                    <div class="game-title">Pipe Connect</div>
-                    <div class="game-desc">파이프를 회전시켜 물길을 연결하는 퍼즐! 시작점에서 끝점까지 물이 흐르게 만드세요!</div>
-                    <div class="game-tags">
-                        <span class="tag">퍼즐</span>
-                        <span class="tag">로직</span>
-                        <span class="tag">무한레벨</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="idle-slime-merge/" class="game-card">
-                <div class="game-preview" style="background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);">🟢</div>
-                <div class="game-info">
-                    <div class="game-title">Idle Slime Merge</div>
-                    <div class="game-desc">슬라임을 합체시켜 더 강력한 슬라임을 만들고, 자동으로 골드를 생산하는 아이들+머지 하이브리드!</div>
-                    <div class="game-tags">
-                        <span class="tag">아이들</span>
-                        <span class="tag">머지</span>
-                        <span class="tag">방치형</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="rhythm-pulse/" class="game-card">
-                <div class="game-preview" style="background: linear-gradient(135deg, #ff006e 0%, #8338ec 50%, #3a86ff 100%);">🎵</div>
-                <div class="game-info">
-                    <div class="game-title">Rhythm Pulse</div>
-                    <div class="game-desc">비트에 맞춰 노트를 탭하는 리듬 게임! 3레인으로 떨어지는 노트를 타이밍에 맞춰 터치하세요!</div>
-                    <div class="game-tags">
-                        <span class="tag">리듬</span>
-                        <span class="tag">음악</span>
-                        <span class="tag">콤보</span>
-                    </div>
-                </div>
-            </a>
-            
-            <a href="fruit-merge-drop/" class="game-card">
-                <div class="game-preview" style="background: linear-gradient(135deg, #ff6b6b 0%, #ffa751 100%);">🍉</div>
-                <div class="game-info">
-                    <div class="game-title">Fruit Merge Drop</div>
-                    <div class="game-desc">같은 과일을 합쳐 더 큰 과일을 만드세요! 물리 기반 드롭 머지 퍼즐, 수박 게임 스타일!</div>
-                    <div class="game-tags">
-                        <span class="tag">물리</span>
-                        <span class="tag">머지</span>
-                        <span class="tag">중독성</span>
-                    </div>
-                </div>
-            </a>
-            
-            <!-- 더 많은 게임이 추가될 예정 -->
+
+<header class="hero">
+    <div class="hero-content">
+        <a href="/clawd-news/" class="back-link">← 프로젝트 허브로 돌아가기</a>
+        <h1>🎮 Jay's Game Arcade</h1>
+        <p class="hero-subtitle">HTML5 캐주얼 게임 — 브라우저에서 바로 플레이!</p>
+        <div class="hero-count">
+            <span class="dot"></span>
+            <span id="visibleCount">27</span>개 게임
         </div>
-        
-        <footer>
-            <p>© 2026 Jay Lee | <a href="https://kjaylee.github.io/clawd/">GitHub Pages</a></p>
-        </footer>
+        <div class="search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="search-input" id="searchInput" placeholder="게임 검색... (이름, 태그, 장르)">
+        </div>
     </div>
+</header>
+
+<div class="filter-bar" id="filterBar">
+    <button class="filter-btn active" data-cat="all">전체</button>
+    <button class="filter-btn" data-cat="puzzle">🧩 퍼즐</button>
+    <button class="filter-btn" data-cat="arcade">🕹️ 아케이드</button>
+    <button class="filter-btn" data-cat="action">⚔️ 액션/생존</button>
+    <button class="filter-btn" data-cat="rhythm">🎵 리듬</button>
+    <button class="filter-btn" data-cat="sim">🏭 시뮬/아이들</button>
+    <button class="filter-btn" data-cat="defense">🛡️ 디펜스</button>
+    <button class="filter-btn" data-cat="sports">🎯 스포츠/보드</button>
+</div>
+
+<!-- ===== NEW GAMES (clawd-news) ===== -->
+<div class="section-header" id="newSection">
+    <h2>✨ 신규 게임</h2>
+    <div class="line"></div>
+    <div class="count" id="newCount">10</div>
+</div>
+
+<div class="container">
+    <div class="games-grid" id="newGames">
+
+        <a href="block-bounce/" class="game-card" data-cat="puzzle" data-search="block bounce 블록 바운스 퍼즐 캐주얼">
+            <span class="badge badge-new">✨ NEW</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#667eea,#764ba2);">🧱</div>
+            <div class="card-body">
+                <div class="card-title">Block Bounce</div>
+                <div class="card-desc">블록을 배치해서 라인을 완성하는 중독성 퍼즐 게임. 블록 블라스트 스타일!</div>
+                <div class="card-tags"><span class="tag">퍼즐</span><span class="tag">캐주얼</span><span class="tag">무한모드</span></div>
+            </div>
+        </a>
+
+        <a href="color-sort/" class="game-card" data-cat="puzzle" data-search="color sort 컬러 소트 색상 정렬 퍼즐 힐링">
+            <span class="badge badge-new">✨ NEW</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#4ECDC4,#FF6B6B);">🧪</div>
+            <div class="card-body">
+                <div class="card-title">Color Sort</div>
+                <div class="card-desc">색상을 정렬하는 힐링 퍼즐 게임. 같은 색끼리 모아 튜브를 채우세요!</div>
+                <div class="card-tags"><span class="tag">퍼즐</span><span class="tag">힐링</span><span class="tag">무한레벨</span></div>
+            </div>
+        </a>
+
+        <a href="merge-rush/" class="game-card" data-cat="puzzle" data-search="merge rush 머지 러시 2048 퍼즐 타임어택">
+            <span class="badge badge-new">✨ NEW</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#f093fb,#f5576c);">🚀</div>
+            <div class="card-body">
+                <div class="card-title">Merge Rush</div>
+                <div class="card-desc">2048 스타일 스와이프 머지 게임! 클래식 모드와 60초 러시 모드로 도전!</div>
+                <div class="card-tags"><span class="tag">퍼즐</span><span class="tag">타임어택</span><span class="tag">2048</span></div>
+            </div>
+        </a>
+
+        <a href="stack-tower/" class="game-card" data-cat="arcade" data-search="stack tower 스택 타워 블록 쌓기 아케이드 타이밍">
+            <span class="badge badge-new">✨ NEW</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#00d4ff,#0099ff);">🏗️</div>
+            <div class="card-body">
+                <div class="card-title">Stack Tower</div>
+                <div class="card-desc">타이밍 맞춰 블록 쌓기! Perfect 연속으로 콤보 점수를 올려보세요.</div>
+                <div class="card-tags"><span class="tag">아케이드</span><span class="tag">타이밍</span><span class="tag">하이스코어</span></div>
+            </div>
+        </a>
+
+        <a href="brick-breaker/" class="game-card" data-cat="arcade" data-search="brick breaker blast 벽돌깨기 브릭 브레이커 아케이드 클래식 파워업">
+            <span class="badge badge-new">✨ NEW</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#ff6b6b,#ffd93d);">🧱</div>
+            <div class="card-body">
+                <div class="card-title">Brick Breaker Blast</div>
+                <div class="card-desc">클래식 벽돌깨기 + 파워업 폭발! 🔥파이어볼, ⚡멀티볼로 화면을 폭발시켜라!</div>
+                <div class="card-tags"><span class="tag">아케이드</span><span class="tag">클래식</span><span class="tag">파워업</span></div>
+            </div>
+        </a>
+
+        <a href="hex-drop/" class="game-card" data-cat="puzzle" data-search="hex drop puzzle 헥스 드롭 헥사곤 퍼즐 전략">
+            <span class="badge badge-new">✨ NEW</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#4ECDC4,#DDA0DD);">⬡</div>
+            <div class="card-body">
+                <div class="card-title">Hex Drop Puzzle</div>
+                <div class="card-desc">헥사곤 그리드 위에 블록을 배치하여 줄을 완성! 6방향 라인 클리어의 쾌감!</div>
+                <div class="card-tags"><span class="tag">퍼즐</span><span class="tag">헥사곤</span><span class="tag">전략</span></div>
+            </div>
+        </a>
+
+        <a href="gravity-orbit/" class="game-card" data-cat="arcade" data-search="gravity orbit 그래비티 오빗 궤도 우주 행성 물리 아케이드">
+            <span class="badge badge-new">✨ NEW</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#0a0a2e,#4dc9f6 50%,#c44dff);">🌌</div>
+            <div class="card-body">
+                <div class="card-title">Gravity Orbit</div>
+                <div class="card-desc">행성 궤도를 타고 우주를 여행! 탭으로 궤도 이탈, 다음 행성으로 체인 점프!</div>
+                <div class="card-tags"><span class="tag">물리</span><span class="tag">아케이드</span><span class="tag">원터치</span></div>
+            </div>
+        </a>
+
+        <a href="pipe-connect/" class="game-card" data-cat="puzzle" data-search="pipe connect 파이프 커넥트 연결 퍼즐 로직">
+            <span class="badge badge-new">✨ NEW</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#00b4d8,#0077b6);">🔧</div>
+            <div class="card-body">
+                <div class="card-title">Pipe Connect</div>
+                <div class="card-desc">파이프를 회전시켜 물길을 연결하는 퍼즐! 시작점에서 끝점까지 물이 흐르게!</div>
+                <div class="card-tags"><span class="tag">퍼즐</span><span class="tag">로직</span><span class="tag">무한레벨</span></div>
+            </div>
+        </a>
+
+        <a href="idle-slime-merge/" class="game-card" data-cat="sim" data-search="idle slime merge 아이들 슬라임 머지 방치 골드 합체">
+            <span class="badge badge-new">✨ NEW</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#0f0c29,#302b63 50%,#24243e);">🟢</div>
+            <div class="card-body">
+                <div class="card-title">Idle Slime Merge</div>
+                <div class="card-desc">슬라임을 합체시켜 더 강력한 슬라임! 자동 골드 생산 아이들+머지 하이브리드!</div>
+                <div class="card-tags"><span class="tag">아이들</span><span class="tag">머지</span><span class="tag">방치형</span></div>
+            </div>
+        </a>
+
+        <a href="rhythm-pulse/" class="game-card" data-cat="rhythm" data-search="rhythm pulse 리듬 펄스 비트 노트 음악 탭">
+            <span class="badge badge-new">✨ NEW</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#ff006e,#8338ec 50%,#3a86ff);">🎵</div>
+            <div class="card-body">
+                <div class="card-title">Rhythm Pulse</div>
+                <div class="card-desc">비트에 맞춰 노트를 탭하는 리듬 게임! 3레인으로 떨어지는 노트를 타이밍에 맞춰!</div>
+                <div class="card-tags"><span class="tag">리듬</span><span class="tag">음악</span><span class="tag">콤보</span></div>
+            </div>
+        </a>
+
+    </div>
+</div>
+
+<!-- ===== CLASSIC GAMES (jay-projects) ===== -->
+<div class="section-header" id="classicSection">
+    <h2>🕹️ 클래식 게임</h2>
+    <div class="line"></div>
+    <div class="count" id="classicCount">17</div>
+</div>
+
+<div class="container">
+    <div class="games-grid" id="classicGames">
+
+        <a href="https://eastsea.monster/games/slime-survivor/" target="_blank" rel="noopener" class="game-card" data-cat="action" data-search="slime survivor 슬라임 서바이버 뱀서라이크 액션 생존">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#22c55e,#16a34a);">🟢</div>
+            <div class="card-body">
+                <div class="card-title">슬라임 서바이버</div>
+                <div class="card-desc">뱀서라이크! 몰려오는 적들을 피하고 살아남아라.</div>
+                <div class="card-tags"><span class="tag">액션</span><span class="tag">생존</span><span class="tag">뱀서라이크</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/jump-physics/" target="_blank" rel="noopener" class="game-card" data-cat="arcade" data-search="jump physics 점프 피직스 파워 충전 하늘 아케이드 물리">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#f97316,#fbbf24);">🦘</div>
+            <div class="card-body">
+                <div class="card-title">점프 피직스</div>
+                <div class="card-desc">파워 충전하고 하늘 끝까지 점프!</div>
+                <div class="card-tags"><span class="tag">아케이드</span><span class="tag">물리</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/merge-tower/" target="_blank" rel="noopener" class="game-card" data-cat="puzzle" data-search="merge tower 머지 몬스터 타워 수박게임 합체 진화 퍼즐">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#a855f7,#6366f1);">🗼</div>
+            <div class="card-body">
+                <div class="card-title">머지 몬스터 타워</div>
+                <div class="card-desc">같은 몬스터 합쳐서 진화! 수박게임 스타일.</div>
+                <div class="card-tags"><span class="tag">퍼즐</span><span class="tag">머지</span><span class="tag">수박게임</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/single-tap-golf/" target="_blank" rel="noopener" class="game-card" data-cat="sports" data-search="single tap golf 싱글탭 골프 미니골프 스포츠 드래그">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#22d3ee,#34d399);">⛳</div>
+            <div class="card-body">
+                <div class="card-title">싱글탭 골프</div>
+                <div class="card-desc">드래그로 조준! 9홀 미니 골프.</div>
+                <div class="card-tags"><span class="tag">스포츠</span><span class="tag">캐주얼</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/dungeon-run/" target="_blank" rel="noopener" class="game-card" data-cat="action" data-search="dungeon run 포켓 던전 런 러너 트랩 보물 액션">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);">🏃</div>
+            <div class="card-body">
+                <div class="card-title">포켓 던전 런</div>
+                <div class="card-desc">끝없이 달려! 트랩 피하고 보물 수집.</div>
+                <div class="card-tags"><span class="tag">러너</span><span class="tag">액션</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/rhythm-runner/" target="_blank" rel="noopener" class="game-card" data-cat="rhythm" data-search="rhythm runner 리듬 러너 비트 노트 터치 3레인">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#ec4899,#f43f5e);">🎵</div>
+            <div class="card-body">
+                <div class="card-title">리듬 러너</div>
+                <div class="card-desc">비트에 맞춰 노트 터치! 3레인 리듬 게임.</div>
+                <div class="card-tags"><span class="tag">리듬</span><span class="tag">러너</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/stack-kingdom/" target="_blank" rel="noopener" class="game-card" data-cat="arcade" data-search="stack kingdom 스택 킹덤 블록 쌓기 왕국 건설 캐주얼">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#fbbf24,#f97316);">🏰</div>
+            <div class="card-body">
+                <div class="card-title">스택 킹덤</div>
+                <div class="card-desc">타이밍 맞춰 블록 쌓기! Perfect 노려봐. 왕국 건설!</div>
+                <div class="card-tags"><span class="tag">캐주얼</span><span class="tag">건설</span><span class="tag">타이밍</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/pet-simulator/" target="_blank" rel="noopener" class="game-card" data-cat="sim" data-search="pet simulator AI 펫 시뮬레이터 다마고치 육성 진화">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#fb923c,#f472b6);">🐾</div>
+            <div class="card-body">
+                <div class="card-title">AI 펫 시뮬레이터</div>
+                <div class="card-desc">다마고치 스타일! 펫을 키우고 진화시켜.</div>
+                <div class="card-tags"><span class="tag">육성</span><span class="tag">시뮬</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/zombie-survivor/" target="_blank" rel="noopener" class="game-card" data-cat="action" data-search="zombie survivor 좀비 서바이버 탑다운 생존 웨이브 액션">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#374151,#4b5563);">🧟</div>
+            <div class="card-body">
+                <div class="card-title">좀비 서바이버</div>
+                <div class="card-desc">탑다운 생존! 좀비 웨이브에서 살아남아라.</div>
+                <div class="card-tags"><span class="tag">액션</span><span class="tag">생존</span><span class="tag">탑다운</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/fishing-tycoon/" target="_blank" rel="noopener" class="game-card" data-cat="sim" data-search="fishing tycoon 낚시 타이쿤 물고기 수집 업그레이드 시뮬">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4);">🎣</div>
+            <div class="card-body">
+                <div class="card-title">낚시 타이쿤</div>
+                <div class="card-desc">12종 물고기 수집! 낚싯대 업그레이드.</div>
+                <div class="card-tags"><span class="tag">수집</span><span class="tag">시뮬</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/dice-master/" target="_blank" rel="noopener" class="game-card" data-cat="sports" data-search="dice master 럭키 다이스 야찌 주사위 족보 보드 전략">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#dc2626,#ef4444);">🎲</div>
+            <div class="card-body">
+                <div class="card-title">럭키 다이스</div>
+                <div class="card-desc">야찌 스타일! 주사위 족보로 고득점.</div>
+                <div class="card-tags"><span class="tag">보드</span><span class="tag">전략</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/spin-village/" target="_blank" rel="noopener" class="game-card" data-cat="sim" data-search="spin village 스핀 빌리지 슬롯 마을 건설 코인 캐주얼">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#eab308,#f59e0b);">🎰</div>
+            <div class="card-body">
+                <div class="card-title">스핀 빌리지</div>
+                <div class="card-desc">슬롯 + 마을 건설! 스핀해서 코인 얻고 마을 업그레이드.</div>
+                <div class="card-tags"><span class="tag">캐주얼</span><span class="tag">건설</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/micro-factory/" target="_blank" rel="noopener" class="game-card" data-cat="sim" data-search="micro factory 마이크로 팩토리 공장 자동화 채굴 제련 판매 시뮬 전략">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#64748b,#475569);">🏭</div>
+            <div class="card-body">
+                <div class="card-title">마이크로 팩토리</div>
+                <div class="card-desc">미니멀 공장 자동화! 채굴→제련→판매 라인 구축.</div>
+                <div class="card-tags"><span class="tag">시뮬</span><span class="tag">전략</span><span class="tag">자동화</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/bubble-defense/" target="_blank" rel="noopener" class="game-card" data-cat="defense" data-search="bubble defense 버블 디펜스 슈터 타워디펜스 매치 퍼즐">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#38bdf8,#818cf8);">🫧</div>
+            <div class="card-body">
+                <div class="card-title">버블 디펜스</div>
+                <div class="card-desc">버블 슈터 + 타워 디펜스! 매치해서 타워 세워라.</div>
+                <div class="card-tags"><span class="tag">디펜스</span><span class="tag">퍼즐</span><span class="tag">하이브리드</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/orbit-striker/" target="_blank" rel="noopener" class="game-card" data-cat="action" data-search="orbit striker 오빗 스트라이커 중력 궤도 외계인 슈터 물리">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#1e3a5f,#0ea5e9);">🌍</div>
+            <div class="card-body">
+                <div class="card-title">오빗 스트라이커</div>
+                <div class="card-desc">중력을 무기로! 궤도 위 외계인을 물리 탄환으로 격파.</div>
+                <div class="card-tags"><span class="tag">슈터</span><span class="tag">물리</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/polygon-dungeon/" target="_blank" rel="noopener" class="game-card" data-cat="action" data-search="polygon dungeon survivor 폴리곤 던전 서바이버 뱀서라이크 로우폴리 무한웨이브 로그라이크 액션">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#581c87,#7c3aed);">🏰</div>
+            <div class="card-body">
+                <div class="card-title">폴리곤 던전 서바이버</div>
+                <div class="card-desc">뱀서라이크! 로우폴리 던전에서 무한 웨이브 생존.</div>
+                <div class="card-tags"><span class="tag">로그라이크</span><span class="tag">액션</span><span class="tag">뱀서라이크</span></div>
+            </div>
+        </a>
+
+        <a href="https://eastsea.monster/games/pixel-defense/" target="_blank" rel="noopener" class="game-card" data-cat="defense" data-search="pixel defense tycoon 픽셀 디펜스 타이쿤 기사단 성 타워디펜스">
+            <span class="badge badge-external">🔗 외부</span>
+            <div class="card-preview" style="background:linear-gradient(135deg,#b45309,#d97706);">⚔️</div>
+            <div class="card-body">
+                <div class="card-title">픽셀 디펜스 타이쿤</div>
+                <div class="card-desc">귀여운 픽셀 기사단으로 성을 지켜라! 타워 디펜스.</div>
+                <div class="card-tags"><span class="tag">디펜스</span><span class="tag">전략</span><span class="tag">픽셀</span></div>
+            </div>
+        </a>
+
+    </div>
+</div>
+
+<!-- No results -->
+<div class="no-results" id="noResults">
+    <div class="emoji">🔍</div>
+    <p>검색 결과가 없습니다</p>
+</div>
+
+<footer>
+    <p>© 2026 Jay Lee · <a href="/clawd-news/">프로젝트 허브</a> · <a href="https://github.com/kjaylee" target="_blank">GitHub</a></p>
+</footer>
+
+<script>
+(function() {
+    const searchInput = document.getElementById('searchInput');
+    const filterBar = document.getElementById('filterBar');
+    const allCards = document.querySelectorAll('.game-card');
+    const visibleCountEl = document.getElementById('visibleCount');
+    const noResults = document.getElementById('noResults');
+    const newSection = document.getElementById('newSection');
+    const classicSection = document.getElementById('classicSection');
+    const newCountEl = document.getElementById('newCount');
+    const classicCountEl = document.getElementById('classicCount');
+    const newGrid = document.getElementById('newGames');
+    const classicGrid = document.getElementById('classicGames');
+
+    let currentFilter = 'all';
+    let currentSearch = '';
+
+    function applyFilters() {
+        let total = 0, newVisible = 0, classicVisible = 0;
+        const searchLower = currentSearch.toLowerCase();
+
+        allCards.forEach((card, i) => {
+            const cat = card.dataset.cat || '';
+            const searchData = (card.dataset.search || '').toLowerCase();
+            const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
+
+            const matchFilter = (currentFilter === 'all' || cat === currentFilter);
+            const matchSearch = (!searchLower || 
+                searchData.includes(searchLower) || 
+                title.includes(searchLower));
+
+            const visible = matchFilter && matchSearch;
+            card.dataset.hidden = visible ? 'false' : 'true';
+
+            if (visible) {
+                total++;
+                card.style.animationDelay = (total * 0.04) + 's';
+                // Re-trigger animation
+                card.style.animation = 'none';
+                card.offsetHeight;
+                card.style.animation = '';
+
+                if (newGrid.contains(card)) newVisible++;
+                else classicVisible++;
+            }
+        });
+
+        visibleCountEl.textContent = total;
+        newCountEl.textContent = newVisible;
+        classicCountEl.textContent = classicVisible;
+
+        // Hide section headers if no visible cards
+        newSection.style.display = newVisible ? '' : 'none';
+        newGrid.parentElement.style.display = newVisible ? '' : 'none';
+        classicSection.style.display = classicVisible ? '' : 'none';
+        classicGrid.parentElement.style.display = classicVisible ? '' : 'none';
+
+        noResults.classList.toggle('show', total === 0);
+    }
+
+    // Filter buttons
+    filterBar.addEventListener('click', function(e) {
+        const btn = e.target.closest('.filter-btn');
+        if (!btn) return;
+        filterBar.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.cat;
+        applyFilters();
+    });
+
+    // Search
+    searchInput.addEventListener('input', function() {
+        currentSearch = this.value.trim();
+        applyFilters();
+    });
+
+    // Staggered initial animation
+    allCards.forEach((card, i) => {
+        card.style.animationDelay = (i * 0.04) + 's';
+    });
+})();
+</script>
+
 </body>
 </html>
