@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Rhythm Pulse 🎵</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a;font-family:'Segoe UI',sans-serif}
+canvas{display:block;width:100%;height:100%}
+#ui{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;z-index:10}
+#ui.active{pointer-events:auto}
+.screen{display:none;flex-direction:column;align-items:center;gap:20px;padding:20px;text-align:center}
+.screen.show{display:flex}
+h1{font-size:2.5rem;background:linear-gradient(135deg,#ff006e,#8338ec,#3a86ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-shadow:none;animation:glow 2s ease-in-out infinite alternate}
+@keyframes glow{from{filter:brightness(1)}to{filter:brightness(1.3)}}
+h2{color:#fff;font-size:1.5rem}
+.subtitle{color:#aaa;font-size:1rem}
+.btn{background:linear-gradient(135deg,#ff006e,#8338ec);color:#fff;border:none;padding:15px 50px;border-radius:30px;font-size:1.2rem;cursor:pointer;pointer-events:auto;transition:transform .2s,box-shadow .2s;box-shadow:0 5px 20px rgba(131,56,236,.5)}
+.btn:hover{transform:scale(1.05)}
+.btn:active{transform:scale(.95)}
+.btn-secondary{background:linear-gradient(135deg,#3a86ff,#00b4d8);box-shadow:0 5px 20px rgba(58,134,255,.4)}
+.stats{color:#ccc;font-size:1rem;line-height:2}
+.stats span{color:#fff;font-weight:bold}
+.score-big{font-size:3rem;color:#fff;font-weight:bold;text-shadow:0 0 20px rgba(255,0,110,.7)}
+.stage-info{color:#8338ec;font-size:1.1rem;font-weight:bold}
+#hud{position:absolute;top:0;left:0;width:100%;display:flex;justify-content:space-between;padding:15px 20px;color:#fff;font-size:1rem;z-index:5;pointer-events:none}
+#hud div{text-shadow:0 0 10px rgba(131,56,236,.8)}
+.combo-display{font-size:1.4rem;font-weight:bold}
+.judge-popup{position:absolute;width:100%;text-align:center;font-size:2rem;font-weight:bold;pointer-events:none;z-index:15;opacity:0;transition:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="hud" style="display:none">
+  <div id="scoreDisplay">SCORE: 0</div>
+  <div id="comboDisplay" class="combo-display"></div>
+  <div id="stageDisplay">STAGE 1</div>
+</div>
+<div id="ui" class="active">
+  <div id="menuScreen" class="screen show">
+    <h1>🎵 RHYTHM PULSE</h1>
+    <p class="subtitle">비트에 맞춰 탭하세요!</p>
+    <p class="stage-info" id="menuStage">STAGE 1 · BPM 120</p>
+    <button class="btn" id="playBtn">▶ PLAY</button>
+    <p class="subtitle" id="highScoreText">🏆 HIGH SCORE: 0</p>
+    <p class="subtitle" style="font-size:.8rem;margin-top:10px;color:#666">🎹 키보드: D F J / 터치: 3레인 탭</p>
+  </div>
+  <div id="resultScreen" class="screen">
+    <h2 id="resultTitle">🌟 STAGE CLEAR!</h2>
+    <div class="score-big" id="resultScore">0</div>
+    <div class="stats" id="resultStats"></div>
+    <div style="display:flex;gap:15px;flex-wrap:wrap;justify-content:center">
+      <button class="btn" id="nextBtn">▶ NEXT STAGE</button>
+      <button class="btn btn-secondary" id="retryBtn">🔄 RETRY</button>
+    </div>
+  </div>
+</div>
+<div class="judge-popup" id="judgePopup"></div>
+
+<script>
+'use strict';
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize() {
+  W = canvas.width = window.innerWidth * devicePixelRatio;
+  H = canvas.height = window.innerHeight * devicePixelRatio;
+  ctx.scale(1, 1);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ===== AUDIO ENGINE =====
+let audioCtx = null;
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playKick(time) {
+  if (!audioCtx) return;
+  const t = time || audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(150, t);
+  osc.frequency.exponentialRampToValueAtTime(30, t + 0.12);
+  gain.gain.setValueAtTime(0.8, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + 0.15);
+}
+
+function playSnare(time) {
+  if (!audioCtx) return;
+  const t = time || audioCtx.currentTime;
+  // noise burst
+  const bufferSize = audioCtx.sampleRate * 0.1;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.5, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.value = 1000;
+  noise.connect(filter).connect(gain).connect(audioCtx.destination);
+  noise.start(t);
+}
+
+function playHihat(time) {
+  if (!audioCtx) return;
+  const t = time || audioCtx.currentTime;
+  const bufferSize = audioCtx.sampleRate * 0.05;
+  const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 5);
+  const noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+  const gain = audioCtx.createGain();
+  gain.gain.setValueAtTime(0.25, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.value = 5000;
+  noise.connect(filter).connect(gain).connect(audioCtx.destination);
+  noise.start(t);
+}
+
+function playSynth(time, freq) {
+  if (!audioCtx) return;
+  const t = time || audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(freq || 440, t);
+  gain.gain.setValueAtTime(0.15, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + 0.2);
+}
+
+function playHitSound(judge) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sine';
+  const freqs = { perfect: 880, great: 660, good: 440 };
+  osc.frequency.value = freqs[judge] || 440;
+  gain.gain.setValueAtTime(0.3, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + 0.1);
+}
+
+function playMissSound() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.setValueAtTime(200, t);
+  osc.frequency.exponentialRampToValueAtTime(80, t + 0.15);
+  gain.gain.setValueAtTime(0.2, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + 0.15);
+}
+
+function playFeverSound() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  [523, 659, 784, 1047].forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = f;
+    gain.gain.setValueAtTime(0.2, t + i * 0.08);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.08 + 0.15);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t + i * 0.08);
+    osc.stop(t + i * 0.08 + 0.15);
+  });
+}
+
+// ===== BEAT GENERATOR =====
+function generateNotes(bpm, duration, stage) {
+  const notes = [];
+  const beatInterval = 60000 / bpm; // ms per beat
+  const totalBeats = Math.floor(duration / beatInterval);
+  const leadTime = 2000; // 2s lead-in before first note
+  
+  // Patterns get more complex with stage
+  const density = Math.min(0.5 + stage * 0.08, 0.9);
+  const doubleLaneChance = Math.min(0.05 + stage * 0.03, 0.3);
+  
+  // Create rhythm patterns
+  const patterns = [
+    [1,0,1,0, 1,0,1,0],  // basic
+    [1,0,0,1, 0,1,0,0],  // syncopated
+    [1,1,0,1, 0,0,1,0],  // funk
+    [1,0,1,1, 0,1,0,1],  // dense
+    [1,1,1,0, 1,0,1,1],  // very dense
+  ];
+  
+  const patIdx = Math.min(Math.floor(stage / 2), patterns.length - 1);
+  const pattern = patterns[patIdx];
+  const soundTypes = ['kick', 'snare', 'hihat', 'synth'];
+  const synthNotes = [261, 329, 392, 440, 523, 587, 659, 784];
+  
+  for (let beat = 0; beat < totalBeats; beat++) {
+    const subBeat = beat % pattern.length;
+    if (!pattern[subBeat] && Math.random() > density) continue;
+    if (pattern[subBeat] || Math.random() < density * 0.5) {
+      const lane = Math.floor(Math.random() * 3);
+      const time = leadTime + beat * beatInterval;
+      const soundIdx = beat % 4;
+      notes.push({
+        lane,
+        targetTime: time,
+        type: 'tap',
+        sound: soundTypes[soundIdx],
+        synthFreq: synthNotes[Math.floor(Math.random() * synthNotes.length)],
+        hit: false,
+        missed: false,
+        y: -100
+      });
+      
+      // Double lane notes for higher stages
+      if (Math.random() < doubleLaneChance) {
+        let lane2 = (lane + 1 + Math.floor(Math.random() * 2)) % 3;
+        notes.push({
+          lane: lane2,
+          targetTime: time,
+          type: 'tap',
+          sound: 'hihat',
+          synthFreq: synthNotes[Math.floor(Math.random() * synthNotes.length)],
+          hit: false,
+          missed: false,
+          y: -100
+        });
+      }
+    }
+  }
+  
+  return notes.sort((a, b) => a.targetTime - b.targetTime);
+}
+
+// ===== PARTICLE SYSTEM =====
+const particles = [];
+function spawnParticles(x, y, color, count, speed) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const vel = (Math.random() * 0.5 + 0.5) * speed;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * vel,
+      vy: Math.sin(angle) * vel - 2,
+      life: 1,
+      decay: 0.015 + Math.random() * 0.02,
+      size: 3 + Math.random() * 5,
+      color
+    });
+  }
+}
+
+function updateParticles() {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.15;
+    p.life -= p.decay;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function drawParticles() {
+  particles.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+
+// ===== GAME STATE =====
+const state = {
+  phase: 'menu', // menu, playing, result
+  stage: 1,
+  bpm: 120,
+  score: 0,
+  combo: 0,
+  maxCombo: 0,
+  judgeCounts: { perfect: 0, great: 0, good: 0, miss: 0 },
+  notes: [],
+  startTime: 0,
+  elapsed: 0,
+  stageDuration: 30000, // 30 seconds
+  highScore: parseInt(localStorage.getItem('rhythmPulseHigh') || '0'),
+  fever: false,
+  feverTimer: 0,
+  screenShake: 0,
+  bgPulse: 0,
+  judgeText: '',
+  judgeTimer: 0,
+  judgeColor: '#fff',
+  laneFlash: [0, 0, 0]
+};
+
+// ===== LANE GEOMETRY =====
+function getLaneX(lane) {
+  const laneWidth = W / 3;
+  return laneWidth * lane + laneWidth / 2;
+}
+function getHitY() { return H * 0.85; }
+function getNoteRadius() { return Math.min(W / 12, 35 * devicePixelRatio); }
+
+// ===== INPUT =====
+const lanePressed = [false, false, false];
+
+function hitLane(lane) {
+  if (state.phase !== 'playing') return;
+  lanePressed[lane] = true;
+  state.laneFlash[lane] = 1;
+  
+  // Find closest note in this lane
+  const hitY = getHitY();
+  const now = state.elapsed;
+  let bestNote = null;
+  let bestDiff = Infinity;
+  
+  for (const note of state.notes) {
+    if (note.hit || note.missed || note.lane !== lane) continue;
+    const diff = Math.abs(note.targetTime - now);
+    if (diff < bestDiff && diff < 200) {
+      bestDiff = diff;
+      bestNote = note;
+    }
+  }
+  
+  if (bestNote) {
+    bestNote.hit = true;
+    let judge, points;
+    if (bestDiff <= 50) { judge = 'perfect'; points = 100; }
+    else if (bestDiff <= 100) { judge = 'great'; points = 70; }
+    else { judge = 'good'; points = 40; }
+    
+    state.combo++;
+    if (state.combo > state.maxCombo) state.maxCombo = state.combo;
+    
+    // Combo multiplier
+    let mult = 1;
+    if (state.combo >= 40) mult = 8;
+    else if (state.combo >= 20) mult = 4;
+    else if (state.combo >= 10) mult = 2;
+    
+    // Fever bonus
+    if (state.fever) mult *= 2;
+    
+    state.score += points * mult;
+    state.judgeCounts[judge]++;
+    
+    // Effects
+    const x = getLaneX(lane);
+    const colors = { perfect: '#ff006e', great: '#8338ec', good: '#3a86ff' };
+    spawnParticles(x, hitY, colors[judge], judge === 'perfect' ? 25 : 15, judge === 'perfect' ? 8 : 5);
+    
+    if (judge === 'perfect') {
+      state.screenShake = 8;
+      state.bgPulse = 1;
+    }
+    
+    playHitSound(judge);
+    showJudge(judge);
+    
+    // Fever check
+    if (state.combo === 20 && !state.fever) {
+      state.fever = true;
+      state.feverTimer = 10000; // 10s fever
+      playFeverSound();
+    }
+  } else {
+    // Tapped empty lane — minor visual only
+  }
+}
+
+function releaseLane(lane) {
+  lanePressed[lane] = false;
+}
+
+// Touch input
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  ensureAudio();
+  for (const touch of e.changedTouches) {
+    const x = touch.clientX * devicePixelRatio;
+    const lane = Math.min(2, Math.floor(x / (W / 3)));
+    hitLane(lane);
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  for (const touch of e.changedTouches) {
+    const x = touch.clientX * devicePixelRatio;
+    const lane = Math.min(2, Math.floor(x / (W / 3)));
+    releaseLane(lane);
+  }
+}, { passive: false });
+
+// Mouse input
+canvas.addEventListener('mousedown', e => {
+  ensureAudio();
+  const x = e.clientX * devicePixelRatio;
+  const lane = Math.min(2, Math.floor(x / (W / 3)));
+  hitLane(lane);
+});
+canvas.addEventListener('mouseup', e => {
+  const x = e.clientX * devicePixelRatio;
+  const lane = Math.min(2, Math.floor(x / (W / 3)));
+  releaseLane(lane);
+});
+
+// Keyboard input
+document.addEventListener('keydown', e => {
+  ensureAudio();
+  if (e.key === 'd' || e.key === 'D') hitLane(0);
+  if (e.key === 'f' || e.key === 'F') hitLane(1);
+  if (e.key === 'j' || e.key === 'J') hitLane(2);
+});
+document.addEventListener('keyup', e => {
+  if (e.key === 'd' || e.key === 'D') releaseLane(0);
+  if (e.key === 'f' || e.key === 'F') releaseLane(1);
+  if (e.key === 'j' || e.key === 'J') releaseLane(2);
+});
+
+// ===== UI =====
+const menuScreen = document.getElementById('menuScreen');
+const resultScreen = document.getElementById('resultScreen');
+const ui = document.getElementById('ui');
+const hud = document.getElementById('hud');
+const judgePopup = document.getElementById('judgePopup');
+
+function showJudge(judge) {
+  const colors = { perfect: '#ff006e', great: '#8338ec', good: '#3a86ff', miss: '#ff4444' };
+  const labels = { perfect: 'PERFECT!', great: 'GREAT!', good: 'GOOD', miss: 'MISS' };
+  state.judgeText = labels[judge];
+  state.judgeColor = colors[judge];
+  state.judgeTimer = 0.5;
+}
+
+document.getElementById('playBtn').addEventListener('click', () => {
+  ensureAudio();
+  startGame();
+});
+document.getElementById('nextBtn').addEventListener('click', () => {
+  state.stage++;
+  state.bpm = Math.min(200, 120 + (state.stage - 1) * 10);
+  startGame();
+});
+document.getElementById('retryBtn').addEventListener('click', () => {
+  startGame();
+});
+
+function startGame() {
+  state.phase = 'playing';
+  state.score = 0;
+  state.combo = 0;
+  state.maxCombo = 0;
+  state.judgeCounts = { perfect: 0, great: 0, good: 0, miss: 0 };
+  state.fever = false;
+  state.feverTimer = 0;
+  state.screenShake = 0;
+  state.bgPulse = 0;
+  state.startTime = performance.now();
+  state.elapsed = 0;
+  state.notes = generateNotes(state.bpm, state.stageDuration, state.stage);
+  
+  menuScreen.classList.remove('show');
+  resultScreen.classList.remove('show');
+  ui.classList.remove('active');
+  hud.style.display = 'flex';
+  particles.length = 0;
+  
+  // Schedule beat sounds
+  scheduleBeatSounds();
+}
+
+function scheduleBeatSounds() {
+  // We'll play sounds in the update loop based on elapsed time
+}
+
+function endGame() {
+  state.phase = 'result';
+  
+  if (state.score > state.highScore) {
+    state.highScore = state.score;
+    localStorage.setItem('rhythmPulseHigh', state.highScore.toString());
+  }
+  
+  const total = state.judgeCounts.perfect + state.judgeCounts.great + state.judgeCounts.good + state.judgeCounts.miss;
+  const clearRate = total > 0 ? Math.round((total - state.judgeCounts.miss) / total * 100) : 0;
+  
+  document.getElementById('resultTitle').textContent = 
+    clearRate >= 90 ? '🌟 PERFECT CLEAR!' : clearRate >= 70 ? '✨ STAGE CLEAR!' : '💫 STAGE END';
+  document.getElementById('resultScore').textContent = state.score.toLocaleString();
+  document.getElementById('resultStats').innerHTML = 
+    `<span style="color:#ff006e">Perfect: ${state.judgeCounts.perfect}</span> · ` +
+    `<span style="color:#8338ec">Great: ${state.judgeCounts.great}</span> · ` +
+    `<span style="color:#3a86ff">Good: ${state.judgeCounts.good}</span> · ` +
+    `<span style="color:#ff4444">Miss: ${state.judgeCounts.miss}</span><br>` +
+    `Max Combo: <span>${state.maxCombo}x</span> · Clear: <span>${clearRate}%</span>`;
+  
+  resultScreen.classList.add('show');
+  ui.classList.add('active');
+  hud.style.display = 'none';
+  
+  document.getElementById('highScoreText').textContent = `🏆 HIGH SCORE: ${state.highScore.toLocaleString()}`;
+  document.getElementById('menuStage').textContent = `STAGE ${state.stage} · BPM ${state.bpm}`;
+}
+
+// ===== BEAT SOUND PLAYBACK =====
+let lastBeatIndex = -1;
+function playBeatSounds() {
+  if (!audioCtx || state.phase !== 'playing') return;
+  const beatInterval = 60000 / state.bpm;
+  const currentBeat = Math.floor(state.elapsed / beatInterval);
+  
+  if (currentBeat > lastBeatIndex && state.elapsed > 0) {
+    lastBeatIndex = currentBeat;
+    // Play a metronome-style beat
+    const sub = currentBeat % 8;
+    if (sub === 0 || sub === 4) playKick();
+    else if (sub === 2 || sub === 6) playSnare();
+    if (sub % 2 === 0) playHihat();
+  }
+}
+
+// ===== UPDATE =====
+function update(dt) {
+  if (state.phase !== 'playing') return;
+  
+  state.elapsed = performance.now() - state.startTime;
+  
+  // Update notes
+  const hitY = getHitY();
+  const travelTime = 2000; // ms to travel screen
+  
+  for (const note of state.notes) {
+    if (note.hit || note.missed) continue;
+    
+    // Calculate Y position
+    const timeDiff = note.targetTime - state.elapsed;
+    const progress = 1 - (timeDiff / travelTime);
+    note.y = progress * hitY;
+    
+    // Miss detection
+    if (state.elapsed - note.targetTime > 200) {
+      note.missed = true;
+      state.combo = 0;
+      state.judgeCounts.miss++;
+      state.fever = false;
+      showJudge('miss');
+      playMissSound();
+    }
+  }
+  
+  // Play beat sounds
+  playBeatSounds();
+  
+  // Fever timer
+  if (state.fever) {
+    state.feverTimer -= dt * 1000;
+    if (state.feverTimer <= 0) state.fever = false;
+  }
+  
+  // Screen shake decay
+  if (state.screenShake > 0) state.screenShake *= 0.85;
+  if (state.screenShake < 0.5) state.screenShake = 0;
+  
+  // BG pulse decay
+  if (state.bgPulse > 0) state.bgPulse *= 0.92;
+  
+  // Lane flash decay
+  for (let i = 0; i < 3; i++) {
+    if (state.laneFlash[i] > 0) state.laneFlash[i] *= 0.88;
+  }
+  
+  // Judge text decay
+  if (state.judgeTimer > 0) state.judgeTimer -= dt;
+  
+  updateParticles();
+  
+  // Update HUD
+  document.getElementById('scoreDisplay').textContent = `SCORE: ${state.score.toLocaleString()}`;
+  document.getElementById('comboDisplay').textContent = state.combo > 1 ? `${state.combo}x COMBO` : '';
+  document.getElementById('comboDisplay').style.color = state.fever ? '#ff006e' : '#fff';
+  document.getElementById('stageDisplay').textContent = `STAGE ${state.stage}`;
+  
+  // Check end
+  if (state.elapsed >= state.stageDuration + 3000) {
+    endGame();
+  }
+}
+
+// ===== DRAW =====
+function draw() {
+  // Screen shake
+  ctx.save();
+  if (state.screenShake > 0) {
+    const sx = (Math.random() - 0.5) * state.screenShake * 2;
+    const sy = (Math.random() - 0.5) * state.screenShake * 2;
+    ctx.translate(sx, sy);
+  }
+  
+  // Background
+  const bgR = Math.floor(10 + state.bgPulse * 30);
+  const bgG = Math.floor(10 + state.bgPulse * 10);
+  const bgB = Math.floor(26 + state.bgPulse * 40);
+  ctx.fillStyle = state.fever ? `rgb(${20 + Math.sin(Date.now()/100)*10},5,${30 + Math.sin(Date.now()/150)*15})` : `rgb(${bgR},${bgG},${bgB})`;
+  ctx.fillRect(0, 0, W, H);
+  
+  if (state.phase === 'playing') {
+    drawLanes();
+    drawNotes();
+    drawHitZone();
+    drawJudgeText();
+    drawProgressBar();
+    if (state.fever) drawFeverOverlay();
+  }
+  
+  drawParticles();
+  
+  // Menu/Result background particles
+  if (state.phase === 'menu' || state.phase === 'result') {
+    drawAmbientParticles();
+  }
+  
+  ctx.restore();
+}
+
+function drawLanes() {
+  const laneWidth = W / 3;
+  
+  for (let i = 0; i < 3; i++) {
+    // Lane separator lines
+    if (i > 0) {
+      ctx.strokeStyle = `rgba(131,56,236,${0.2 + state.laneFlash[i] * 0.5})`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(laneWidth * i, 0);
+      ctx.lineTo(laneWidth * i, H);
+      ctx.stroke();
+    }
+    
+    // Lane flash
+    if (state.laneFlash[i] > 0.05) {
+      const grad = ctx.createLinearGradient(laneWidth * i, getHitY() - 100, laneWidth * i, getHitY() + 50);
+      grad.addColorStop(0, `rgba(131,56,236,0)`);
+      grad.addColorStop(0.5, `rgba(131,56,236,${state.laneFlash[i] * 0.3})`);
+      grad.addColorStop(1, `rgba(131,56,236,0)`);
+      ctx.fillStyle = grad;
+      ctx.fillRect(laneWidth * i, getHitY() - 100, laneWidth, 150);
+    }
+  }
+}
+
+function drawHitZone() {
+  const hitY = getHitY();
+  const r = getNoteRadius();
+  
+  // Hit zone line
+  ctx.strokeStyle = state.fever ? `rgba(255,0,110,${0.5 + Math.sin(Date.now()/200)*0.3})` : 'rgba(131,56,236,0.6)';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(0, hitY);
+  ctx.lineTo(W, hitY);
+  ctx.stroke();
+  
+  // Hit zone circles
+  for (let i = 0; i < 3; i++) {
+    const x = getLaneX(i);
+    ctx.strokeStyle = lanePressed[i] ? 'rgba(255,0,110,0.8)' : 'rgba(131,56,236,0.4)';
+    ctx.lineWidth = lanePressed[i] ? 4 : 2;
+    ctx.beginPath();
+    ctx.arc(x, hitY, r + 5, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    if (lanePressed[i]) {
+      ctx.fillStyle = 'rgba(255,0,110,0.15)';
+      ctx.beginPath();
+      ctx.arc(x, hitY, r + 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    
+    // Lane labels
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.font = `${14 * devicePixelRatio}px monospace`;
+    ctx.textAlign = 'center';
+    const labels = ['D', 'F', 'J'];
+    ctx.fillText(labels[i], x, hitY + r + 25 * devicePixelRatio);
+  }
+}
+
+function drawNotes() {
+  const hitY = getHitY();
+  const r = getNoteRadius();
+  const laneColors = ['#ff006e', '#8338ec', '#3a86ff'];
+  
+  for (const note of state.notes) {
+    if (note.hit || note.missed) continue;
+    if (note.y < -r * 2 || note.y > H + r) continue;
+    
+    const x = getLaneX(note.lane);
+    const y = note.y;
+    const color = laneColors[note.lane];
+    
+    // Glow
+    const glowSize = state.fever ? r * 2.5 : r * 1.8;
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, glowSize);
+    glow.addColorStop(0, color + '40');
+    glow.addColorStop(1, color + '00');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, glowSize, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Note body
+    const noteGrad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 0, x, y, r);
+    noteGrad.addColorStop(0, '#fff');
+    noteGrad.addColorStop(0.4, color);
+    noteGrad.addColorStop(1, color + '80');
+    ctx.fillStyle = noteGrad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Note border
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Inner shine
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.beginPath();
+    ctx.arc(x - r * 0.2, y - r * 0.2, r * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawJudgeText() {
+  if (state.judgeTimer <= 0) return;
+  
+  const alpha = Math.min(1, state.judgeTimer * 3);
+  const scale = 1 + (0.5 - state.judgeTimer) * 0.5;
+  
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.font = `bold ${Math.floor(36 * devicePixelRatio * scale)}px 'Segoe UI',sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = state.judgeColor;
+  ctx.shadowColor = state.judgeColor;
+  ctx.shadowBlur = 20;
+  ctx.fillText(state.judgeText, W / 2, H * 0.5);
+  ctx.shadowBlur = 0;
+  
+  // Combo text
+  if (state.combo > 1) {
+    ctx.font = `bold ${Math.floor(24 * devicePixelRatio)}px 'Segoe UI',sans-serif`;
+    ctx.fillStyle = '#fff';
+    ctx.fillText(`${state.combo}x`, W / 2, H * 0.5 + 40 * devicePixelRatio);
+  }
+  ctx.restore();
+}
+
+function drawProgressBar() {
+  const progress = Math.min(1, state.elapsed / state.stageDuration);
+  const barH = 4 * devicePixelRatio;
+  
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.fillRect(0, 0, W, barH);
+  
+  const barGrad = ctx.createLinearGradient(0, 0, W * progress, 0);
+  barGrad.addColorStop(0, '#ff006e');
+  barGrad.addColorStop(0.5, '#8338ec');
+  barGrad.addColorStop(1, '#3a86ff');
+  ctx.fillStyle = barGrad;
+  ctx.fillRect(0, 0, W * progress, barH);
+}
+
+function drawFeverOverlay() {
+  // Pulsing border
+  const pulse = Math.sin(Date.now() / 150) * 0.3 + 0.5;
+  const borderWidth = 6 * devicePixelRatio;
+  
+  ctx.strokeStyle = `rgba(255,0,110,${pulse})`;
+  ctx.lineWidth = borderWidth;
+  ctx.strokeRect(borderWidth/2, borderWidth/2, W - borderWidth, H - borderWidth);
+  
+  // FEVER text
+  ctx.save();
+  ctx.globalAlpha = 0.15 + pulse * 0.15;
+  ctx.font = `bold ${80 * devicePixelRatio}px 'Segoe UI',sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#ff006e';
+  ctx.fillText('FEVER!', W / 2, H * 0.3);
+  ctx.restore();
+}
+
+let ambientParticles = [];
+function drawAmbientParticles() {
+  if (ambientParticles.length < 30) {
+    ambientParticles.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: -Math.random() * 0.5 - 0.2,
+      size: Math.random() * 3 + 1,
+      alpha: Math.random() * 0.5 + 0.1,
+      color: ['#ff006e', '#8338ec', '#3a86ff'][Math.floor(Math.random() * 3)]
+    });
+  }
+  
+  for (let i = ambientParticles.length - 1; i >= 0; i--) {
+    const p = ambientParticles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    if (p.y < -10 || p.x < -10 || p.x > W + 10) {
+      ambientParticles.splice(i, 1);
+      continue;
+    }
+    ctx.globalAlpha = p.alpha;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
+
+// ===== GAME LOOP =====
+let lastTime = performance.now();
+function gameLoop(now) {
+  const dt = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+  
+  resize();
+  update(dt);
+  draw();
+  
+  requestAnimationFrame(gameLoop);
+}
+
+// Init
+document.getElementById('highScoreText').textContent = `🏆 HIGH SCORE: ${state.highScore.toLocaleString()}`;
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
