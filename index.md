@@ -40,6 +40,39 @@ title: 홈
 
 ---
 
+## 🕹️ 플레이 가능한 게임 데모
+
+<div class="card-grid">
+<div class="card">
+    <a href="https://kjaylee.github.io/jay-projects/games/dice-master/" target="_blank">
+        <h3>🎲 럭키 다이스 마스터</h3>
+        <p>야찌 족보 로그라이크 덱빌더</p>
+    </a>
+</div>
+<div class="card">
+    <a href="https://kjaylee.github.io/jay-projects/games/slime-survivor/" target="_blank">
+        <h3>🟢 슬라임 서바이버</h3>
+        <p>뱀서라이크 액션</p>
+    </a>
+</div>
+<div class="card">
+    <a href="https://kjaylee.github.io/jay-projects/games/stack-kingdom/" target="_blank">
+        <h3>🏰 스택 킹덤</h3>
+        <p>스태킹 + 왕국 건설</p>
+    </a>
+</div>
+<div class="card">
+    <a href="https://kjaylee.github.io/jay-projects/games/merge-tower/" target="_blank">
+        <h3>🗼 머지 몬스터 타워</h3>
+        <p>머지 + 타워디펜스</p>
+    </a>
+</div>
+</div>
+
+[전체 게임 데모 보기 →](https://kjaylee.github.io/jay-projects/games/)
+
+---
+
 ## 🎨 Unity 에셋
 
 <div class="card-grid">
