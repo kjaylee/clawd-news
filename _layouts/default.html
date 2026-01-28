@@ -172,11 +172,13 @@
                 <div class="sidebar-title">🎮 게임 기획서</div>
                 <ul class="sidebar-nav">
                     {% assign sorted_games = site.games | sort: "order" %}
+                    {% if sorted_games %}
                     {% for game in sorted_games %}
                     <li><a href="{{ game.url | relative_url }}" {% if page.url == game.url %}class="active"{% endif %}>
                         {{ game.title | default: game.name }}
                     </a></li>
                     {% endfor %}
+                    {% endif %}
                 </ul>
             </div>
             
@@ -184,11 +186,13 @@
             <div class="sidebar-section">
                 <div class="sidebar-title">🎨 Unity 에셋</div>
                 <ul class="sidebar-nav">
+                    {% if site.assets %}
                     {% for asset in site.assets %}
                     <li><a href="{{ asset.url | relative_url }}" {% if page.url == asset.url %}class="active"{% endif %}>
                         {{ asset.title | default: asset.name }}
                     </a></li>
                     {% endfor %}
+                    {% endif %}
                 </ul>
             </div>
         </aside>
