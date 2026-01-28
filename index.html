@@ -3,250 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daily News Briefing 💋</title>
+    <title>미스 김의 데일리 브리핑 💋</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            color: #eee;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+            color: #e0e0e0;
             min-height: 100vh;
-            padding: 20px;
+            line-height: 1.8;
         }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
         header {
             text-align: center;
-            padding: 30px 0;
+            padding: 50px 0;
             border-bottom: 1px solid #333;
-            margin-bottom: 30px;
+            margin-bottom: 50px;
         }
-        header h1 { font-size: 2.5em; color: #ff6b9d; }
-        header p { color: #888; margin-top: 10px; }
-        .updated { font-size: 0.9em; color: #666; }
-        .grid {
+        header h1 { font-size: 2.5em; color: #ff6b9d; margin-bottom: 15px; }
+        header p { color: #888; font-size: 1.1em; }
+        
+        .latest {
+            background: rgba(255,107,157,0.1);
+            border: 1px solid rgba(255,107,157,0.3);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        .latest h2 { color: #ff6b9d; margin-bottom: 20px; }
+        .latest .date { font-size: 1.3em; color: #fff; margin-bottom: 15px; }
+        .latest a {
+            display: inline-block;
+            background: #ff6b9d;
+            color: #000;
+            padding: 15px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: transform 0.2s;
+        }
+        .latest a:hover { transform: scale(1.05); }
+        
+        .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
         }
-        .category {
+        .summary-item {
             background: rgba(255,255,255,0.05);
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 0.9em;
         }
-        .category h2 {
-            font-size: 1.3em;
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .summary-item .icon { font-size: 1.2em; margin-right: 8px; }
+        
+        .archive {
+            margin-top: 50px;
         }
-        .category.ai h2 { border-color: #00d4ff; color: #00d4ff; }
-        .category.github h2 { border-color: #7c3aed; color: #7c3aed; }
-        .category.skills h2 { border-color: #10b981; color: #10b981; }
-        .category.economy h2 { border-color: #f59e0b; color: #f59e0b; }
-        .category.blockchain h2 { border-color: #f97316; color: #f97316; }
-        .category.gaming h2 { border-color: #ec4899; color: #ec4899; }
-        .news-item {
-            margin-bottom: 15px;
+        .archive h2 {
+            color: #fff;
+            margin-bottom: 30px;
             padding-bottom: 15px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid #333;
         }
-        .news-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        .news-item a {
+        .archive-list {
+            display: grid;
+            gap: 15px;
+        }
+        .archive-item {
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.2s;
+        }
+        .archive-item:hover { background: rgba(255,255,255,0.08); }
+        .archive-item a {
             color: #fff;
             text-decoration: none;
-            font-weight: 500;
-            line-height: 1.4;
-            display: block;
-            margin-bottom: 5px;
+            font-size: 1.1em;
         }
-        .news-item a:hover { color: #ff6b9d; }
-        .news-item p {
-            font-size: 0.85em;
-            color: #999;
-            line-height: 1.5;
+        .archive-item .tags {
+            display: flex;
+            gap: 8px;
         }
-        .news-item .meta {
+        .archive-item .tag {
+            background: rgba(255,255,255,0.1);
+            padding: 3px 10px;
+            border-radius: 15px;
             font-size: 0.75em;
-            color: #666;
-            margin-top: 5px;
+            color: #888;
         }
+        
         footer {
             text-align: center;
-            padding: 30px 0;
-            margin-top: 30px;
+            padding: 50px 0;
+            margin-top: 50px;
             border-top: 1px solid #333;
             color: #666;
         }
-        footer a { color: #ff6b9d; }
+        footer a { color: #ff6b9d; text-decoration: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>📰 Daily News Briefing</h1>
-            <p>AI · GitHub · Skills · 경제 · 블록체인 · 게임</p>
-            <p class="updated">Updated: 2026-01-28 11:02 KST</p>
+            <h1>📰 미스 김의 데일리 브리핑</h1>
+            <p>AI · GitHub · 경제 · 블록체인 · 게임<br>매일 아침, 인사이트와 함께</p>
         </header>
 
-        <div class="grid">
-            <!-- AI -->
-            <section class="category ai">
-                <h2>🤖 AI / 인공지능</h2>
-                <div class="news-item">
-                    <a href="https://www.reuters.com/technology/metas-new-ai-team-has-delivered-first-key-models-internally-this-month-cto-says-2026-01-21/" target="_blank">Meta's new AI team delivered first key models internally this month</a>
-                    <p>Meta CTO says 2025 was a "tremendously chaotic year" for Meta building its lab and infrastructure.</p>
-                    <div class="meta">Reuters · 1 week ago</div>
+        <section class="latest">
+            <h2>🔥 최신 브리핑</h2>
+            <div class="date">2026년 1월 28일 화요일</div>
+            <a href="/2026/01/28.html">오늘의 분석 읽기 →</a>
+            
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <span class="icon">🤖</span>
+                    AI 채택률 정체 시작 — 다음 급등 준비 중
                 </div>
-                <div class="news-item">
-                    <a href="https://ventionteams.com/solutions/ai/report" target="_blank">State of AI 2026 - GenAI share to grow from 37% to 47% by 2030</a>
-                    <p>North America dominates the global AI software market in 2025, holding a 54% share.</p>
-                    <div class="meta">Vention · 1 day ago</div>
+                <div class="summary-item">
+                    <span class="icon">💻</span>
+                    TypeScript가 Python 제치고 GitHub 1위
                 </div>
-                <div class="news-item">
-                    <a href="https://www.prnewswire.com/news-releases/trust-in-ai-surges-as-consumers-take-a-more-transactional-view-of-data-sharing-arf-study-finds-302667046.html" target="_blank">Trust in AI Surges - ARF Study Finds</a>
-                    <p>AI saw the biggest trust jump across institutions compared to last year.</p>
-                    <div class="meta">PR Newswire · 5 days ago</div>
+                <div class="summary-item">
+                    <span class="icon">💰</span>
+                    코스닥 시총 582조 9천억 사상 최대
                 </div>
-                <div class="news-item">
-                    <a href="https://www.nsf.gov/science-matters/nsf-2025-keeping-us-scientific-research-innovation-cutting" target="_blank">NSF 2025: Largest quantum bit array ever recorded - 6,100 qubits</a>
-                    <p>NSF-supported teams achieved major milestones in quantum computing.</p>
-                    <div class="meta">NSF · 1 week ago</div>
+                <div class="summary-item">
+                    <span class="icon">🔗</span>
+                    CZ: "비트코인 4년 주기 깨질 것"
                 </div>
-            </section>
+                <div class="summary-item">
+                    <span class="icon">🎮</span>
+                    33 원정대 더 게임 어워드 9관왕
+                </div>
+            </div>
+        </section>
 
-            <!-- GitHub -->
-            <section class="category github">
-                <h2>💻 GitHub / 개발자</h2>
-                <div class="news-item">
-                    <a href="https://byteiota.com/typescript-overtakes-python-on-github-ai-era-reshapes-languages/" target="_blank">TypeScript Overtakes Python on GitHub</a>
-                    <p>In August 2025, TypeScript became the most-used language by monthly contributors.</p>
-                    <div class="meta">ByteIota · 3 days ago</div>
+        <section class="archive">
+            <h2>📚 아카이브</h2>
+            <div class="archive-list">
+                <div class="archive-item">
+                    <a href="/2026/01/28.html">2026년 1월 28일</a>
+                    <div class="tags">
+                        <span class="tag">AI 정체</span>
+                        <span class="tag">TS 1위</span>
+                        <span class="tag">코스닥 최대</span>
+                    </div>
                 </div>
-                <div class="news-item">
-                    <a href="https://claude.com/blog/eight-trends-defining-how-software-gets-built-in-2026" target="_blank">Eight trends defining how software gets built in 2026</a>
-                    <p>AI can now handle entire implementation workflows: writing tests, debugging, navigating codebases.</p>
-                    <div class="meta">Claude · 1 week ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://tracxn.com/d/companies/github/__v4z5awWwNuU3eztPR28GX_J2Z2nWaQqkEIbwSLUecQk" target="_blank">GitHub: 21.9M developers in India, fastest growing globally</a>
-                    <p>India becomes the fastest growing developer community on GitHub.</p>
-                    <div class="meta">Tracxn · 2 days ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://news.ycombinator.com/item?id=46738554" target="_blank">Trendshift Stats – GitHub language trends across 20k+ repos</a>
-                    <p>New tool tracks programming language trends using real repository data.</p>
-                    <div class="meta">Hacker News · 4 days ago</div>
-                </div>
-            </section>
-
-            <!-- Skills -->
-            <section class="category skills">
-                <h2>🎯 Skills / 기술 트렌드</h2>
-                <div class="news-item">
-                    <a href="https://www.techtimes.com/articles/314295/20260126/9-future-tech-skills-that-will-stay-high-demand-through-2030-beyond.htm" target="_blank">9 Future Tech Skills That Will Stay in High Demand Through 2030</a>
-                    <p>Skills combining technical depth with practical application across industries.</p>
-                    <div class="meta">TechTimes · 2 days ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://softjourn.com/insights/in-demand-programming-languages-tips-for-selecting" target="_blank">Most In-Demand Programming Languages for 2026</a>
-                    <p>C# 14, released with .NET 10 in April 2025, delivers substantial improvements.</p>
-                    <div class="meta">Softjourn · 1 day ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://www.ishir.com/blog/135404/it-job-trends-top-7-tech-jobs-trends-to-watch-in-2025.htm" target="_blank">IT Job Trends: Top 7 Tech Jobs to Watch in 2026</a>
-                    <p>AI engineering, cybersecurity, sustainability, Web3, quantum computing.</p>
-                    <div class="meta">ISHIR · 1 week ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://www.ismtech.net/it-topics-trends/over-126000-tech-jobs-gone-in-2025/" target="_blank">Over 126,000 Tech Jobs Gone in 2025</a>
-                    <p>Skills that will survive: Backend, Data, Cloud, AI development.</p>
-                    <div class="meta">ISMTech · 6 days ago</div>
-                </div>
-            </section>
-
-            <!-- Economy -->
-            <section class="category economy">
-                <h2>💰 경제 / 금융</h2>
-                <div class="news-item">
-                    <a href="https://www.cnbc.com/2026/01/25/stock-market-today-live-updates.html" target="_blank">USA Rare Earth surged 32% on Trump admin stake news</a>
-                    <p>Trump administration taking a 10% stake in the rare earths miner.</p>
-                    <div class="meta">CNBC · 1 day ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://www.fidelity.com/viewpoints/market-and-economic-insights/quarterly-market-update" target="_blank">Economic Outlook: Almost all major assets ended 2025 positive</a>
-                    <p>Gold at the top of the leaderboard. International equities posted strong gains.</p>
-                    <div class="meta">Fidelity · 1 week ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://www.blackrock.com/us/individual/insights/blackrock-investment-institute/weekly-commentary" target="_blank">BlackRock: Record U.S. investment grade debt issuance</a>
-                    <p>Record issuance for the first full week of January, per LSEG.</p>
-                    <div class="meta">BlackRock · 2 days ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://www.investopedia.com/5-things-to-know-before-the-stock-market-opens-january-22-2026-11890216" target="_blank">Inflation: Consumer prices rose 2.8% year-over-year</a>
-                    <p>Still above Federal Reserve's inflation target of 2.0%.</p>
-                    <div class="meta">Investopedia · 6 days ago</div>
-                </div>
-            </section>
-
-            <!-- Blockchain -->
-            <section class="category blockchain">
-                <h2>🔗 블록체인 / 암호화폐</h2>
-                <div class="news-item">
-                    <a href="https://investingnews.com/cryptocurrency-market-recap/" target="_blank">Bitcoin at $87,515, up 1.2% in 24 hours</a>
-                    <p>Latest insights on Bitcoin, Ether and altcoins market recap.</p>
-                    <div class="meta">Investing News · 11 hours ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://fortune.com/2026/01/27/major-crypto-bill-overcomes-obstacle-as-senator-cuts-plan-to-target-credit-card-fees/" target="_blank">Major crypto bill overcomes obstacle in Senate</a>
-                    <p>Strategy buys more Bitcoin—$264 million—even as Bitcoin slumps to $87,000.</p>
-                    <div class="meta">Fortune · 8 hours ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://finance.yahoo.com/news/crypto-market-likely-bottomed-q4-153741019.html" target="_blank">Crypto Market Likely Bottomed In Q4 2025 - Bitwise</a>
-                    <p>Q4 showed the type of divergence typically seen at the bottom of a bear market.</p>
-                    <div class="meta">Yahoo Finance · 1 day ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://www.coindesk.com/policy/2026/01/27/crypto-money-laundering-balloons-to-usd82b-as-chinese-language-services-dominate-chainalysis-says" target="_blank">Crypto laundering hits $82B in 2025</a>
-                    <p>More than $82 billion flowed through on-chain laundering channels.</p>
-                    <div class="meta">CoinDesk · 13 hours ago</div>
-                </div>
-            </section>
-
-            <!-- Gaming -->
-            <section class="category gaming">
-                <h2>🎮 게임 / 인디게임</h2>
-                <div class="news-item">
-                    <a href="https://en.wikipedia.org/wiki/2025_in_video_games" target="_blank">2025 in Video Games: Indie devs achieve outsize success</a>
-                    <p>Clair Obscur: Expedition 33 and Kingdom Come: Deliverance II achieve critical acclaim.</p>
-                    <div class="meta">Wikipedia · 1 day ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://www.ign.com/articles/video-game-release-dates-ps4-ps5-xbox-one-series-x-nintendo-switch" target="_blank">Biggest Games of January 2026 and Beyond</a>
-                    <p>Release dates for PS5, Xbox Series X|S, Nintendo Switch, Switch 2, and PC.</p>
-                    <div class="meta">IGN · 5 days ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://www.indie-games.eu/daily-indie-news-roundup-9-27-1-2026/" target="_blank">Xbox Game Pass benefits certain developers</a>
-                    <p>Subscription services benefit developers offering downloadable content.</p>
-                    <div class="meta">IndieGames · 6 hours ago</div>
-                </div>
-                <div class="news-item">
-                    <a href="https://monstervine.com/2026/01/nicks-top-10-games-of-2025/" target="_blank">Top 10 Games of 2025: Celebrating indie excellence</a>
-                    <p>Bold storytelling and unforgettable experiences from indie developers.</p>
-                    <div class="meta">MonsterVine · 11 hours ago</div>
-                </div>
-            </section>
-        </div>
+                <!-- 새로운 날짜가 추가되면 여기에 -->
+            </div>
+        </section>
 
         <footer>
-            <p>Curated by <a href="#">미스 김 💋</a> for 주인님</p>
-            <p style="margin-top: 10px;">Powered by Brave Search API</p>
+            <p><a href="/">미스 김 💋</a> — 주인님을 위한 매일 아침 브리핑</p>
+            <p style="margin-top: 15px; font-size: 0.85em;">매일 05:30 KST 자동 업데이트</p>
         </footer>
     </div>
 </body>
