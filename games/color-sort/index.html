@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Color Sort Puzzle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+        }
+        #game-container {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .stats span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        #tubes-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 20px 0;
+            min-height: 300px;
+        }
+        .tube {
+            width: 50px;
+            height: 180px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: none;
+            border-radius: 0 0 25px 25px;
+            display: flex;
+            flex-direction: column-reverse;
+            padding: 5px;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+            position: relative;
+            background: rgba(0,0,0,0.2);
+        }
+        .tube:hover {
+            border-color: rgba(255,255,255,0.5);
+        }
+        .tube.selected {
+            transform: translateY(-15px);
+            border-color: #667eea;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        .tube.valid-target {
+            border-color: #4ecdc4;
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+        }
+        .ball {
+            width: 40px;
+            height: 38px;
+            border-radius: 50%;
+            margin: 1px auto;
+            transition: all 0.3s ease;
+            box-shadow: inset -5px -5px 15px rgba(0,0,0,0.3),
+                        inset 5px 5px 15px rgba(255,255,255,0.2);
+        }
+        .ball.pouring {
+            animation: pour 0.3s ease-out;
+        }
+        @keyframes pour {
+            0% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.1);
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .modal.show {
+            display: flex;
+        }
+        .modal-content {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 90%;
+        }
+        .modal h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .modal p {
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+        .modal .stats-display {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .modal .stat-item {
+            text-align: center;
+        }
+        .modal .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .modal .stat-label {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        /* Start screen */
+        #start-screen {
+            text-align: center;
+        }
+        #start-screen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        #start-screen .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+        }
+        #start-screen .level-info {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            color: #aaa;
+        }
+        .tube-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen">
+            <div class="tube-icon">🧪</div>
+            <h1>Color Sort</h1>
+            <p class="subtitle">색상을 정렬하는 힐링 퍼즐</p>
+            <p class="level-info">Level <span id="current-level">1</span></p>
+            <button class="btn btn-primary" onclick="startGame()">▶ 게임 시작</button>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game-screen" style="display: none;">
+            <div class="header">
+                <h1>🧪 Level <span id="level-display">1</span></h1>
+                <div class="stats">
+                    <span>🎯 <span id="moves-display">0</span></span>
+                </div>
+            </div>
+            <div id="tubes-container"></div>
+            <div class="controls">
+                <button class="btn btn-secondary" onclick="undoMove()" id="undo-btn">↩️ Undo</button>
+                <button class="btn btn-secondary" onclick="restartLevel()">🔄 Restart</button>
+                <button class="btn btn-secondary" onclick="showHint()" id="hint-btn">💡 Hint</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Modal -->
+    <div id="win-modal" class="modal">
+        <div class="modal-content">
+            <h2>🎉 Complete!</h2>
+            <div class="stats-display">
+                <div class="stat-item">
+                    <div class="stat-value" id="win-level">1</div>
+                    <div class="stat-label">Level</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="win-moves">0</div>
+                    <div class="stat-label">Moves</div>
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="nextLevel()">▶ 다음 레벨</button>
+        </div>
+    </div>
+
+    <script>
+        // Game constants
+        const TUBE_CAPACITY = 4;
+        const COLORS = [
+            '#FF6B6B',  // Red
+            '#4ECDC4',  // Teal
+            '#FFE66D',  // Yellow
+            '#95E1D3',  // Mint
+            '#F38181',  // Coral
+            '#AA96DA',  // Lavender
+            '#FCBAD3',  // Pink
+            '#A8D8EA'   // Sky Blue
+        ];
+
+        // Game state
+        let state = {
+            tubes: [],
+            level: 1,
+            moves: 0,
+            history: [],
+            selectedTube: null
+        };
+
+        // Load saved progress
+        function loadProgress() {
+            const saved = localStorage.getItem('colorSortProgress');
+            if (saved) {
+                const data = JSON.parse(saved);
+                state.level = data.level || 1;
+            }
+            document.getElementById('current-level').textContent = state.level;
+        }
+
+        // Save progress
+        function saveProgress() {
+            localStorage.setItem('colorSortProgress', JSON.stringify({
+                level: state.level
+            }));
+        }
+
+        // Get level parameters
+        function getLevelParams(level) {
+            const numColors = Math.min(4 + Math.floor((level - 1) / 5), 8);
+            const numTubes = numColors + 2;
+            return { numColors, numTubes };
+        }
+
+        // Generate solvable puzzle
+        function generateLevel(level) {
+            const { numColors, numTubes } = getLevelParams(level);
+            
+            // Create solved state (each color fills one tube)
+            let balls = [];
+            for (let c = 0; c < numColors; c++) {
+                for (let i = 0; i < TUBE_CAPACITY; i++) {
+                    balls.push(c);
+                }
+            }
+            
+            // Shuffle balls
+            for (let i = balls.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [balls[i], balls[j]] = [balls[j], balls[i]];
+            }
+            
+            // Distribute to tubes
+            let tubes = [];
+            for (let t = 0; t < numColors; t++) {
+                tubes.push(balls.slice(t * TUBE_CAPACITY, (t + 1) * TUBE_CAPACITY));
+            }
+            
+            // Add empty tubes
+            for (let t = 0; t < numTubes - numColors; t++) {
+                tubes.push([]);
+            }
+            
+            // Ensure not already solved (shuffle more if needed)
+            if (isSolved(tubes)) {
+                return generateLevel(level);
+            }
+            
+            return tubes;
+        }
+
+        // Check if puzzle is solved
+        function isSolved(tubes) {
+            for (let tube of tubes) {
+                if (tube.length === 0) continue;
+                if (tube.length !== TUBE_CAPACITY) return false;
+                if (!tube.every(b => b === tube[0])) return false;
+            }
+            return true;
+        }
+
+        // Can pour from one tube to another
+        function canPour(from, to) {
+            if (from === to) return false;
+            if (state.tubes[from].length === 0) return false;
+            if (state.tubes[to].length >= TUBE_CAPACITY) return false;
+            if (state.tubes[to].length === 0) return true;
+            
+            const fromTop = state.tubes[from][state.tubes[from].length - 1];
+            const toTop = state.tubes[to][state.tubes[to].length - 1];
+            return fromTop === toTop;
+        }
+
+        // Count consecutive same-colored balls from top
+        function countTopBalls(tube) {
+            if (tube.length === 0) return 0;
+            let count = 1;
+            const topColor = tube[tube.length - 1];
+            for (let i = tube.length - 2; i >= 0; i--) {
+                if (tube[i] === topColor) count++;
+                else break;
+            }
+            return count;
+        }
+
+        // Pour balls from one tube to another
+        function pour(fromIdx, toIdx) {
+            const fromTube = state.tubes[fromIdx];
+            const toTube = state.tubes[toIdx];
+            
+            // Save for undo
+            state.history.push(JSON.parse(JSON.stringify(state.tubes)));
+            
+            const topColor = fromTube[fromTube.length - 1];
+            const countToPour = countTopBalls(fromTube);
+            const spaceInTarget = TUBE_CAPACITY - toTube.length;
+            const actualPour = Math.min(countToPour, spaceInTarget);
+            
+            // Move balls
+            for (let i = 0; i < actualPour; i++) {
+                toTube.push(fromTube.pop());
+            }
+            
+            state.moves++;
+            updateDisplay();
+            
+            // Check win
+            if (isSolved(state.tubes)) {
+                setTimeout(showWinModal, 500);
+            }
+        }
+
+        // Undo last move
+        function undoMove() {
+            if (state.history.length === 0) return;
+            state.tubes = state.history.pop();
+            state.moves = Math.max(0, state.moves - 1);
+            state.selectedTube = null;
+            updateDisplay();
+        }
+
+        // Show hint (highlight best move)
+        function showHint() {
+            // Simple BFS for valid move
+            for (let from = 0; from < state.tubes.length; from++) {
+                for (let to = 0; to < state.tubes.length; to++) {
+                    if (canPour(from, to)) {
+                        // Highlight the tubes briefly
+                        const tubeElements = document.querySelectorAll('.tube');
+                        tubeElements[from].style.borderColor = '#FFE66D';
+                        tubeElements[to].style.borderColor = '#4ECDC4';
+                        
+                        setTimeout(() => {
+                            updateDisplay();
+                        }, 1500);
+                        return;
+                    }
+                }
+            }
+            alert('No valid moves! Try undo or restart.');
+        }
+
+        // Restart current level
+        function restartLevel() {
+            state.tubes = generateLevel(state.level);
+            state.moves = 0;
+            state.history = [];
+            state.selectedTube = null;
+            updateDisplay();
+        }
+
+        // Handle tube click
+        function handleTubeClick(index) {
+            if (state.selectedTube === null) {
+                // Select tube (if not empty)
+                if (state.tubes[index].length > 0) {
+                    state.selectedTube = index;
+                    updateDisplay();
+                }
+            } else {
+                if (state.selectedTube === index) {
+                    // Deselect
+                    state.selectedTube = null;
+                    updateDisplay();
+                } else if (canPour(state.selectedTube, index)) {
+                    // Pour
+                    pour(state.selectedTube, index);
+                    state.selectedTube = null;
+                } else {
+                    // Select different tube
+                    if (state.tubes[index].length > 0) {
+                        state.selectedTube = index;
+                    } else {
+                        state.selectedTube = null;
+                    }
+                    updateDisplay();
+                }
+            }
+        }
+
+        // Update display
+        function updateDisplay() {
+            document.getElementById('level-display').textContent = state.level;
+            document.getElementById('moves-display').textContent = state.moves;
+            document.getElementById('undo-btn').disabled = state.history.length === 0;
+            
+            const container = document.getElementById('tubes-container');
+            container.innerHTML = '';
+            
+            const { numColors } = getLevelParams(state.level);
+            
+            state.tubes.forEach((tube, idx) => {
+                const tubeEl = document.createElement('div');
+                tubeEl.className = 'tube';
+                if (idx === state.selectedTube) {
+                    tubeEl.classList.add('selected');
+                } else if (state.selectedTube !== null && canPour(state.selectedTube, idx)) {
+                    tubeEl.classList.add('valid-target');
+                }
+                
+                tube.forEach((ball, ballIdx) => {
+                    const ballEl = document.createElement('div');
+                    ballEl.className = 'ball';
+                    ballEl.style.backgroundColor = COLORS[ball % COLORS.length];
+                    tubeEl.appendChild(ballEl);
+                });
+                
+                tubeEl.onclick = () => handleTubeClick(idx);
+                container.appendChild(tubeEl);
+            });
+        }
+
+        // Show win modal
+        function showWinModal() {
+            document.getElementById('win-level').textContent = state.level;
+            document.getElementById('win-moves').textContent = state.moves;
+            document.getElementById('win-modal').classList.add('show');
+        }
+
+        // Next level
+        function nextLevel() {
+            document.getElementById('win-modal').classList.remove('show');
+            state.level++;
+            saveProgress();
+            state.tubes = generateLevel(state.level);
+            state.moves = 0;
+            state.history = [];
+            state.selectedTube = null;
+            updateDisplay();
+        }
+
+        // Start game
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
+            state.tubes = generateLevel(state.level);
+            state.moves = 0;
+            state.history = [];
+            state.selectedTube = null;
+            updateDisplay();
+        }
+
+        // Initialize
+        loadProgress();
+    </script>
+</body>
+</html>
