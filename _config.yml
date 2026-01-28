@@ -4,9 +4,6 @@ url: "https://kjaylee.github.io"
 baseurl: "/clawd-news"
 
 collections:
-  games:
-    output: true
-    permalink: /games/:name/
   assets:
     output: true
     permalink: /assets/:name/
@@ -22,11 +19,6 @@ defaults:
     values:
       layout: "post"
       category: "briefing"
-  - scope:
-      path: ""
-      type: "games"
-    values:
-      layout: "game"
   - scope:
       path: ""
       type: "assets"

@@ -4,7 +4,7 @@ title: 홈
 ---
 
 <h1 class="page-title">🚀 주인님의 프로젝트 허브</h1>
-<p class="page-meta">데일리 브리핑 · 게임 기획 · Unity 에셋</p>
+<p class="page-meta">데일리 브리핑 · 게임 데모 · Unity 에셋</p>
 
 ---
 
@@ -22,25 +22,7 @@ title: 홈
 
 ---
 
-## 🎮 게임 기획서
-
-<div class="card-grid">
-{% assign sorted_games = site.games | sort: "order" %}
-{% for game in sorted_games limit:6 %}
-<div class="card">
-    <a href="{{ game.url | relative_url }}">
-        <h3>{{ game.title | default: game.name }}</h3>
-        <p>{{ game.excerpt | strip_html | truncate: 80 }}</p>
-    </a>
-</div>
-{% endfor %}
-</div>
-
-[전체 기획서 보기 →]({{ '/games/' | relative_url }})
-
----
-
-## 🕹️ 플레이 가능한 게임 데모
+## 🎮 게임 프로젝트
 
 <div class="card-grid">
 <div class="card">
@@ -69,7 +51,7 @@ title: 홈
 </div>
 </div>
 
-[전체 게임 데모 보기 →](https://kjaylee.github.io/jay-projects/games/)
+[전체 게임 (15종) →](https://kjaylee.github.io/jay-projects/games/) ｜ [기획서 →](https://kjaylee.github.io/jay-projects/)
 
 ---
 
