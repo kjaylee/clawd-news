@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Gravity Orbit - 중력 궤도</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a;touch-action:none}
+canvas{display:block;width:100%;height:100%}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let W, H, dpr;
+function resize() {
+    dpr = window.devicePixelRatio || 1;
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+resize();
+window.addEventListener('resize', resize);
+
+// --- Game State ---
+const STATE = { MENU: 0, PLAY: 1, OVER: 2 };
+let state = STATE.MENU;
+let score = 0;
+let bestScore = parseInt(localStorage.getItem('gravityOrbitBest') || '0');
+let chain = 0;
+let chainMultiplier = 1;
+let starsCollected = 0;
+let distance = 0;
+let gameTime = 0;
+
+// --- Camera ---
+let cam = { x: 0, y: 0 };
+
+// --- Satellite ---
+let sat = {
+    x: 0, y: 0,
+    vx: 0, vy: 0,
+    orbiting: null, // planet index
+    angle: 0,
+    orbitDir: 1, // 1=CCW, -1=CW
+    trail: [],
+    alive: true
+};
+const SAT_RADIUS = 6;
+const TRAIL_MAX = 60;
+
+// --- Planets ---
+let planets = [];
+const COLORS = [
+    '#ff6b9d', '#c44dff', '#4dc9f6', '#00e676',
+    '#ffca28', '#ff7043', '#7c4dff', '#18ffff',
+    '#e040fb', '#76ff03'
+];
+
+// --- Stars ---
+let stars = [];
+
+// --- Asteroids ---
+let asteroids = [];
+
+// --- Background stars ---
+let bgStars = [];
+for (let i = 0; i < 200; i++) {
+    bgStars.push({
+        x: Math.random() * 4000 - 2000,
+        y: Math.random() * 4000 - 2000,
+        r: Math.random() * 1.5 + 0.3,
+        b: Math.random() * 0.5 + 0.5
+    });
+}
+
+// --- Particles ---
+let particles = [];
+
+function createParticle(x, y, color, count) {
+    for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        particles.push({
+            x, y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            life: 1,
+            decay: Math.random() * 0.03 + 0.02,
+            r: Math.random() * 3 + 1,
+            color
+        });
+    }
+}
+
+function spawnPlanet(minX) {
+    const r = 30 + Math.random() * 50;
+    const orbitR = r + 40 + Math.random() * 40;
+    const x = minX + 150 + Math.random() * 250;
+    const y = (planets.length === 0 ? H / 2 : planets[planets.length - 1].y) + (Math.random() - 0.5) * 300;
+    const clampedY = Math.max(100, Math.min(H - 100, y));
+    const color = COLORS[Math.floor(Math.random() * COLORS.length)];
+    const angSpeed = 0.015 + Math.random() * 0.02;
+    planets.push({ x, y: clampedY, r, orbitR, color, angSpeed, captured: false });
+
+    // spawn stars around planet
+    const starCount = 1 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < starCount; i++) {
+        const sa = Math.random() * Math.PI * 2;
+        const sd = orbitR + 10 + Math.random() * 40;
+        stars.push({
+            x: x + Math.cos(sa) * sd,
+            y: clampedY + Math.sin(sa) * sd,
+            collected: false,
+            pulse: Math.random() * Math.PI * 2
+        });
+    }
+
+    // spawn asteroids after some distance
+    if (distance > 300) {
+        if (Math.random() < 0.3 + distance * 0.0001) {
+            const aa = Math.random() * Math.PI * 2;
+            const ad = 100 + Math.random() * 150;
+            asteroids.push({
+                x: x + Math.cos(aa) * ad,
+                y: clampedY + Math.sin(aa) * ad,
+                r: 8 + Math.random() * 12,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5,
+                rot: 0,
+                rotSpeed: (Math.random() - 0.5) * 0.05
+            });
+        }
+    }
+}
+
+function initGame() {
+    score = 0;
+    chain = 0;
+    chainMultiplier = 1;
+    starsCollected = 0;
+    distance = 0;
+    gameTime = 0;
+    planets = [];
+    stars = [];
+    asteroids = [];
+    particles = [];
+
+    // Create initial planets
+    for (let i = 0; i < 8; i++) {
+        spawnPlanet(i === 0 ? W / 4 : planets[planets.length - 1].x);
+    }
+
+    // Place satellite on first planet orbit
+    const p0 = planets[0];
+    sat.orbiting = 0;
+    sat.angle = -Math.PI / 2;
+    sat.orbitDir = 1;
+    sat.x = p0.x + Math.cos(sat.angle) * p0.orbitR;
+    sat.y = p0.y + Math.sin(sat.angle) * p0.orbitR;
+    sat.vx = 0;
+    sat.vy = 0;
+    sat.trail = [];
+    sat.alive = true;
+    p0.captured = true;
+
+    cam.x = sat.x - W / 3;
+    cam.y = sat.y - H / 2;
+}
+
+function launchFromOrbit() {
+    if (sat.orbiting === null) return;
+    const p = planets[sat.orbiting];
+    // tangent direction
+    const tangentAngle = sat.angle + (sat.orbitDir * Math.PI / 2);
+    const speed = p.angSpeed * p.orbitR * 1.2;
+    sat.vx = Math.cos(tangentAngle) * speed;
+    sat.vy = Math.sin(tangentAngle) * speed;
+    // add minimum forward velocity
+    if (sat.vx < 2) sat.vx = Math.max(sat.vx, 2.5);
+    sat.orbiting = null;
+}
+
+function checkGravityCapture() {
+    if (sat.orbiting !== null) return;
+    for (let i = 0; i < planets.length; i++) {
+        const p = planets[i];
+        if (p.captured) continue;
+        const dx = p.x - sat.x;
+        const dy = p.y - sat.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < p.orbitR + 25) {
+            // Capture!
+            sat.orbiting = i;
+            p.captured = true;
+            sat.angle = Math.atan2(sat.y - p.y, sat.x - p.x);
+            // determine orbit direction based on approach
+            const cross = sat.vx * (p.y - sat.y) - sat.vy * (p.x - sat.x);
+            sat.orbitDir = cross > 0 ? -1 : 1;
+            sat.vx = 0;
+            sat.vy = 0;
+            // Chain bonus
+            chain++;
+            chainMultiplier = Math.min(chain, 10);
+            score += 50 * chainMultiplier;
+            createParticle(sat.x, sat.y, p.color, 12);
+            return;
+        }
+    }
+}
+
+function checkCollisions() {
+    // Planet surface collision
+    for (const p of planets) {
+        const dx = p.x - sat.x;
+        const dy = p.y - sat.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < p.r + SAT_RADIUS) {
+            sat.alive = false;
+            createParticle(sat.x, sat.y, '#ff4444', 30);
+            return;
+        }
+    }
+    // Asteroid collision
+    for (const a of asteroids) {
+        const dx = a.x - sat.x;
+        const dy = a.y - sat.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < a.r + SAT_RADIUS) {
+            sat.alive = false;
+            createParticle(sat.x, sat.y, '#ff4444', 30);
+            return;
+        }
+    }
+    // Star collection
+    for (const s of stars) {
+        if (s.collected) continue;
+        const dx = s.x - sat.x;
+        const dy = s.y - sat.y;
+        if (dx * dx + dy * dy < 400) {
+            s.collected = true;
+            starsCollected++;
+            score += 100 * chainMultiplier;
+            createParticle(s.x, s.y, '#ffca28', 8);
+        }
+    }
+    // Out of bounds (fell too far from any planet)
+    if (sat.orbiting === null) {
+        let nearAny = false;
+        for (const p of planets) {
+            const dx = p.x - sat.x;
+            const dy = p.y - sat.y;
+            if (dx * dx + dy * dy < 800 * 800) {
+                nearAny = true;
+                break;
+            }
+        }
+        if (!nearAny) {
+            sat.alive = false;
+            createParticle(sat.x, sat.y, '#ff4444', 20);
+        }
+    }
+}
+
+function update() {
+    if (state !== STATE.PLAY) return;
+    gameTime++;
+
+    // Update satellite
+    if (sat.orbiting !== null) {
+        const p = planets[sat.orbiting];
+        sat.angle += p.angSpeed * sat.orbitDir;
+        sat.x = p.x + Math.cos(sat.angle) * p.orbitR;
+        sat.y = p.y + Math.sin(sat.angle) * p.orbitR;
+    } else {
+        // Free flight - apply gentle gravity pull from nearby uncaptured planets
+        for (const p of planets) {
+            if (p.captured) continue;
+            const dx = p.x - sat.x;
+            const dy = p.y - sat.y;
+            const distSq = dx * dx + dy * dy;
+            const dist = Math.sqrt(distSq);
+            if (dist < 400 && dist > p.r + 20) {
+                const force = 0.15 / (distSq / 10000);
+                sat.vx += (dx / dist) * force;
+                sat.vy += (dy / dist) * force;
+            }
+        }
+        sat.x += sat.vx;
+        sat.y += sat.vy;
+    }
+
+    // Trail
+    sat.trail.push({ x: sat.x, y: sat.y });
+    if (sat.trail.length > TRAIL_MAX) sat.trail.shift();
+
+    // Distance tracking
+    distance = Math.max(distance, sat.x);
+
+    // Check gravity capture
+    checkGravityCapture();
+
+    // Check collisions
+    checkCollisions();
+
+    if (!sat.alive) {
+        state = STATE.OVER;
+        if (score > bestScore) {
+            bestScore = score;
+            localStorage.setItem('gravityOrbitBest', bestScore.toString());
+        }
+    }
+
+    // Spawn more planets ahead
+    const lastPlanet = planets[planets.length - 1];
+    if (lastPlanet && sat.x > lastPlanet.x - W) {
+        spawnPlanet(lastPlanet.x);
+    }
+
+    // Update asteroids
+    for (const a of asteroids) {
+        a.x += a.vx;
+        a.y += a.vy;
+        a.rot += a.rotSpeed;
+    }
+
+    // Update particles
+    for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+        p.life -= p.decay;
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+
+    // Camera smoothing
+    const targetCamX = sat.x - W / 3;
+    const targetCamY = sat.y - H / 2;
+    cam.x += (targetCamX - cam.x) * 0.08;
+    cam.y += (targetCamY - cam.y) * 0.08;
+}
+
+// --- Drawing ---
+function drawBg() {
+    ctx.fillStyle = '#0a0a1a';
+    ctx.fillRect(0, 0, W, H);
+
+    // Parallax background stars
+    for (const s of bgStars) {
+        const px = ((s.x - cam.x * 0.3) % (W + 200) + W + 200) % (W + 200) - 100;
+        const py = ((s.y - cam.y * 0.3) % (H + 200) + H + 200) % (H + 200) - 100;
+        ctx.globalAlpha = s.b * (0.6 + Math.sin(gameTime * 0.02 + s.x) * 0.4);
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(px, py, s.r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+}
+
+function drawPlanet(p) {
+    const sx = p.x - cam.x;
+    const sy = p.y - cam.y;
+
+    // Skip if offscreen
+    if (sx < -200 || sx > W + 200 || sy < -200 || sy > H + 200) return;
+
+    // Orbit ring
+    ctx.strokeStyle = p.color;
+    ctx.globalAlpha = 0.15;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(sx, sy, p.orbitR, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Planet glow
+    const grd = ctx.createRadialGradient(sx, sy, p.r * 0.3, sx, sy, p.r * 2);
+    grd.addColorStop(0, p.color + '40');
+    grd.addColorStop(1, 'transparent');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(sx, sy, p.r * 2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Planet body
+    const bodyGrd = ctx.createRadialGradient(sx - p.r * 0.3, sy - p.r * 0.3, p.r * 0.1, sx, sy, p.r);
+    bodyGrd.addColorStop(0, '#ffffff80');
+    bodyGrd.addColorStop(0.5, p.color);
+    bodyGrd.addColorStop(1, p.color + '80');
+    ctx.fillStyle = bodyGrd;
+    ctx.beginPath();
+    ctx.arc(sx, sy, p.r, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function drawStar(s) {
+    if (s.collected) return;
+    const sx = s.x - cam.x;
+    const sy = s.y - cam.y;
+    if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) return;
+
+    s.pulse += 0.05;
+    const scale = 1 + Math.sin(s.pulse) * 0.3;
+    const r = 8 * scale;
+
+    // Star glow
+    ctx.globalAlpha = 0.4 + Math.sin(s.pulse) * 0.2;
+    const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, r * 2.5);
+    glow.addColorStop(0, '#ffca2860');
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(sx, sy, r * 2.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Star shape
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#ffca28';
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+        const a = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+        const xp = sx + Math.cos(a) * r;
+        const yp = sy + Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(xp, yp);
+        else ctx.lineTo(xp, yp);
+    }
+    ctx.closePath();
+    ctx.fill();
+}
+
+function drawAsteroid(a) {
+    const sx = a.x - cam.x;
+    const sy = a.y - cam.y;
+    if (sx < -50 || sx > W + 50 || sy < -50 || sy > H + 50) return;
+
+    ctx.save();
+    ctx.translate(sx, sy);
+    ctx.rotate(a.rot);
+    ctx.fillStyle = '#555';
+    ctx.beginPath();
+    // Irregular polygon
+    for (let i = 0; i < 7; i++) {
+        const angle = (i / 7) * Math.PI * 2;
+        const rr = a.r * (0.7 + Math.sin(i * 2.3) * 0.3);
+        const px = Math.cos(angle) * rr;
+        const py = Math.sin(angle) * rr;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#777';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+    ctx.restore();
+}
+
+function drawSatellite() {
+    // Trail
+    if (sat.trail.length > 1) {
+        for (let i = 1; i < sat.trail.length; i++) {
+            const t = sat.trail[i];
+            const prev = sat.trail[i - 1];
+            const alpha = i / sat.trail.length;
+            const orbitingPlanet = sat.orbiting !== null ? planets[sat.orbiting] : null;
+            const trailColor = orbitingPlanet ? orbitingPlanet.color : '#4dc9f6';
+            ctx.strokeStyle = trailColor;
+            ctx.globalAlpha = alpha * 0.6;
+            ctx.lineWidth = alpha * 3;
+            ctx.beginPath();
+            ctx.moveTo(prev.x - cam.x, prev.y - cam.y);
+            ctx.lineTo(t.x - cam.x, t.y - cam.y);
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    const sx = sat.x - cam.x;
+    const sy = sat.y - cam.y;
+
+    // Satellite glow
+    const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, SAT_RADIUS * 3);
+    glow.addColorStop(0, '#4dc9f660');
+    glow.addColorStop(1, 'transparent');
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(sx, sy, SAT_RADIUS * 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Satellite body
+    ctx.fillStyle = '#ffffff';
+    ctx.shadowColor = '#4dc9f6';
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(sx, sy, SAT_RADIUS, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Direction indicator when orbiting
+    if (sat.orbiting !== null) {
+        const p = planets[sat.orbiting];
+        const tangentAngle = sat.angle + (sat.orbitDir * Math.PI / 2);
+        const arrowLen = 18;
+        const ax = sx + Math.cos(tangentAngle) * arrowLen;
+        const ay = sy + Math.sin(tangentAngle) * arrowLen;
+        ctx.strokeStyle = '#ffffff80';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(sx, sy);
+        ctx.lineTo(ax, ay);
+        ctx.stroke();
+        // arrowhead
+        const aSize = 6;
+        ctx.fillStyle = '#ffffff80';
+        ctx.beginPath();
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(ax - Math.cos(tangentAngle - 0.4) * aSize, ay - Math.sin(tangentAngle - 0.4) * aSize);
+        ctx.lineTo(ax - Math.cos(tangentAngle + 0.4) * aSize, ay - Math.sin(tangentAngle + 0.4) * aSize);
+        ctx.closePath();
+        ctx.fill();
+    }
+}
+
+function drawParticles() {
+    for (const p of particles) {
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x - cam.x, p.y - cam.y, p.r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+}
+
+function drawHUD() {
+    // Score
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 24px "Segoe UI", sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`점수: ${score}`, 15, 35);
+
+    // Chain
+    if (chain > 1) {
+        ctx.fillStyle = '#ffca28';
+        ctx.font = 'bold 18px "Segoe UI", sans-serif';
+        ctx.fillText(`x${chainMultiplier} 체인!`, 15, 60);
+    }
+
+    // Stars
+    ctx.fillStyle = '#ffca28';
+    ctx.font = '18px "Segoe UI", sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(`⭐ ${starsCollected}`, W - 15, 35);
+
+    // Best score
+    ctx.fillStyle = '#888';
+    ctx.font = '14px "Segoe UI", sans-serif';
+    ctx.fillText(`최고: ${bestScore}`, W - 15, 55);
+}
+
+function drawMenu() {
+    drawBg();
+
+    // Animated demo planets
+    const t = Date.now() * 0.001;
+    for (let i = 0; i < 5; i++) {
+        const cx = W / 2 + Math.cos(t * 0.3 + i * 1.2) * 120;
+        const cy = H / 2 + Math.sin(t * 0.4 + i * 1.5) * 80;
+        const r = 20 + i * 8;
+        const grd = ctx.createRadialGradient(cx, cy, r * 0.2, cx, cy, r);
+        grd.addColorStop(0, COLORS[i] + '80');
+        grd.addColorStop(1, COLORS[i] + '20');
+        ctx.fillStyle = grd;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    // Title
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 42px "Segoe UI", sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🌌 Gravity Orbit', W / 2, H / 2 - 80);
+
+    ctx.fillStyle = '#aaaaaa';
+    ctx.font = '18px "Segoe UI", sans-serif';
+    ctx.fillText('행성 궤도를 타고 우주를 여행하세요', W / 2, H / 2 - 40);
+
+    // Tap prompt (pulsing)
+    const pulse = 0.7 + Math.sin(t * 3) * 0.3;
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = '#4dc9f6';
+    ctx.font = 'bold 22px "Segoe UI", sans-serif';
+    ctx.fillText('탭하여 시작', W / 2, H / 2 + 30);
+    ctx.globalAlpha = 1;
+
+    // Instructions
+    ctx.fillStyle = '#666';
+    ctx.font = '14px "Segoe UI", sans-serif';
+    ctx.fillText('궤도에서 탭 → 이탈 → 다음 행성 궤도로!', W / 2, H / 2 + 70);
+    ctx.fillText('별을 모으고, 소행성을 피하세요', W / 2, H / 2 + 92);
+
+    // Best score
+    if (bestScore > 0) {
+        ctx.fillStyle = '#ffca28';
+        ctx.font = '16px "Segoe UI", sans-serif';
+        ctx.fillText(`🏆 최고 점수: ${bestScore}`, W / 2, H / 2 + 130);
+    }
+
+    // Back link
+    ctx.fillStyle = '#667eea';
+    ctx.font = '14px "Segoe UI", sans-serif';
+    ctx.fillText('← 게임 목록으로', W / 2, H - 30);
+}
+
+function drawGameOver() {
+    // Dim overlay
+    ctx.fillStyle = 'rgba(0,0,0,0.7)';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle = '#ff4444';
+    ctx.font = 'bold 36px "Segoe UI", sans-serif';
+    ctx.fillText('게임 오버', W / 2, H / 2 - 80);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 28px "Segoe UI", sans-serif';
+    ctx.fillText(`점수: ${score}`, W / 2, H / 2 - 30);
+
+    ctx.fillStyle = '#ffca28';
+    ctx.font = '20px "Segoe UI", sans-serif';
+    ctx.fillText(`⭐ ${starsCollected}개 수집 | x${chainMultiplier} 최대 체인`, W / 2, H / 2 + 10);
+
+    if (score >= bestScore) {
+        ctx.fillStyle = '#00e676';
+        ctx.font = 'bold 20px "Segoe UI", sans-serif';
+        ctx.fillText('🎉 새 최고 점수!', W / 2, H / 2 + 45);
+    } else {
+        ctx.fillStyle = '#888';
+        ctx.font = '16px "Segoe UI", sans-serif';
+        ctx.fillText(`최고 점수: ${bestScore}`, W / 2, H / 2 + 45);
+    }
+
+    const pulse = 0.7 + Math.sin(Date.now() * 0.003 * 3) * 0.3;
+    ctx.globalAlpha = pulse;
+    ctx.fillStyle = '#4dc9f6';
+    ctx.font = 'bold 22px "Segoe UI", sans-serif';
+    ctx.fillText('탭하여 다시 시작', W / 2, H / 2 + 95);
+    ctx.globalAlpha = 1;
+}
+
+function render() {
+    if (state === STATE.MENU) {
+        drawMenu();
+        return;
+    }
+
+    drawBg();
+
+    // Draw planets
+    for (const p of planets) drawPlanet(p);
+
+    // Draw stars
+    for (const s of stars) drawStar(s);
+
+    // Draw asteroids
+    for (const a of asteroids) drawAsteroid(a);
+
+    // Draw particles
+    drawParticles();
+
+    // Draw satellite
+    if (sat.alive) drawSatellite();
+
+    // HUD
+    drawHUD();
+
+    // Game over overlay
+    if (state === STATE.OVER) drawGameOver();
+}
+
+function gameLoop() {
+    update();
+    render();
+    requestAnimationFrame(gameLoop);
+}
+
+// --- Input ---
+let inputCooldown = 0;
+function handleTap(e) {
+    e.preventDefault();
+    if (Date.now() - inputCooldown < 200) return;
+    inputCooldown = Date.now();
+
+    if (state === STATE.MENU) {
+        state = STATE.PLAY;
+        initGame();
+        return;
+    }
+    if (state === STATE.OVER) {
+        state = STATE.PLAY;
+        initGame();
+        return;
+    }
+    if (state === STATE.PLAY) {
+        if (sat.orbiting !== null) {
+            launchFromOrbit();
+        }
+    }
+}
+
+canvas.addEventListener('pointerdown', handleTap);
+canvas.addEventListener('touchstart', handleTap, { passive: false });
+
+// Back link detection
+canvas.addEventListener('click', (e) => {
+    if (state === STATE.MENU) {
+        const rect = canvas.getBoundingClientRect();
+        const y = e.clientY - rect.top;
+        if (y > H - 50) {
+            window.location.href = '../';
+        }
+    }
+});
+
+// Keyboard support
+document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' || e.code === 'Enter') {
+        handleTap(e);
+    }
+});
+
+gameLoop();
+</script>
+</body>
+</html>
