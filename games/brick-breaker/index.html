@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Brick Breaker Blast</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #gameContainer {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      aspect-ratio: 3/4;
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 12px;
+      box-shadow: 0 0 40px rgba(0, 217, 255, 0.3);
+    }
+    #ui {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      font-size: 16px;
+      text-shadow: 0 0 10px rgba(0, 217, 255, 0.8);
+      pointer-events: none;
+    }
+    #lives { color: #ff6b6b; }
+    #level { color: #ffd93d; }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      border-radius: 12px;
+      gap: 20px;
+      backdrop-filter: blur(5px);
+    }
+    .overlay.hidden { display: none; }
+    h1 {
+      font-size: 28px;
+      text-shadow: 0 0 20px #00d9ff;
+      color: #00d9ff;
+    }
+    h2 {
+      font-size: 24px;
+      color: #ff6b6b;
+    }
+    .btn {
+      padding: 15px 40px;
+      font-size: 18px;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-weight: bold;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #00d9ff, #0099ff);
+      color: white;
+      box-shadow: 0 4px 15px rgba(0, 217, 255, 0.4);
+    }
+    .btn-primary:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 217, 255, 0.6);
+    }
+    .stats {
+      text-align: center;
+      color: #aaa;
+    }
+    .stats span {
+      display: block;
+      font-size: 14px;
+      margin: 5px 0;
+    }
+    .stats .value {
+      font-size: 20px;
+      color: #ffd93d;
+    }
+    #powerupIndicator {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .powerup-active {
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 12px;
+      color: white;
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <canvas id="game"></canvas>
+    <div id="ui">
+      <span id="score">Score: 0</span>
+      <span id="level">Level 1</span>
+      <span id="lives">♥♥♥</span>
+    </div>
+    <div id="powerupIndicator"></div>
+    
+    <div id="startScreen" class="overlay">
+      <h1>🧱 BRICK BREAKER<br>BLAST</h1>
+      <div class="stats">
+        <span>High Score</span>
+        <span class="value" id="highScore">0</span>
+      </div>
+      <button class="btn btn-primary" onclick="startGame()">▶ START</button>
+    </div>
+    
+    <div id="gameOverScreen" class="overlay hidden">
+      <h2>GAME OVER</h2>
+      <div class="stats">
+        <span>Score</span>
+        <span class="value" id="finalScore">0</span>
+        <span>Level</span>
+        <span class="value" id="finalLevel">1</span>
+      </div>
+      <button class="btn btn-primary" onclick="startGame()">🔄 RETRY</button>
+    </div>
+    
+    <div id="levelClearScreen" class="overlay hidden">
+      <h1>✨ LEVEL CLEAR!</h1>
+      <div class="stats">
+        <span>Bonus</span>
+        <span class="value">+1000</span>
+      </div>
+      <button class="btn btn-primary" onclick="nextLevel()">NEXT →</button>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    
+    // Canvas 크기 설정
+    const GAME_WIDTH = 400;
+    const GAME_HEIGHT = 533;
+    canvas.width = GAME_WIDTH;
+    canvas.height = GAME_HEIGHT;
+    
+    // 게임 상수
+    const PADDLE_HEIGHT = 15;
+    const PADDLE_WIDTH = 80;
+    const BALL_RADIUS = 8;
+    const BRICK_ROWS = 5;
+    const BRICK_COLS = 8;
+    const BRICK_WIDTH = 45;
+    const BRICK_HEIGHT = 18;
+    const BRICK_PADDING = 4;
+    const BRICK_TOP = 60;
+    const BRICK_LEFT = 12;
+    
+    // 파워업 타입
+    const POWERUP_TYPES = {
+      LONG_PADDLE: { color: '#00d9ff', emoji: '📏', duration: 15000 },
+      FIRE_BALL: { color: '#ff6b35', emoji: '🔥', duration: 10000 },
+      MULTI_BALL: { color: '#ffd700', emoji: '⚡', instant: true },
+      SHIELD: { color: '#7fff00', emoji: '🛡️', instant: true },
+      SLOW: { color: '#da70d6', emoji: '🐢', duration: 8000 }
+    };
+    
+    // 게임 상태
+    let state = {
+      score: 0,
+      highScore: parseInt(localStorage.getItem('brickBreakerHighScore') || '0'),
+      level: 1,
+      lives: 3,
+      paddle: { x: GAME_WIDTH / 2 - PADDLE_WIDTH / 2, width: PADDLE_WIDTH },
+      balls: [],
+      bricks: [],
+      powerups: [],
+      activePowerups: {},
+      hasShield: false,
+      gameRunning: false,
+      combo: 0,
+      particles: []
+    };
+    
+    // 벽돌 색상
+    const BRICK_COLORS = {
+      normal: ['#ff6b6b', '#ffd93d', '#6bcb77', '#4d96ff', '#9b59b6'],
+      hard: ['#c0392b', '#d35400', '#27ae60', '#2980b9', '#8e44ad'],
+      explosive: '#ff4757',
+      metal: '#576574'
+    };
+    
+    function initBricks() {
+      state.bricks = [];
+      const rows = Math.min(BRICK_ROWS + Math.floor(state.level / 3), 8);
+      const hardRatio = Math.min(0.1 + state.level * 0.02, 0.4);
+      const explosiveRatio = Math.min(0.05 + state.level * 0.01, 0.15);
+      
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < BRICK_COLS; c++) {
+          const rand = Math.random();
+          let type = 'normal';
+          let hp = 1;
+          
+          if (rand < hardRatio) {
+            type = 'hard';
+            hp = 2;
+          } else if (rand < hardRatio + explosiveRatio) {
+            type = 'explosive';
+          }
+          
+          state.bricks.push({
+            x: BRICK_LEFT + c * (BRICK_WIDTH + BRICK_PADDING),
+            y: BRICK_TOP + r * (BRICK_HEIGHT + BRICK_PADDING),
+            type,
+            hp,
+            maxHp: hp,
+            color: type === 'normal' ? BRICK_COLORS.normal[r % 5] :
+                   type === 'hard' ? BRICK_COLORS.hard[r % 5] :
+                   BRICK_COLORS.explosive
+          });
+        }
+      }
+    }
+    
+    function initBall() {
+      const speed = 5 + state.level * 0.3;
+      const angle = -Math.PI / 4 - Math.random() * Math.PI / 2;
+      return {
+        x: GAME_WIDTH / 2,
+        y: GAME_HEIGHT - 100,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        speed,
+        fire: false
+      };
+    }
+    
+    function startGame() {
+      document.getElementById('startScreen').classList.add('hidden');
+      document.getElementById('gameOverScreen').classList.add('hidden');
+      document.getElementById('levelClearScreen').classList.add('hidden');
+      
+      state = {
+        ...state,
+        score: 0,
+        level: 1,
+        lives: 3,
+        paddle: { x: GAME_WIDTH / 2 - PADDLE_WIDTH / 2, width: PADDLE_WIDTH },
+        balls: [initBall()],
+        bricks: [],
+        powerups: [],
+        activePowerups: {},
+        hasShield: false,
+        gameRunning: true,
+        combo: 0,
+        particles: []
+      };
+      
+      initBricks();
+      updateUI();
+      requestAnimationFrame(gameLoop);
+    }
+    
+    function nextLevel() {
+      document.getElementById('levelClearScreen').classList.add('hidden');
+      
+      state.level++;
+      state.score += 1000;
+      state.balls = [initBall()];
+      state.powerups = [];
+      state.activePowerups = {};
+      state.hasShield = false;
+      state.paddle.width = PADDLE_WIDTH;
+      state.combo = 0;
+      
+      initBricks();
+      updateUI();
+      state.gameRunning = true;
+      requestAnimationFrame(gameLoop);
+    }
+    
+    function gameOver() {
+      state.gameRunning = false;
+      
+      if (state.score > state.highScore) {
+        state.highScore = state.score;
+        localStorage.setItem('brickBreakerHighScore', state.highScore);
+      }
+      
+      document.getElementById('finalScore').textContent = state.score;
+      document.getElementById('finalLevel').textContent = state.level;
+      document.getElementById('gameOverScreen').classList.remove('hidden');
+    }
+    
+    function levelClear() {
+      state.gameRunning = false;
+      document.getElementById('levelClearScreen').classList.remove('hidden');
+    }
+    
+    function updateUI() {
+      document.getElementById('score').textContent = `Score: ${state.score}`;
+      document.getElementById('level').textContent = `Level ${state.level}`;
+      document.getElementById('lives').textContent = '♥'.repeat(state.lives) + '♡'.repeat(3 - state.lives);
+      document.getElementById('highScore').textContent = state.highScore;
+      
+      // 파워업 표시
+      const indicator = document.getElementById('powerupIndicator');
+      indicator.innerHTML = '';
+      for (const [type, endTime] of Object.entries(state.activePowerups)) {
+        const remaining = Math.ceil((endTime - Date.now()) / 1000);
+        if (remaining > 0) {
+          const div = document.createElement('div');
+          div.className = 'powerup-active';
+          div.style.background = POWERUP_TYPES[type].color;
+          div.textContent = `${POWERUP_TYPES[type].emoji} ${remaining}s`;
+          indicator.appendChild(div);
+        }
+      }
+      if (state.hasShield) {
+        const div = document.createElement('div');
+        div.className = 'powerup-active';
+        div.style.background = POWERUP_TYPES.SHIELD.color;
+        div.textContent = '🛡️';
+        indicator.appendChild(div);
+      }
+    }
+    
+    function spawnParticles(x, y, color, count = 8) {
+      for (let i = 0; i < count; i++) {
+        const angle = (Math.PI * 2 / count) * i;
+        state.particles.push({
+          x, y,
+          vx: Math.cos(angle) * (2 + Math.random() * 3),
+          vy: Math.sin(angle) * (2 + Math.random() * 3),
+          life: 30,
+          color,
+          size: 3 + Math.random() * 3
+        });
+      }
+    }
+    
+    function spawnPowerup(x, y) {
+      if (Math.random() > 0.15) return;
+      
+      const types = Object.keys(POWERUP_TYPES);
+      const type = types[Math.floor(Math.random() * types.length)];
+      
+      state.powerups.push({
+        x, y,
+        type,
+        vy: 2
+      });
+    }
+    
+    function activatePowerup(type) {
+      const powerup = POWERUP_TYPES[type];
+      
+      switch (type) {
+        case 'LONG_PADDLE':
+          state.paddle.width = PADDLE_WIDTH * 1.8;
+          state.activePowerups[type] = Date.now() + powerup.duration;
+          break;
+        case 'FIRE_BALL':
+          state.balls.forEach(b => b.fire = true);
+          state.activePowerups[type] = Date.now() + powerup.duration;
+          break;
+        case 'MULTI_BALL':
+          const newBalls = [];
+          state.balls.forEach(ball => {
+            for (let i = 0; i < 2; i++) {
+              const angle = Math.atan2(ball.vy, ball.vx) + (i === 0 ? 0.3 : -0.3);
+              newBalls.push({
+                ...ball,
+                x: ball.x,
+                y: ball.y,
+                vx: Math.cos(angle) * ball.speed,
+                vy: Math.sin(angle) * ball.speed
+              });
+            }
+          });
+          state.balls.push(...newBalls);
+          break;
+        case 'SHIELD':
+          state.hasShield = true;
+          break;
+        case 'SLOW':
+          state.balls.forEach(b => {
+            b.vx *= 0.6;
+            b.vy *= 0.6;
+            b.speed *= 0.6;
+          });
+          state.activePowerups[type] = Date.now() + powerup.duration;
+          break;
+      }
+    }
+    
+    function checkPowerupExpiry() {
+      const now = Date.now();
+      
+      if (state.activePowerups.LONG_PADDLE && now > state.activePowerups.LONG_PADDLE) {
+        state.paddle.width = PADDLE_WIDTH;
+        delete state.activePowerups.LONG_PADDLE;
+      }
+      
+      if (state.activePowerups.FIRE_BALL && now > state.activePowerups.FIRE_BALL) {
+        state.balls.forEach(b => b.fire = false);
+        delete state.activePowerups.FIRE_BALL;
+      }
+      
+      if (state.activePowerups.SLOW && now > state.activePowerups.SLOW) {
+        state.balls.forEach(b => {
+          b.vx /= 0.6;
+          b.vy /= 0.6;
+          b.speed /= 0.6;
+        });
+        delete state.activePowerups.SLOW;
+      }
+    }
+    
+    function destroyBrick(brick, index) {
+      const points = brick.type === 'hard' ? 30 : brick.type === 'explosive' ? 20 : 10;
+      state.score += Math.floor(points * (1 + state.combo * 0.1));
+      state.combo++;
+      
+      spawnParticles(brick.x + BRICK_WIDTH / 2, brick.y + BRICK_HEIGHT / 2, brick.color);
+      spawnPowerup(brick.x + BRICK_WIDTH / 2, brick.y + BRICK_HEIGHT / 2);
+      
+      state.bricks.splice(index, 1);
+      
+      // 폭발 벽돌 연쇄
+      if (brick.type === 'explosive') {
+        const nearby = state.bricks.filter(b => 
+          Math.abs(b.x - brick.x) < BRICK_WIDTH * 2 &&
+          Math.abs(b.y - brick.y) < BRICK_HEIGHT * 2
+        );
+        nearby.forEach(b => {
+          b.hp--;
+          if (b.hp <= 0) {
+            const idx = state.bricks.indexOf(b);
+            if (idx > -1) {
+              state.score += 10;
+              spawnParticles(b.x + BRICK_WIDTH / 2, b.y + BRICK_HEIGHT / 2, b.color);
+              state.bricks.splice(idx, 1);
+            }
+          }
+        });
+      }
+    }
+    
+    function update() {
+      if (!state.gameRunning) return;
+      
+      checkPowerupExpiry();
+      
+      // 공 업데이트
+      for (let i = state.balls.length - 1; i >= 0; i--) {
+        const ball = state.balls[i];
+        ball.x += ball.vx;
+        ball.y += ball.vy;
+        
+        // 벽 충돌
+        if (ball.x - BALL_RADIUS < 0 || ball.x + BALL_RADIUS > GAME_WIDTH) {
+          ball.vx *= -1;
+          ball.x = Math.max(BALL_RADIUS, Math.min(GAME_WIDTH - BALL_RADIUS, ball.x));
+        }
+        if (ball.y - BALL_RADIUS < 0) {
+          ball.vy *= -1;
+          ball.y = BALL_RADIUS;
+        }
+        
+        // 패들 충돌
+        if (ball.y + BALL_RADIUS > GAME_HEIGHT - 30 &&
+            ball.y + BALL_RADIUS < GAME_HEIGHT - 15 &&
+            ball.x > state.paddle.x &&
+            ball.x < state.paddle.x + state.paddle.width &&
+            ball.vy > 0) {
+          const hitPos = (ball.x - state.paddle.x) / state.paddle.width;
+          const angle = (hitPos - 0.5) * Math.PI * 0.7 - Math.PI / 2;
+          ball.vx = Math.cos(angle) * ball.speed;
+          ball.vy = Math.sin(angle) * ball.speed;
+          state.combo = 0;
+        }
+        
+        // 바닥 충돌
+        if (ball.y + BALL_RADIUS > GAME_HEIGHT) {
+          if (state.hasShield) {
+            ball.vy *= -1;
+            ball.y = GAME_HEIGHT - BALL_RADIUS;
+            state.hasShield = false;
+          } else {
+            state.balls.splice(i, 1);
+          }
+        }
+        
+        // 벽돌 충돌
+        for (let j = state.bricks.length - 1; j >= 0; j--) {
+          const brick = state.bricks[j];
+          if (ball.x + BALL_RADIUS > brick.x &&
+              ball.x - BALL_RADIUS < brick.x + BRICK_WIDTH &&
+              ball.y + BALL_RADIUS > brick.y &&
+              ball.y - BALL_RADIUS < brick.y + BRICK_HEIGHT) {
+            
+            if (!ball.fire) {
+              // 충돌 방향 계산
+              const overlapLeft = ball.x + BALL_RADIUS - brick.x;
+              const overlapRight = brick.x + BRICK_WIDTH - (ball.x - BALL_RADIUS);
+              const overlapTop = ball.y + BALL_RADIUS - brick.y;
+              const overlapBottom = brick.y + BRICK_HEIGHT - (ball.y - BALL_RADIUS);
+              
+              const minOverlapX = Math.min(overlapLeft, overlapRight);
+              const minOverlapY = Math.min(overlapTop, overlapBottom);
+              
+              if (minOverlapX < minOverlapY) {
+                ball.vx *= -1;
+              } else {
+                ball.vy *= -1;
+              }
+            }
+            
+            brick.hp--;
+            if (brick.hp <= 0) {
+              destroyBrick(brick, j);
+            } else {
+              spawnParticles(ball.x, ball.y, brick.color, 4);
+            }
+            
+            if (!ball.fire) break;
+          }
+        }
+      }
+      
+      // 공이 모두 사라짐
+      if (state.balls.length === 0) {
+        state.lives--;
+        if (state.lives <= 0) {
+          gameOver();
+        } else {
+          state.balls = [initBall()];
+          state.combo = 0;
+        }
+      }
+      
+      // 파워업 업데이트
+      for (let i = state.powerups.length - 1; i >= 0; i--) {
+        const p = state.powerups[i];
+        p.y += p.vy;
+        
+        // 패들로 획득
+        if (p.y > GAME_HEIGHT - 30 &&
+            p.x > state.paddle.x - 15 &&
+            p.x < state.paddle.x + state.paddle.width + 15) {
+          activatePowerup(p.type);
+          state.powerups.splice(i, 1);
+        } else if (p.y > GAME_HEIGHT) {
+          state.powerups.splice(i, 1);
+        }
+      }
+      
+      // 파티클 업데이트
+      for (let i = state.particles.length - 1; i >= 0; i--) {
+        const p = state.particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.1;
+        p.life--;
+        if (p.life <= 0) {
+          state.particles.splice(i, 1);
+        }
+      }
+      
+      // 레벨 클리어 체크
+      if (state.bricks.length === 0) {
+        levelClear();
+      }
+      
+      updateUI();
+    }
+    
+    function draw() {
+      // 배경
+      ctx.fillStyle = '#0f0f23';
+      ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
+      
+      // 그리드 효과
+      ctx.strokeStyle = 'rgba(0, 217, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < GAME_WIDTH; x += 20) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, GAME_HEIGHT);
+        ctx.stroke();
+      }
+      for (let y = 0; y < GAME_HEIGHT; y += 20) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(GAME_WIDTH, y);
+        ctx.stroke();
+      }
+      
+      // 실드 라인
+      if (state.hasShield) {
+        ctx.strokeStyle = POWERUP_TYPES.SHIELD.color;
+        ctx.lineWidth = 4;
+        ctx.shadowColor = POWERUP_TYPES.SHIELD.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.moveTo(0, GAME_HEIGHT - 5);
+        ctx.lineTo(GAME_WIDTH, GAME_HEIGHT - 5);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+      
+      // 벽돌
+      state.bricks.forEach(brick => {
+        const alpha = brick.hp / brick.maxHp;
+        ctx.fillStyle = brick.color;
+        ctx.shadowColor = brick.color;
+        ctx.shadowBlur = brick.type === 'explosive' ? 15 : 5;
+        
+        ctx.beginPath();
+        ctx.roundRect(brick.x, brick.y, BRICK_WIDTH, BRICK_HEIGHT, 4);
+        ctx.fill();
+        
+        if (brick.type === 'hard' && brick.hp < brick.maxHp) {
+          ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+          ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        
+        if (brick.type === 'explosive') {
+          ctx.fillStyle = 'white';
+          ctx.font = '12px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('💥', brick.x + BRICK_WIDTH / 2, brick.y + BRICK_HEIGHT / 2 + 4);
+        }
+      });
+      ctx.shadowBlur = 0;
+      
+      // 파워업
+      state.powerups.forEach(p => {
+        const type = POWERUP_TYPES[p.type];
+        ctx.fillStyle = type.color;
+        ctx.shadowColor = type.color;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'white';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(type.emoji, p.x, p.y + 5);
+      });
+      ctx.shadowBlur = 0;
+      
+      // 패들
+      const gradient = ctx.createLinearGradient(
+        state.paddle.x, 0,
+        state.paddle.x + state.paddle.width, 0
+      );
+      gradient.addColorStop(0, '#00d9ff');
+      gradient.addColorStop(1, '#0099ff');
+      ctx.fillStyle = gradient;
+      ctx.shadowColor = '#00d9ff';
+      ctx.shadowBlur = 15;
+      ctx.beginPath();
+      ctx.roundRect(state.paddle.x, GAME_HEIGHT - 30, state.paddle.width, PADDLE_HEIGHT, 8);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      
+      // 공
+      state.balls.forEach(ball => {
+        ctx.fillStyle = ball.fire ? '#ff6b35' : 'white';
+        ctx.shadowColor = ball.fire ? '#ff6b35' : '#00d9ff';
+        ctx.shadowBlur = ball.fire ? 20 : 10;
+        ctx.beginPath();
+        ctx.arc(ball.x, ball.y, BALL_RADIUS, 0, Math.PI * 2);
+        ctx.fill();
+        
+        if (ball.fire) {
+          // 불꽃 꼬리
+          ctx.fillStyle = 'rgba(255, 107, 53, 0.5)';
+          ctx.beginPath();
+          ctx.arc(ball.x - ball.vx, ball.y - ball.vy, BALL_RADIUS * 0.7, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      });
+      ctx.shadowBlur = 0;
+      
+      // 파티클
+      state.particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life / 30;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * (p.life / 30), 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+    }
+    
+    function gameLoop() {
+      update();
+      draw();
+      if (state.gameRunning) {
+        requestAnimationFrame(gameLoop);
+      }
+    }
+    
+    // 입력 처리
+    function handleMove(clientX) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = GAME_WIDTH / rect.width;
+      const x = (clientX - rect.left) * scaleX;
+      state.paddle.x = Math.max(0, Math.min(GAME_WIDTH - state.paddle.width, x - state.paddle.width / 2));
+    }
+    
+    canvas.addEventListener('mousemove', e => handleMove(e.clientX));
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      handleMove(e.touches[0].clientX);
+    }, { passive: false });
+    
+    // 초기화
+    document.getElementById('highScore').textContent = state.highScore;
+  </script>
+</body>
+</html>
