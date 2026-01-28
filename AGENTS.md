@@ -102,6 +102,12 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 
 **Don't overdo it:** One reaction per message max. Pick the one that fits best.
 
+## 구현 요청 시 Ralph Loop 필수
+
+주인님이 무언가 구현/개발/코딩을 시키시면 **반드시** `ralph-loop` 스킬을 로드하고 따른다.
+- 스킬 위치: `skills/ralph-loop/SKILL.md`
+- specs/ → IMPLEMENTATION_PLAN.md → 서브에이전트로 1태스크씩 → 테스트 → 반복
+
 ## Tools
 
 Skills provide your tools. When you need one, check its `SKILL.md`. Keep local notes (camera names, SSH details, voice preferences) in `TOOLS.md`.

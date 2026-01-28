@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Block Bounce - 블록 바운스</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: none;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .container {
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 95%;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .score-box {
+            text-align: right;
+        }
+        .score {
+            font-size: 28px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .high-score {
+            font-size: 12px;
+            color: #888;
+        }
+        .combo {
+            font-size: 14px;
+            color: #ff6b6b;
+            font-weight: bold;
+            min-height: 20px;
+        }
+        #gameBoard {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 3px;
+            background: #ddd;
+            padding: 8px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        .cell {
+            aspect-ratio: 1;
+            background: #f5f5f5;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+        }
+        .cell.filled {
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3), 
+                        inset 0 -2px 4px rgba(0,0,0,0.2);
+        }
+        .cell.preview {
+            opacity: 0.5;
+        }
+        .cell.invalid {
+            background: #ffcccc !important;
+        }
+        .blocks-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            min-height: 100px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 10px;
+        }
+        .block-holder {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 80px;
+            min-height: 80px;
+        }
+        .block {
+            display: grid;
+            gap: 2px;
+            cursor: grab;
+            transform: scale(0.6);
+            transition: transform 0.2s ease;
+        }
+        .block:hover {
+            transform: scale(0.7);
+        }
+        .block.dragging {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+            transform: scale(1);
+            opacity: 0.8;
+        }
+        .block.used {
+            visibility: hidden;
+        }
+        .block-cell {
+            width: 35px;
+            height: 35px;
+            border-radius: 4px;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.3),
+                        inset 0 -2px 4px rgba(0,0,0,0.2);
+        }
+        .block-cell.empty {
+            background: transparent !important;
+            box-shadow: none;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+        .overlay.hidden {
+            display: none;
+        }
+        .modal {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 300px;
+        }
+        .modal h2 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .modal .final-score {
+            font-size: 48px;
+            color: #667eea;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .modal button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .modal button:hover {
+            transform: scale(1.05);
+        }
+        .color-1 { background: #ff6b6b; }
+        .color-2 { background: #4ecdc4; }
+        .color-3 { background: #ffe66d; }
+        .color-4 { background: #95e1d3; }
+        .color-5 { background: #f38181; }
+        .color-6 { background: #aa96da; }
+        .color-7 { background: #fcbad3; }
+        @keyframes clear {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        .cell.clearing {
+            animation: clear 0.3s ease-out forwards;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">Block Bounce</div>
+            <div class="score-box">
+                <div class="score" id="score">0</div>
+                <div class="high-score">최고: <span id="highScore">0</span></div>
+                <div class="combo" id="combo"></div>
+            </div>
+        </div>
+        <div id="gameBoard"></div>
+        <div class="blocks-container" id="blocksContainer"></div>
+    </div>
+
+    <div class="overlay hidden" id="startOverlay">
+        <div class="modal">
+            <h2>Block Bounce</h2>
+            <p>블록을 배치해서<br>라인을 완성하세요!</p>
+            <div class="final-score" id="startHighScore">0</div>
+            <p style="color:#888;margin-bottom:20px;">최고 점수</p>
+            <button onclick="startGame()">시작하기</button>
+        </div>
+    </div>
+
+    <div class="overlay hidden" id="gameOverOverlay">
+        <div class="modal">
+            <h2>Game Over</h2>
+            <div class="final-score" id="finalScore">0</div>
+            <p style="color:#888;margin-bottom:20px;">점수</p>
+            <button onclick="startGame()">다시 하기</button>
+        </div>
+    </div>
+
+    <script>
+        const GRID_SIZE = 8;
+        const COLORS = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6', 'color-7'];
+        
+        const BLOCK_SHAPES = [
+            // I형 (1x4)
+            [[1,1,1,1]],
+            [[1],[1],[1],[1]],
+            // L형
+            [[1,0],[1,0],[1,1]],
+            [[1,1,1],[1,0,0]],
+            [[1,1],[0,1],[0,1]],
+            [[0,0,1],[1,1,1]],
+            // T형
+            [[1,1,1],[0,1,0]],
+            [[1,0],[1,1],[1,0]],
+            // O형 (2x2)
+            [[1,1],[1,1]],
+            // S형
+            [[0,1,1],[1,1,0]],
+            [[1,0],[1,1],[0,1]],
+            // 단일
+            [[1]],
+            // 2x2
+            [[1,1],[1,1]],
+            // 1x2
+            [[1,1]],
+            [[1],[1]],
+            // 1x3
+            [[1,1,1]],
+            [[1],[1],[1]],
+            // 3x3
+            [[1,1,1],[1,1,1],[1,1,1]],
+            // L small
+            [[1,1],[1,0]],
+            [[1,1],[0,1]],
+            [[1,0],[1,1]],
+            [[0,1],[1,1]]
+        ];
+
+        let grid = [];
+        let score = 0;
+        let highScore = parseInt(localStorage.getItem('blockBounceHighScore')) || 0;
+        let combo = 0;
+        let currentBlocks = [];
+        let draggingBlock = null;
+        let draggingElement = null;
+
+        function init() {
+            document.getElementById('highScore').textContent = highScore;
+            document.getElementById('startHighScore').textContent = highScore;
+            document.getElementById('startOverlay').classList.remove('hidden');
+        }
+
+        function startGame() {
+            grid = Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(0));
+            score = 0;
+            combo = 0;
+            updateScore();
+            document.getElementById('startOverlay').classList.add('hidden');
+            document.getElementById('gameOverOverlay').classList.add('hidden');
+            renderBoard();
+            generateNewBlocks();
+        }
+
+        function renderBoard() {
+            const board = document.getElementById('gameBoard');
+            board.innerHTML = '';
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    if (grid[y][x]) {
+                        cell.classList.add('filled', COLORS[grid[y][x] - 1]);
+                    }
+                    board.appendChild(cell);
+                }
+            }
+        }
+
+        function generateNewBlocks() {
+            const container = document.getElementById('blocksContainer');
+            container.innerHTML = '';
+            currentBlocks = [];
+            
+            for (let i = 0; i < 3; i++) {
+                const shape = BLOCK_SHAPES[Math.floor(Math.random() * BLOCK_SHAPES.length)];
+                const color = Math.floor(Math.random() * COLORS.length) + 1;
+                currentBlocks.push({ shape, color, used: false });
+                
+                const holder = document.createElement('div');
+                holder.className = 'block-holder';
+                
+                const block = createBlockElement(shape, color, i);
+                holder.appendChild(block);
+                container.appendChild(holder);
+            }
+
+            if (!canPlaceAnyBlock()) {
+                setTimeout(gameOver, 300);
+            }
+        }
+
+        function createBlockElement(shape, color, index) {
+            const block = document.createElement('div');
+            block.className = 'block';
+            block.dataset.index = index;
+            block.style.gridTemplateColumns = `repeat(${shape[0].length}, 35px)`;
+            
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'block-cell';
+                    if (shape[y][x]) {
+                        cell.classList.add(COLORS[color - 1]);
+                    } else {
+                        cell.classList.add('empty');
+                    }
+                    block.appendChild(cell);
+                }
+            }
+
+            block.addEventListener('mousedown', (e) => startDrag(e, index));
+            block.addEventListener('touchstart', (e) => startDrag(e, index), { passive: false });
+            
+            return block;
+        }
+
+        function startDrag(e, index) {
+            if (currentBlocks[index].used) return;
+            e.preventDefault();
+            
+            const block = currentBlocks[index];
+            draggingBlock = { ...block, index };
+            
+            const originalElement = e.target.closest('.block');
+            draggingElement = originalElement.cloneNode(true);
+            draggingElement.classList.add('dragging');
+            document.body.appendChild(draggingElement);
+            
+            originalElement.style.opacity = '0.3';
+            
+            const pos = e.touches ? e.touches[0] : e;
+            updateDragPosition(pos.clientX, pos.clientY);
+            
+            document.addEventListener('mousemove', onDrag);
+            document.addEventListener('mouseup', endDrag);
+            document.addEventListener('touchmove', onDrag, { passive: false });
+            document.addEventListener('touchend', endDrag);
+        }
+
+        function onDrag(e) {
+            e.preventDefault();
+            const pos = e.touches ? e.touches[0] : e;
+            updateDragPosition(pos.clientX, pos.clientY);
+            updatePreview(pos.clientX, pos.clientY);
+        }
+
+        function updateDragPosition(x, y) {
+            if (draggingElement) {
+                draggingElement.style.left = (x - 50) + 'px';
+                draggingElement.style.top = (y - 50) + 'px';
+            }
+        }
+
+        function updatePreview(clientX, clientY) {
+            clearPreview();
+            const gridPos = getGridPosition(clientX, clientY);
+            if (gridPos && draggingBlock) {
+                showPreview(gridPos.x, gridPos.y, draggingBlock.shape, draggingBlock.color);
+            }
+        }
+
+        function clearPreview() {
+            document.querySelectorAll('.cell.preview, .cell.invalid').forEach(cell => {
+                cell.classList.remove('preview', 'invalid');
+                if (!grid[cell.dataset.y][cell.dataset.x]) {
+                    cell.className = 'cell';
+                }
+            });
+        }
+
+        function showPreview(startX, startY, shape, color) {
+            const valid = canPlace(startX, startY, shape);
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x]) {
+                        const gx = startX + x;
+                        const gy = startY + y;
+                        if (gx >= 0 && gx < GRID_SIZE && gy >= 0 && gy < GRID_SIZE) {
+                            const cell = document.querySelector(`.cell[data-x="${gx}"][data-y="${gy}"]`);
+                            if (cell) {
+                                cell.classList.add(valid ? 'preview' : 'invalid');
+                                if (valid) cell.classList.add(COLORS[color - 1]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function getGridPosition(clientX, clientY) {
+            const board = document.getElementById('gameBoard');
+            const rect = board.getBoundingClientRect();
+            const cellSize = (rect.width - 16) / GRID_SIZE;
+            
+            const x = Math.floor((clientX - rect.left - 8) / cellSize);
+            const y = Math.floor((clientY - rect.top - 8) / cellSize);
+            
+            if (x >= 0 && x < GRID_SIZE && y >= 0 && y < GRID_SIZE) {
+                return { x, y };
+            }
+            return null;
+        }
+
+        function endDrag(e) {
+            document.removeEventListener('mousemove', onDrag);
+            document.removeEventListener('mouseup', endDrag);
+            document.removeEventListener('touchmove', onDrag);
+            document.removeEventListener('touchend', endDrag);
+            
+            clearPreview();
+            
+            if (draggingElement) {
+                draggingElement.remove();
+                draggingElement = null;
+            }
+
+            const pos = e.changedTouches ? e.changedTouches[0] : e;
+            const gridPos = getGridPosition(pos.clientX, pos.clientY);
+            
+            if (gridPos && draggingBlock && canPlace(gridPos.x, gridPos.y, draggingBlock.shape)) {
+                placeBlock(gridPos.x, gridPos.y, draggingBlock.shape, draggingBlock.color);
+                currentBlocks[draggingBlock.index].used = true;
+                
+                const blockElement = document.querySelector(`.block[data-index="${draggingBlock.index}"]`);
+                if (blockElement) {
+                    blockElement.classList.add('used');
+                }
+                
+                checkLines();
+                
+                if (currentBlocks.every(b => b.used)) {
+                    setTimeout(generateNewBlocks, 300);
+                } else if (!canPlaceAnyBlock()) {
+                    setTimeout(gameOver, 300);
+                }
+            } else {
+                const originalElement = document.querySelector(`.block[data-index="${draggingBlock?.index}"]`);
+                if (originalElement) {
+                    originalElement.style.opacity = '1';
+                }
+            }
+            
+            draggingBlock = null;
+        }
+
+        function canPlace(startX, startY, shape) {
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x]) {
+                        const gx = startX + x;
+                        const gy = startY + y;
+                        if (gx < 0 || gx >= GRID_SIZE || gy < 0 || gy >= GRID_SIZE) {
+                            return false;
+                        }
+                        if (grid[gy][gx]) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+
+        function canPlaceAnyBlock() {
+            for (const block of currentBlocks) {
+                if (block.used) continue;
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        if (canPlace(x, y, block.shape)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        function placeBlock(startX, startY, shape, color) {
+            let cellCount = 0;
+            for (let y = 0; y < shape.length; y++) {
+                for (let x = 0; x < shape[y].length; x++) {
+                    if (shape[y][x]) {
+                        grid[startY + y][startX + x] = color;
+                        cellCount++;
+                    }
+                }
+            }
+            score += cellCount * 10;
+            updateScore();
+            renderBoard();
+        }
+
+        function checkLines() {
+            const rowsToClear = [];
+            const colsToClear = [];
+            
+            for (let y = 0; y < GRID_SIZE; y++) {
+                if (grid[y].every(cell => cell !== 0)) {
+                    rowsToClear.push(y);
+                }
+            }
+            
+            for (let x = 0; x < GRID_SIZE; x++) {
+                let full = true;
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    if (!grid[y][x]) {
+                        full = false;
+                        break;
+                    }
+                }
+                if (full) colsToClear.push(x);
+            }
+            
+            if (rowsToClear.length > 0 || colsToClear.length > 0) {
+                combo++;
+                const linesCleared = rowsToClear.length + colsToClear.length;
+                const comboMultiplier = Math.min(combo, 5) * 0.2 + 0.8;
+                const lineScore = Math.floor(100 * linesCleared * comboMultiplier);
+                score += lineScore;
+                
+                document.getElementById('combo').textContent = combo > 1 ? `${combo}x 콤보!` : '';
+                
+                // Animate clearing
+                const cellsToClear = new Set();
+                rowsToClear.forEach(y => {
+                    for (let x = 0; x < GRID_SIZE; x++) {
+                        cellsToClear.add(`${x},${y}`);
+                    }
+                });
+                colsToClear.forEach(x => {
+                    for (let y = 0; y < GRID_SIZE; y++) {
+                        cellsToClear.add(`${x},${y}`);
+                    }
+                });
+                
+                cellsToClear.forEach(pos => {
+                    const [x, y] = pos.split(',');
+                    const cell = document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+                    if (cell) cell.classList.add('clearing');
+                });
+                
+                setTimeout(() => {
+                    rowsToClear.forEach(y => {
+                        for (let x = 0; x < GRID_SIZE; x++) {
+                            grid[y][x] = 0;
+                        }
+                    });
+                    colsToClear.forEach(x => {
+                        for (let y = 0; y < GRID_SIZE; y++) {
+                            grid[y][x] = 0;
+                        }
+                    });
+                    renderBoard();
+                    updateScore();
+                }, 300);
+            } else {
+                combo = 0;
+                document.getElementById('combo').textContent = '';
+            }
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score.toLocaleString();
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('blockBounceHighScore', highScore);
+                document.getElementById('highScore').textContent = highScore.toLocaleString();
+            }
+        }
+
+        function gameOver() {
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('gameOverOverlay').classList.remove('hidden');
+        }
+
+        init();
+    </script>
+</body>
+</html>
