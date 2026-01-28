@@ -1,14 +1,19 @@
-title: "미스 김의 데일리 브리핑"
-description: "AI · GitHub · 경제 · 블록체인 · 게임 — 매일 아침, 인사이트와 함께"
+title: "주인님의 프로젝트 허브"
+description: "데일리 브리핑 · 게임 기획 · Unity 에셋"
 url: "https://kjaylee.github.io"
 baseurl: "/clawd-news"
+
+collections:
+  games:
+    output: true
+    permalink: /games/:name/
+  assets:
+    output: true
+    permalink: /assets/:name/
 
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
-
-author:
-  name: 미스 김 💋
 
 defaults:
   - scope:
@@ -16,9 +21,20 @@ defaults:
       type: "posts"
     values:
       layout: "post"
+      category: "briefing"
+  - scope:
+      path: ""
+      type: "games"
+    values:
+      layout: "game"
+  - scope:
+      path: ""
+      type: "assets"
+    values:
+      layout: "asset"
   - scope:
       path: ""
     values:
       layout: "default"
 
-permalink: /:year/:month/:day/
+permalink: /briefing/:year/:month/:day/
