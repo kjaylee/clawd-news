@@ -26,7 +26,10 @@
             top: 0;
             height: 100vh;
             overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
+        .sidebar::-webkit-scrollbar { display: none; }
         .sidebar-header {
             padding: 25px 20px;
             border-bottom: 1px solid #1f1f2e;
@@ -65,7 +68,7 @@
         .sidebar-nav .sub { font-size: 0.75em; color: #555; margin-top: 2px; }
         
         /* 메인 */
-        .main { flex: 1; padding: 35px 45px; min-width: 0; }
+        .main { flex: 1; padding: 40px 60px; min-width: 0; }
         .content { max-width: 850px; }
         
         h1.page-title { color: #ff6b9d; font-size: 1.7em; margin-bottom: 8px; line-height: 1.3; }
