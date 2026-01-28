@@ -171,8 +171,8 @@
             <div class="sidebar-section">
                 <div class="sidebar-title">🎮 게임 기획서</div>
                 <ul class="sidebar-nav">
+                    {% if site.games %}
                     {% assign sorted_games = site.games | sort: "order" %}
-                    {% if sorted_games %}
                     {% for game in sorted_games %}
                     <li><a href="{{ game.url | relative_url }}" {% if page.url == game.url %}class="active"{% endif %}>
                         {{ game.title | default: game.name }}
