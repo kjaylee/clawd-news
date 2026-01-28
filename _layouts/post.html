@@ -1,0 +1,18 @@
+---
+layout: default
+---
+<article>
+    <h1 style="color: #ff6b9d; font-size: 1.8em; margin-bottom: 10px;">{{ page.title }}</h1>
+    <div class="post-meta">
+        {{ page.date | date: "%Y년 %m월 %d일" }}
+        {% if page.tags %}
+        · {% for tag in page.tags %}<span style="background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; font-size: 0.8em; margin-right: 5px;">{{ tag }}</span>{% endfor %}
+        {% endif %}
+    </div>
+    
+    {{ content }}
+    
+    <div style="margin-top: 50px; padding-top: 30px; border-top: 1px solid #333;">
+        <a href="{{ '/' | relative_url }}" style="color: #666;">← 전체 브리핑 보기</a>
+    </div>
+</article>

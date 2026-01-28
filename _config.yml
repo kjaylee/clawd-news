@@ -3,7 +3,6 @@ description: "AI · GitHub · 경제 · 블록체인 · 게임 — 매일 아침
 url: "https://kjaylee.github.io"
 baseurl: "/clawd-news"
 
-theme: minima
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
@@ -17,5 +16,9 @@ defaults:
       type: "posts"
     values:
       layout: "post"
+  - scope:
+      path: ""
+    values:
+      layout: "default"
 
 permalink: /:year/:month/:day/
