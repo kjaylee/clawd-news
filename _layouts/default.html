@@ -187,8 +187,14 @@
             font-size: 0.8em;
         }
         
+        /* 태블릿 */
+        @media (max-width: 1100px) {
+            .sidebar { width: 220px; }
+            .main { padding: 30px 35px; }
+        }
+        
         /* 모바일 */
-        @media (max-width: 900px) {
+        @media (max-width: 768px) {
             .wrapper { flex-direction: column; }
             .sidebar {
                 width: 100%;
@@ -196,8 +202,52 @@
                 position: relative;
                 border-right: none;
                 border-bottom: 1px solid #2a2a3e;
+                padding: 20px 15px;
             }
-            .main { padding: 30px 20px; }
+            .sidebar-header { 
+                margin-bottom: 15px; 
+                padding-bottom: 15px;
+                text-align: center;
+            }
+            .sidebar-section h3 { display: none; }
+            .sidebar-nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                justify-content: center;
+            }
+            .sidebar-nav li { margin: 0; }
+            .sidebar-nav a {
+                padding: 8px 14px;
+                font-size: 0.8em;
+                background: rgba(255,255,255,0.05);
+                border-radius: 20px;
+            }
+            .sidebar-nav .date { display: none; }
+            
+            .main { padding: 25px 18px; }
+            .content > h1:first-child { font-size: 1.4em; }
+            h2 { font-size: 1.2em; margin: 30px 0 15px; }
+            h3 { font-size: 1em; }
+            p { font-size: 0.95em; margin: 12px 0; }
+            
+            table { font-size: 0.8em; display: block; overflow-x: auto; }
+            th, td { padding: 10px 12px; white-space: nowrap; }
+            
+            ul, ol { padding-left: 20px; }
+            li { font-size: 0.95em; }
+            
+            blockquote { padding: 12px 15px; margin: 15px 0; }
+            pre { padding: 15px; font-size: 0.85em; }
+        }
+        
+        /* 작은 모바일 */
+        @media (max-width: 480px) {
+            .main { padding: 20px 15px; }
+            .content > h1:first-child { font-size: 1.25em; }
+            h2 { font-size: 1.1em; }
+            table { font-size: 0.75em; }
+            th, td { padding: 8px 10px; }
         }
     </style>
 </head>
