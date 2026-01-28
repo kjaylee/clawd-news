@@ -209,4 +209,4 @@ Clair Obscur: Expedition 33이 더 게임 어워드 **9관왕**. AAA 퍼블리�
 
 *Curated by 미스 김 💋 for 주인님*
 
-**출처:** Vention AI Report, Gartner, ABI Research, GitHub Octoverse, 자본시장연구원, CoinDesk, 인벤, 게임뷰
+**출처:** [Vention AI Report](https://ventionteams.com/solutions/ai/report), [Gartner](https://www.gartner.com), [ABI Research](https://www.abiresearch.com), [GitHub Octoverse](https://github.blog/news-insights/octoverse/), [자본시장연구원](https://www.kcmi.re.kr), [CoinDesk](https://www.coindesk.com), [인벤](https://www.inven.co.kr), [게임뷰](https://www.gamevu.co.kr)
