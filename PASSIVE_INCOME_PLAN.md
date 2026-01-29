@@ -81,7 +81,20 @@
   - 경로: `/Users/kjaylee/clawd/products/html5-game-bundle/`
 - [ ] **대기 중:** Gumroad 제품 등록 (주인님 계정 필요)
 - [x] 스크린샷 10개 캡처 완료 ✅
+- [x] 블로그 SEO 포스트 작성 (2026-01-29 17:00) ✅
+  - 38개 게임 소개 글
+  - eastsea.monster/games/ 트래픽 유입용
+- [x] ProductHunt 출시 준비 (2026-01-29 17:00) ✅
+  - 런칭 자료: `products/producthunt-game-arcade.md`
+  - 태그라인, 설명문, 첫 코멘트, 체크리스트
+- [x] AI Prompt Guide 완성 (2026-01-29 17:40) ✅
+  - "Claude Mastery: 100+ Pro Prompts"
+  - 가격: $19
+  - 5700줄 가이드 (6개 카테고리, 107개 프롬프트)
+  - 경로: `products/claude-prompt-guide/`
+- [ ] **대기 중:** AI Prompt Guide Gumroad 등록 (주인님 계정 필요)
 - [ ] Gumroad 마케팅 자동화
+- [ ] ProductHunt 실제 출시 (주인님 계정 필요)
 - [ ] 추가 디지털 제품 기획 (템플릿, 강좌 등)
 
 ---
