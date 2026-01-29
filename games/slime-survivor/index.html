@@ -819,6 +819,7 @@
             fireBullet();
             
             // 오비탈 업데이트
+            const orbitalKills = [];
             orbitAngle += weapons.orbitals.speed;
             for (let i = 0; i < weapons.orbitals.count; i++) {
                 const angle = orbitAngle + (Math.PI * 2 / weapons.orbitals.count) * i;
@@ -827,11 +828,24 @@
                 
                 // 오비탈-적 충돌
                 for (let e of enemies) {
+                    if (e.hp <= 0) continue;
                     if (Math.hypot(ox - e.x, oy - e.y) < 15 + e.radius) {
                         e.hp -= weapons.orbitals.damage * delta * 60;
                         e.flash = 0.1;
                         createParticles(e.x, e.y, '#ffaa00', 1);
+                        if (e.hp <= 0 && !orbitalKills.includes(e)) {
+                            orbitalKills.push(e);
+                        }
                     }
+                }
+            }
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                if (orbitalKills.includes(enemies[i])) {
+                    const e = enemies[i];
+                    xpOrbs.push({ x: e.x, y: e.y, xp: e.xp, radius: 10, pulse: 0 });
+                    createParticles(e.x, e.y, '#ff6600', 10);
+                    enemies.splice(i, 1);
+                    game.kills++;
                 }
             }
             

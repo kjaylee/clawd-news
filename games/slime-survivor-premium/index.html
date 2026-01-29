@@ -1367,16 +1367,21 @@ function update(delta) {
     fireBullet();
 
     // Orbitals
+    const orbitalKills = [];
     orbitAngle += weapons.orbitals.speed;
     for (let i = 0; i < weapons.orbitals.count; i++) {
         const angle = orbitAngle + (Math.PI * 2 / weapons.orbitals.count) * i;
         const ox = player.x + Math.cos(angle) * weapons.orbitals.radius;
         const oy = player.y + Math.sin(angle) * weapons.orbitals.radius;
         for (const e of enemies) {
+            if (e.hp <= 0) continue;
             if (Math.hypot(ox - e.x, oy - e.y) < 15 + e.radius) {
                 e.hp -= weapons.orbitals.damage * delta * 60;
                 e.flash = 0.08;
                 if (Math.random() < 0.3) createParticles(e.x, e.y, '#ffaa00', 1);
+                if (e.hp <= 0 && !orbitalKills.includes(e)) {
+                    orbitalKills.push(e);
+                }
             }
         }
         // Trail particle
@@ -1386,6 +1391,12 @@ function update(delta) {
                 vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2,
                 life: 0.3, color: '#ff9900', size: 3
             });
+        }
+    }
+    // Process orbital kills (reverse for safe splice)
+    for (let i = enemies.length - 1; i >= 0; i--) {
+        if (orbitalKills.includes(enemies[i])) {
+            killEnemy(enemies[i], i);
         }
     }
 
