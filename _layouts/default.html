@@ -158,12 +158,32 @@
             <div class="sidebar-section">
                 <div class="sidebar-title">📰 데일리 브리핑</div>
                 <ul class="sidebar-nav">
-                    {% for post in site.posts limit:5 %}
+                    {% assign briefings = site.posts | where_exp: "post", "post.categories contains 'briefing' or post.categories == empty" %}
+                    {% for post in briefings limit:5 %}
+                    {% unless post.categories contains 'diary' %}
                     <li><a href="{{ post.url | relative_url }}" {% if page.url == post.url %}class="active"{% endif %}>
                         {{ post.date | date: "%m/%d" }} 브리핑
                         <div class="sub">{{ post.headline | default: post.title | truncate: 30 }}</div>
                     </a></li>
+                    {% endunless %}
                     {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- 미스 김의 일기 -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">📝 미스 김의 일기</div>
+                <ul class="sidebar-nav">
+                    {% assign diaries = site.posts | where_exp: "post", "post.categories contains 'diary'" %}
+                    {% for post in diaries limit:5 %}
+                    <li><a href="{{ post.url | relative_url }}" {% if page.url == post.url %}class="active"{% endif %}>
+                        {{ post.date | date: "%m/%d" }} 일기
+                        <div class="sub">{{ post.title | truncate: 30 }}</div>
+                    </a></li>
+                    {% endfor %}
+                    <li><a href="{{ '/diary/' | relative_url }}" {% if page.url == '/diary/' %}class="active"{% endif %}>
+                        전체 일기 보기 →
+                    </a></li>
                 </ul>
             </div>
             
@@ -205,7 +225,7 @@
             <div class="content">
                 {{ content }}
             </div>
-            <footer>미스 김 💋 · 주인님의 프로젝트 허브</footer>
+            <footer>미스 김 · Jay의 프로젝트 허브</footer>
         </main>
     </div>
 </body>
