@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Chain Pop Puzzle</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+        }
+        
+        #game-container {
+            text-align: center;
+            padding: 20px;
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 15px 0;
+            font-size: 1rem;
+        }
+        
+        .stat {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+        
+        .stat span { font-weight: bold; color: #feca57; }
+        
+        #game-board {
+            display: grid;
+            gap: 3px;
+            padding: 10px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            margin: 20px auto;
+            touch-action: manipulation;
+        }
+        
+        .cell {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .cell:hover { transform: scale(1.05); filter: brightness(1.2); }
+        .cell.highlight { 
+            animation: pulse 0.3s ease infinite alternate;
+            box-shadow: 0 0 15px currentColor;
+        }
+        .cell.popping {
+            animation: pop 0.3s ease forwards;
+        }
+        .cell.falling {
+            animation: fall 0.3s ease;
+        }
+        .cell.empty { 
+            background: rgba(255,255,255,0.05) !important;
+            pointer-events: none;
+        }
+        
+        @keyframes pulse {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); opacity: 0.5; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        @keyframes fall {
+            from { transform: translateY(-100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .color-0 { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); color: #ff6b6b; }
+        .color-1 { background: linear-gradient(135deg, #48dbfb, #38c9e9); color: #48dbfb; }
+        .color-2 { background: linear-gradient(135deg, #1dd1a1, #10b890); color: #1dd1a1; }
+        .color-3 { background: linear-gradient(135deg, #feca57, #f0b946); color: #feca57; }
+        .color-4 { background: linear-gradient(135deg, #ff9ff3, #ee8ee2); color: #ff9ff3; }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 5px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102,126,234,0.4); }
+        .btn:active { transform: translateY(0); }
+        
+        .combo-text {
+            position: fixed;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #feca57;
+            text-shadow: 0 0 20px rgba(254,202,87,0.8);
+            pointer-events: none;
+            animation: comboFloat 1s ease-out forwards;
+            z-index: 100;
+        }
+        
+        @keyframes comboFloat {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            20% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+            100% { transform: translateY(-60px) scale(1); opacity: 0; }
+        }
+        
+        .goal-bar {
+            background: rgba(255,255,255,0.1);
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .goal-progress {
+            height: 100%;
+            background: linear-gradient(90deg, #1dd1a1, #10b890);
+            transition: width 0.3s ease;
+            border-radius: 10px;
+        }
+        
+        #menu, #game-over {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(26,26,46,0.95);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+        
+        #menu h1, #game-over h2 { margin-bottom: 30px; }
+        #game-over .final-score { font-size: 3rem; color: #feca57; margin: 20px 0; }
+        
+        .hidden { display: none !important; }
+        
+        .particles {
+            position: fixed;
+            pointer-events: none;
+            z-index: 50;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: particleFly 0.6s ease-out forwards;
+        }
+        
+        @keyframes particleFly {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <h1>🎯 Chain Pop</h1>
+        <p style="margin-bottom: 20px; opacity: 0.8;">연결된 블록을 터치해서 터뜨리세요!</p>
+        <button class="btn" onclick="startGame()">▶ 게임 시작</button>
+        <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.6;">2개 이상 연결된 같은 색 블록을 탭!</p>
+    </div>
+    
+    <div id="game-over" class="hidden">
+        <h2>🎉 게임 오버</h2>
+        <div class="final-score" id="final-score">0</div>
+        <p>최고 기록: <span id="high-score">0</span></p>
+        <button class="btn" onclick="startGame()">다시 하기</button>
+        <button class="btn" onclick="showMenu()">메뉴로</button>
+    </div>
+    
+    <div id="game-container" class="hidden">
+        <h1>🎯 Chain Pop</h1>
+        
+        <div class="stats">
+            <div class="stat">레벨 <span id="level">1</span></div>
+            <div class="stat">점수 <span id="score">0</span></div>
+            <div class="stat">목표 <span id="goal">1000</span></div>
+        </div>
+        
+        <div class="goal-bar">
+            <div class="goal-progress" id="progress" style="width: 0%"></div>
+        </div>
+        
+        <div id="game-board"></div>
+        
+        <div style="margin-top: 15px;">
+            <button class="btn" onclick="shuffle()">🔀 섞기</button>
+            <button class="btn" onclick="showMenu()">🏠 메뉴</button>
+        </div>
+    </div>
+    
+    <div class="particles" id="particles"></div>
+
+    <script>
+        const GRID_SIZE = 8;
+        const COLORS = 5;
+        const MIN_MATCH = 2;
+        
+        let board = [];
+        let score = 0;
+        let level = 1;
+        let goalScore = 1000;
+        let highScore = parseInt(localStorage.getItem('chainpop_high') || '0');
+        let isAnimating = false;
+        
+        function init() {
+            board = [];
+            for (let y = 0; y < GRID_SIZE; y++) {
+                board[y] = [];
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    board[y][x] = Math.floor(Math.random() * COLORS);
+                }
+            }
+            render();
+        }
+        
+        function render() {
+            const container = document.getElementById('game-board');
+            container.style.gridTemplateColumns = `repeat(${GRID_SIZE}, 1fr)`;
+            container.innerHTML = '';
+            
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    const cell = document.createElement('div');
+                    cell.className = `cell color-${board[y][x]}`;
+                    if (board[y][x] === -1) cell.classList.add('empty');
+                    cell.dataset.x = x;
+                    cell.dataset.y = y;
+                    cell.addEventListener('click', () => handleClick(x, y));
+                    cell.addEventListener('mouseenter', () => highlightGroup(x, y));
+                    cell.addEventListener('mouseleave', clearHighlight);
+                    container.appendChild(cell);
+                }
+            }
+            
+            document.getElementById('score').textContent = score;
+            document.getElementById('level').textContent = level;
+            document.getElementById('goal').textContent = goalScore;
+            
+            const progress = Math.min(100, (score / goalScore) * 100);
+            document.getElementById('progress').style.width = progress + '%';
+        }
+        
+        function getConnectedGroup(x, y, visited = new Set()) {
+            const color = board[y][x];
+            if (color === -1) return [];
+            
+            const key = `${x},${y}`;
+            if (visited.has(key)) return [];
+            visited.add(key);
+            
+            let group = [{x, y}];
+            
+            const directions = [[0,-1], [0,1], [-1,0], [1,0]];
+            for (const [dx, dy] of directions) {
+                const nx = x + dx, ny = y + dy;
+                if (nx >= 0 && nx < GRID_SIZE && ny >= 0 && ny < GRID_SIZE) {
+                    if (board[ny][nx] === color) {
+                        group = group.concat(getConnectedGroup(nx, ny, visited));
+                    }
+                }
+            }
+            
+            return group;
+        }
+        
+        function highlightGroup(x, y) {
+            if (isAnimating || board[y][x] === -1) return;
+            clearHighlight();
+            
+            const group = getConnectedGroup(x, y);
+            if (group.length >= MIN_MATCH) {
+                group.forEach(({x, y}) => {
+                    const idx = y * GRID_SIZE + x;
+                    const cells = document.querySelectorAll('.cell');
+                    if (cells[idx]) cells[idx].classList.add('highlight');
+                });
+            }
+        }
+        
+        function clearHighlight() {
+            document.querySelectorAll('.cell.highlight').forEach(c => c.classList.remove('highlight'));
+        }
+        
+        async function handleClick(x, y) {
+            if (isAnimating || board[y][x] === -1) return;
+            
+            const group = getConnectedGroup(x, y);
+            if (group.length < MIN_MATCH) return;
+            
+            isAnimating = true;
+            
+            // Calculate score
+            const points = group.length * (group.length - 1) * 10;
+            score += points;
+            
+            // Show combo text
+            showCombo(points, x, y);
+            
+            // Create particles
+            const cells = document.querySelectorAll('.cell');
+            const firstCell = cells[y * GRID_SIZE + x];
+            if (firstCell) {
+                const rect = firstCell.getBoundingClientRect();
+                createParticles(rect.left + rect.width/2, rect.top + rect.height/2, board[y][x]);
+            }
+            
+            // Pop animation
+            group.forEach(({x, y}) => {
+                const idx = y * GRID_SIZE + x;
+                if (cells[idx]) cells[idx].classList.add('popping');
+            });
+            
+            await delay(300);
+            
+            // Remove blocks
+            group.forEach(({x, y}) => {
+                board[y][x] = -1;
+            });
+            
+            render();
+            await delay(100);
+            
+            // Apply gravity
+            await applyGravity();
+            
+            // Shift columns left
+            await shiftColumns();
+            
+            render();
+            
+            // Check level complete
+            if (score >= goalScore) {
+                await delay(500);
+                nextLevel();
+            }
+            
+            // Check game over
+            if (!hasValidMoves()) {
+                await delay(500);
+                gameOver();
+            }
+            
+            isAnimating = false;
+        }
+        
+        async function applyGravity() {
+            let moved = false;
+            
+            for (let x = 0; x < GRID_SIZE; x++) {
+                for (let y = GRID_SIZE - 1; y >= 0; y--) {
+                    if (board[y][x] === -1) {
+                        // Find block above
+                        for (let y2 = y - 1; y2 >= 0; y2--) {
+                            if (board[y2][x] !== -1) {
+                                board[y][x] = board[y2][x];
+                                board[y2][x] = -1;
+                                moved = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (moved) {
+                render();
+                document.querySelectorAll('.cell:not(.empty)').forEach(c => c.classList.add('falling'));
+                await delay(300);
+            }
+        }
+        
+        async function shiftColumns() {
+            let moved = false;
+            
+            for (let x = 0; x < GRID_SIZE - 1; x++) {
+                // Check if column is empty
+                let isEmpty = true;
+                for (let y = 0; y < GRID_SIZE; y++) {
+                    if (board[y][x] !== -1) {
+                        isEmpty = false;
+                        break;
+                    }
+                }
+                
+                if (isEmpty) {
+                    // Find non-empty column to the right
+                    for (let x2 = x + 1; x2 < GRID_SIZE; x2++) {
+                        let hasBlocks = false;
+                        for (let y = 0; y < GRID_SIZE; y++) {
+                            if (board[y][x2] !== -1) {
+                                hasBlocks = true;
+                                break;
+                            }
+                        }
+                        
+                        if (hasBlocks) {
+                            // Move column
+                            for (let y = 0; y < GRID_SIZE; y++) {
+                                board[y][x] = board[y][x2];
+                                board[y][x2] = -1;
+                            }
+                            moved = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            
+            if (moved) {
+                render();
+                await delay(200);
+                await shiftColumns(); // Recursive to handle multiple empty columns
+            }
+        }
+        
+        function hasValidMoves() {
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    if (board[y][x] !== -1) {
+                        const group = getConnectedGroup(x, y);
+                        if (group.length >= MIN_MATCH) return true;
+                    }
+                }
+            }
+            return false;
+        }
+        
+        function showCombo(points, x, y) {
+            const cells = document.querySelectorAll('.cell');
+            const cell = cells[y * GRID_SIZE + x];
+            if (!cell) return;
+            
+            const rect = cell.getBoundingClientRect();
+            const text = document.createElement('div');
+            text.className = 'combo-text';
+            text.textContent = `+${points}`;
+            text.style.left = rect.left + rect.width/2 - 30 + 'px';
+            text.style.top = rect.top + 'px';
+            document.body.appendChild(text);
+            
+            setTimeout(() => text.remove(), 1000);
+        }
+        
+        function createParticles(x, y, colorIndex) {
+            const container = document.getElementById('particles');
+            const colors = ['#ff6b6b', '#48dbfb', '#1dd1a1', '#feca57', '#ff9ff3'];
+            
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.background = colors[colorIndex];
+                
+                const angle = (i / 8) * Math.PI * 2;
+                const dist = 30 + Math.random() * 20;
+                particle.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+                particle.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+                
+                container.appendChild(particle);
+                setTimeout(() => particle.remove(), 600);
+            }
+        }
+        
+        function shuffle() {
+            if (isAnimating) return;
+            
+            // Collect all non-empty cells
+            const blocks = [];
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    if (board[y][x] !== -1) {
+                        blocks.push(board[y][x]);
+                    }
+                }
+            }
+            
+            // Shuffle
+            for (let i = blocks.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [blocks[i], blocks[j]] = [blocks[j], blocks[i]];
+            }
+            
+            // Put back
+            let idx = 0;
+            for (let y = 0; y < GRID_SIZE; y++) {
+                for (let x = 0; x < GRID_SIZE; x++) {
+                    if (board[y][x] !== -1) {
+                        board[y][x] = blocks[idx++];
+                    }
+                }
+            }
+            
+            render();
+        }
+        
+        function nextLevel() {
+            level++;
+            goalScore = 1000 + (level - 1) * 500;
+            init();
+        }
+        
+        function gameOver() {
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('chainpop_high', highScore);
+            }
+            
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('high-score').textContent = highScore;
+            document.getElementById('game-over').classList.remove('hidden');
+        }
+        
+        function startGame() {
+            score = 0;
+            level = 1;
+            goalScore = 1000;
+            
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('game-over').classList.add('hidden');
+            document.getElementById('game-container').classList.remove('hidden');
+            
+            init();
+        }
+        
+        function showMenu() {
+            document.getElementById('menu').classList.remove('hidden');
+            document.getElementById('game-over').classList.add('hidden');
+            document.getElementById('game-container').classList.add('hidden');
+        }
+        
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
