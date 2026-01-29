@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Hole Swallow - 블랙홀 아케이드</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #1a1a2e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Segoe UI', sans-serif;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #gameContainer {
+            position: relative;
+            background: #16213e;
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.5);
+        }
+        canvas {
+            display: block;
+            border-radius: 12px;
+        }
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+        #timer {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+        #score {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+        #holeSize {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 8px 20px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            pointer-events: none;
+        }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            color: white;
+            text-align: center;
+        }
+        #overlay.hidden {
+            display: none;
+        }
+        #overlay h1 {
+            font-size: 36px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        #overlay p {
+            font-size: 16px;
+            color: #aaa;
+            margin-bottom: 30px;
+        }
+        #finalScore {
+            font-size: 48px;
+            font-weight: bold;
+            color: #4ecdc4;
+            margin: 20px 0;
+        }
+        #stats {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        .btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <canvas id="game"></canvas>
+        <div id="ui">
+            <div id="timer">⏱️ 60s</div>
+            <div id="score">⭐ 0</div>
+        </div>
+        <div id="holeSize">🕳️ 크기: 20</div>
+        <div id="overlay">
+            <h1>🕳️ Hole Swallow</h1>
+            <p>블랙홀을 움직여 모든 것을 삼켜라!</p>
+            <button class="btn" id="startBtn">▶️ 시작</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('game');
+        const ctx = canvas.getContext('2d');
+        const overlay = document.getElementById('overlay');
+        const timerEl = document.getElementById('timer');
+        const scoreEl = document.getElementById('score');
+        const holeSizeEl = document.getElementById('holeSize');
+        const startBtn = document.getElementById('startBtn');
+
+        // 반응형 캔버스 크기
+        const maxWidth = Math.min(window.innerWidth - 20, 600);
+        const maxHeight = Math.min(window.innerHeight - 40, 700);
+        canvas.width = maxWidth;
+        canvas.height = maxHeight;
+        document.getElementById('gameContainer').style.width = maxWidth + 'px';
+        document.getElementById('gameContainer').style.height = maxHeight + 'px';
+
+        const CONFIG = {
+            GAME_DURATION: 60,
+            INITIAL_HOLE_RADIUS: 20,
+            GROWTH_RATE: 0.3,
+            HOLE_SPEED: 4,
+            OBJECT_COUNT: 45
+        };
+
+        // 물체 타입 정의
+        const OBJECT_TYPES = [
+            { type: 'trash', size: 12, points: 10, color: '#6b7280', emoji: '🗑️', minHole: 15 },
+            { type: 'cone', size: 15, points: 15, color: '#f97316', emoji: '🔶', minHole: 18 },
+            { type: 'hydrant', size: 18, points: 20, color: '#ef4444', emoji: '🚒', minHole: 22 },
+            { type: 'bench', size: 22, points: 30, color: '#a16207', emoji: '🪑', minHole: 26 },
+            { type: 'mailbox', size: 20, points: 25, color: '#3b82f6', emoji: '📮', minHole: 24 },
+            { type: 'bike', size: 25, points: 40, color: '#10b981', emoji: '🚲', minHole: 30 },
+            { type: 'car', size: 35, points: 60, color: '#8b5cf6', emoji: '🚗', minHole: 40 },
+            { type: 'tree', size: 40, points: 80, color: '#22c55e', emoji: '🌳', minHole: 45 },
+            { type: 'truck', size: 50, points: 120, color: '#f59e0b', emoji: '🚚', minHole: 55 },
+            { type: 'house', size: 65, points: 200, color: '#ec4899', emoji: '🏠', minHole: 70 },
+            { type: 'building', size: 85, points: 400, color: '#6366f1', emoji: '🏢', minHole: 90 }
+        ];
+
+        let gameState = {
+            hole: { x: canvas.width / 2, y: canvas.height / 2, radius: CONFIG.INITIAL_HOLE_RADIUS },
+            objects: [],
+            score: 0,
+            timer: CONFIG.GAME_DURATION,
+            swallowed: 0,
+            gameOver: false,
+            started: false
+        };
+
+        let targetPos = { x: canvas.width / 2, y: canvas.height / 2 };
+        let lastTime = 0;
+        let timerInterval = null;
+
+        function generateObjects() {
+            const objects = [];
+            const typeWeights = [8, 7, 6, 5, 5, 4, 3, 3, 2, 2, 1]; // 작은 물체가 더 많이
+            
+            for (let i = 0; i < CONFIG.OBJECT_COUNT; i++) {
+                // 가중치 기반 랜덤 선택
+                let totalWeight = typeWeights.reduce((a, b) => a + b, 0);
+                let rand = Math.random() * totalWeight;
+                let typeIndex = 0;
+                for (let j = 0; j < typeWeights.length; j++) {
+                    rand -= typeWeights[j];
+                    if (rand <= 0) {
+                        typeIndex = j;
+                        break;
+                    }
+                }
+                
+                const objType = OBJECT_TYPES[typeIndex];
+                let x, y, overlap;
+                let attempts = 0;
+                
+                do {
+                    x = objType.size + Math.random() * (canvas.width - objType.size * 2);
+                    y = objType.size + Math.random() * (canvas.height - objType.size * 2);
+                    overlap = objects.some(o => {
+                        const dist = Math.hypot(o.x - x, o.y - y);
+                        return dist < (o.size + objType.size + 5);
+                    });
+                    // 홀 시작 위치 근처 체크
+                    const nearHole = Math.hypot(canvas.width/2 - x, canvas.height/2 - y) < 80;
+                    overlap = overlap || nearHole;
+                    attempts++;
+                } while (overlap && attempts < 50);
+                
+                if (attempts < 50) {
+                    objects.push({
+                        x, y,
+                        ...objType,
+                        scale: 1,
+                        swallowing: false
+                    });
+                }
+            }
+            return objects;
+        }
+
+        function init() {
+            gameState = {
+                hole: { x: canvas.width / 2, y: canvas.height / 2, radius: CONFIG.INITIAL_HOLE_RADIUS },
+                objects: generateObjects(),
+                score: 0,
+                timer: CONFIG.GAME_DURATION,
+                swallowed: 0,
+                gameOver: false,
+                started: true
+            };
+            targetPos = { x: canvas.width / 2, y: canvas.height / 2 };
+            
+            overlay.classList.add('hidden');
+            
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!gameState.gameOver && gameState.started) {
+                    gameState.timer--;
+                    timerEl.textContent = `⏱️ ${gameState.timer}s`;
+                    if (gameState.timer <= 0) {
+                        endGame();
+                    }
+                }
+            }, 1000);
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        function endGame() {
+            gameState.gameOver = true;
+            if (timerInterval) clearInterval(timerInterval);
+            
+            overlay.innerHTML = `
+                <h1>🎮 게임 종료!</h1>
+                <div id="finalScore">${gameState.score.toLocaleString()}</div>
+                <div id="stats">
+                    삼킨 물체: ${gameState.swallowed}개<br>
+                    최종 홀 크기: ${Math.floor(gameState.hole.radius)}
+                </div>
+                <button class="btn" onclick="init()">🔄 다시하기</button>
+            `;
+            overlay.classList.remove('hidden');
+        }
+
+        function updateHolePosition() {
+            const dx = targetPos.x - gameState.hole.x;
+            const dy = targetPos.y - gameState.hole.y;
+            const dist = Math.hypot(dx, dy);
+            
+            if (dist > 1) {
+                const speed = CONFIG.HOLE_SPEED;
+                gameState.hole.x += (dx / dist) * speed;
+                gameState.hole.y += (dy / dist) * speed;
+            }
+            
+            // 경계 체크
+            const r = gameState.hole.radius;
+            gameState.hole.x = Math.max(r, Math.min(canvas.width - r, gameState.hole.x));
+            gameState.hole.y = Math.max(r, Math.min(canvas.height - r, gameState.hole.y));
+        }
+
+        function checkCollisions() {
+            for (let i = gameState.objects.length - 1; i >= 0; i--) {
+                const obj = gameState.objects[i];
+                if (obj.swallowing) continue;
+                
+                const dist = Math.hypot(obj.x - gameState.hole.x, obj.y - gameState.hole.y);
+                
+                // 홀이 충분히 크고 물체가 홀 안에 들어왔을 때
+                if (gameState.hole.radius >= obj.minHole && dist < gameState.hole.radius - obj.size * 0.3) {
+                    obj.swallowing = true;
+                    
+                    // 애니메이션 후 삭제
+                    setTimeout(() => {
+                        const idx = gameState.objects.indexOf(obj);
+                        if (idx > -1) {
+                            gameState.objects.splice(idx, 1);
+                            gameState.score += obj.points;
+                            gameState.swallowed++;
+                            gameState.hole.radius += obj.size * CONFIG.GROWTH_RATE;
+                            
+                            scoreEl.textContent = `⭐ ${gameState.score.toLocaleString()}`;
+                            holeSizeEl.textContent = `🕳️ 크기: ${Math.floor(gameState.hole.radius)}`;
+                        }
+                    }, 200);
+                }
+            }
+        }
+
+        function drawBackground() {
+            // 도시 배경
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 그리드 패턴 (도로)
+            ctx.strokeStyle = '#636e72';
+            ctx.lineWidth = 1;
+            for (let x = 0; x < canvas.width; x += 60) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < canvas.height; y += 60) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+        }
+
+        function drawHole() {
+            const { x, y, radius } = gameState.hole;
+            
+            // 외곽 글로우
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius * 1.3);
+            gradient.addColorStop(0, 'rgba(102, 126, 234, 0.8)');
+            gradient.addColorStop(0.5, 'rgba(118, 75, 162, 0.4)');
+            gradient.addColorStop(1, 'transparent');
+            ctx.beginPath();
+            ctx.arc(x, y, radius * 1.3, 0, Math.PI * 2);
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // 메인 홀
+            const holeGradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+            holeGradient.addColorStop(0, '#0a0a0a');
+            holeGradient.addColorStop(0.7, '#1a1a2e');
+            holeGradient.addColorStop(1, '#2d2d44');
+            ctx.beginPath();
+            ctx.arc(x, y, radius, 0, Math.PI * 2);
+            ctx.fillStyle = holeGradient;
+            ctx.fill();
+            
+            // 테두리
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 3;
+            ctx.stroke();
+        }
+
+        function drawObjects() {
+            // 크기순 정렬 (큰 것이 뒤에)
+            const sorted = [...gameState.objects].sort((a, b) => a.size - b.size);
+            
+            for (const obj of sorted) {
+                ctx.save();
+                ctx.translate(obj.x, obj.y);
+                
+                if (obj.swallowing) {
+                    obj.scale = Math.max(0, obj.scale - 0.15);
+                    ctx.scale(obj.scale, obj.scale);
+                }
+                
+                // 그림자
+                ctx.beginPath();
+                ctx.arc(3, 3, obj.size, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0,0,0,0.3)';
+                ctx.fill();
+                
+                // 물체
+                ctx.beginPath();
+                ctx.arc(0, 0, obj.size, 0, Math.PI * 2);
+                ctx.fillStyle = obj.color;
+                ctx.fill();
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 이모지
+                const fontSize = Math.max(12, obj.size * 0.8);
+                ctx.font = `${fontSize}px serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(obj.emoji, 0, 0);
+                
+                // 삼킬 수 있는지 표시
+                if (gameState.hole.radius >= obj.minHole) {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, obj.size + 3, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(78, 205, 196, 0.6)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+        }
+
+        function gameLoop(timestamp) {
+            if (!gameState.started || gameState.gameOver) return;
+            
+            updateHolePosition();
+            checkCollisions();
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawBackground();
+            drawObjects();
+            drawHole();
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 입력 처리
+        function handleInput(x, y) {
+            const rect = canvas.getBoundingClientRect();
+            targetPos.x = x - rect.left;
+            targetPos.y = y - rect.top;
+        }
+
+        canvas.addEventListener('mousemove', (e) => handleInput(e.clientX, e.clientY));
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            handleInput(e.touches[0].clientX, e.touches[0].clientY);
+        });
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleInput(e.touches[0].clientX, e.touches[0].clientY);
+        });
+
+        startBtn.addEventListener('click', init);
+
+        // 초기 화면
+        drawBackground();
+    </script>
+</body>
+</html>
