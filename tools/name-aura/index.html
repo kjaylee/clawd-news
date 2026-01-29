@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Name Aura — Discover Your Unique Aura Color | 이름 오라</title>
+    <meta name="description" content="Enter your name and discover your unique aura color & personality. Beautiful animated visualization you can download and share! 이름을 입력하고 당신만의 오라 컬러를 발견하세요.">
+    <meta name="keywords" content="aura color, name aura, personality, color test, 오라, 이름 오라, 성격 테스트, aura generator, vibe check">
+    <meta name="author" content="Jay Lee">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://eastsea.monster/tools/name-aura/">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Your Name Aura — What Color Is Your Aura?">
+    <meta property="og:description" content="Enter your name and discover your unique aura color & personality reading. ✨ Beautiful animated visualization!">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://eastsea.monster/tools/name-aura/">
+    <meta property="og:image" content="https://eastsea.monster/tools/name-aura/og-image.png">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:locale:alternate" content="ko_KR">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Your Name Aura — What Color Is Your Aura?">
+    <meta name="twitter:description" content="Discover your unique aura color & personality. ✨">
+    <meta name="twitter:image" content="https://eastsea.monster/tools/name-aura/og-image.png">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Your Name Aura",
+        "alternateName": "이름 오라",
+        "description": "Discover your unique aura color & personality based on your name",
+        "url": "https://eastsea.monster/tools/name-aura/",
+        "applicationCategory": "Entertainment",
+        "operatingSystem": "Web",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "author": { "@type": "Person", "name": "Jay Lee", "url": "https://eastsea.monster" }
+    }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface2: #1a1a25;
+            --text: #e8e8f0;
+            --text-dim: #8888a0;
+            --accent: #7c5bf5;
+            --accent-glow: rgba(124, 91, 245, 0.3);
+            --radius: 16px;
+        }
+
+        body {
+            font-family: 'Inter', 'Noto Sans KR', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* Background animation */
+        .bg-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 640px;
+            margin: 0 auto;
+            padding: 40px 20px 60px;
+        }
+
+        /* Language toggle */
+        .lang-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            background: var(--surface2);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 4px;
+            display: flex;
+            gap: 2px;
+        }
+        .lang-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .lang-btn.active {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 48px;
+            padding-top: 20px;
+        }
+        .header-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            display: block;
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        .header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #7c5bf5, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header p {
+            color: var(--text-dim);
+            font-size: 16px;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Input Section */
+        .input-section {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius);
+            padding: 32px;
+            margin-bottom: 32px;
+        }
+        .input-group {
+            margin-bottom: 20px;
+        }
+        .input-group:last-of-type {
+            margin-bottom: 24px;
+        }
+        .input-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 14px 18px;
+            background: var(--surface2);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            color: var(--text);
+            font-size: 18px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .input-field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .input-field::placeholder {
+            color: rgba(255,255,255,0.2);
+        }
+
+        .discover-btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #7c5bf5, #a855f7);
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-size: 17px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            letter-spacing: 0.3px;
+        }
+        .discover-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(124, 91, 245, 0.4);
+        }
+        .discover-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Result Section */
+        .result-section {
+            display: none;
+            animation: fadeUp 0.8s ease;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .aura-canvas-wrap {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: var(--radius);
+            overflow: hidden;
+            margin-bottom: 24px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+        }
+        .aura-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .aura-name-overlay {
+            position: absolute;
+            bottom: 24px;
+            left: 0;
+            right: 0;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.7);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+        }
+        .aura-name-overlay .name-text {
+            display: block;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 4px;
+            margin-bottom: 4px;
+        }
+
+        .aura-type-card {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius);
+            padding: 28px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .aura-type-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--text-dim);
+            margin-bottom: 8px;
+        }
+        .aura-type-name {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .aura-colors-display {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin: 16px 0;
+        }
+        .color-dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+        .aura-description {
+            color: var(--text-dim);
+            font-size: 15px;
+            line-height: 1.7;
+            margin-top: 16px;
+        }
+
+        .traits-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .trait-item {
+            background: var(--surface2);
+            border-radius: 10px;
+            padding: 12px 16px;
+            text-align: center;
+        }
+        .trait-emoji {
+            font-size: 20px;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .trait-label {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+        .trait-value {
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* Action buttons */
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .action-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .action-btn:hover {
+            background: var(--surface2);
+            border-color: var(--accent);
+        }
+        .action-btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        /* Share buttons */
+        .share-section {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 32px;
+            text-align: center;
+        }
+        .share-title {
+            font-size: 14px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+        }
+        .share-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .share-btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: none;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .share-btn:hover { transform: translateY(-2px); opacity: 0.9; }
+        .share-btn.twitter { background: #1DA1F2; }
+        .share-btn.facebook { background: #4267B2; }
+        .share-btn.whatsapp { background: #25D366; }
+        .share-btn.copy { background: var(--surface2); color: var(--text); border: 1px solid rgba(255,255,255,0.1); }
+
+        /* Try Again */
+        .try-again {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+        .try-again-btn {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text-dim);
+            padding: 12px 28px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .try-again-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .footer-title {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .footer-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .footer-link:hover { opacity: 0.8; }
+        .footer-copy {
+            margin-top: 20px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.2);
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--surface2);
+            color: var(--text);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* Hidden share card canvas */
+        #shareCard { display: none; }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            .container { padding: 20px 16px 40px; }
+            .header h1 { font-size: 26px; }
+            .input-section { padding: 24px; }
+            .aura-type-name { font-size: 22px; }
+            .traits-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <canvas class="bg-canvas" id="bgCanvas"></canvas>
+
+    <!-- Language Toggle -->
+    <div class="lang-toggle">
+        <button class="lang-btn active" onclick="setLang('en')" id="langEn">EN</button>
+        <button class="lang-btn" onclick="setLang('ko')" id="langKo">한국어</button>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <span class="header-icon">✨</span>
+            <h1 data-en="Your Name Aura" data-ko="당신의 이름 오라">Your Name Aura</h1>
+            <p data-en="Enter your name and discover your unique aura energy, colors, and personality traits."
+               data-ko="이름을 입력하고 당신만의 오라 에너지, 컬러, 성격 특성을 발견하세요.">
+                Enter your name and discover your unique aura energy, colors, and personality traits.
+            </p>
+        </div>
+
+        <!-- Input -->
+        <div class="input-section" id="inputSection">
+            <div class="input-group">
+                <label class="input-label" data-en="Your Name" data-ko="이름">Your Name</label>
+                <input type="text" class="input-field" id="nameInput"
+                    data-placeholder-en="Enter your name..."
+                    data-placeholder-ko="이름을 입력하세요..."
+                    placeholder="Enter your name..."
+                    maxlength="30" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label class="input-label" data-en="Birthday (optional)" data-ko="생일 (선택)">Birthday (optional)</label>
+                <input type="date" class="input-field" id="birthdayInput">
+            </div>
+            <button class="discover-btn" id="discoverBtn" onclick="discoverAura()"
+                data-en="✨ Discover Your Aura" data-ko="✨ 오라 발견하기">
+                ✨ Discover Your Aura
+            </button>
+        </div>
+
+        <!-- Result -->
+        <div class="result-section" id="resultSection">
+            <div class="aura-canvas-wrap">
+                <canvas class="aura-canvas" id="auraCanvas" width="600" height="600"></canvas>
+                <div class="aura-name-overlay">
+                    <span class="name-text" id="displayName"></span>
+                    <span data-en="AURA READING" data-ko="오라 리딩">AURA READING</span>
+                </div>
+            </div>
+
+            <div class="aura-type-card">
+                <div class="aura-type-label" data-en="YOUR AURA TYPE" data-ko="당신의 오라 타입">YOUR AURA TYPE</div>
+                <div class="aura-type-name" id="auraTypeName"></div>
+                <div class="aura-colors-display" id="auraColors"></div>
+                <div class="aura-description" id="auraDescription"></div>
+                <div class="traits-grid" id="traitsGrid"></div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="action-btn primary" onclick="downloadCard()"
+                    data-en="📥 Download Card" data-ko="📥 카드 저장">📥 Download Card</button>
+                <button class="action-btn" onclick="tryAgain()"
+                    data-en="🔄 Try Another Name" data-ko="🔄 다른 이름 시도">🔄 Try Another Name</button>
+            </div>
+
+            <!-- Share -->
+            <div class="share-section">
+                <div class="share-title" data-en="Share your aura with friends ✨" data-ko="친구에게 오라를 공유하세요 ✨">Share your aura with friends ✨</div>
+                <div class="share-buttons">
+                    <button class="share-btn twitter" onclick="shareTwitter()">𝕏 Twitter</button>
+                    <button class="share-btn facebook" onclick="shareFacebook()">f Facebook</button>
+                    <button class="share-btn whatsapp" onclick="shareWhatsApp()">💬 WhatsApp</button>
+                    <button class="share-btn copy" onclick="copyLink()"
+                        data-en="🔗 Copy Link" data-ko="🔗 링크 복사">🔗 Copy Link</button>
+                </div>
+            </div>
+
+            <div class="try-again">
+                <button class="try-again-btn" onclick="tryAgain()"
+                    data-en="← Try another name" data-ko="← 다른 이름으로">← Try another name</button>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-title" data-en="More by Jay Lee" data-ko="Jay Lee의 다른 프로젝트">More by Jay Lee</div>
+            <div class="footer-links">
+                <a href="https://eastsea.monster" class="footer-link" data-en="🎮 Game Portal" data-ko="🎮 게임 포털">🎮 Game Portal</a>
+                <a href="https://eastsea.monster/blog" class="footer-link" data-en="📝 Blog" data-ko="📝 블로그">📝 Blog</a>
+                <a href="https://github.com/kjaylee" class="footer-link">🐙 GitHub</a>
+            </div>
+            <div class="footer-copy">© 2025 Jay Lee · eastsea.monster</div>
+        </footer>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- Hidden canvas for share card -->
+    <canvas id="shareCard" width="1080" height="1080"></canvas>
+
+    <script>
+    // ========== LANGUAGE ==========
+    let currentLang = (navigator.language || '').startsWith('ko') ? 'ko' : 'en';
+
+    function setLang(lang) {
+        currentLang = lang;
+        document.getElementById('langEn').classList.toggle('active', lang === 'en');
+        document.getElementById('langKo').classList.toggle('active', lang === 'ko');
+        document.querySelectorAll('[data-' + lang + ']').forEach(el => {
+            el.textContent = el.getAttribute('data-' + lang);
+        });
+        // Placeholders
+        document.querySelectorAll('[data-placeholder-' + lang + ']').forEach(el => {
+            el.placeholder = el.getAttribute('data-placeholder-' + lang);
+        });
+        document.documentElement.lang = lang;
+    }
+
+    // ========== HASH FUNCTION ==========
+    function hashStr(str) {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const c = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + c;
+            hash |= 0;
+        }
+        return Math.abs(hash);
+    }
+
+    function seededRandom(seed) {
+        let s = seed;
+        return function() {
+            s = (s * 16807 + 0) % 2147483647;
+            return (s - 1) / 2147483646;
+        };
+    }
+
+    // ========== AURA DATA ==========
+    const auraTypes = {
+        en: [
+            { name: "Celestial Violet", desc: "Your aura radiates with deep wisdom and spiritual intuition. You are a natural philosopher who sees beyond the surface. People are drawn to your calm, mysterious energy and often seek your guidance in times of uncertainty." },
+            { name: "Solar Gold", desc: "Your aura blazes with confidence and creative fire. You light up every room you enter and inspire others with your infectious enthusiasm. Your energy is warm, generous, and unapologetically bold." },
+            { name: "Ocean Sapphire", desc: "Your aura flows with emotional depth and tranquil strength. Like the ocean, you hold vast worlds within you. You're deeply empathetic, and your presence brings peace and clarity to those around you." },
+            { name: "Forest Emerald", desc: "Your aura pulses with growth, healing, and natural harmony. You're a grounding force who helps others find their center. Your energy is refreshing, nurturing, and deeply connected to the earth." },
+            { name: "Nebula Rose", desc: "Your aura shimmers with compassion and artistic sensitivity. You experience the world through a lens of beauty and emotion. Your gentle yet powerful energy transforms ordinary moments into something magical." },
+            { name: "Lightning Cyan", desc: "Your aura crackles with innovation and mental agility. You're always three steps ahead, seeing connections others miss. Your electric energy sparks new ideas and pushes boundaries fearlessly." },
+            { name: "Ember Crimson", desc: "Your aura burns with passion and fierce determination. You feel everything intensely and channel that fire into action. Your powerful energy commands respect and ignites courage in others." },
+            { name: "Moonlit Silver", desc: "Your aura glows with elegance and quiet brilliance. You're an observer who notices what others overlook. Your refined, contemplative energy carries a timeless quality that feels both rare and precious." },
+            { name: "Aurora Teal", desc: "Your aura dances with adaptability and creative flow. Like the northern lights, you're ever-changing and mesmerizing. Your dynamic energy brings wonder and possibility wherever you go." },
+            { name: "Starfire Orange", desc: "Your aura radiates warmth, joy, and magnetic charisma. You're a natural connector who builds bridges between people. Your sunny energy is contagious and makes the world feel brighter." },
+            { name: "Twilight Indigo", desc: "Your aura resonates with deep knowledge and mystical awareness. You walk between worlds — logic and intuition, reality and dreams. Your enigmatic energy attracts seekers and dreamers alike." },
+            { name: "Prism Pearl", desc: "Your aura contains all colors, reflecting the full spectrum of human experience. You're exceptionally versatile and see every perspective. Your multifaceted energy makes you uniquely adaptable and wise." }
+        ],
+        ko: [
+            { name: "천상의 보라", desc: "당신의 오라는 깊은 지혜와 영적 직관으로 빛납니다. 표면 너머를 보는 타고난 철학자이시죠. 사람들은 당신의 고요하고 신비로운 에너지에 끌리며, 불확실한 시기에 종종 당신의 조언을 구합니다." },
+            { name: "태양의 금빛", desc: "당신의 오라는 자신감과 창조적 열정으로 타오릅니다. 어디를 가든 분위기를 밝히고, 전염성 있는 열정으로 주변 사람들에게 영감을 줍니다. 따뜻하고 관대하며 당당한 에너지의 소유자입니다." },
+            { name: "바다의 사파이어", desc: "당신의 오라는 감정의 깊이와 고요한 힘으로 흐릅니다. 바다처럼 당신 안에는 광대한 세계가 있습니다. 깊은 공감 능력을 가졌으며, 당신의 존재는 주변에 평화와 명료함을 가져다줍니다." },
+            { name: "숲의 에메랄드", desc: "당신의 오라는 성장, 치유, 자연의 조화로 맥동합니다. 다른 사람들이 중심을 찾도록 돕는 든든한 존재이죠. 상쾌하고 포근하며 대지와 깊이 연결된 에너지를 가지고 있습니다." },
+            { name: "성운의 로즈", desc: "당신의 오라는 연민과 예술적 감수성으로 반짝입니다. 아름다움과 감정의 렌즈를 통해 세상을 경험하죠. 부드러우면서도 강력한 에너지로 평범한 순간을 마법처럼 변화시킵니다." },
+            { name: "번개의 시안", desc: "당신의 오라는 혁신과 정신적 민첩함으로 번쩍입니다. 항상 세 발짝 앞서서, 남들이 놓치는 연결고리를 봅니다. 전기적인 에너지가 새로운 아이디어를 불꽃처럼 만들어냅니다." },
+            { name: "불꽃의 크림슨", desc: "당신의 오라는 열정과 불같은 결단력으로 타오릅니다. 모든 것을 강렬하게 느끼며, 그 불꽃을 행동으로 이끕니다. 강력한 에너지는 존경을 받으며 타인에게 용기를 불어넣습니다." },
+            { name: "달빛의 실버", desc: "당신의 오라는 우아함과 조용한 빛남으로 가득합니다. 남들이 지나치는 것을 알아차리는 관찰자이시죠. 세련되고 사색적인 에너지에서 시대를 초월한 희귀한 아름다움이 느껴집니다." },
+            { name: "오로라 틸", desc: "당신의 오라는 적응력과 창의적 흐름으로 춤춥니다. 오로라처럼 끊임없이 변화하며 매혹적입니다. 역동적인 에너지가 가는 곳마다 경이로움과 가능성을 가져다줍니다." },
+            { name: "별의 오렌지", desc: "당신의 오라는 따뜻함, 기쁨, 자석 같은 매력으로 빛납니다. 사람과 사람 사이에 다리를 놓는 타고난 연결자입니다. 밝은 에너지가 전염되어 세상을 더 환하게 만듭니다." },
+            { name: "황혼의 인디고", desc: "당신의 오라는 깊은 지식과 신비로운 인식으로 울립니다. 논리와 직관, 현실과 꿈 사이를 오가는 존재이죠. 수수께끼 같은 에너지가 탐구자와 몽상가 모두를 끌어당깁니다." },
+            { name: "프리즘 펄", desc: "당신의 오라는 모든 색을 담고 있어 인간 경험의 전체 스펙트럼을 반영합니다. 놀라울 정도로 다재다능하며 모든 관점을 이해합니다. 다면적인 에너지가 당신을 독보적으로 유연하고 지혜롭게 만듭니다." }
+        ]
+    };
+
+    const traitSets = {
+        en: [
+            { emoji: "🔮", label: "Element", values: ["Aether", "Fire", "Water", "Earth", "Air", "Light", "Shadow", "Storm"] },
+            { emoji: "⚡", label: "Energy", values: ["Radiant", "Calm", "Electric", "Flowing", "Pulsing", "Steady", "Dynamic", "Gentle"] },
+            { emoji: "🌙", label: "Season", values: ["Spring Dawn", "Summer Peak", "Autumn Glow", "Winter Still", "Eternal Spring", "Midsummer", "Golden Fall", "Deep Winter"] },
+            { emoji: "💎", label: "Crystal", values: ["Amethyst", "Citrine", "Sapphire", "Jade", "Rose Quartz", "Aquamarine", "Garnet", "Opal"] }
+        ],
+        ko: [
+            { emoji: "🔮", label: "원소", values: ["에테르", "불", "물", "대지", "바람", "빛", "그림자", "폭풍"] },
+            { emoji: "⚡", label: "에너지", values: ["찬란함", "고요함", "전기적", "유동적", "맥동적", "안정적", "역동적", "부드러움"] },
+            { emoji: "🌙", label: "계절", values: ["봄의 여명", "여름의 절정", "가을의 빛", "겨울의 고요", "영원한 봄", "한여름", "황금 가을", "깊은 겨울"] },
+            { emoji: "💎", label: "보석", values: ["자수정", "시트린", "사파이어", "비취", "로즈쿼츠", "아쿠아마린", "가넷", "오팔"] }
+        ]
+    };
+
+    // ========== COLOR GENERATION ==========
+    function nameToColors(name, birthday) {
+        const input = (name + (birthday || '')).toLowerCase().trim();
+        const h = hashStr(input);
+        const rng = seededRandom(h);
+
+        // Generate 3 harmonic colors
+        const baseHue = Math.floor(rng() * 360);
+        const colors = [
+            { h: baseHue, s: 60 + rng() * 30, l: 45 + rng() * 15 },
+            { h: (baseHue + 40 + rng() * 80) % 360, s: 55 + rng() * 35, l: 40 + rng() * 20 },
+            { h: (baseHue + 160 + rng() * 80) % 360, s: 50 + rng() * 40, l: 35 + rng() * 25 }
+        ];
+
+        const typeIndex = Math.floor(rng() * 12);
+        const traitIndices = [
+            Math.floor(rng() * 8),
+            Math.floor(rng() * 8),
+            Math.floor(rng() * 8),
+            Math.floor(rng() * 8)
+        ];
+
+        return { colors, typeIndex, traitIndices, rng, seed: h };
+    }
+
+    function hslToStr(c) {
+        return `hsl(${Math.round(c.h)}, ${Math.round(c.s)}%, ${Math.round(c.l)}%)`;
+    }
+
+    function hslToRgb(h, s, l) {
+        s /= 100; l /= 100;
+        const k = n => (n + h / 30) % 12;
+        const a = s * Math.min(l, 1 - l);
+        const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+        return [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+    }
+
+    // ========== AURA ANIMATION ==========
+    let auraAnimId = null;
+    let currentAuraData = null;
+
+    function drawAura(canvas, colors, rng, animated = true) {
+        const ctx = canvas.getContext('2d');
+        const w = canvas.width, h = canvas.height;
+        const cx = w / 2, cy = h / 2;
+        let time = 0;
+
+        // Create blob centers
+        const blobs = colors.map((c, i) => ({
+            x: cx + (rng() - 0.5) * w * 0.3,
+            y: cy + (rng() - 0.5) * h * 0.3,
+            r: w * (0.3 + rng() * 0.15),
+            color: c,
+            speed: 0.005 + rng() * 0.01,
+            phase: rng() * Math.PI * 2
+        }));
+
+        // Particles
+        const particles = [];
+        for (let i = 0; i < 60; i++) {
+            particles.push({
+                x: rng() * w,
+                y: rng() * h,
+                size: 1 + rng() * 2.5,
+                speed: 0.2 + rng() * 0.6,
+                opacity: 0.3 + rng() * 0.5,
+                phase: rng() * Math.PI * 2
+            });
+        }
+
+        function render() {
+            time += 0.016;
+
+            // Dark background
+            ctx.fillStyle = '#0a0a0f';
+            ctx.fillRect(0, 0, w, h);
+
+            // Draw blobs
+            blobs.forEach((blob, i) => {
+                const bx = blob.x + Math.sin(time * blob.speed * 60 + blob.phase) * 30;
+                const by = blob.y + Math.cos(time * blob.speed * 40 + blob.phase) * 25;
+
+                const gradient = ctx.createRadialGradient(bx, by, 0, bx, by, blob.r);
+                const rgb = hslToRgb(blob.color.h, blob.color.s, blob.color.l);
+                gradient.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)`);
+                gradient.addColorStop(0.4, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.2)`);
+                gradient.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
+
+                ctx.globalCompositeOperation = 'screen';
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, w, h);
+            });
+
+            // Center glow
+            ctx.globalCompositeOperation = 'screen';
+            const centerGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, w * 0.15);
+            centerGrad.addColorStop(0, 'rgba(255,255,255,0.15)');
+            centerGrad.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.fillStyle = centerGrad;
+            ctx.fillRect(0, 0, w, h);
+
+            // Particles
+            ctx.globalCompositeOperation = 'screen';
+            particles.forEach(p => {
+                p.y -= p.speed;
+                p.x += Math.sin(time * 2 + p.phase) * 0.5;
+                if (p.y < -10) { p.y = h + 10; p.x = rng() * w; }
+
+                const pOpacity = p.opacity * (0.5 + 0.5 * Math.sin(time * 3 + p.phase));
+                ctx.fillStyle = `rgba(255,255,255,${pOpacity})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            ctx.globalCompositeOperation = 'source-over';
+
+            // Subtle vignette
+            const vignette = ctx.createRadialGradient(cx, cy, w * 0.3, cx, cy, w * 0.75);
+            vignette.addColorStop(0, 'rgba(0,0,0,0)');
+            vignette.addColorStop(1, 'rgba(0,0,0,0.5)');
+            ctx.fillStyle = vignette;
+            ctx.fillRect(0, 0, w, h);
+
+            if (animated) {
+                auraAnimId = requestAnimationFrame(render);
+            }
+        }
+
+        if (auraAnimId) cancelAnimationFrame(auraAnimId);
+        render();
+    }
+
+    // ========== MAIN LOGIC ==========
+    function discoverAura() {
+        const name = document.getElementById('nameInput').value.trim();
+        if (!name) {
+            showToast(currentLang === 'ko' ? '이름을 입력해 주세요!' : 'Please enter your name!');
+            return;
+        }
+
+        const birthday = document.getElementById('birthdayInput').value;
+        const data = nameToColors(name, birthday);
+        currentAuraData = { name, birthday, ...data };
+
+        // Animate transition
+        document.getElementById('inputSection').style.display = 'none';
+        const result = document.getElementById('resultSection');
+        result.style.display = 'block';
+
+        // Display name
+        document.getElementById('displayName').textContent = name.toUpperCase();
+
+        // Draw aura
+        const canvas = document.getElementById('auraCanvas');
+        drawAura(canvas, data.colors, data.rng, true);
+
+        // Aura type
+        const typeData = auraTypes[currentLang][data.typeIndex];
+        const typeName = document.getElementById('auraTypeName');
+        typeName.textContent = typeData.name;
+        typeName.style.background = `linear-gradient(135deg, ${hslToStr(data.colors[0])}, ${hslToStr(data.colors[1])})`;
+        typeName.style.webkitBackgroundClip = 'text';
+        typeName.style.webkitTextFillColor = 'transparent';
+        typeName.style.backgroundClip = 'text';
+
+        // Color dots
+        const colorsDiv = document.getElementById('auraColors');
+        colorsDiv.innerHTML = data.colors.map(c =>
+            `<div class="color-dot" style="background:${hslToStr(c)}"></div>`
+        ).join('');
+
+        // Description
+        document.getElementById('auraDescription').textContent = typeData.desc;
+
+        // Traits
+        const traits = traitSets[currentLang];
+        const grid = document.getElementById('traitsGrid');
+        grid.innerHTML = traits.map((t, i) => `
+            <div class="trait-item">
+                <span class="trait-emoji">${t.emoji}</span>
+                <span class="trait-label">${t.label}</span>
+                <div class="trait-value">${t.values[data.traitIndices[i]]}</div>
+            </div>
+        `).join('');
+
+        // Smooth scroll
+        result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function tryAgain() {
+        if (auraAnimId) cancelAnimationFrame(auraAnimId);
+        document.getElementById('resultSection').style.display = 'none';
+        document.getElementById('inputSection').style.display = 'block';
+        document.getElementById('nameInput').value = '';
+        document.getElementById('nameInput').focus();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ========== SHARE CARD ==========
+    function generateShareCard() {
+        return new Promise(resolve => {
+            const canvas = document.getElementById('shareCard');
+            const ctx = canvas.getContext('2d');
+            const w = 1080, h = 1080;
+            const data = currentAuraData;
+
+            // Background
+            ctx.fillStyle = '#0a0a0f';
+            ctx.fillRect(0, 0, w, h);
+
+            // Draw aura blobs (static)
+            const rng2 = seededRandom(data.seed);
+            const blobs = data.colors.map(c => ({
+                x: w/2 + (rng2() - 0.5) * w * 0.3,
+                y: h * 0.4 + (rng2() - 0.5) * h * 0.2,
+                r: w * (0.25 + rng2() * 0.15),
+                color: c
+            }));
+
+            blobs.forEach(blob => {
+                const gradient = ctx.createRadialGradient(blob.x, blob.y, 0, blob.x, blob.y, blob.r);
+                const rgb = hslToRgb(blob.color.h, blob.color.s, blob.color.l);
+                gradient.addColorStop(0, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.6)`);
+                gradient.addColorStop(0.5, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0.15)`);
+                gradient.addColorStop(1, `rgba(${rgb[0]},${rgb[1]},${rgb[2]},0)`);
+                ctx.globalCompositeOperation = 'screen';
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, w, h);
+            });
+
+            // Vignette
+            ctx.globalCompositeOperation = 'source-over';
+            const vig = ctx.createRadialGradient(w/2, h*0.4, w*0.2, w/2, h*0.4, w*0.7);
+            vig.addColorStop(0, 'rgba(0,0,0,0)');
+            vig.addColorStop(1, 'rgba(0,0,0,0.6)');
+            ctx.fillStyle = vig;
+            ctx.fillRect(0, 0, w, h);
+
+            // Name
+            ctx.textAlign = 'center';
+            ctx.fillStyle = 'white';
+            ctx.font = '700 56px Inter, sans-serif';
+            ctx.fillText(data.name.toUpperCase(), w/2, h * 0.72);
+
+            // Aura type
+            const typeData = auraTypes[currentLang][data.typeIndex];
+            ctx.font = '400 28px Inter, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.fillText(currentLang === 'ko' ? '오라 타입' : 'AURA TYPE', w/2, h * 0.78);
+            ctx.font = '700 42px Inter, sans-serif';
+            ctx.fillStyle = hslToStr(data.colors[0]);
+            ctx.fillText(typeData.name, w/2, h * 0.84);
+
+            // Color dots
+            data.colors.forEach((c, i) => {
+                ctx.beginPath();
+                ctx.arc(w/2 - 50 + i * 50, h * 0.89, 14, 0, Math.PI * 2);
+                ctx.fillStyle = hslToStr(c);
+                ctx.fill();
+            });
+
+            // Watermark
+            ctx.font = '300 22px Inter, sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.fillText('eastsea.monster/tools/name-aura', w/2, h * 0.96);
+
+            resolve(canvas);
+        });
+    }
+
+    async function downloadCard() {
+        const canvas = await generateShareCard();
+        const link = document.createElement('a');
+        link.download = `aura-${currentAuraData.name.toLowerCase().replace(/\s/g, '-')}.png`;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showToast(currentLang === 'ko' ? '카드가 저장되었습니다!' : 'Card downloaded!');
+    }
+
+    // ========== SOCIAL SHARE ==========
+    const shareUrl = 'https://eastsea.monster/tools/name-aura/';
+
+    function getShareText() {
+        if (!currentAuraData) return '';
+        const type = auraTypes[currentLang][currentAuraData.typeIndex].name;
+        return currentLang === 'ko'
+            ? `✨ 내 이름 오라는 "${type}"! 당신의 오라도 확인해 보세요 →`
+            : `✨ My Name Aura is "${type}"! Discover yours →`;
+    }
+
+    function shareTwitter() {
+        const text = encodeURIComponent(getShareText());
+        window.open(`https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+    }
+    function shareFacebook() {
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, '_blank');
+    }
+    function shareWhatsApp() {
+        const text = encodeURIComponent(getShareText() + ' ' + shareUrl);
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+    function copyLink() {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+            showToast(currentLang === 'ko' ? '링크가 복사되었습니다!' : 'Link copied!');
+        });
+    }
+
+    // ========== TOAST ==========
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ========== BACKGROUND CANVAS ==========
+    function initBgCanvas() {
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let w, h;
+
+        function resize() {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        resize();
+        window.addEventListener('resize', resize);
+
+        const stars = [];
+        for (let i = 0; i < 80; i++) {
+            stars.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                r: Math.random() * 1.5,
+                speed: 0.1 + Math.random() * 0.3,
+                phase: Math.random() * Math.PI * 2
+            });
+        }
+
+        let t = 0;
+        function draw() {
+            t += 0.01;
+            ctx.clearRect(0, 0, w, h);
+            stars.forEach(s => {
+                const opacity = 0.3 + 0.4 * Math.sin(t * s.speed * 10 + s.phase);
+                ctx.fillStyle = `rgba(200, 180, 255, ${opacity})`;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            requestAnimationFrame(draw);
+        }
+        draw();
+    }
+
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', () => {
+        setLang(currentLang);
+        initBgCanvas();
+
+        // Enter key to discover
+        document.getElementById('nameInput').addEventListener('keydown', e => {
+            if (e.key === 'Enter') discoverAura();
+        });
+
+        // Check URL params for shared name
+        const params = new URLSearchParams(window.location.search);
+        const sharedName = params.get('name');
+        if (sharedName) {
+            document.getElementById('nameInput').value = sharedName;
+            const bday = params.get('birthday');
+            if (bday) document.getElementById('birthdayInput').value = bday;
+            setTimeout(discoverAura, 500);
+        }
+    });
+    </script>
+</body>
+</html>
