@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 Jay's Game Arcade — 40 Games</title>
-    <meta name="description" content="HTML5 캐주얼 게임 포털 — 40개 게임을 브라우저에서 바로 플레이!">
+    <title>🎮 Jay's Game Arcade — 41 Games</title>
+    <meta name="description" content="HTML5 캐주얼 게임 포털 — 41개 게임을 브라우저에서 바로 플레이!">
     <link rel="canonical" href="https://eastsea.monster/games/">
 
     <!-- Open Graph -->
@@ -264,6 +264,10 @@
             z-index: 2;
         }
         .badge-new { background: linear-gradient(135deg, #4ade80, #22d3ee); color: #0a0a12; }
+        .badge-featured { background: linear-gradient(135deg, #ffd700, #ff9900); color: #0a0a12; animation: featureGlow 2s ease-in-out infinite; }
+        @keyframes featureGlow { 0%,100%{box-shadow:0 0 8px rgba(255,215,0,0.4);} 50%{box-shadow:0 0 16px rgba(255,215,0,0.8);} }
+        .game-card.featured { border-color: rgba(255,215,0,0.3); }
+        .game-card.featured:hover { border-color: #ffd700; box-shadow: 0 12px 40px rgba(255,215,0,0.2); }
         .no-results { text-align: center; padding: 60px 20px; color: var(--text-dim); display: none; }
         .no-results.show { display: block; }
         .no-results .emoji { font-size: 3rem; margin-bottom: 12px; }
@@ -383,6 +387,7 @@
 <script>
 // 게임 데이터 (data-added: 추가된 날짜, 7일 이내면 신규)
 const GAMES = [
+    { id: 'slime-survivor-premium', title: '🟢 슬라임 서바이버 PREMIUM', desc: '⭐ 플래그십! 뱀서라이크 프리미엄 에디션 — 프로그레션, 캐릭터 해금, 보스, 데일리 챌린지, 사운드, 리더보드, 공유 기능까지!', cat: 'action', tags: ['⭐Featured','뱀서라이크','프리미엄','액션'], emoji: '👑', gradient: 'linear-gradient(135deg, #ffd700, #ff6b00 40%, #00ff88)', added: '2026-02-01', featured: true },
     { id: 'infinite-stack-climb', title: 'Infinite Stack Climb', desc: '하늘 끝까지 쌓아 올라가세요! 완벽 스택 콤보, 배경 전환(낮→우주), 파워업 시스템!', cat: 'arcade', tags: ['아케이드','스택','콤보'], emoji: '🏗️', gradient: 'linear-gradient(135deg,#667eea,#764ba2,#ff6b6b)', added: '2026-01-31' },
     { id: 'screw-sort-factory', title: 'Screw Sort Factory', desc: '나사를 색상별로 정렬하는 팩토리 퍼즐! 12개 레벨, 별 평가, 사운드 효과!', cat: 'puzzle', tags: ['퍼즐','정렬','팩토리'], emoji: '🔩', gradient: 'linear-gradient(135deg,#e94560,#0f3460)', added: '2026-01-29' },
     { id: 'block-bounce', title: 'Block Bounce', desc: '블록을 배치해서 라인을 완성하는 중독성 퍼즐 게임. 블록 블라스트 스타일!', cat: 'puzzle', tags: ['퍼즐','캐주얼','무한모드'], emoji: '🧱', gradient: 'linear-gradient(135deg,#667eea,#764ba2)', added: '2026-01-28' },
@@ -456,12 +461,15 @@ const NEW_DAYS = 7; // 7일 이내 = 신규
         const searchData = [game.id, game.title, game.desc, ...game.tags].join(' ').toLowerCase();
         const card = document.createElement('a');
         card.href = game.id + '/';
-        card.className = 'game-card';
+        card.className = 'game-card' + (game.featured ? ' featured' : '');
         card.dataset.cat = game.cat;
         card.dataset.search = searchData;
         card.dataset.added = game.added;
+        const badgeHtml = game.featured
+            ? '<span class="badge badge-featured">⭐ Featured</span>'
+            : (showNewBadge ? '<span class="badge badge-new">✨ NEW</span>' : '');
         card.innerHTML = `
-            ${showNewBadge ? '<span class="badge badge-new">✨ NEW</span>' : ''}
+            ${badgeHtml}
             <div class="card-preview" style="background:${game.gradient};">${game.emoji}</div>
             <div class="card-body">
                 <div class="card-title">${game.title}</div>
