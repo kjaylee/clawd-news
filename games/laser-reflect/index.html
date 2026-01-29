@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Laser Reflect Puzzle</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Segoe UI', sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+        #header {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 1.5em;
+            background: linear-gradient(90deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255,107,107,0.3);
+        }
+        #level-info {
+            font-size: 0.9em;
+            color: #888;
+            margin-top: 5px;
+        }
+        #game-container {
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(78,205,196,0.2);
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            touch-action: none;
+        }
+        #controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        button {
+            padding: 12px 30px;
+            font-size: 1em;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        #fire-btn {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: white;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.4);
+        }
+        #fire-btn:hover { transform: scale(1.05); }
+        #reset-btn {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+            box-shadow: 0 4px 15px rgba(78,205,196,0.4);
+        }
+        #reset-btn:hover { transform: scale(1.05); }
+        #message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            padding: 30px 50px;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+            z-index: 100;
+        }
+        #message h2 { color: #4ecdc4; margin-bottom: 10px; }
+        #message button {
+            margin-top: 15px;
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+        }
+        .instruction {
+            font-size: 0.8em;
+            color: #666;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>🔦 Laser Reflect Puzzle</h1>
+        <div id="level-info">Level <span id="level-num">1</span> / 15</div>
+    </div>
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
+        <div id="message">
+            <h2>🎉 Level Clear!</h2>
+            <p>All targets hit!</p>
+            <button onclick="nextLevel()">Next Level →</button>
+        </div>
+    </div>
+    <div id="controls">
+        <button id="fire-btn" onclick="fireLaser()">🔥 FIRE</button>
+        <button id="reset-btn" onclick="resetLevel()">↻ Reset</button>
+    </div>
+    <p class="instruction">Tap mirrors to rotate • Hit all gems with the laser</p>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Responsive sizing
+        const size = Math.min(window.innerWidth - 40, 400);
+        canvas.width = size;
+        canvas.height = size;
+        
+        // Game state
+        let currentLevel = 0;
+        let mirrors = [];
+        let targets = [];
+        let obstacles = [];
+        let laserSource = { x: 0, y: 0, angle: 0 };
+        let laserPath = [];
+        let isSimulating = false;
+        let selectedMirror = null;
+        
+        // Level definitions
+        const levels = [
+            { // Level 1 - Tutorial
+                mirrors: [{ x: 0.5, y: 0.5, angle: 45 }],
+                targets: [{ x: 0.85, y: 0.15 }],
+                obstacles: [],
+                source: { x: 0.05, y: 0.5, angle: 0 }
+            },
+            { // Level 2
+                mirrors: [{ x: 0.4, y: 0.3, angle: 135 }],
+                targets: [{ x: 0.4, y: 0.85 }],
+                obstacles: [],
+                source: { x: 0.05, y: 0.3, angle: 0 }
+            },
+            { // Level 3
+                mirrors: [
+                    { x: 0.5, y: 0.5, angle: 45 },
+                    { x: 0.8, y: 0.5, angle: 135 }
+                ],
+                targets: [{ x: 0.8, y: 0.85 }],
+                obstacles: [],
+                source: { x: 0.05, y: 0.5, angle: 0 }
+            },
+            { // Level 4
+                mirrors: [
+                    { x: 0.3, y: 0.3, angle: 45 },
+                    { x: 0.7, y: 0.3, angle: 135 }
+                ],
+                targets: [{ x: 0.7, y: 0.8 }],
+                obstacles: [{ x: 0.5, y: 0.5, w: 0.1, h: 0.3 }],
+                source: { x: 0.05, y: 0.3, angle: 0 }
+            },
+            { // Level 5
+                mirrors: [
+                    { x: 0.5, y: 0.2, angle: 45 },
+                    { x: 0.8, y: 0.2, angle: 135 },
+                    { x: 0.8, y: 0.7, angle: 45 }
+                ],
+                targets: [{ x: 0.3, y: 0.7 }],
+                obstacles: [],
+                source: { x: 0.05, y: 0.2, angle: 0 }
+            },
+            { // Level 6
+                mirrors: [
+                    { x: 0.4, y: 0.5, angle: 45 }
+                ],
+                targets: [
+                    { x: 0.4, y: 0.15 },
+                    { x: 0.85, y: 0.5 }
+                ],
+                obstacles: [],
+                source: { x: 0.05, y: 0.5, angle: 0 }
+            },
+            { // Level 7 - Tricky angles
+                mirrors: [
+                    { x: 0.3, y: 0.4, angle: 30 },
+                    { x: 0.7, y: 0.3, angle: 120 }
+                ],
+                targets: [{ x: 0.7, y: 0.85 }],
+                obstacles: [{ x: 0.45, y: 0.2, w: 0.1, h: 0.2 }],
+                source: { x: 0.05, y: 0.4, angle: 0 }
+            },
+            { // Level 8
+                mirrors: [
+                    { x: 0.25, y: 0.25, angle: 45 },
+                    { x: 0.75, y: 0.25, angle: 135 },
+                    { x: 0.75, y: 0.75, angle: 45 },
+                    { x: 0.25, y: 0.75, angle: 135 }
+                ],
+                targets: [{ x: 0.5, y: 0.5 }],
+                obstacles: [],
+                source: { x: 0.05, y: 0.25, angle: 0 }
+            },
+            { // Level 9
+                mirrors: [
+                    { x: 0.4, y: 0.3, angle: 60 },
+                    { x: 0.6, y: 0.6, angle: 120 }
+                ],
+                targets: [
+                    { x: 0.85, y: 0.3 },
+                    { x: 0.2, y: 0.85 }
+                ],
+                obstacles: [{ x: 0.5, y: 0.45, w: 0.08, h: 0.08 }],
+                source: { x: 0.05, y: 0.3, angle: 0 }
+            },
+            { // Level 10
+                mirrors: [
+                    { x: 0.5, y: 0.5, angle: 45 },
+                    { x: 0.8, y: 0.5, angle: 90 }
+                ],
+                targets: [
+                    { x: 0.5, y: 0.1 },
+                    { x: 0.8, y: 0.9 }
+                ],
+                obstacles: [],
+                source: { x: 0.1, y: 0.5, angle: 0 }
+            },
+            { // Level 11
+                mirrors: [
+                    { x: 0.3, y: 0.2, angle: 45 },
+                    { x: 0.6, y: 0.2, angle: 135 },
+                    { x: 0.6, y: 0.6, angle: 45 }
+                ],
+                targets: [{ x: 0.9, y: 0.6 }],
+                obstacles: [
+                    { x: 0.4, y: 0.35, w: 0.15, h: 0.08 }
+                ],
+                source: { x: 0.05, y: 0.2, angle: 0 }
+            },
+            { // Level 12
+                mirrors: [
+                    { x: 0.35, y: 0.35, angle: 45 },
+                    { x: 0.65, y: 0.35, angle: 135 },
+                    { x: 0.65, y: 0.65, angle: 45 },
+                    { x: 0.35, y: 0.65, angle: 135 }
+                ],
+                targets: [
+                    { x: 0.1, y: 0.65 },
+                    { x: 0.9, y: 0.35 }
+                ],
+                obstacles: [],
+                source: { x: 0.05, y: 0.35, angle: 0 }
+            },
+            { // Level 13
+                mirrors: [
+                    { x: 0.5, y: 0.3, angle: 30 },
+                    { x: 0.8, y: 0.5, angle: 150 }
+                ],
+                targets: [
+                    { x: 0.5, y: 0.85 },
+                    { x: 0.15, y: 0.5 }
+                ],
+                obstacles: [
+                    { x: 0.3, y: 0.5, w: 0.08, h: 0.2 }
+                ],
+                source: { x: 0.05, y: 0.3, angle: 0 }
+            },
+            { // Level 14
+                mirrors: [
+                    { x: 0.25, y: 0.25, angle: 45 },
+                    { x: 0.5, y: 0.15, angle: 135 },
+                    { x: 0.75, y: 0.25, angle: 45 },
+                    { x: 0.75, y: 0.6, angle: 135 }
+                ],
+                targets: [
+                    { x: 0.4, y: 0.6 },
+                    { x: 0.75, y: 0.9 }
+                ],
+                obstacles: [],
+                source: { x: 0.05, y: 0.25, angle: 0 }
+            },
+            { // Level 15 - Final
+                mirrors: [
+                    { x: 0.3, y: 0.2, angle: 45 },
+                    { x: 0.7, y: 0.2, angle: 135 },
+                    { x: 0.7, y: 0.5, angle: 45 },
+                    { x: 0.5, y: 0.7, angle: 135 },
+                    { x: 0.3, y: 0.7, angle: 45 }
+                ],
+                targets: [
+                    { x: 0.1, y: 0.7 },
+                    { x: 0.9, y: 0.5 },
+                    { x: 0.5, y: 0.9 }
+                ],
+                obstacles: [
+                    { x: 0.45, y: 0.35, w: 0.1, h: 0.1 }
+                ],
+                source: { x: 0.05, y: 0.2, angle: 0 }
+            }
+        ];
+        
+        function loadLevel(index) {
+            if (index >= levels.length) {
+                alert('🎉 Congratulations! You completed all levels!');
+                currentLevel = 0;
+                index = 0;
+            }
+            
+            const level = levels[index];
+            mirrors = level.mirrors.map(m => ({
+                x: m.x * canvas.width,
+                y: m.y * canvas.height,
+                angle: m.angle,
+                length: 50
+            }));
+            
+            targets = level.targets.map(t => ({
+                x: t.x * canvas.width,
+                y: t.y * canvas.height,
+                hit: false,
+                radius: 15
+            }));
+            
+            obstacles = level.obstacles.map(o => ({
+                x: o.x * canvas.width,
+                y: o.y * canvas.height,
+                w: o.w * canvas.width,
+                h: o.h * canvas.height
+            }));
+            
+            laserSource = {
+                x: level.source.x * canvas.width,
+                y: level.source.y * canvas.height,
+                angle: level.source.angle
+            };
+            
+            laserPath = [];
+            isSimulating = false;
+            document.getElementById('level-num').textContent = index + 1;
+            document.getElementById('message').style.display = 'none';
+            draw();
+        }
+        
+        function draw() {
+            // Clear
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Grid pattern
+            ctx.strokeStyle = 'rgba(78, 205, 196, 0.1)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(canvas.width, i);
+                ctx.stroke();
+            }
+            
+            // Draw obstacles
+            obstacles.forEach(o => {
+                ctx.fillStyle = '#3a3a5e';
+                ctx.fillRect(o.x - o.w/2, o.y - o.h/2, o.w, o.h);
+                ctx.strokeStyle = '#5a5a8e';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(o.x - o.w/2, o.y - o.h/2, o.w, o.h);
+            });
+            
+            // Draw targets
+            targets.forEach(t => {
+                ctx.beginPath();
+                ctx.arc(t.x, t.y, t.radius, 0, Math.PI * 2);
+                
+                if (t.hit) {
+                    ctx.fillStyle = '#4ecdc4';
+                    ctx.shadowColor = '#4ecdc4';
+                    ctx.shadowBlur = 20;
+                } else {
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.shadowColor = '#ff6b6b';
+                    ctx.shadowBlur = 15;
+                }
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // Gem shape
+                ctx.fillStyle = t.hit ? '#7fffd4' : '#ff9999';
+                ctx.beginPath();
+                ctx.moveTo(t.x, t.y - 8);
+                ctx.lineTo(t.x + 6, t.y);
+                ctx.lineTo(t.x, t.y + 8);
+                ctx.lineTo(t.x - 6, t.y);
+                ctx.closePath();
+                ctx.fill();
+            });
+            
+            // Draw mirrors
+            mirrors.forEach((m, i) => {
+                ctx.save();
+                ctx.translate(m.x, m.y);
+                ctx.rotate(m.angle * Math.PI / 180);
+                
+                // Mirror body
+                const gradient = ctx.createLinearGradient(-m.length/2, -3, m.length/2, 3);
+                gradient.addColorStop(0, '#87ceeb');
+                gradient.addColorStop(0.5, '#ffffff');
+                gradient.addColorStop(1, '#87ceeb');
+                
+                ctx.fillStyle = gradient;
+                ctx.fillRect(-m.length/2, -4, m.length, 8);
+                
+                // Mirror frame
+                ctx.strokeStyle = '#4a90a4';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(-m.length/2, -4, m.length, 8);
+                
+                // Selection indicator
+                if (selectedMirror === i) {
+                    ctx.strokeStyle = '#ffff00';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(-m.length/2 - 5, -9, m.length + 10, 18);
+                }
+                
+                ctx.restore();
+            });
+            
+            // Draw laser source
+            ctx.fillStyle = '#ff6b6b';
+            ctx.beginPath();
+            ctx.arc(laserSource.x, laserSource.y, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ffff00';
+            ctx.beginPath();
+            ctx.arc(laserSource.x, laserSource.y, 6, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Draw laser path
+            if (laserPath.length > 1) {
+                ctx.strokeStyle = '#ff0000';
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#ff0000';
+                ctx.shadowBlur = 10;
+                ctx.beginPath();
+                ctx.moveTo(laserPath[0].x, laserPath[0].y);
+                for (let i = 1; i < laserPath.length; i++) {
+                    ctx.lineTo(laserPath[i].x, laserPath[i].y);
+                }
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                
+                // Glow effect
+                ctx.strokeStyle = 'rgba(255, 100, 100, 0.3)';
+                ctx.lineWidth = 8;
+                ctx.beginPath();
+                ctx.moveTo(laserPath[0].x, laserPath[0].y);
+                for (let i = 1; i < laserPath.length; i++) {
+                    ctx.lineTo(laserPath[i].x, laserPath[i].y);
+                }
+                ctx.stroke();
+            }
+        }
+        
+        function fireLaser() {
+            laserPath = [{ x: laserSource.x, y: laserSource.y }];
+            targets.forEach(t => t.hit = false);
+            
+            let currentX = laserSource.x;
+            let currentY = laserSource.y;
+            let angle = laserSource.angle;
+            let maxBounces = 20;
+            
+            for (let bounce = 0; bounce < maxBounces; bounce++) {
+                const dx = Math.cos(angle * Math.PI / 180);
+                const dy = Math.sin(angle * Math.PI / 180);
+                
+                let minDist = Infinity;
+                let hitType = null;
+                let hitData = null;
+                
+                // Check wall collisions
+                const walls = [
+                    { x: canvas.width, y: currentY + (canvas.width - currentX) * dy / dx, type: 'right' },
+                    { x: 0, y: currentY - currentX * dy / dx, type: 'left' },
+                    { x: currentX + (canvas.height - currentY) * dx / dy, y: canvas.height, type: 'bottom' },
+                    { x: currentX - currentY * dx / dy, y: 0, type: 'top' }
+                ];
+                
+                walls.forEach(wall => {
+                    if (wall.x >= 0 && wall.x <= canvas.width && wall.y >= 0 && wall.y <= canvas.height) {
+                        const dist = Math.hypot(wall.x - currentX, wall.y - currentY);
+                        if (dist > 1 && dist < minDist) {
+                            if ((wall.type === 'right' && dx > 0) || (wall.type === 'left' && dx < 0) ||
+                                (wall.type === 'bottom' && dy > 0) || (wall.type === 'top' && dy < 0)) {
+                                minDist = dist;
+                                hitType = 'wall';
+                                hitData = wall;
+                            }
+                        }
+                    }
+                });
+                
+                // Check mirror collisions
+                mirrors.forEach((m, i) => {
+                    const mirrorAngle = m.angle * Math.PI / 180;
+                    const mx1 = m.x - Math.cos(mirrorAngle) * m.length / 2;
+                    const my1 = m.y - Math.sin(mirrorAngle) * m.length / 2;
+                    const mx2 = m.x + Math.cos(mirrorAngle) * m.length / 2;
+                    const my2 = m.y + Math.sin(mirrorAngle) * m.length / 2;
+                    
+                    const intersection = lineIntersection(
+                        currentX, currentY, currentX + dx * 1000, currentY + dy * 1000,
+                        mx1, my1, mx2, my2
+                    );
+                    
+                    if (intersection) {
+                        const dist = Math.hypot(intersection.x - currentX, intersection.y - currentY);
+                        if (dist > 1 && dist < minDist) {
+                            minDist = dist;
+                            hitType = 'mirror';
+                            hitData = { point: intersection, mirror: m, index: i };
+                        }
+                    }
+                });
+                
+                // Check obstacle collisions
+                obstacles.forEach(o => {
+                    const edges = [
+                        { x1: o.x - o.w/2, y1: o.y - o.h/2, x2: o.x + o.w/2, y2: o.y - o.h/2, type: 'top' },
+                        { x1: o.x - o.w/2, y1: o.y + o.h/2, x2: o.x + o.w/2, y2: o.y + o.h/2, type: 'bottom' },
+                        { x1: o.x - o.w/2, y1: o.y - o.h/2, x2: o.x - o.w/2, y2: o.y + o.h/2, type: 'left' },
+                        { x1: o.x + o.w/2, y1: o.y - o.h/2, x2: o.x + o.w/2, y2: o.y + o.h/2, type: 'right' }
+                    ];
+                    
+                    edges.forEach(edge => {
+                        const intersection = lineIntersection(
+                            currentX, currentY, currentX + dx * 1000, currentY + dy * 1000,
+                            edge.x1, edge.y1, edge.x2, edge.y2
+                        );
+                        
+                        if (intersection) {
+                            const dist = Math.hypot(intersection.x - currentX, intersection.y - currentY);
+                            if (dist > 1 && dist < minDist) {
+                                minDist = dist;
+                                hitType = 'obstacle';
+                                hitData = intersection;
+                            }
+                        }
+                    });
+                });
+                
+                // Check target collisions
+                targets.forEach(t => {
+                    const closest = closestPointOnLine(currentX, currentY, angle, t.x, t.y);
+                    const dist = Math.hypot(closest.x - t.x, closest.y - t.y);
+                    const travelDist = Math.hypot(closest.x - currentX, closest.y - currentY);
+                    
+                    if (dist < t.radius && travelDist < minDist && travelDist > 1) {
+                        t.hit = true;
+                    }
+                });
+                
+                if (hitType === 'wall') {
+                    laserPath.push({ x: hitData.x, y: hitData.y });
+                    break;
+                } else if (hitType === 'mirror') {
+                    laserPath.push({ x: hitData.point.x, y: hitData.point.y });
+                    currentX = hitData.point.x;
+                    currentY = hitData.point.y;
+                    
+                    // Reflect angle
+                    const mirrorNormal = hitData.mirror.angle + 90;
+                    const incidentAngle = angle;
+                    const reflectedAngle = 2 * mirrorNormal - incidentAngle;
+                    angle = reflectedAngle;
+                } else if (hitType === 'obstacle') {
+                    laserPath.push({ x: hitData.x, y: hitData.y });
+                    break;
+                } else {
+                    break;
+                }
+            }
+            
+            draw();
+            
+            // Check win condition
+            if (targets.every(t => t.hit)) {
+                setTimeout(() => {
+                    document.getElementById('message').style.display = 'block';
+                }, 500);
+            }
+        }
+        
+        function lineIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
+            const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (Math.abs(denom) < 0.0001) return null;
+            
+            const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
+            const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
+            
+            if (t > 0 && u >= 0 && u <= 1) {
+                return {
+                    x: x1 + t * (x2 - x1),
+                    y: y1 + t * (y2 - y1)
+                };
+            }
+            return null;
+        }
+        
+        function closestPointOnLine(x1, y1, angle, px, py) {
+            const dx = Math.cos(angle * Math.PI / 180);
+            const dy = Math.sin(angle * Math.PI / 180);
+            const t = Math.max(0, (px - x1) * dx + (py - y1) * dy);
+            return { x: x1 + t * dx, y: y1 + t * dy };
+        }
+        
+        function resetLevel() {
+            loadLevel(currentLevel);
+        }
+        
+        function nextLevel() {
+            currentLevel++;
+            loadLevel(currentLevel);
+        }
+        
+        // Touch/mouse handling
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Check if clicked on a mirror
+            mirrors.forEach((m, i) => {
+                const dist = Math.hypot(x - m.x, y - m.y);
+                if (dist < 30) {
+                    m.angle = (m.angle + 15) % 360;
+                    laserPath = [];
+                    targets.forEach(t => t.hit = false);
+                    draw();
+                }
+            });
+        });
+        
+        // Initialize
+        loadLevel(0);
+    </script>
+</body>
+</html>
