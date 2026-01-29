@@ -64,4 +64,72 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 ---
 
+## MacBook Pro (노드)
+- **IP:** 100.91.184.81 (Tailscale)
+- **User:** kjaylee
+- **칩:** Apple M3, 24GB RAM
+- **macOS:** 15.6
+- **승인:** system.run + browser.proxy 활성화됨
+- **설치됨:**
+  - node, python3, git, ffmpeg
+  - **MLX Z-Image-Turbo** (이미지 생성 전담)
+
+### 🎨 이미지 생성 (MLX Z-Image-Turbo)
+- **경로:** `/Users/kjaylee/MLX_z-image/`
+- **모델:** Z-Image-Turbo 4-bit quantized (6.1GB)
+- **성능:** 1024×1024, 9스텝, ~180초
+- **사용법:**
+  ```bash
+  cd /Users/kjaylee/MLX_z-image
+  # 1. prompt.txt에 프롬프트 작성
+  echo "프롬프트 내용" > prompt.txt
+  # 2. venv 활성화 + 실행
+  source venv/bin/activate && python run.py --output output.png
+  # 옵션: --steps 9 --seed 42 --width 1024 --height 1024 --lora_path "" --lora_scale 1.0
+  ```
+- **역할:** 이미지 생성 전담 노드 (Mac Studio 부담 경감)
+
+### ⚠️ 주의
+- 디스크 여유 적음 (~16GB) — 추가 모델 설치 자제
+- **이미지 생성 → 맥북 위임** (서브에이전트 스폰)
+- Mac Studio는 메인 작업 집중, 맥북은 이미지 전담
+
+---
+
+---
+
+## 🧠 RAG 시맨틱 검색
+- **경로:** `/Users/kjaylee/clawd/rag/`
+- **DB:** LanceDB (로컬 벡터 DB, 서버 불필요)
+- **임베딩:** paraphrase-multilingual-MiniLM-L12-v2 (한국어+영어, ~471MB)
+- **비용:** 0원 (로컬 모델)
+- **현재:** 100 chunks, 7 files
+
+### 사용법
+```bash
+# 검색 (JSON 출력)
+./rag/search "맥북 설정" -k 5
+
+# 검색 (읽기 쉬운 텍스트)
+./rag/search "게임 개발" --raw
+
+# 소스 필터링
+./rag/search "미스 김" --source memory
+
+# 전체 재인덱싱
+./rag/index --all
+
+# 변경된 파일만 인덱싱
+./rag/index --changed
+
+# 단일 파일 인덱싱
+./rag/index memory/2026-01-29.md
+```
+
+### 인덱싱 대상
+- `memory/*.md`, `MEMORY.md`, `TOOLS.md`, `CREATIVE_IDEAS.md`, `SOUL.md`, `USER.md`
+- 새 파일 추가 시: `rag/config.py`의 `INDEX_PATTERNS`에 추가 후 `--all`
+
+---
+
 Add whatever helps you do your job. This is your cheat sheet.

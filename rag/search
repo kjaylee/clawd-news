@@ -1,0 +1,5 @@
+#!/bin/bash
+# Quick search wrapper for Clawdbot
+# Usage: ./rag/search "query" [--top-k 5] [--source memory] [--raw]
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+"$SCRIPT_DIR/venv/bin/python3" "$SCRIPT_DIR/rag_search.py" "$@" 2>/dev/null

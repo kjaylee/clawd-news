@@ -1,0 +1,5 @@
+#!/bin/bash
+# Quick index wrapper for Clawdbot
+# Usage: ./rag/index --all | --changed | path/to/file.md
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+"$SCRIPT_DIR/venv/bin/python3" "$SCRIPT_DIR/index.py" "$@" 2>/dev/null
