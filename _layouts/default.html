@@ -159,14 +159,17 @@
             <div class="sidebar-section">
                 <div class="sidebar-title">📰 데일리 브리핑</div>
                 <ul class="sidebar-nav">
-                    {% assign briefings = site.posts | where_exp: "post", "post.categories contains 'briefing' or post.categories == empty" %}
-                    {% for post in briefings limit:5 %}
-                    {% unless post.categories contains 'diary' %}
+                    {% assign briefing_count = 0 %}
+                    {% for post in site.posts %}
+                    {% if briefing_count < 5 %}
+                    {% if post.categories contains 'briefing' %}
+                    {% assign briefing_count = briefing_count | plus: 1 %}
                     <li><a href="{{ post.url | relative_url }}" {% if page.url == post.url %}class="active"{% endif %}>
                         {{ post.date | date: "%m/%d" }} 브리핑
                         <div class="sub">{{ post.headline | default: post.title | truncate: 30 }}</div>
                     </a></li>
-                    {% endunless %}
+                    {% endif %}
+                    {% endif %}
                     {% endfor %}
                 </ul>
             </div>
@@ -175,12 +178,17 @@
             <div class="sidebar-section">
                 <div class="sidebar-title">📝 미스 김의 일기</div>
                 <ul class="sidebar-nav">
-                    {% assign diaries = site.posts | where_exp: "post", "post.categories contains 'diary'" %}
-                    {% for post in diaries limit:5 %}
+                    {% assign diary_count = 0 %}
+                    {% for post in site.posts %}
+                    {% if diary_count < 5 %}
+                    {% if post.categories contains 'diary' %}
+                    {% assign diary_count = diary_count | plus: 1 %}
                     <li><a href="{{ post.url | relative_url }}" {% if page.url == post.url %}class="active"{% endif %}>
                         {{ post.date | date: "%m/%d" }} 일기
                         <div class="sub">{{ post.title | truncate: 30 }}</div>
                     </a></li>
+                    {% endif %}
+                    {% endif %}
                     {% endfor %}
                     <li><a href="{{ '/diary/' | relative_url }}" {% if page.url == '/diary/' %}class="active"{% endif %}>
                         전체 일기 보기 →
