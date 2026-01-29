@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Number Drop - 숫자 드롭 퍼즐</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px;
+            aspect-ratio: 9/16;
+        }
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            transition: opacity 0.3s;
+        }
+        .hidden { opacity: 0; pointer-events: none; }
+        h1 {
+            font-size: 2.5em;
+            color: #fff;
+            text-shadow: 0 0 20px #00d4ff;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .btn {
+            padding: 15px 50px;
+            font-size: 1.3em;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover { transform: scale(1.05); }
+        .btn-play {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #fff;
+            box-shadow: 0 5px 20px rgba(0,212,255,0.4);
+        }
+        .btn-retry {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            color: #fff;
+        }
+        .best-score {
+            color: #ffd700;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        .game-over-score {
+            font-size: 2em;
+            color: #fff;
+            margin: 20px 0;
+        }
+        .instructions {
+            color: #aaa;
+            font-size: 0.9em;
+            margin-top: 30px;
+            text-align: center;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <canvas id="canvas"></canvas>
+        
+        <div id="menu" class="overlay">
+            <h1>🔢 NUMBER DROP</h1>
+            <p class="subtitle">숫자를 떨어뜨려 합쳐라!</p>
+            <button class="btn btn-play" onclick="startGame()">▶ PLAY</button>
+            <p class="best-score">🏆 Best: <span id="menu-best">0</span></p>
+            <p class="instructions">
+                좌우로 드래그해서 위치 조정<br>
+                터치/클릭하면 숫자가 떨어짐<br>
+                같은 숫자끼리 합쳐서 2048 도전!
+            </p>
+        </div>
+        
+        <div id="gameover" class="overlay hidden">
+            <h1>💥 GAME OVER</h1>
+            <p class="game-over-score">Score: <span id="final-score">0</span></p>
+            <p class="best-score">🏆 Best: <span id="go-best">0</span></p>
+            <button class="btn btn-retry" onclick="startGame()">↻ 다시하기</button>
+            <button class="btn btn-play" onclick="showMenu()">🏠 홈</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 캔버스 크기 설정
+        const W = 360;
+        const H = 640;
+        canvas.width = W;
+        canvas.height = H;
+        
+        // 상수
+        const GRAVITY = 0.4;
+        const BOUNCE = 0.4;
+        const FRICTION = 0.98;
+        const WALL_FRICTION = 0.8;
+        const DANGER_LINE = 100;
+        const DROP_COOLDOWN = 400;
+        const FLOOR_Y = H - 20;
+        const WALL_LEFT = 20;
+        const WALL_RIGHT = W - 20;
+        
+        // 숫자별 설정
+        const NUMBER_CONFIG = {
+            2:    { radius: 22, color: '#ff6b6b', glow: '#ff0000' },
+            4:    { radius: 26, color: '#ffa502', glow: '#ff7f00' },
+            8:    { radius: 30, color: '#ffd93d', glow: '#ffcc00' },
+            16:   { radius: 34, color: '#6bcb77', glow: '#00ff00' },
+            32:   { radius: 38, color: '#4d96ff', glow: '#0066ff' },
+            64:   { radius: 42, color: '#9b59b6', glow: '#8800ff' },
+            128:  { radius: 46, color: '#e056fd', glow: '#ff00ff' },
+            256:  { radius: 50, color: '#00d2d3', glow: '#00ffff' },
+            512:  { radius: 54, color: '#ff9ff3', glow: '#ff66cc' },
+            1024: { radius: 58, color: '#c0c0c0', glow: '#ffffff' },
+            2048: { radius: 62, color: '#ffd700', glow: '#ffff00' }
+        };
+        
+        // 게임 상태
+        let balls = [];
+        let score = 0;
+        let bestScore = parseInt(localStorage.getItem('numberDropBest') || '0');
+        let nextNumber = 2;
+        let dropX = W / 2;
+        let canDrop = true;
+        let lastDropTime = 0;
+        let gameRunning = false;
+        let gameOver = false;
+        let dangerTimer = 0;
+        let mergeEffects = [];
+        let combo = 0;
+        let lastMergeTime = 0;
+        
+        // UI 업데이트
+        document.getElementById('menu-best').textContent = bestScore;
+        
+        function showMenu() {
+            document.getElementById('menu').classList.remove('hidden');
+            document.getElementById('gameover').classList.add('hidden');
+            gameRunning = false;
+        }
+        
+        function startGame() {
+            balls = [];
+            score = 0;
+            nextNumber = getRandomNumber();
+            dropX = W / 2;
+            canDrop = true;
+            gameOver = false;
+            dangerTimer = 0;
+            mergeEffects = [];
+            combo = 0;
+            
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('gameover').classList.add('hidden');
+            gameRunning = true;
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function showGameOver() {
+            gameRunning = false;
+            gameOver = true;
+            
+            if (score > bestScore) {
+                bestScore = score;
+                localStorage.setItem('numberDropBest', bestScore);
+            }
+            
+            document.getElementById('final-score').textContent = score.toLocaleString();
+            document.getElementById('go-best').textContent = bestScore.toLocaleString();
+            document.getElementById('menu-best').textContent = bestScore.toLocaleString();
+            document.getElementById('gameover').classList.remove('hidden');
+        }
+        
+        function getRandomNumber() {
+            const rand = Math.random();
+            if (rand < 0.5) return 2;
+            if (rand < 0.8) return 4;
+            if (rand < 0.95) return 8;
+            return 16;
+        }
+        
+        function createBall(x, number) {
+            const config = NUMBER_CONFIG[number];
+            return {
+                x: x,
+                y: DANGER_LINE - config.radius,
+                vx: 0,
+                vy: 0,
+                number: number,
+                radius: config.radius,
+                color: config.color,
+                glow: config.glow,
+                merged: false
+            };
+        }
+        
+        function dropBall() {
+            if (!canDrop || gameOver) return;
+            
+            const now = Date.now();
+            if (now - lastDropTime < DROP_COOLDOWN) return;
+            
+            const config = NUMBER_CONFIG[nextNumber];
+            const x = Math.max(WALL_LEFT + config.radius, Math.min(WALL_RIGHT - config.radius, dropX));
+            
+            balls.push(createBall(x, nextNumber));
+            nextNumber = getRandomNumber();
+            lastDropTime = now;
+            canDrop = false;
+            
+            setTimeout(() => { canDrop = true; }, DROP_COOLDOWN);
+        }
+        
+        function updatePhysics() {
+            for (let ball of balls) {
+                if (ball.merged) continue;
+                
+                // 중력
+                ball.vy += GRAVITY;
+                
+                // 이동
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+                
+                // 마찰
+                ball.vx *= FRICTION;
+                ball.vy *= FRICTION;
+                
+                // 벽 충돌
+                if (ball.x - ball.radius < WALL_LEFT) {
+                    ball.x = WALL_LEFT + ball.radius;
+                    ball.vx = -ball.vx * BOUNCE;
+                }
+                if (ball.x + ball.radius > WALL_RIGHT) {
+                    ball.x = WALL_RIGHT - ball.radius;
+                    ball.vx = -ball.vx * BOUNCE;
+                }
+                
+                // 바닥 충돌
+                if (ball.y + ball.radius > FLOOR_Y) {
+                    ball.y = FLOOR_Y - ball.radius;
+                    ball.vy = -ball.vy * BOUNCE;
+                    ball.vx *= WALL_FRICTION;
+                    
+                    // 거의 멈춤
+                    if (Math.abs(ball.vy) < 0.5) ball.vy = 0;
+                }
+            }
+            
+            // 공끼리 충돌
+            for (let i = 0; i < balls.length; i++) {
+                for (let j = i + 1; j < balls.length; j++) {
+                    const a = balls[i];
+                    const b = balls[j];
+                    if (a.merged || b.merged) continue;
+                    
+                    const dx = b.x - a.x;
+                    const dy = b.y - a.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    const minDist = a.radius + b.radius;
+                    
+                    if (dist < minDist && dist > 0) {
+                        // 같은 숫자면 합치기
+                        if (a.number === b.number && a.number < 2048) {
+                            mergeBalls(a, b);
+                        } else {
+                            // 충돌 반응
+                            const overlap = (minDist - dist) / 2;
+                            const nx = dx / dist;
+                            const ny = dy / dist;
+                            
+                            a.x -= overlap * nx;
+                            a.y -= overlap * ny;
+                            b.x += overlap * nx;
+                            b.y += overlap * ny;
+                            
+                            // 속도 교환 (탄성 충돌)
+                            const dvx = a.vx - b.vx;
+                            const dvy = a.vy - b.vy;
+                            const dvn = dvx * nx + dvy * ny;
+                            
+                            if (dvn > 0) {
+                                const massA = a.radius * a.radius;
+                                const massB = b.radius * b.radius;
+                                const totalMass = massA + massB;
+                                
+                                a.vx -= (2 * massB / totalMass) * dvn * nx * BOUNCE;
+                                a.vy -= (2 * massB / totalMass) * dvn * ny * BOUNCE;
+                                b.vx += (2 * massA / totalMass) * dvn * nx * BOUNCE;
+                                b.vy += (2 * massA / totalMass) * dvn * ny * BOUNCE;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 합쳐진 공 제거
+            balls = balls.filter(b => !b.merged);
+        }
+        
+        function mergeBalls(a, b) {
+            const newNumber = a.number * 2;
+            const config = NUMBER_CONFIG[newNumber];
+            
+            // 중간 위치에 새 공
+            const newBall = {
+                x: (a.x + b.x) / 2,
+                y: (a.y + b.y) / 2,
+                vx: (a.vx + b.vx) / 2,
+                vy: (a.vy + b.vy) / 2 - 2, // 살짝 튀어오름
+                number: newNumber,
+                radius: config.radius,
+                color: config.color,
+                glow: config.glow,
+                merged: false
+            };
+            
+            a.merged = true;
+            b.merged = true;
+            balls.push(newBall);
+            
+            // 콤보
+            const now = Date.now();
+            if (now - lastMergeTime < 1000) {
+                combo++;
+            } else {
+                combo = 1;
+            }
+            lastMergeTime = now;
+            
+            // 점수
+            const points = newNumber * combo;
+            score += points;
+            
+            // 이펙트
+            mergeEffects.push({
+                x: newBall.x,
+                y: newBall.y,
+                text: `+${points}`,
+                combo: combo > 1 ? `x${combo}` : '',
+                alpha: 1,
+                vy: -2
+            });
+        }
+        
+        function checkGameOver() {
+            for (let ball of balls) {
+                if (ball.y - ball.radius < DANGER_LINE && Math.abs(ball.vy) < 1) {
+                    dangerTimer++;
+                    if (dangerTimer > 120) { // 2초
+                        showGameOver();
+                    }
+                    return;
+                }
+            }
+            dangerTimer = Math.max(0, dangerTimer - 1);
+        }
+        
+        function updateEffects() {
+            for (let fx of mergeEffects) {
+                fx.y += fx.vy;
+                fx.alpha -= 0.02;
+            }
+            mergeEffects = mergeEffects.filter(fx => fx.alpha > 0);
+        }
+        
+        function draw() {
+            // 배경
+            ctx.fillStyle = '#1a1a2e';
+            ctx.fillRect(0, 0, W, H);
+            
+            // 게임 영역
+            ctx.fillStyle = '#0f0f1a';
+            ctx.fillRect(WALL_LEFT, DANGER_LINE, WALL_RIGHT - WALL_LEFT, FLOOR_Y - DANGER_LINE);
+            
+            // 위험선
+            ctx.strokeStyle = dangerTimer > 0 ? '#ff0000' : '#ff000066';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([10, 5]);
+            ctx.beginPath();
+            ctx.moveTo(WALL_LEFT, DANGER_LINE);
+            ctx.lineTo(WALL_RIGHT, DANGER_LINE);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            // 벽
+            ctx.fillStyle = '#333';
+            ctx.fillRect(0, DANGER_LINE - 20, WALL_LEFT, FLOOR_Y - DANGER_LINE + 40);
+            ctx.fillRect(WALL_RIGHT, DANGER_LINE - 20, W - WALL_RIGHT, FLOOR_Y - DANGER_LINE + 40);
+            ctx.fillRect(WALL_LEFT, FLOOR_Y, WALL_RIGHT - WALL_LEFT, H - FLOOR_Y);
+            
+            // 다음 공 미리보기
+            if (canDrop && !gameOver) {
+                const config = NUMBER_CONFIG[nextNumber];
+                const previewX = Math.max(WALL_LEFT + config.radius, Math.min(WALL_RIGHT - config.radius, dropX));
+                
+                // 드롭 가이드라인
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                ctx.lineWidth = 1;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(previewX, DANGER_LINE);
+                ctx.lineTo(previewX, FLOOR_Y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                // 미리보기 공
+                ctx.globalAlpha = 0.7;
+                drawBall({ x: previewX, y: 60, number: nextNumber, radius: config.radius, color: config.color, glow: config.glow });
+                ctx.globalAlpha = 1;
+            }
+            
+            // 공들
+            for (let ball of balls) {
+                if (!ball.merged) drawBall(ball);
+            }
+            
+            // 이펙트
+            for (let fx of mergeEffects) {
+                ctx.globalAlpha = fx.alpha;
+                ctx.fillStyle = '#ffd700';
+                ctx.font = 'bold 20px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(fx.text, fx.x, fx.y);
+                if (fx.combo) {
+                    ctx.fillStyle = '#ff6b6b';
+                    ctx.font = 'bold 16px sans-serif';
+                    ctx.fillText(fx.combo, fx.x, fx.y - 22);
+                }
+                ctx.globalAlpha = 1;
+            }
+            
+            // UI
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(`Score: ${score.toLocaleString()}`, 25, 40);
+            
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#ffd700';
+            ctx.font = '16px sans-serif';
+            ctx.fillText(`Best: ${bestScore.toLocaleString()}`, W - 25, 40);
+        }
+        
+        function drawBall(ball) {
+            // 글로우
+            const gradient = ctx.createRadialGradient(ball.x, ball.y, 0, ball.x, ball.y, ball.radius * 1.3);
+            gradient.addColorStop(0, ball.glow + '44');
+            gradient.addColorStop(1, 'transparent');
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius * 1.3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 공
+            const ballGradient = ctx.createRadialGradient(ball.x - ball.radius * 0.3, ball.y - ball.radius * 0.3, 0, ball.x, ball.y, ball.radius);
+            ballGradient.addColorStop(0, '#fff');
+            ballGradient.addColorStop(0.3, ball.color);
+            ballGradient.addColorStop(1, ball.color + 'aa');
+            
+            ctx.fillStyle = ballGradient;
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // 테두리
+            ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // 숫자
+            ctx.fillStyle = '#fff';
+            ctx.font = `bold ${ball.radius * 0.7}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = '#000';
+            ctx.shadowBlur = 4;
+            ctx.fillText(ball.number, ball.x, ball.y);
+            ctx.shadowBlur = 0;
+        }
+        
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            updatePhysics();
+            checkGameOver();
+            updateEffects();
+            draw();
+            
+            if (!gameOver) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        // 입력 처리
+        let isDragging = false;
+        
+        function getX(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = W / rect.width;
+            if (e.touches) {
+                return (e.touches[0].clientX - rect.left) * scaleX;
+            }
+            return (e.clientX - rect.left) * scaleX;
+        }
+        
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            dropX = getX(e);
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging) dropX = getX(e);
+        });
+        
+        canvas.addEventListener('mouseup', () => {
+            if (isDragging && gameRunning) dropBall();
+            isDragging = false;
+        });
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            dropX = getX(e);
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (isDragging) dropX = getX(e);
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (isDragging && gameRunning) dropBall();
+            isDragging = false;
+        });
+        
+        // 초기 렌더링
+        draw();
+    </script>
+</body>
+</html>
