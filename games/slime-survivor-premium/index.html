@@ -115,9 +115,12 @@
             position: absolute;
             bottom: var(--safe-bottom, 0px);
             left: 0;
-            width: 50%;
-            height: 45%;
+            width: 100%;
+            height: 50%;
             z-index: 60;
+        }
+        #joystickZone.disabled {
+            pointer-events: none;
         }
         #joystickBase {
             position: absolute;
@@ -150,6 +153,8 @@
             transition: opacity 0.4s ease;
             padding: 20px;
             overflow-y: auto;
+            touch-action: auto;
+            -webkit-overflow-scrolling: touch;
         }
         .screen-overlay.hidden {
             opacity: 0;
@@ -1008,6 +1013,7 @@ const joystickZone = document.getElementById('joystickZone');
 
 if (isMobile) {
     joystickZone.addEventListener('touchstart', (e) => {
+        if (!game || !game.running || game.paused) return;
         e.preventDefault();
         AudioManager.resume();
         const t = e.touches[0];
@@ -1023,8 +1029,8 @@ if (isMobile) {
     }, { passive: false });
 
     joystickZone.addEventListener('touchmove', (e) => {
-        e.preventDefault();
         if (!joystickActive) return;
+        e.preventDefault();
         const t = e.touches[0];
         let dx = t.clientX - joystickStartX;
         let dy = t.clientY - joystickStartY;
@@ -1211,11 +1217,18 @@ function initGame(daily = false) {
     screenFlash = { alpha: 0, color: '#fff' };
 }
 
+function setJoystickEnabled(on) {
+    if (isMobile && joystickZone) {
+        joystickZone.classList.toggle('disabled', !on);
+    }
+}
+
 function startNormalGame() {
     AudioManager.init();
     AudioManager.resume();
     initGame(false);
     hideAllScreens();
+    setJoystickEnabled(true);
     document.getElementById('pauseBtn').style.display = 'block';
     lastTime = performance.now();
     requestAnimationFrame(gameLoop);
@@ -1226,6 +1239,7 @@ function startDailyChallenge() {
     AudioManager.resume();
     initGame(true);
     hideAllScreens();
+    setJoystickEnabled(true);
     document.getElementById('pauseBtn').style.display = 'block';
     lastTime = performance.now();
     showToast(`📅 데일리: ${dailyModifiers.name}`);
@@ -1241,12 +1255,14 @@ function restartGame() {
 function pauseGame() {
     if (!game || !game.running) return;
     game.paused = true;
+    setJoystickEnabled(false);
     document.getElementById('pauseScreen').classList.remove('hidden');
 }
 
 function resumeGame() {
     if (!game) return;
     game.paused = false;
+    setJoystickEnabled(true);
     document.getElementById('pauseScreen').classList.add('hidden');
     lastTime = performance.now();
     requestAnimationFrame(gameLoop);
@@ -1257,6 +1273,7 @@ function toggleSound() { AudioManager.toggle(); }
 function goToMenu() {
     if (game) game.running = false;
     hideAllScreens();
+    setJoystickEnabled(false);
     document.getElementById('pauseBtn').style.display = 'none';
     buildStartScreen();
     document.getElementById('startScreen').classList.remove('hidden');
@@ -1634,11 +1651,13 @@ function levelUp() {
             AudioManager.pickup();
             upg.apply();
             document.getElementById('upgradeScreen').classList.add('hidden');
+            setJoystickEnabled(true);
             game.paused = false;
             lastTime = performance.now();
         });
         optDiv.appendChild(card);
     });
+    setJoystickEnabled(false);
     document.getElementById('upgradeScreen').classList.remove('hidden');
 }
 
@@ -1710,6 +1729,7 @@ function gameOver() {
         document.getElementById('goNewRecord').style.display = isRecord ? 'block' : 'none';
         document.getElementById('goDailyBadge').style.display = isDaily ? 'block' : 'none';
         if (leveledUp) showToast(`🎉 메타 레벨 ${Progression.data.metaLevel} 달성!`);
+        setJoystickEnabled(false);
         document.getElementById('gameOverScreen').classList.remove('hidden');
     }, 800);
 }
