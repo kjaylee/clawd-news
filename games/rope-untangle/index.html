@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Rope Untangle - 로프 풀기 퍼즐</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 420px;
+            padding: 10px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .level-info {
+            color: #fff;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .stat {
+            color: #e94560;
+            font-size: 1em;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        #gameCanvas {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+            width: 100%;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-hint {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .btn-reset {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #00b894, #00cec9);
+            color: white;
+            padding: 30px 50px;
+            border-radius: 20px;
+            font-size: 1.5em;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 10px 50px rgba(0,0,0,0.4);
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+        
+        .message.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        
+        .message small {
+            display: block;
+            font-size: 0.6em;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+        
+        .intersect-count {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3em;
+            font-weight: bold;
+            color: rgba(255,255,255,0.1);
+            pointer-events: none;
+        }
+        
+        .title-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            transition: opacity 0.5s ease;
+        }
+        
+        .title-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .title {
+            font-size: 2.5em;
+            color: #fff;
+            margin-bottom: 10px;
+            text-shadow: 0 5px 20px rgba(233, 69, 96, 0.5);
+        }
+        
+        .subtitle {
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 40px;
+        }
+        
+        .btn-start {
+            background: linear-gradient(135deg, #e94560, #c23a4a);
+            color: white;
+            padding: 15px 50px;
+            font-size: 1.3em;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.4); }
+            50% { box-shadow: 0 0 0 15px rgba(233, 69, 96, 0); }
+        }
+        
+        .level-display {
+            color: rgba(255,255,255,0.5);
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="title-screen" id="titleScreen">
+        <div class="title">🔗 Rope Untangle</div>
+        <div class="subtitle">얽힌 로프를 풀어보세요!</div>
+        <button class="btn btn-start" onclick="startGame()">게임 시작</button>
+        <div class="level-display" id="savedLevel">저장된 레벨: 1</div>
+    </div>
+    
+    <div class="game-container">
+        <div class="header">
+            <div class="level-info">Level <span id="levelNum">1</span></div>
+            <div class="stats">
+                <div class="stat">
+                    <span>❌</span>
+                    <span id="intersects">0</span>
+                </div>
+                <div class="stat">
+                    <span>👆</span>
+                    <span id="moves">0</span>
+                </div>
+            </div>
+        </div>
+        
+        <canvas id="gameCanvas"></canvas>
+        
+        <div class="controls">
+            <button class="btn btn-hint" onclick="showHint()">💡 힌트</button>
+            <button class="btn btn-reset" onclick="resetLevel()">🔄 리셋</button>
+        </div>
+    </div>
+    
+    <div class="message" id="message">
+        🎉 클리어!
+        <small>탭하여 다음 레벨</small>
+    </div>
+    
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Responsive canvas size
+        const size = Math.min(window.innerWidth - 40, 400);
+        canvas.width = size;
+        canvas.height = size;
+        
+        // Game state
+        let level = 1;
+        let moves = 0;
+        let ropes = [];
+        let solutionPoints = [];
+        let dragging = null;
+        let intersectCount = 0;
+        let isCleared = false;
+        
+        // Colors for ropes
+        const colors = [
+            '#e94560', '#00b894', '#0984e3', '#fdcb6e', 
+            '#6c5ce7', '#00cec9', '#ff7675', '#74b9ff'
+        ];
+        
+        // Load saved progress
+        function loadProgress() {
+            const saved = localStorage.getItem('ropeUntangle');
+            if (saved) {
+                const data = JSON.parse(saved);
+                level = data.level || 1;
+            }
+            document.getElementById('savedLevel').textContent = `저장된 레벨: ${level}`;
+        }
+        
+        function saveProgress() {
+            localStorage.setItem('ropeUntangle', JSON.stringify({ level }));
+        }
+        
+        // CCW algorithm for intersection detection
+        function ccw(A, B, C) {
+            return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
+        }
+        
+        function intersects(A, B, C, D) {
+            // Exclude if segments share a point
+            if ((A.x === C.x && A.y === C.y) || (A.x === D.x && A.y === D.y) ||
+                (B.x === C.x && B.y === C.y) || (B.x === D.x && B.y === D.y)) {
+                return false;
+            }
+            return ccw(A, C, D) !== ccw(B, C, D) && ccw(A, B, C) !== ccw(A, B, D);
+        }
+        
+        // Generate level
+        function generateLevel(lvl) {
+            const ropeCount = Math.min(3 + Math.floor(lvl / 10), 8);
+            ropes = [];
+            solutionPoints = [];
+            
+            const margin = 60;
+            const area = size - margin * 2;
+            
+            // Generate solution positions (non-intersecting)
+            for (let i = 0; i < ropeCount; i++) {
+                let valid = false;
+                let attempts = 0;
+                let start, end;
+                
+                while (!valid && attempts < 100) {
+                    start = {
+                        x: margin + Math.random() * area,
+                        y: margin + Math.random() * area
+                    };
+                    end = {
+                        x: margin + Math.random() * area,
+                        y: margin + Math.random() * area
+                    };
+                    
+                    // Ensure minimum length
+                    const dist = Math.hypot(end.x - start.x, end.y - start.y);
+                    if (dist < 80) {
+                        attempts++;
+                        continue;
+                    }
+                    
+                    // Check against existing ropes
+                    valid = true;
+                    for (let j = 0; j < ropes.length; j++) {
+                        if (intersects(start, end, ropes[j].start, ropes[j].end)) {
+                            valid = false;
+                            break;
+                        }
+                    }
+                    attempts++;
+                }
+                
+                const rope = {
+                    id: i,
+                    color: colors[i % colors.length],
+                    start: { ...start },
+                    end: { ...end }
+                };
+                
+                ropes.push(rope);
+                solutionPoints.push({
+                    start: { ...start },
+                    end: { ...end }
+                });
+            }
+            
+            // Scramble positions to create intersections
+            const scrambleIterations = Math.min(5 + Math.floor(lvl / 5), 15);
+            for (let i = 0; i < scrambleIterations; i++) {
+                const idx1 = Math.floor(Math.random() * ropeCount);
+                const idx2 = Math.floor(Math.random() * ropeCount);
+                if (idx1 !== idx2) {
+                    // Swap random endpoints
+                    if (Math.random() > 0.5) {
+                        [ropes[idx1].start, ropes[idx2].start] = 
+                        [ropes[idx2].start, ropes[idx1].start];
+                    } else {
+                        [ropes[idx1].end, ropes[idx2].end] = 
+                        [ropes[idx2].end, ropes[idx1].end];
+                    }
+                }
+            }
+            
+            // Ensure at least one intersection
+            let hasIntersection = false;
+            for (let i = 0; i < ropes.length; i++) {
+                for (let j = i + 1; j < ropes.length; j++) {
+                    if (intersects(ropes[i].start, ropes[i].end, 
+                                  ropes[j].start, ropes[j].end)) {
+                        hasIntersection = true;
+                        break;
+                    }
+                }
+                if (hasIntersection) break;
+            }
+            
+            if (!hasIntersection && ropeCount >= 2) {
+                // Force intersection by moving a point
+                ropes[0].start = { ...ropes[1].start };
+                ropes[0].start.x += 30;
+            }
+        }
+        
+        // Count intersections
+        function countIntersections() {
+            let count = 0;
+            for (let i = 0; i < ropes.length; i++) {
+                ropes[i].intersecting = false;
+                for (let j = i + 1; j < ropes.length; j++) {
+                    if (intersects(ropes[i].start, ropes[i].end, 
+                                  ropes[j].start, ropes[j].end)) {
+                        count++;
+                        ropes[i].intersecting = true;
+                        ropes[j].intersecting = true;
+                    }
+                }
+            }
+            return count;
+        }
+        
+        // Draw game
+        function draw() {
+            ctx.clearRect(0, 0, size, size);
+            
+            // Draw ropes
+            ropes.forEach(rope => {
+                ctx.beginPath();
+                ctx.moveTo(rope.start.x, rope.start.y);
+                ctx.lineTo(rope.end.x, rope.end.y);
+                ctx.strokeStyle = rope.intersecting ? '#ff4757' : rope.color;
+                ctx.lineWidth = rope.intersecting ? 4 : 6;
+                ctx.lineCap = 'round';
+                ctx.stroke();
+                
+                // Glow effect
+                if (!rope.intersecting) {
+                    ctx.shadowColor = rope.color;
+                    ctx.shadowBlur = 15;
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
+            });
+            
+            // Draw points
+            ropes.forEach(rope => {
+                [rope.start, rope.end].forEach(point => {
+                    // Outer ring
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 18, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    ctx.fill();
+                    
+                    // Inner circle
+                    ctx.beginPath();
+                    ctx.arc(point.x, point.y, 12, 0, Math.PI * 2);
+                    ctx.fillStyle = rope.intersecting ? '#ff4757' : rope.color;
+                    ctx.fill();
+                    
+                    // Highlight
+                    ctx.beginPath();
+                    ctx.arc(point.x - 3, point.y - 3, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                    ctx.fill();
+                });
+            });
+            
+            // Update UI
+            intersectCount = countIntersections();
+            document.getElementById('intersects').textContent = intersectCount;
+            document.getElementById('moves').textContent = moves;
+            document.getElementById('levelNum').textContent = level;
+            
+            // Check win condition
+            if (intersectCount === 0 && !isCleared && ropes.length > 0) {
+                isCleared = true;
+                setTimeout(showWin, 300);
+            }
+        }
+        
+        function showWin() {
+            document.getElementById('message').classList.add('show');
+        }
+        
+        function hideWin() {
+            document.getElementById('message').classList.remove('show');
+        }
+        
+        // Get point under cursor
+        function getPointAt(x, y) {
+            const radius = 25;
+            for (let rope of ropes) {
+                const distStart = Math.hypot(x - rope.start.x, y - rope.start.y);
+                if (distStart < radius) return { rope, point: 'start' };
+                
+                const distEnd = Math.hypot(x - rope.end.x, y - rope.end.y);
+                if (distEnd < radius) return { rope, point: 'end' };
+            }
+            return null;
+        }
+        
+        // Event handlers
+        function getEventPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+        
+        function handleStart(e) {
+            e.preventDefault();
+            if (isCleared) {
+                nextLevel();
+                return;
+            }
+            
+            const pos = getEventPos(e);
+            dragging = getPointAt(pos.x, pos.y);
+        }
+        
+        function handleMove(e) {
+            e.preventDefault();
+            if (!dragging) return;
+            
+            const pos = getEventPos(e);
+            const point = dragging.rope[dragging.point];
+            
+            // Constrain to canvas
+            point.x = Math.max(20, Math.min(size - 20, pos.x));
+            point.y = Math.max(20, Math.min(size - 20, pos.y));
+            
+            draw();
+        }
+        
+        function handleEnd(e) {
+            if (dragging) {
+                moves++;
+                dragging = null;
+                draw();
+            }
+        }
+        
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('mouseup', handleEnd);
+        canvas.addEventListener('mouseleave', handleEnd);
+        
+        canvas.addEventListener('touchstart', handleStart, { passive: false });
+        canvas.addEventListener('touchmove', handleMove, { passive: false });
+        canvas.addEventListener('touchend', handleEnd);
+        
+        document.getElementById('message').addEventListener('click', () => {
+            if (isCleared) nextLevel();
+        });
+        
+        // Game functions
+        function startGame() {
+            document.getElementById('titleScreen').classList.add('hidden');
+            initLevel();
+        }
+        
+        function initLevel() {
+            moves = 0;
+            isCleared = false;
+            hideWin();
+            generateLevel(level);
+            draw();
+        }
+        
+        function nextLevel() {
+            level++;
+            saveProgress();
+            initLevel();
+        }
+        
+        function resetLevel() {
+            initLevel();
+        }
+        
+        function showHint() {
+            if (ropes.length === 0) return;
+            
+            // Find first intersecting rope and show its solution
+            const intersectingRope = ropes.find(r => r.intersecting);
+            if (intersectingRope) {
+                const solution = solutionPoints[intersectingRope.id];
+                
+                // Flash the solution position
+                ctx.save();
+                ctx.globalAlpha = 0.5;
+                ctx.setLineDash([10, 5]);
+                ctx.beginPath();
+                ctx.moveTo(solution.start.x, solution.start.y);
+                ctx.lineTo(solution.end.x, solution.end.y);
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+                ctx.restore();
+                
+                // Draw hint circles
+                [solution.start, solution.end].forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 25, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                });
+                
+                // Redraw after delay
+                setTimeout(draw, 2000);
+            }
+        }
+        
+        // Initialize
+        loadProgress();
+    </script>
+</body>
+</html>
