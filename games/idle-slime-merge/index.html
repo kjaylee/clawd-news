@@ -196,6 +196,7 @@ body {
   cursor: pointer;
   transition: transform 0.1s, opacity 0.2s;
   color: #fff;
+  min-height: 44px;
 }
 
 .btn:active { transform: scale(0.95); }
@@ -732,7 +733,7 @@ gridEl.addEventListener('touchend', e => {
     const t = e.changedTouches[0];
     endDrag(t.clientX, t.clientY);
   }
-});
+}, { passive: false });
 
 // Mouse events
 gridEl.addEventListener('mousedown', e => {
@@ -756,6 +757,12 @@ document.getElementById('btn-prestige').addEventListener('click', () => {
   }
 });
 document.getElementById('btn-boost').addEventListener('click', activateBoost);
+
+// Android 뒤로가기 처리
+history.pushState(null, '', '');
+window.addEventListener('popstate', () => {
+  history.pushState(null, '', '');
+});
 
 // ──────── INIT ────────
 load();

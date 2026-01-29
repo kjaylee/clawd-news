@@ -193,7 +193,9 @@
             pointer-events: auto;
         }
         .btn:active { transform: scale(0.95); }
-        .btn:hover { box-shadow: 0 0 30px rgba(0,255,136,0.5); transform: scale(1.03); }
+        @media (hover: hover) {
+            .btn:hover { box-shadow: 0 0 30px rgba(0,255,136,0.5); transform: scale(1.03); }
+        }
         .btn-secondary {
             background: rgba(255,255,255,0.1);
             color: #fff;
@@ -288,7 +290,9 @@
             transition: all 0.2s;
         }
         .upgrade-card:active { transform: scale(0.95); background: rgba(0,255,136,0.15); }
-        .upgrade-card:hover { box-shadow: 0 0 20px rgba(0,255,136,0.4); transform: scale(1.03); }
+        @media (hover: hover) {
+            .upgrade-card:hover { box-shadow: 0 0 20px rgba(0,255,136,0.4); transform: scale(1.03); }
+        }
         .upgrade-icon { font-size: 2rem; margin-bottom: 8px; }
         .upgrade-name { font-size: 0.9rem; color: var(--neon-green); font-weight: bold; }
         .upgrade-desc { font-size: 0.75rem; color: #aaa; margin-top: 4px; }
@@ -386,6 +390,8 @@
             top: var(--safe-top, 8px);
             right: 8px;
             padding: 8px;
+            min-width: 44px;
+            min-height: 44px;
             background: rgba(0,0,0,0.5);
             border: none;
             border-radius: 8px;
@@ -2180,6 +2186,15 @@ document.addEventListener('gesturestart', (e) => e.preventDefault());
 // Resume audio on first interaction
 document.addEventListener('click', () => AudioManager.resume(), { once: true });
 document.addEventListener('touchstart', () => AudioManager.resume(), { once: true });
+
+// Android 뒤로가기 → 일시정지
+history.pushState(null, '', '');
+window.addEventListener('popstate', () => {
+    if (game && game.running && !game.paused) {
+        pauseGame();
+    }
+    history.pushState(null, '', '');
+});
 </script>
 </body>
 </html>
