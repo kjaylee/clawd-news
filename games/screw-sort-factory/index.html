@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🔩 Screw Sort Factory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-dark: #1a1a2e;
+            --bg-medium: #16213e;
+            --bg-light: #0f3460;
+            --accent: #e94560;
+            --gold: #ffd700;
+            --silver: #c0c0c0;
+            --bronze: #cd7f32;
+            --text: #eee;
+            --text-dim: #888;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-medium) 100%);
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        
+        /* ===== SCREENS ===== */
+        .screen {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 100;
+        }
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        /* ===== START SCREEN ===== */
+        #startScreen {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+        }
+        .logo {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .logo .screw-icon {
+            display: inline-block;
+            animation: spin 4s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .subtitle {
+            color: var(--text-dim);
+            font-size: 1rem;
+            margin-bottom: 40px;
+        }
+        
+        .menu-btn {
+            background: linear-gradient(135deg, var(--accent) 0%, #c13b52 100%);
+            border: none;
+            color: white;
+            padding: 16px 48px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            margin: 10px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+        }
+        .menu-btn:hover, .menu-btn:active {
+            transform: scale(1.05);
+            box-shadow: 0 6px 30px rgba(233, 69, 96, 0.6);
+        }
+        .menu-btn.secondary {
+            background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        
+        /* ===== LEVEL SELECT ===== */
+        #levelScreen {
+            background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+        }
+        .screen-title {
+            font-size: 2rem;
+            margin-bottom: 30px;
+        }
+        .level-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+        }
+        .level-btn {
+            aspect-ratio: 1;
+            background: var(--bg-light);
+            border: 2px solid #3a5a7c;
+            border-radius: 12px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .level-btn:hover:not(:disabled) {
+            transform: scale(1.1);
+            border-color: var(--accent);
+        }
+        .level-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .level-btn .stars {
+            font-size: 0.6rem;
+            margin-top: 4px;
+            color: var(--gold);
+        }
+        .level-btn.locked::after {
+            content: '🔒';
+            position: absolute;
+            font-size: 1.5rem;
+        }
+        .level-btn.locked span {
+            visibility: hidden;
+        }
+        
+        .back-btn {
+            margin-top: 30px;
+            background: transparent;
+            border: 2px solid var(--text-dim);
+            color: var(--text-dim);
+            padding: 10px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        
+        /* ===== GAME SCREEN ===== */
+        #gameScreen {
+            background: linear-gradient(180deg, #0f3460 0%, #16213e 50%, #1a1a2e 100%);
+            z-index: 1;
+        }
+        
+        .game-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+        .level-info {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .moves-info {
+            font-size: 1rem;
+            color: var(--gold);
+        }
+        .header-btn {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 80px 20px 20px;
+        }
+        
+        /* ===== FACTORY BELT ===== */
+        .factory-belt {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: repeating-linear-gradient(
+                90deg,
+                #2a2a4a 0px,
+                #2a2a4a 20px,
+                #3a3a5a 20px,
+                #3a3a5a 40px
+            );
+            border-radius: 10px;
+            animation: beltMove 2s linear infinite;
+        }
+        @keyframes beltMove {
+            from { background-position: 0 0; }
+            to { background-position: 40px 0; }
+        }
+        
+        /* ===== HOLES ===== */
+        .holes-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 600px;
+        }
+        
+        .hole {
+            width: 80px;
+            height: 120px;
+            background: linear-gradient(180deg, #1a1a1a 0%, #2a2a2a 100%);
+            border: 3px solid #444;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: center;
+            padding: 8px;
+            gap: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .hole::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 8px;
+            background: #555;
+            border-radius: 4px 4px 0 0;
+        }
+        .hole:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+        }
+        .hole.selected {
+            border-color: var(--gold);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5), inset 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .hole.target-hint {
+            border-color: #4ade80;
+            animation: pulse-green 0.5s ease-in-out infinite alternate;
+        }
+        @keyframes pulse-green {
+            from { box-shadow: 0 0 10px rgba(74, 222, 128, 0.3); }
+            to { box-shadow: 0 0 25px rgba(74, 222, 128, 0.6); }
+        }
+        
+        /* ===== SCREWS ===== */
+        .screw {
+            width: 35px;
+            height: 20px;
+            border-radius: 8px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            cursor: pointer;
+        }
+        .screw::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+        }
+        .screw::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 2px;
+            background: rgba(0,0,0,0.3);
+        }
+        .screw.lifting {
+            transform: translateY(-60px) scale(1.2);
+            z-index: 100;
+        }
+        .screw.moving {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        
+        /* Screw colors */
+        .screw.red { background: linear-gradient(135deg, #ff6b6b 0%, #c92a2a 100%); }
+        .screw.blue { background: linear-gradient(135deg, #74c0fc 0%, #1971c2 100%); }
+        .screw.green { background: linear-gradient(135deg, #69db7c 0%, #2f9e44 100%); }
+        .screw.yellow { background: linear-gradient(135deg, #ffd43b 0%, #f59f00 100%); }
+        .screw.purple { background: linear-gradient(135deg, #da77f2 0%, #9c36b5 100%); }
+        .screw.orange { background: linear-gradient(135deg, #ffa94d 0%, #e8590c 100%); }
+        .screw.pink { background: linear-gradient(135deg, #fcc2d7 0%, #e64980 100%); }
+        .screw.cyan { background: linear-gradient(135deg, #66d9e8 0%, #1098ad 100%); }
+        
+        /* ===== RESULT SCREEN ===== */
+        #resultScreen {
+            background: rgba(0,0,0,0.9);
+        }
+        .result-box {
+            background: linear-gradient(135deg, var(--bg-medium) 0%, var(--bg-dark) 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 350px;
+            width: 100%;
+        }
+        .result-title {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .result-stars {
+            font-size: 3rem;
+            margin: 20px 0;
+        }
+        .result-stars .star {
+            display: inline-block;
+            transition: transform 0.3s;
+            opacity: 0.3;
+        }
+        .result-stars .star.earned {
+            opacity: 1;
+            animation: starPop 0.5s ease-out;
+        }
+        @keyframes starPop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        .result-score {
+            font-size: 1.2rem;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+        .result-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        /* ===== PARTICLES ===== */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        
+        /* ===== TUTORIAL OVERLAY ===== */
+        .tutorial-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        .tutorial-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .tutorial-box {
+            background: var(--bg-medium);
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 350px;
+        }
+        .tutorial-box h3 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        .tutorial-box p {
+            color: var(--text-dim);
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .tutorial-demo {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 480px) {
+            .hole {
+                width: 65px;
+                height: 100px;
+            }
+            .screw {
+                width: 28px;
+                height: 16px;
+            }
+            .screw::before {
+                width: 10px;
+                height: 10px;
+            }
+            .holes-container {
+                gap: 12px;
+            }
+            .level-grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
+            }
+        }
+        
+        /* Factory theme decorations */
+        .gear {
+            position: fixed;
+            opacity: 0.1;
+            animation: gearSpin 10s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .gear:nth-child(1) { top: 10%; left: 5%; font-size: 4rem; }
+        .gear:nth-child(2) { top: 60%; right: 5%; font-size: 3rem; animation-direction: reverse; }
+        .gear:nth-child(3) { bottom: 10%; left: 10%; font-size: 5rem; }
+        @keyframes gearSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Decorative gears -->
+    <div class="gear">⚙️</div>
+    <div class="gear">⚙️</div>
+    <div class="gear">⚙️</div>
+    
+    <!-- START SCREEN -->
+    <div id="startScreen" class="screen active">
+        <div class="logo">
+            <span class="screw-icon">🔩</span> Screw Sort
+        </div>
+        <div class="subtitle">Factory Puzzle</div>
+        <button class="menu-btn" onclick="showLevelSelect()">🎮 게임 시작</button>
+        <button class="menu-btn secondary" onclick="showTutorial()">📖 게임 방법</button>
+    </div>
+    
+    <!-- LEVEL SELECT SCREEN -->
+    <div id="levelScreen" class="screen">
+        <h2 class="screen-title">🏭 레벨 선택</h2>
+        <div class="level-grid" id="levelGrid"></div>
+        <button class="back-btn" onclick="showStart()">← 뒤로</button>
+    </div>
+    
+    <!-- GAME SCREEN -->
+    <div id="gameScreen" class="screen">
+        <div class="game-header">
+            <button class="header-btn" onclick="showLevelSelect()">←</button>
+            <span class="level-info" id="levelDisplay">Level 1</span>
+            <span class="moves-info" id="movesDisplay">이동: 0</span>
+            <button class="header-btn" onclick="restartLevel()">🔄</button>
+        </div>
+        <div class="game-container">
+            <div class="holes-container" id="holesContainer"></div>
+        </div>
+    </div>
+    
+    <!-- RESULT SCREEN -->
+    <div id="resultScreen" class="screen">
+        <div class="result-box">
+            <h2 class="result-title" id="resultTitle">🎉 클리어!</h2>
+            <div class="result-stars" id="resultStars">
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+                <span class="star">⭐</span>
+            </div>
+            <div class="result-score" id="resultScore">점수: 1000</div>
+            <div class="result-buttons">
+                <button class="menu-btn secondary" onclick="showLevelSelect()">레벨 선택</button>
+                <button class="menu-btn" onclick="nextLevel()">다음 레벨 →</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- TUTORIAL OVERLAY -->
+    <div class="tutorial-overlay" id="tutorialOverlay">
+        <div class="tutorial-box">
+            <h3>🔩 게임 방법</h3>
+            <p>
+                같은 색상의 나사를 하나의 구멍에 모으세요!<br><br>
+                1️⃣ 구멍을 탭하여 맨 위 나사 선택<br>
+                2️⃣ 다른 구멍을 탭하여 나사 이동<br>
+                3️⃣ 같은 색상끼리 정렬하면 클리어!
+            </p>
+            <div class="tutorial-demo">
+                <div class="hole" style="width:60px;height:80px;pointer-events:none">
+                    <div class="screw red" style="width:25px;height:14px"></div>
+                    <div class="screw blue" style="width:25px;height:14px"></div>
+                </div>
+                <div style="font-size:2rem;align-self:center">→</div>
+                <div class="hole" style="width:60px;height:80px;pointer-events:none">
+                    <div class="screw red" style="width:25px;height:14px"></div>
+                    <div class="screw red" style="width:25px;height:14px"></div>
+                </div>
+            </div>
+            <button class="menu-btn" onclick="hideTutorial()">알겠어요!</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== GAME STATE =====
+        const gameState = {
+            currentLevel: 1,
+            moves: 0,
+            selectedHole: null,
+            holes: [],
+            isAnimating: false,
+            levelProgress: JSON.parse(localStorage.getItem('screwSortProgress') || '{}')
+        };
+        
+        // ===== AUDIO SYSTEM =====
+        const AudioSystem = {
+            ctx: null,
+            
+            init() {
+                if (!this.ctx) {
+                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            },
+            
+            play(type) {
+                if (!this.ctx) return;
+                
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                
+                const now = this.ctx.currentTime;
+                
+                switch(type) {
+                    case 'select':
+                        osc.frequency.setValueAtTime(440, now);
+                        osc.type = 'sine';
+                        gain.gain.setValueAtTime(0.15, now);
+                        gain.gain.exponentialDecayTo(0.01, now + 0.1);
+                        osc.start(now);
+                        osc.stop(now + 0.1);
+                        break;
+                        
+                    case 'place':
+                        osc.frequency.setValueAtTime(523, now);
+                        osc.frequency.setValueAtTime(659, now + 0.05);
+                        osc.type = 'sine';
+                        gain.gain.setValueAtTime(0.15, now);
+                        gain.gain.exponentialDecayTo(0.01, now + 0.15);
+                        osc.start(now);
+                        osc.stop(now + 0.15);
+                        break;
+                        
+                    case 'complete':
+                        [523, 659, 784, 1047].forEach((freq, i) => {
+                            const o = this.ctx.createOscillator();
+                            const g = this.ctx.createGain();
+                            o.connect(g);
+                            g.connect(this.ctx.destination);
+                            o.frequency.setValueAtTime(freq, now + i * 0.1);
+                            o.type = 'sine';
+                            g.gain.setValueAtTime(0.12, now + i * 0.1);
+                            g.gain.exponentialDecayTo(0.01, now + i * 0.1 + 0.3);
+                            o.start(now + i * 0.1);
+                            o.stop(now + i * 0.1 + 0.3);
+                        });
+                        break;
+                        
+                    case 'error':
+                        osc.frequency.setValueAtTime(200, now);
+                        osc.type = 'sawtooth';
+                        gain.gain.setValueAtTime(0.1, now);
+                        gain.gain.exponentialDecayTo(0.01, now + 0.2);
+                        osc.start(now);
+                        osc.stop(now + 0.2);
+                        break;
+                        
+                    case 'star':
+                        osc.frequency.setValueAtTime(880, now);
+                        osc.frequency.setValueAtTime(1100, now + 0.1);
+                        osc.type = 'sine';
+                        gain.gain.setValueAtTime(0.12, now);
+                        gain.gain.exponentialDecayTo(0.01, now + 0.25);
+                        osc.start(now);
+                        osc.stop(now + 0.25);
+                        break;
+                }
+            }
+        };
+        
+        // Fix for exponentialDecayTo
+        GainNode.prototype.gain.exponentialDecayTo = function(value, endTime) {
+            this.exponentialRampToValueAtTime(Math.max(value, 0.001), endTime);
+        };
+        
+        // ===== LEVEL DEFINITIONS =====
+        const LEVELS = [
+            // Level 1: Tutorial - 2 colors, 3 holes
+            { holes: 3, capacity: 4, colors: ['red', 'blue'], screwsPerColor: 4 },
+            // Level 2: Easy - 2 colors, 4 holes
+            { holes: 4, capacity: 4, colors: ['red', 'blue'], screwsPerColor: 4 },
+            // Level 3: 3 colors
+            { holes: 4, capacity: 4, colors: ['red', 'blue', 'green'], screwsPerColor: 4 },
+            // Level 4: More screws
+            { holes: 5, capacity: 4, colors: ['red', 'blue', 'green'], screwsPerColor: 4 },
+            // Level 5: 4 colors
+            { holes: 5, capacity: 4, colors: ['red', 'blue', 'green', 'yellow'], screwsPerColor: 4 },
+            // Level 6: Harder
+            { holes: 6, capacity: 4, colors: ['red', 'blue', 'green', 'yellow'], screwsPerColor: 4 },
+            // Level 7: 5 colors
+            { holes: 6, capacity: 4, colors: ['red', 'blue', 'green', 'yellow', 'purple'], screwsPerColor: 4 },
+            // Level 8: Challenging
+            { holes: 7, capacity: 4, colors: ['red', 'blue', 'green', 'yellow', 'purple'], screwsPerColor: 4 },
+            // Level 9: 6 colors
+            { holes: 7, capacity: 4, colors: ['red', 'blue', 'green', 'yellow', 'purple', 'orange'], screwsPerColor: 4 },
+            // Level 10: Expert
+            { holes: 8, capacity: 4, colors: ['red', 'blue', 'green', 'yellow', 'purple', 'orange'], screwsPerColor: 4 },
+            // Bonus levels
+            { holes: 8, capacity: 5, colors: ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink'], screwsPerColor: 5 },
+            { holes: 9, capacity: 5, colors: ['red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'cyan'], screwsPerColor: 5 },
+        ];
+        
+        // ===== SCREEN MANAGEMENT =====
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+        
+        function showStart() {
+            showScreen('startScreen');
+        }
+        
+        function showLevelSelect() {
+            renderLevelGrid();
+            showScreen('levelScreen');
+        }
+        
+        function showTutorial() {
+            document.getElementById('tutorialOverlay').classList.add('active');
+        }
+        
+        function hideTutorial() {
+            document.getElementById('tutorialOverlay').classList.remove('active');
+        }
+        
+        // ===== LEVEL GRID =====
+        function renderLevelGrid() {
+            const grid = document.getElementById('levelGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 1; i <= LEVELS.length; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'level-btn';
+                
+                const isUnlocked = i === 1 || gameState.levelProgress[i - 1];
+                const stars = gameState.levelProgress[i] || 0;
+                
+                if (!isUnlocked) {
+                    btn.classList.add('locked');
+                    btn.disabled = true;
+                }
+                
+                btn.innerHTML = `
+                    <span>${i}</span>
+                    <span class="stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</span>
+                `;
+                
+                btn.onclick = () => {
+                    if (isUnlocked) startLevel(i);
+                };
+                
+                grid.appendChild(btn);
+            }
+        }
+        
+        // ===== GAME LOGIC =====
+        function startLevel(level) {
+            AudioSystem.init();
+            
+            gameState.currentLevel = level;
+            gameState.moves = 0;
+            gameState.selectedHole = null;
+            gameState.isAnimating = false;
+            
+            const config = LEVELS[level - 1];
+            generateLevel(config);
+            
+            document.getElementById('levelDisplay').textContent = `Level ${level}`;
+            document.getElementById('movesDisplay').textContent = `이동: 0`;
+            
+            renderHoles();
+            showScreen('gameScreen');
+            
+            // Show tutorial for level 1
+            if (level === 1 && !gameState.levelProgress[1]) {
+                setTimeout(showTutorial, 500);
+            }
+        }
+        
+        function generateLevel(config) {
+            const { holes, capacity, colors, screwsPerColor } = config;
+            
+            // Create screws array
+            let allScrews = [];
+            colors.forEach(color => {
+                for (let i = 0; i < screwsPerColor; i++) {
+                    allScrews.push(color);
+                }
+            });
+            
+            // Shuffle screws
+            for (let i = allScrews.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [allScrews[i], allScrews[j]] = [allScrews[j], allScrews[i]];
+            }
+            
+            // Distribute to holes
+            gameState.holes = [];
+            const screwsPerHole = Math.floor(allScrews.length / (holes - 1)); // Leave 1-2 empty spaces
+            
+            let screwIndex = 0;
+            for (let i = 0; i < holes; i++) {
+                const hole = {
+                    id: i,
+                    screws: [],
+                    capacity: capacity
+                };
+                
+                // Fill holes but leave at least one empty
+                if (i < holes - 1 && screwIndex < allScrews.length) {
+                    const count = Math.min(capacity, allScrews.length - screwIndex);
+                    const toAdd = Math.min(count, Math.ceil((allScrews.length - screwIndex) / (holes - i)));
+                    for (let j = 0; j < toAdd && screwIndex < allScrews.length; j++) {
+                        hole.screws.push(allScrews[screwIndex++]);
+                    }
+                }
+                
+                gameState.holes.push(hole);
+            }
+        }
+        
+        function renderHoles() {
+            const container = document.getElementById('holesContainer');
+            container.innerHTML = '';
+            
+            gameState.holes.forEach((hole, index) => {
+                const holeEl = document.createElement('div');
+                holeEl.className = 'hole';
+                holeEl.dataset.index = index;
+                
+                if (gameState.selectedHole === index) {
+                    holeEl.classList.add('selected');
+                }
+                
+                hole.screws.forEach((color, screwIndex) => {
+                    const screwEl = document.createElement('div');
+                    screwEl.className = `screw ${color}`;
+                    screwEl.dataset.index = screwIndex;
+                    
+                    if (gameState.selectedHole === index && screwIndex === hole.screws.length - 1) {
+                        screwEl.classList.add('lifting');
+                    }
+                    
+                    holeEl.appendChild(screwEl);
+                });
+                
+                holeEl.onclick = () => handleHoleClick(index);
+                container.appendChild(holeEl);
+            });
+            
+            // Highlight valid targets
+            if (gameState.selectedHole !== null) {
+                const sourceHole = gameState.holes[gameState.selectedHole];
+                const topScrew = sourceHole.screws[sourceHole.screws.length - 1];
+                
+                document.querySelectorAll('.hole').forEach((holeEl, idx) => {
+                    if (idx !== gameState.selectedHole) {
+                        const targetHole = gameState.holes[idx];
+                        if (targetHole.screws.length < targetHole.capacity) {
+                            const targetTop = targetHole.screws[targetHole.screws.length - 1];
+                            if (!targetTop || targetTop === topScrew) {
+                                holeEl.classList.add('target-hint');
+                            }
+                        }
+                    }
+                });
+            }
+        }
+        
+        function handleHoleClick(index) {
+            if (gameState.isAnimating) return;
+            
+            const clickedHole = gameState.holes[index];
+            
+            if (gameState.selectedHole === null) {
+                // Select a hole with screws
+                if (clickedHole.screws.length > 0) {
+                    gameState.selectedHole = index;
+                    AudioSystem.play('select');
+                    renderHoles();
+                }
+            } else if (gameState.selectedHole === index) {
+                // Deselect
+                gameState.selectedHole = null;
+                renderHoles();
+            } else {
+                // Try to move screw
+                const sourceHole = gameState.holes[gameState.selectedHole];
+                const targetHole = clickedHole;
+                
+                if (canMove(sourceHole, targetHole)) {
+                    moveScrew(gameState.selectedHole, index);
+                } else {
+                    AudioSystem.play('error');
+                    shakeHole(index);
+                    
+                    // If clicked hole has screws, select it instead
+                    if (clickedHole.screws.length > 0) {
+                        gameState.selectedHole = index;
+                        AudioSystem.play('select');
+                        renderHoles();
+                    }
+                }
+            }
+        }
+        
+        function canMove(source, target) {
+            if (source.screws.length === 0) return false;
+            if (target.screws.length >= target.capacity) return false;
+            
+            const sourceTop = source.screws[source.screws.length - 1];
+            const targetTop = target.screws[target.screws.length - 1];
+            
+            // Can move to empty hole or same color
+            return !targetTop || targetTop === sourceTop;
+        }
+        
+        function moveScrew(fromIndex, toIndex) {
+            gameState.isAnimating = true;
+            
+            const sourceHole = gameState.holes[fromIndex];
+            const targetHole = gameState.holes[toIndex];
+            const screw = sourceHole.screws.pop();
+            
+            // Animation
+            const sourceEl = document.querySelectorAll('.hole')[fromIndex];
+            const targetEl = document.querySelectorAll('.hole')[toIndex];
+            const screwEl = sourceEl.querySelector('.screw:last-child');
+            
+            if (screwEl) {
+                const sourceRect = screwEl.getBoundingClientRect();
+                const targetRect = targetEl.getBoundingClientRect();
+                
+                screwEl.style.position = 'fixed';
+                screwEl.style.left = sourceRect.left + 'px';
+                screwEl.style.top = sourceRect.top + 'px';
+                screwEl.style.zIndex = '1000';
+                screwEl.classList.add('moving');
+                
+                document.body.appendChild(screwEl);
+                
+                requestAnimationFrame(() => {
+                    screwEl.style.left = (targetRect.left + targetRect.width / 2 - screwEl.offsetWidth / 2) + 'px';
+                    screwEl.style.top = (targetRect.bottom - 30 - targetHole.screws.length * 24) + 'px';
+                });
+                
+                setTimeout(() => {
+                    screwEl.remove();
+                    targetHole.screws.push(screw);
+                    gameState.moves++;
+                    gameState.selectedHole = null;
+                    gameState.isAnimating = false;
+                    
+                    document.getElementById('movesDisplay').textContent = `이동: ${gameState.moves}`;
+                    
+                    AudioSystem.play('place');
+                    createParticles(targetRect.left + targetRect.width / 2, targetRect.top + 30);
+                    
+                    renderHoles();
+                    
+                    if (checkWin()) {
+                        setTimeout(() => showResult(), 500);
+                    }
+                }, 400);
+            } else {
+                targetHole.screws.push(screw);
+                gameState.moves++;
+                gameState.selectedHole = null;
+                gameState.isAnimating = false;
+                renderHoles();
+            }
+        }
+        
+        function shakeHole(index) {
+            const holeEl = document.querySelectorAll('.hole')[index];
+            holeEl.style.animation = 'none';
+            holeEl.offsetHeight; // Trigger reflow
+            holeEl.style.animation = 'shake 0.3s ease-out';
+        }
+        
+        // Add shake animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                20%, 60% { transform: translateX(-5px); }
+                40%, 80% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        function checkWin() {
+            return gameState.holes.every(hole => {
+                if (hole.screws.length === 0) return true;
+                const firstColor = hole.screws[0];
+                return hole.screws.every(s => s === firstColor);
+            });
+        }
+        
+        function showResult() {
+            AudioSystem.play('complete');
+            
+            const config = LEVELS[gameState.currentLevel - 1];
+            const minMoves = config.colors.length * config.screwsPerColor;
+            const efficiency = minMoves / gameState.moves;
+            
+            let stars = 1;
+            if (efficiency >= 0.7) stars = 2;
+            if (efficiency >= 0.9) stars = 3;
+            
+            const score = Math.floor(1000 * efficiency * stars);
+            
+            // Save progress
+            const prevStars = gameState.levelProgress[gameState.currentLevel] || 0;
+            if (stars > prevStars) {
+                gameState.levelProgress[gameState.currentLevel] = stars;
+                localStorage.setItem('screwSortProgress', JSON.stringify(gameState.levelProgress));
+            }
+            
+            // Update UI
+            document.getElementById('resultTitle').textContent = stars === 3 ? '🎉 완벽해요!' : stars === 2 ? '👍 잘했어요!' : '✅ 클리어!';
+            document.getElementById('resultScore').textContent = `점수: ${score} | 이동: ${gameState.moves}회`;
+            
+            const starsContainer = document.getElementById('resultStars');
+            const starEls = starsContainer.querySelectorAll('.star');
+            starEls.forEach((el, i) => {
+                el.classList.remove('earned');
+                if (i < stars) {
+                    setTimeout(() => {
+                        el.classList.add('earned');
+                        AudioSystem.play('star');
+                    }, 300 + i * 300);
+                }
+            });
+            
+            // Hide next button on last level
+            const nextBtn = document.querySelector('#resultScreen .menu-btn:last-child');
+            nextBtn.style.display = gameState.currentLevel >= LEVELS.length ? 'none' : 'block';
+            
+            showScreen('resultScreen');
+            createConfetti();
+        }
+        
+        function nextLevel() {
+            if (gameState.currentLevel < LEVELS.length) {
+                startLevel(gameState.currentLevel + 1);
+            }
+        }
+        
+        function restartLevel() {
+            startLevel(gameState.currentLevel);
+        }
+        
+        // ===== PARTICLES =====
+        function createParticles(x, y) {
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = x + 'px';
+                particle.style.top = y + 'px';
+                particle.style.width = '8px';
+                particle.style.height = '8px';
+                particle.style.background = ['#ffd700', '#ff6b6b', '#4ade80', '#74c0fc'][Math.floor(Math.random() * 4)];
+                particle.style.borderRadius = '50%';
+                
+                const angle = (Math.PI * 2 * i) / 8;
+                const velocity = 3 + Math.random() * 3;
+                const vx = Math.cos(angle) * velocity;
+                const vy = Math.sin(angle) * velocity;
+                
+                document.body.appendChild(particle);
+                
+                let posX = x, posY = y, opacity = 1;
+                const animate = () => {
+                    posX += vx;
+                    posY += vy + 1; // Gravity
+                    opacity -= 0.03;
+                    
+                    particle.style.left = posX + 'px';
+                    particle.style.top = posY + 'px';
+                    particle.style.opacity = opacity;
+                    
+                    if (opacity > 0) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        particle.remove();
+                    }
+                };
+                requestAnimationFrame(animate);
+            }
+        }
+        
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'particle';
+                    confetti.style.left = Math.random() * window.innerWidth + 'px';
+                    confetti.style.top = '-20px';
+                    confetti.style.width = '10px';
+                    confetti.style.height = '10px';
+                    confetti.style.background = ['#ffd700', '#ff6b6b', '#4ade80', '#74c0fc', '#da77f2', '#ffa94d'][Math.floor(Math.random() * 6)];
+                    confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                    
+                    document.body.appendChild(confetti);
+                    
+                    let posY = -20;
+                    let posX = parseFloat(confetti.style.left);
+                    let rotation = 0;
+                    const rotSpeed = (Math.random() - 0.5) * 10;
+                    const xSpeed = (Math.random() - 0.5) * 3;
+                    const ySpeed = 2 + Math.random() * 3;
+                    
+                    const animate = () => {
+                        posY += ySpeed;
+                        posX += xSpeed;
+                        rotation += rotSpeed;
+                        
+                        confetti.style.top = posY + 'px';
+                        confetti.style.left = posX + 'px';
+                        confetti.style.transform = `rotate(${rotation}deg)`;
+                        
+                        if (posY < window.innerHeight + 50) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            confetti.remove();
+                        }
+                    };
+                    requestAnimationFrame(animate);
+                }, i * 30);
+            }
+        }
+        
+        // ===== TOUCH SUPPORT =====
+        document.addEventListener('touchstart', (e) => {
+            AudioSystem.init();
+        }, { once: true });
+        
+        document.addEventListener('click', () => {
+            AudioSystem.init();
+        }, { once: true });
+        
+        // Initialize
+        renderLevelGrid();
+    </script>
+</body>
+</html>
