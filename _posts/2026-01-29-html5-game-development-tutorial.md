@@ -585,7 +585,7 @@ function createExplosion(x, y, color) {
 
 이 튜토리얼의 완성된 게임을 직접 플레이해보세요:
 
-**[공 피하기 게임 플레이하기 →](/games/ball-dodge/)**
+**[공 피하기 게임 플레이하기 →](/games/)**
 
 ---
 
