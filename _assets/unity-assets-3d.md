@@ -8,16 +8,16 @@ title: "unity assets 3d"
 
 ## 🏙️ 환경/맵
 
-| # | 에셋 이름 | 퍼블리셔 | 용량 | 구매일 |
-|---|----------|---------|------|--------|
-| 1 | Cyberpunk City (Cyberpunk, Cyberpunk City, Sci-Fi City) | HIVEMIND | 4.3 GB | 2026년 1월 22일 |
-| 2 | Abandoned Factory Buildings - Day/Night Scene | SCANSFACTORY | 4.9 GB | 2026년 1월 2일 |
-| 3 | Meadow Environment - Dynamic Nature | NATUREMANUFACTURE | 2.8 GB | 2026년 1월 9일 |
-| 4 | Low Poly Mega City | JUSTCREATE | 115.4 MB | 2026년 1월 22일 |
-| 5 | Scanned Sand Quarry | GREENBUGGAMES | 2.5 GB | 2026년 1월 1일 |
-| 6 | ForestLake | QUADART | 1.4 GB | 2025년 12월 27일 |
-| 7 | HQ Apocalyptic Environment | NOT_LONELY | 630.5 MB | 2025년 12월 22일 |
-| 8 | POLYGON - Dungeons Pack - Art by Synty | SYNTY STUDIOS | 50.9 MB | 2026년 1월 9일 |
+| # | 썸네일 | 에셋 이름 | 퍼블리셔 | 용량 | 구매일 |
+|---|--------|----------|---------|------|--------|
+| 1 | <img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/bd62180f-1152-41c4-b70b-6deedef454dd.jpg" width="60"> | [Cyberpunk City](https://assetstore.unity.com/packages/3d/environments/sci-fi/cyberpunk-city-cyberpunk-cyberpunk-city-sci-fi-city-300193) | HIVEMIND | 4.3 GB | 2026년 1월 22일 |
+| 2 | - | Abandoned Factory Buildings - Day/Night Scene | SCANSFACTORY | 4.9 GB | 2026년 1월 2일 |
+| 3 | <img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/513cec41-3388-4bfa-b8fd-238121b4b036.png" width="60"> | [Meadow Environment - Dynamic Nature](https://assetstore.unity.com/packages/3d/vegetation/meadow-environment-dynamic-nature-132195) | NATUREMANUFACTURE | 2.8 GB | 2026년 1월 9일 |
+| 4 | - | Low Poly Mega City | JUSTCREATE | 115.4 MB | 2026년 1월 22일 |
+| 5 | - | Scanned Sand Quarry | GREENBUGGAMES | 2.5 GB | 2026년 1월 1일 |
+| 6 | - | ForestLake | QUADART | 1.4 GB | 2025년 12월 27일 |
+| 7 | - | HQ Apocalyptic Environment | NOT_LONELY | 630.5 MB | 2025년 12월 22일 |
+| 8 | <img src="https://assetstorev1-prd-cdn.unity3d.com/key-image/71b05157-5a3b-4476-9b60-2b9532c82b11.png" width="60"> | [POLYGON - Dungeons Pack](https://assetstore.unity.com/packages/3d/environments/dungeons/polygon-dungeons-pack-art-by-synty-102677) | SYNTY STUDIOS | 50.9 MB | 2026년 1월 9일 |
 | 9 | POLYGON - Horror Mansion Pack - Art by Synty | SYNTY STUDIOS | 80.5 MB | 2026년 1월 9일 |
 | 10 | POLYGON - Sci-Fi City Pack - Art by Synty | SYNTY STUDIOS | 44.0 MB | 2026년 1월 9일 |
 | 11 | The Astral Sci-Fi Suite – Futuristic Grand Chamber Bedroom | FRIDAY NIGHT STUDIO | 263.5 MB | 2026년 1월 9일 |
@@ -88,7 +88,7 @@ title: "unity assets 3d"
 | 5 | Battle Stadium - Low Poly 3D Models Pack | ITHAPPY | 51.4 MB | 2026년 1월 9일 |
 
 ---
-**수집된 3D 에셋: 51개**
+**수집된 3D 에셋: 51개** (썸네일 3/51개 추가 - 작업 진행 중)
 
 ### 🔍 주요 퍼블리셔
 - **SYNTY STUDIOS**: POLYGON 시리즈 (Low Poly 스타일)
