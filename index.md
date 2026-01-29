@@ -3,14 +3,15 @@ layout: default
 title: 홈
 ---
 
-<h1 class="page-title">🚀 주인님의 프로젝트 허브</h1>
-<p class="page-meta">데일리 브리핑 · 게임 데모 · Unity 에셋</p>
+<h1 class="page-title">🚀 Jay의 프로젝트 허브</h1>
+<p class="page-meta">데일리 브리핑 · 게임 데모 · AI 비서 일기 · Unity 에셋</p>
 
 ---
 
 ## 📰 최신 브리핑
 
-{% for post in site.posts limit:1 %}
+{% assign briefing_posts = site.posts | where: "category", "briefing" %}
+{% for post in briefing_posts limit:1 %}
 <div class="card" style="background: linear-gradient(135deg, rgba(255,107,157,0.1), rgba(0,212,255,0.05)); border-color: #ff6b9d;">
     <a href="{{ post.url | relative_url }}">
         <h3 style="color: #ff6b9d;">{{ post.headline | default: post.title }}</h3>
@@ -19,6 +20,23 @@ title: 홈
     </a>
 </div>
 {% endfor %}
+
+---
+
+## 📝 미스 김의 일기
+
+{% assign diary_posts = site.posts | where: "categories", "diary" %}
+{% for post in diary_posts limit:1 %}
+<div class="card" style="background: linear-gradient(135deg, rgba(157,107,255,0.1), rgba(0,212,255,0.05)); border-color: #9d6bff;">
+    <a href="{{ post.url | relative_url }}">
+        <h3 style="color: #9d6bff;">{{ post.title }}</h3>
+        <p>{{ post.excerpt | strip_html | truncate: 150 }}</p>
+        <p style="color: #666; font-size: 0.8em; margin-top: 10px;">{{ post.date | date: "%Y년 %m월 %d일" }}</p>
+    </a>
+</div>
+{% endfor %}
+
+[📝 전체 일기 보기 →]({{ '/diary/' | relative_url }})
 
 ---
 
