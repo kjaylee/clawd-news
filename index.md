@@ -14,9 +14,9 @@ title: 홈
 {% for post in briefing_posts limit:1 %}
 <div class="card" style="background: linear-gradient(135deg, rgba(255,107,157,0.1), rgba(0,212,255,0.05)); border-color: #ff6b9d;">
     <a href="{{ post.url | relative_url }}">
-        <h3 style="color: #ff6b9d;">{{ post.headline | default: post.title }}</h3>
+        <p style="color: #ff6b9d; font-size: 0.9em; margin-bottom: 5px;">{{ post.date | date: "%Y년 %m월 %d일" }}</p>
+        <h3 style="color: #ff6b9d; margin-top: 0;">{{ post.headline | default: post.title }}</h3>
         <p>{{ post.summary | default: post.excerpt | strip_html | truncate: 150 }}</p>
-        <p style="color: #666; font-size: 0.8em; margin-top: 10px;">{{ post.date | date: "%Y년 %m월 %d일" }}</p>
     </a>
 </div>
 {% endfor %}
