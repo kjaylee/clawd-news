@@ -32,4 +32,4 @@ defaults:
     values:
       layout: "default"
 
-permalink: /briefing/:year/:month/:day/
+permalink: /:categories/:year/:month/:day/:title/
