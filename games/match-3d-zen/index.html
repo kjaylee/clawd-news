@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Match 3D Zen 🧘</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .header {
+            width: 100%;
+            max-width: 500px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(10px);
+        }
+        
+        .level-info {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .header-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: #fff;
+            font-size: 1.2em;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: transform 0.2s;
+        }
+        
+        .header-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .game-area {
+            flex: 1;
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+        
+        .items-container {
+            position: relative;
+            width: 100%;
+            height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .item {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            font-size: 2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+        
+        .item.blocked {
+            filter: brightness(0.7);
+            cursor: not-allowed;
+        }
+        
+        .item.selected {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(46,125,50,0.4);
+        }
+        
+        .item:not(.blocked):hover {
+            transform: translateY(-3px);
+        }
+        
+        .slot-container {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .slot-label {
+            text-align: center;
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        
+        .slots {
+            display: flex;
+            justify-content: center;
+            gap: 5px;
+        }
+        
+        .slot {
+            width: 45px;
+            height: 45px;
+            background: #e8f5e9;
+            border: 2px dashed #a5d6a7;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6em;
+            transition: all 0.3s ease;
+        }
+        
+        .slot.filled {
+            background: #fff;
+            border: 2px solid #4caf50;
+        }
+        
+        .slot.matched {
+            animation: matchPop 0.5s ease;
+        }
+        
+        @keyframes matchPop {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); background: #c8e6c9; }
+        }
+        
+        .coins-display {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 1.1em;
+            color: #f9a825;
+            font-weight: bold;
+        }
+        
+        /* Screens */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            z-index: 100;
+        }
+        
+        .screen.active {
+            display: flex;
+        }
+        
+        .screen h1 {
+            font-size: 2.5em;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        
+        .screen h2 {
+            font-size: 1.5em;
+            color: #388e3c;
+            margin-bottom: 30px;
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #4caf50, #2e7d32);
+            color: white;
+            box-shadow: 0 4px 15px rgba(46,125,50,0.4);
+        }
+        
+        .btn-secondary {
+            background: #fff;
+            color: #2e7d32;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .btn:active {
+            transform: scale(0.95);
+        }
+        
+        .stats {
+            font-size: 1.2em;
+            color: #555;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        /* Animations */
+        @keyframes flyToSlot {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.5); }
+            100% { transform: scale(0) translate(0, 100px); }
+        }
+        
+        .item.flying {
+            animation: flyToSlot 0.3s ease forwards;
+            pointer-events: none;
+        }
+        
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 150px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1em;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 200;
+        }
+        
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Screen -->
+    <div class="screen active" id="startScreen">
+        <h1>🧘 Match 3D Zen</h1>
+        <h2>릴렉싱 매치 퍼즐</h2>
+        <div class="stats" id="startStats">
+            레벨: <span id="displayLevel">1</span><br>
+            💰 <span id="displayCoins">100</span>
+        </div>
+        <button class="btn btn-primary" onclick="startGame()">▶ 플레이</button>
+    </div>
+    
+    <!-- Game Screen -->
+    <div class="header">
+        <div class="level-info">Lv.<span id="levelNum">1</span></div>
+        <div class="coins-display">💰 <span id="coins">100</span></div>
+        <div class="header-buttons">
+            <button class="header-btn" onclick="useShuffle()" title="셔플">🔄</button>
+            <button class="header-btn" onclick="useHint()" title="힌트">💡</button>
+            <button class="header-btn" onclick="useUndo()" title="되돌리기">↩️</button>
+        </div>
+    </div>
+    
+    <div class="game-area">
+        <div class="items-container" id="itemsContainer"></div>
+        
+        <div class="slot-container">
+            <div class="slot-label">매칭 슬롯 (7칸)</div>
+            <div class="slots" id="slots">
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+                <div class="slot"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Win Screen -->
+    <div class="screen" id="winScreen">
+        <h1>🎉 클리어!</h1>
+        <div class="stats">
+            레벨 <span id="winLevel">1</span> 완료<br>
+            +20 코인!
+        </div>
+        <button class="btn btn-primary" onclick="nextLevel()">다음 레벨 ▶</button>
+    </div>
+    
+    <!-- Game Over Screen -->
+    <div class="screen" id="gameOverScreen">
+        <h1>😵 게임 오버</h1>
+        <h2>슬롯이 가득 찼어요</h2>
+        <button class="btn btn-primary" onclick="retryLevel()">🔄 다시 하기</button>
+        <button class="btn btn-secondary" onclick="watchAdRetry()">📺 광고 보고 계속</button>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // Item types by category
+        const ITEM_TYPES = {
+            fruits: ['🍎', '🍊', '🍋', '🍇', '🍓', '🍌', '🍑', '🥝', '🍒', '🍈', '🍐', '🫐'],
+            animals: ['🐶', '🐱', '🐰', '🐻', '🐼', '🦊', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸'],
+            nature: ['🌸', '🌺', '🌻', '🌹', '🌷', '🌼', '🍀', '🌿', '🌵', '🎋', '🍁', '🍂'],
+            food: ['🍕', '🍔', '🍟', '🌮', '🍣', '🍜', '🍩', '🍪', '🧁', '🍰', '🍫', '☕']
+        };
+        
+        // Game state
+        let gameState = {
+            level: 1,
+            coins: 100,
+            items: [],
+            slot: [],
+            history: [],
+            itemTypes: []
+        };
+        
+        // Load game
+        function loadGame() {
+            const saved = localStorage.getItem('match3dzen');
+            if (saved) {
+                const data = JSON.parse(saved);
+                gameState.level = data.level || 1;
+                gameState.coins = data.coins || 100;
+            }
+            updateUI();
+        }
+        
+        // Save game
+        function saveGame() {
+            localStorage.setItem('match3dzen', JSON.stringify({
+                level: gameState.level,
+                coins: gameState.coins
+            }));
+        }
+        
+        // Update UI
+        function updateUI() {
+            document.getElementById('levelNum').textContent = gameState.level;
+            document.getElementById('coins').textContent = gameState.coins;
+            document.getElementById('displayLevel').textContent = gameState.level;
+            document.getElementById('displayCoins').textContent = gameState.coins;
+        }
+        
+        // Generate level
+        function generateLevel() {
+            const level = gameState.level;
+            
+            // Determine item count based on level
+            let typeCount;
+            if (level <= 10) typeCount = 6;
+            else if (level <= 30) typeCount = 9;
+            else if (level <= 60) typeCount = 12;
+            else typeCount = Math.min(15, 6 + Math.floor(level / 10));
+            
+            // Select category
+            const categories = Object.keys(ITEM_TYPES);
+            const category = categories[level % categories.length];
+            const pool = ITEM_TYPES[category];
+            
+            // Select item types (3 of each)
+            gameState.itemTypes = [];
+            const shuffledPool = [...pool].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < typeCount && i < shuffledPool.length; i++) {
+                gameState.itemTypes.push(shuffledPool[i]);
+            }
+            
+            // Create items (3 of each type)
+            gameState.items = [];
+            let id = 0;
+            
+            // Generate pyramid-like structure
+            const layers = Math.min(4, 2 + Math.floor(level / 20));
+            const allItems = [];
+            
+            gameState.itemTypes.forEach(type => {
+                for (let i = 0; i < 3; i++) {
+                    allItems.push({ type, id: id++ });
+                }
+            });
+            
+            // Shuffle items
+            allItems.sort(() => Math.random() - 0.5);
+            
+            // Position items in layers
+            const containerWidth = 350;
+            const containerHeight = 300;
+            const itemSize = 55;
+            
+            let itemIndex = 0;
+            for (let layer = 0; layer < layers && itemIndex < allItems.length; layer++) {
+                const itemsInLayer = Math.ceil((allItems.length - itemIndex) / (layers - layer));
+                const cols = Math.ceil(Math.sqrt(itemsInLayer * 1.5));
+                const rows = Math.ceil(itemsInLayer / cols);
+                
+                const offsetX = (containerWidth - cols * itemSize) / 2 + layer * 10;
+                const offsetY = (containerHeight - rows * itemSize) / 2 + layer * 10;
+                
+                for (let r = 0; r < rows && itemIndex < allItems.length; r++) {
+                    for (let c = 0; c < cols && itemIndex < allItems.length; c++) {
+                        if (itemIndex >= allItems.length) break;
+                        
+                        const item = allItems[itemIndex];
+                        gameState.items.push({
+                            ...item,
+                            x: offsetX + c * itemSize + (Math.random() - 0.5) * 10,
+                            y: offsetY + r * itemSize + (Math.random() - 0.5) * 10,
+                            layer: layer,
+                            blocked: false
+                        });
+                        itemIndex++;
+                    }
+                }
+            }
+            
+            updateBlockedStatus();
+        }
+        
+        // Update blocked status
+        function updateBlockedStatus() {
+            gameState.items.forEach(item => {
+                item.blocked = false;
+            });
+            
+            gameState.items.forEach(item => {
+                gameState.items.forEach(other => {
+                    if (item.id !== other.id && other.layer > item.layer) {
+                        const dx = Math.abs(item.x - other.x);
+                        const dy = Math.abs(item.y - other.y);
+                        if (dx < 40 && dy < 40) {
+                            item.blocked = true;
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Render items
+        function renderItems() {
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = '';
+            
+            // Sort by layer for proper z-index
+            const sortedItems = [...gameState.items].sort((a, b) => a.layer - b.layer);
+            
+            sortedItems.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'item' + (item.blocked ? ' blocked' : '');
+                div.textContent = item.type;
+                div.style.left = item.x + 'px';
+                div.style.top = item.y + 'px';
+                div.style.zIndex = item.layer * 10;
+                div.dataset.id = item.id;
+                
+                if (!item.blocked) {
+                    div.onclick = () => selectItem(item.id);
+                }
+                
+                container.appendChild(div);
+            });
+        }
+        
+        // Render slot
+        function renderSlot() {
+            const slotsEl = document.getElementById('slots');
+            const slots = slotsEl.querySelectorAll('.slot');
+            
+            slots.forEach((slot, i) => {
+                if (gameState.slot[i]) {
+                    slot.textContent = gameState.slot[i].type;
+                    slot.classList.add('filled');
+                } else {
+                    slot.textContent = '';
+                    slot.classList.remove('filled');
+                }
+            });
+        }
+        
+        // Select item
+        function selectItem(id) {
+            if (gameState.slot.length >= 7) return;
+            
+            const itemIndex = gameState.items.findIndex(i => i.id === id);
+            if (itemIndex === -1) return;
+            
+            const item = gameState.items[itemIndex];
+            if (item.blocked) return;
+            
+            // Save to history
+            gameState.history.push({
+                item: {...item},
+                slotState: [...gameState.slot]
+            });
+            
+            // Animate item
+            const itemEl = document.querySelector(`[data-id="${id}"]`);
+            if (itemEl) {
+                itemEl.classList.add('flying');
+            }
+            
+            // Remove from board
+            gameState.items.splice(itemIndex, 1);
+            
+            // Add to slot (group same types together)
+            const sameTypeIndex = gameState.slot.findIndex(s => s.type === item.type);
+            if (sameTypeIndex !== -1) {
+                // Insert after last same type
+                let insertIndex = sameTypeIndex;
+                while (insertIndex < gameState.slot.length && gameState.slot[insertIndex].type === item.type) {
+                    insertIndex++;
+                }
+                gameState.slot.splice(insertIndex, 0, item);
+            } else {
+                gameState.slot.push(item);
+            }
+            
+            setTimeout(() => {
+                updateBlockedStatus();
+                renderItems();
+                renderSlot();
+                checkMatch();
+            }, 300);
+        }
+        
+        // Check for matches
+        function checkMatch() {
+            // Group by type
+            const groups = {};
+            gameState.slot.forEach((item, i) => {
+                if (!groups[item.type]) groups[item.type] = [];
+                groups[item.type].push(i);
+            });
+            
+            // Check for 3 matches
+            for (const type in groups) {
+                if (groups[type].length >= 3) {
+                    // Remove matched items
+                    const toRemove = groups[type].slice(0, 3);
+                    toRemove.sort((a, b) => b - a).forEach(i => {
+                        gameState.slot.splice(i, 1);
+                    });
+                    
+                    // Animate
+                    const slots = document.querySelectorAll('.slot');
+                    toRemove.forEach(i => {
+                        if (slots[i]) slots[i].classList.add('matched');
+                    });
+                    
+                    setTimeout(() => {
+                        renderSlot();
+                        checkWin();
+                    }, 500);
+                    
+                    return;
+                }
+            }
+            
+            // Check game over
+            if (gameState.slot.length >= 7) {
+                setTimeout(gameOver, 500);
+            }
+            
+            // Check win
+            checkWin();
+        }
+        
+        // Check win condition
+        function checkWin() {
+            if (gameState.items.length === 0 && gameState.slot.length === 0) {
+                gameState.coins += 20;
+                saveGame();
+                
+                document.getElementById('winLevel').textContent = gameState.level;
+                document.getElementById('winScreen').classList.add('active');
+            }
+        }
+        
+        // Game over
+        function gameOver() {
+            document.getElementById('gameOverScreen').classList.add('active');
+        }
+        
+        // Start game
+        function startGame() {
+            document.getElementById('startScreen').classList.remove('active');
+            gameState.slot = [];
+            gameState.history = [];
+            generateLevel();
+            renderItems();
+            renderSlot();
+            updateUI();
+        }
+        
+        // Next level
+        function nextLevel() {
+            gameState.level++;
+            saveGame();
+            document.getElementById('winScreen').classList.remove('active');
+            startGame();
+        }
+        
+        // Retry level
+        function retryLevel() {
+            document.getElementById('gameOverScreen').classList.remove('active');
+            startGame();
+        }
+        
+        // Watch ad to retry
+        function watchAdRetry() {
+            showToast('광고 시청 완료! (시뮬레이션)');
+            setTimeout(() => {
+                // Remove last 3 items from slot
+                gameState.slot = gameState.slot.slice(0, Math.max(0, gameState.slot.length - 3));
+                document.getElementById('gameOverScreen').classList.remove('active');
+                renderSlot();
+            }, 1000);
+        }
+        
+        // Use shuffle
+        function useShuffle() {
+            if (gameState.coins < 100) {
+                showToast('코인이 부족해요 (100 필요)');
+                return;
+            }
+            
+            gameState.coins -= 100;
+            saveGame();
+            updateUI();
+            
+            // Reshuffle positions
+            const positions = gameState.items.map(i => ({ x: i.x, y: i.y, layer: i.layer }));
+            positions.sort(() => Math.random() - 0.5);
+            
+            gameState.items.forEach((item, i) => {
+                item.x = positions[i].x;
+                item.y = positions[i].y;
+                item.layer = positions[i].layer;
+            });
+            
+            updateBlockedStatus();
+            renderItems();
+            showToast('셔플 완료!');
+        }
+        
+        // Use hint
+        function useHint() {
+            if (gameState.coins < 50) {
+                showToast('코인이 부족해요 (50 필요)');
+                return;
+            }
+            
+            // Find a matchable item
+            const available = gameState.items.filter(i => !i.blocked);
+            if (available.length === 0) {
+                showToast('선택 가능한 아이템이 없어요');
+                return;
+            }
+            
+            // Find item that matches something in slot
+            let hintItem = null;
+            for (const item of available) {
+                const sameInSlot = gameState.slot.filter(s => s.type === item.type).length;
+                const sameAvailable = available.filter(a => a.type === item.type).length;
+                if (sameInSlot > 0 && sameInSlot + sameAvailable >= 3) {
+                    hintItem = item;
+                    break;
+                }
+            }
+            
+            if (!hintItem) {
+                // Just pick any available
+                hintItem = available[0];
+            }
+            
+            gameState.coins -= 50;
+            saveGame();
+            updateUI();
+            
+            // Highlight hint item
+            const itemEl = document.querySelector(`[data-id="${hintItem.id}"]`);
+            if (itemEl) {
+                itemEl.style.boxShadow = '0 0 20px #ffeb3b';
+                setTimeout(() => {
+                    itemEl.style.boxShadow = '';
+                }, 2000);
+            }
+            
+            showToast('힌트: 노란색 아이템!');
+        }
+        
+        // Use undo
+        function useUndo() {
+            if (gameState.history.length === 0) {
+                showToast('되돌릴 수 없어요');
+                return;
+            }
+            
+            if (gameState.coins < 30) {
+                showToast('코인이 부족해요 (30 필요)');
+                return;
+            }
+            
+            gameState.coins -= 30;
+            saveGame();
+            updateUI();
+            
+            const last = gameState.history.pop();
+            gameState.items.push(last.item);
+            gameState.slot = last.slotState;
+            
+            updateBlockedStatus();
+            renderItems();
+            renderSlot();
+            showToast('되돌리기 완료!');
+        }
+        
+        // Show toast
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+        
+        // Initialize
+        loadGame();
+    </script>
+</body>
+</html>
