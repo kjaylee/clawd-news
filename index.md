@@ -10,7 +10,7 @@ title: 홈
 
 ## 📰 최신 브리핑
 
-{% assign briefing_posts = site.posts | where_exp: "post", "post.categories contains 'briefing'" %}
+{% assign briefing_posts = site.posts | where: "categories", "briefing" %}
 {% for post in briefing_posts limit:1 %}
 <div class="card" style="background: linear-gradient(135deg, rgba(255,107,157,0.1), rgba(0,212,255,0.05)); border-color: #ff6b9d;">
     <a href="{{ post.url | relative_url }}">
