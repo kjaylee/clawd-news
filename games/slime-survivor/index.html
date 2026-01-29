@@ -563,7 +563,7 @@
             const touch = e.touches[0];
             mousePos.x = touch.clientX - rect.left;
             mousePos.y = touch.clientY - rect.top;
-        });
+        }, { passive: false });
 
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
@@ -571,7 +571,15 @@
             const touch = e.touches[0];
             mousePos.x = touch.clientX - rect.left;
             mousePos.y = touch.clientY - rect.top;
-        });
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            if (typeof player !== 'undefined') {
+                mousePos.x = player.x;
+                mousePos.y = player.y;
+            }
+        }, { passive: false });
 
         // 게임 시작
         function startGame() {
@@ -770,7 +778,8 @@
         function gameLoop(timestamp) {
             if (!game.running) return;
             
-            const delta = (timestamp - lastTime) / 1000;
+            const rawDelta = (timestamp - lastTime) / 1000;
+            const delta = Math.min(rawDelta, 0.05);
             lastTime = timestamp;
             
             if (!game.paused) {
