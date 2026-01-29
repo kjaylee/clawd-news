@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Zen Tile Match - 젠 타일 매치</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        
+        .header {
+            width: 100%;
+            max-width: 500px;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .level-info {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2e7d32;
+        }
+        
+        .score-info {
+            font-size: 1em;
+            color: #558b2f;
+        }
+        
+        .stars {
+            color: #ffc107;
+            font-size: 1.2em;
+        }
+        
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .board {
+            display: grid;
+            gap: 8px;
+            padding: 20px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .tile {
+            width: 60px;
+            height: 70px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            box-shadow: 
+                0 4px 8px rgba(0,0,0,0.15),
+                inset 0 2px 4px rgba(255,255,255,0.8);
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+        
+        .tile:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 6px 12px rgba(0,0,0,0.2),
+                inset 0 2px 4px rgba(255,255,255,0.8);
+        }
+        
+        .tile:active {
+            transform: translateY(0);
+        }
+        
+        .tile.selected {
+            border-color: #4caf50;
+            box-shadow: 
+                0 0 0 3px rgba(76,175,80,0.3),
+                0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .tile.matched {
+            animation: matchPop 0.4s ease forwards;
+        }
+        
+        .tile.blocked {
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        
+        .tile.hint {
+            animation: hintPulse 0.6s ease infinite;
+        }
+        
+        @keyframes matchPop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(0); opacity: 0; }
+        }
+        
+        @keyframes hintPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,193,7,0.5); }
+            50% { box-shadow: 0 0 0 10px rgba(255,193,7,0); }
+        }
+        
+        .selection-bar {
+            display: flex;
+            gap: 10px;
+            padding: 15px 25px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            min-height: 80px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .selection-slot {
+            width: 50px;
+            height: 60px;
+            border: 2px dashed #c8e6c9;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6em;
+            background: rgba(200,230,201,0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .selection-slot.filled {
+            border-style: solid;
+            border-color: #81c784;
+            background: white;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-hint {
+            background: linear-gradient(135deg, #fff9c4, #fff176);
+            color: #f57f17;
+            box-shadow: 0 4px 12px rgba(255,193,7,0.3);
+        }
+        
+        .btn-shuffle {
+            background: linear-gradient(135deg, #b3e5fc, #81d4fa);
+            color: #0277bd;
+            box-shadow: 0 4px 12px rgba(3,169,244,0.3);
+        }
+        
+        .btn-undo {
+            background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+            color: #7b1fa2;
+            box-shadow: 0 4px 12px rgba(156,39,176,0.3);
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 350px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: modalPop 0.3s ease;
+        }
+        
+        @keyframes modalPop {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .modal h2 {
+            color: #2e7d32;
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        
+        .modal .stars-display {
+            font-size: 2.5em;
+            margin: 20px 0;
+        }
+        
+        .modal p {
+            color: #666;
+            margin-bottom: 25px;
+        }
+        
+        .modal .btn {
+            width: 100%;
+            justify-content: center;
+            padding: 15px;
+            font-size: 1.1em;
+            background: linear-gradient(135deg, #66bb6a, #43a047);
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .modal .btn-secondary {
+            background: linear-gradient(135deg, #e0e0e0, #bdbdbd);
+            color: #424242;
+        }
+        
+        /* Start screen */
+        .start-screen {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .start-screen h1 {
+            font-size: 2.5em;
+            color: #2e7d32;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .start-screen .subtitle {
+            color: #558b2f;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .start-screen .emoji-display {
+            font-size: 4em;
+            margin: 30px 0;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .level-select {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        
+        .level-btn {
+            width: 50px;
+            height: 50px;
+            border: 2px solid #c8e6c9;
+            border-radius: 10px;
+            background: white;
+            font-weight: 600;
+            color: #2e7d32;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9em;
+        }
+        
+        .level-btn:hover {
+            background: #e8f5e9;
+            transform: scale(1.05);
+        }
+        
+        .level-btn.locked {
+            background: #f5f5f5;
+            color: #bdbdbd;
+            cursor: not-allowed;
+        }
+        
+        .level-btn .mini-stars {
+            font-size: 0.6em;
+            margin-top: 2px;
+        }
+        
+        .sound-toggle {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.9);
+            font-size: 1.3em;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .timer-bar {
+            width: 100%;
+            max-width: 460px;
+            height: 8px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 4px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .timer-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .timer-fill.warning {
+            background: linear-gradient(90deg, #ff9800, #ffc107);
+        }
+        
+        .timer-fill.danger {
+            background: linear-gradient(90deg, #f44336, #ff5722);
+        }
+        
+        @media (max-width: 400px) {
+            .tile {
+                width: 50px;
+                height: 60px;
+                font-size: 1.6em;
+            }
+            
+            .selection-slot {
+                width: 42px;
+                height: 52px;
+                font-size: 1.4em;
+            }
+            
+            .board {
+                gap: 6px;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="sound-toggle" id="soundToggle">🔊</button>
+    
+    <div id="startScreen" class="game-container start-screen">
+        <h1>🍃 Zen Tile Match</h1>
+        <p class="subtitle">같은 타일 3개를 찾아 매칭하세요</p>
+        <div class="emoji-display">🎋🌸🍵</div>
+        
+        <div class="level-select" id="levelSelect"></div>
+        
+        <button class="btn" style="background: linear-gradient(135deg, #66bb6a, #43a047); color: white; width: 200px; justify-content: center;" onclick="startGame()">
+            ▶️ 시작하기
+        </button>
+    </div>
+    
+    <div id="gameScreen" style="display: none;">
+        <div class="header">
+            <div class="level-info">레벨 <span id="levelNum">1</span></div>
+            <div class="score-info">점수: <span id="score">0</span></div>
+            <div class="stars" id="starsDisplay">☆☆☆</div>
+        </div>
+        
+        <div class="game-container">
+            <div class="timer-bar">
+                <div class="timer-fill" id="timerFill"></div>
+            </div>
+            
+            <div class="board" id="board"></div>
+            
+            <div class="selection-bar" id="selectionBar">
+                <div class="selection-slot"></div>
+                <div class="selection-slot"></div>
+                <div class="selection-slot"></div>
+                <div class="selection-slot"></div>
+                <div class="selection-slot"></div>
+                <div class="selection-slot"></div>
+                <div class="selection-slot"></div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-undo" id="undoBtn" onclick="undoMove()">↩️ 되돌리기</button>
+                <button class="btn btn-hint" id="hintBtn" onclick="showHint()">💡 힌트</button>
+                <button class="btn btn-shuffle" id="shuffleBtn" onclick="shuffleBoard()">🔀 섞기</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Win Modal -->
+    <div class="modal" id="winModal">
+        <div class="modal-content">
+            <h2>🎉 레벨 클리어!</h2>
+            <div class="stars-display" id="winStars">⭐⭐⭐</div>
+            <p>점수: <span id="winScore">0</span></p>
+            <button class="btn" onclick="nextLevel()">다음 레벨 ➡️</button>
+            <button class="btn btn-secondary" onclick="showStartScreen()">레벨 선택</button>
+        </div>
+    </div>
+    
+    <!-- Lose Modal -->
+    <div class="modal" id="loseModal">
+        <div class="modal-content">
+            <h2>😢 시간 초과!</h2>
+            <p>다시 도전해보세요</p>
+            <button class="btn" onclick="restartLevel()">🔄 다시 시도</button>
+            <button class="btn btn-secondary" onclick="showStartScreen()">레벨 선택</button>
+        </div>
+    </div>
+    
+    <!-- Game Over Modal (selection bar full) -->
+    <div class="modal" id="gameOverModal">
+        <div class="modal-content">
+            <h2>💫 게임 오버</h2>
+            <p>선택 바가 가득 찼어요!</p>
+            <button class="btn" onclick="restartLevel()">🔄 다시 시도</button>
+            <button class="btn btn-secondary" onclick="showStartScreen()">레벨 선택</button>
+        </div>
+    </div>
+
+    <script>
+        // Game state
+        let currentLevel = 1;
+        let score = 0;
+        let totalScore = 0;
+        let selectedTiles = [];
+        let boardTiles = [];
+        let moveHistory = [];
+        let timeLeft = 120;
+        let timerInterval = null;
+        let hintsUsed = 0;
+        let shufflesUsed = 0;
+        let soundEnabled = true;
+        let levelData = {};
+        
+        // Tile emojis - zen/nature theme
+        const tileTypes = [
+            '🌸', '🌺', '🌻', '🌷', '🌹', '🏵️',
+            '🍃', '🌿', '🍀', '🎋', '🌴', '🌳',
+            '🦋', '🐦', '🕊️', '🦢', '🐟', '🐚',
+            '🍵', '🍡', '🎐', '🪭', '🏮', '⛩️',
+            '💎', '🔮', '🪷', '☯️', '🧘', '🎑',
+            '🌙', '⭐', '✨', '🌊', '🗻', '🎍'
+        ];
+        
+        // Audio context for sound effects
+        let audioCtx = null;
+        
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            switch(type) {
+                case 'select':
+                    oscillator.frequency.value = 523.25; // C5
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gainNode.gain.exponentialDecayTo = 0.01;
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.1);
+                    break;
+                case 'match':
+                    oscillator.frequency.value = 659.25; // E5
+                    oscillator.type = 'sine';
+                    gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    setTimeout(() => {
+                        const osc2 = audioCtx.createOscillator();
+                        const gain2 = audioCtx.createGain();
+                        osc2.connect(gain2);
+                        gain2.connect(audioCtx.destination);
+                        osc2.frequency.value = 783.99; // G5
+                        osc2.type = 'sine';
+                        gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                        osc2.start();
+                        osc2.stop(audioCtx.currentTime + 0.15);
+                    }, 100);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.1);
+                    break;
+                case 'win':
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, i) => {
+                        setTimeout(() => {
+                            const osc = audioCtx.createOscillator();
+                            const gain = audioCtx.createGain();
+                            osc.connect(gain);
+                            gain.connect(audioCtx.destination);
+                            osc.frequency.value = freq;
+                            osc.type = 'sine';
+                            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                            osc.start();
+                            osc.stop(audioCtx.currentTime + 0.2);
+                        }, i * 150);
+                    });
+                    break;
+                case 'fail':
+                    oscillator.frequency.value = 200;
+                    oscillator.type = 'sawtooth';
+                    gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.3);
+                    break;
+            }
+        }
+        
+        // Load/save progress
+        function loadProgress() {
+            const saved = localStorage.getItem('zenTileMatch');
+            if (saved) {
+                const data = JSON.parse(saved);
+                levelData = data.levels || {};
+                totalScore = data.totalScore || 0;
+                soundEnabled = data.soundEnabled !== false;
+            }
+            updateSoundButton();
+        }
+        
+        function saveProgress() {
+            const data = {
+                levels: levelData,
+                totalScore: totalScore,
+                soundEnabled: soundEnabled
+            };
+            localStorage.setItem('zenTileMatch', JSON.stringify(data));
+        }
+        
+        function getMaxUnlockedLevel() {
+            let max = 1;
+            for (let i = 1; i <= 50; i++) {
+                if (levelData[i]) max = i + 1;
+            }
+            return Math.min(max, 50);
+        }
+        
+        // UI updates
+        function updateSoundButton() {
+            document.getElementById('soundToggle').textContent = soundEnabled ? '🔊' : '🔇';
+        }
+        
+        document.getElementById('soundToggle').onclick = function() {
+            soundEnabled = !soundEnabled;
+            updateSoundButton();
+            saveProgress();
+            if (soundEnabled) {
+                initAudio();
+                playSound('select');
+            }
+        };
+        
+        function renderLevelSelect() {
+            const container = document.getElementById('levelSelect');
+            container.innerHTML = '';
+            const maxLevel = getMaxUnlockedLevel();
+            
+            for (let i = 1; i <= 50; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'level-btn' + (i > maxLevel ? ' locked' : '');
+                
+                const stars = levelData[i]?.stars || 0;
+                const starsStr = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+                
+                btn.innerHTML = `${i}<span class="mini-stars">${i <= maxLevel ? starsStr : '🔒'}</span>`;
+                
+                if (i <= maxLevel) {
+                    btn.onclick = () => {
+                        currentLevel = i;
+                        startGame();
+                    };
+                }
+                
+                container.appendChild(btn);
+            }
+        }
+        
+        function showStartScreen() {
+            document.getElementById('startScreen').style.display = 'flex';
+            document.getElementById('gameScreen').style.display = 'none';
+            document.getElementById('winModal').classList.remove('show');
+            document.getElementById('loseModal').classList.remove('show');
+            document.getElementById('gameOverModal').classList.remove('show');
+            
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+            
+            renderLevelSelect();
+        }
+        
+        // Level generation
+        function getLevelConfig(level) {
+            // Progressively harder levels
+            const baseTypes = Math.min(4 + Math.floor(level / 3), 12);
+            const basePairs = Math.min(4 + Math.floor(level / 2), 15);
+            const timeBonus = Math.max(0, 30 - level);
+            
+            let cols, rows;
+            if (level <= 5) {
+                cols = 4; rows = 3;
+            } else if (level <= 15) {
+                cols = 5; rows = 4;
+            } else if (level <= 30) {
+                cols = 6; rows = 4;
+            } else {
+                cols = 6; rows = 5;
+            }
+            
+            return {
+                types: baseTypes,
+                pairs: basePairs,
+                cols: cols,
+                rows: rows,
+                time: 90 + timeBonus + (level <= 5 ? 30 : 0)
+            };
+        }
+        
+        function generateLevel(level) {
+            const config = getLevelConfig(level);
+            const tiles = [];
+            const usedTypes = tileTypes.slice(0, config.types);
+            
+            // Generate pairs of 3
+            const totalTiles = config.cols * config.rows;
+            const triplets = Math.floor(totalTiles / 3);
+            
+            for (let i = 0; i < triplets; i++) {
+                const type = usedTypes[i % usedTypes.length];
+                tiles.push(type, type, type);
+            }
+            
+            // Fill remaining with random (ensuring triplets)
+            while (tiles.length < totalTiles) {
+                const type = usedTypes[Math.floor(Math.random() * usedTypes.length)];
+                tiles.push(type);
+            }
+            
+            // Ensure we have complete triplets
+            const counts = {};
+            tiles.forEach(t => counts[t] = (counts[t] || 0) + 1);
+            
+            for (const type in counts) {
+                const remainder = counts[type] % 3;
+                if (remainder !== 0) {
+                    // Replace some tiles to complete triplets
+                    for (let i = 0; i < tiles.length && counts[type] % 3 !== 0; i++) {
+                        if (tiles[i] !== type) {
+                            const oldType = tiles[i];
+                            if (counts[oldType] % 3 === 0) continue;
+                            tiles[i] = type;
+                            counts[type]++;
+                            counts[oldType]--;
+                        }
+                    }
+                }
+            }
+            
+            // Shuffle
+            for (let i = tiles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+            }
+            
+            return { tiles, config };
+        }
+        
+        // Game logic
+        function startGame() {
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameScreen').style.display = 'block';
+            
+            score = 0;
+            selectedTiles = [];
+            moveHistory = [];
+            hintsUsed = 0;
+            shufflesUsed = 0;
+            
+            const { tiles, config } = generateLevel(currentLevel);
+            boardTiles = tiles.map((type, index) => ({
+                type,
+                index,
+                removed: false
+            }));
+            
+            timeLeft = config.time;
+            
+            document.getElementById('levelNum').textContent = currentLevel;
+            document.getElementById('score').textContent = score;
+            updateStars();
+            
+            renderBoard(config.cols, config.rows);
+            renderSelectionBar();
+            startTimer();
+        }
+        
+        function renderBoard(cols, rows) {
+            const board = document.getElementById('board');
+            board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+            board.innerHTML = '';
+            
+            boardTiles.forEach((tile, index) => {
+                if (tile.removed) return;
+                
+                const div = document.createElement('div');
+                div.className = 'tile';
+                div.textContent = tile.type;
+                div.dataset.index = index;
+                div.onclick = () => selectTile(index);
+                board.appendChild(div);
+            });
+        }
+        
+        function renderSelectionBar() {
+            const bar = document.getElementById('selectionBar');
+            bar.innerHTML = '';
+            
+            for (let i = 0; i < 7; i++) {
+                const slot = document.createElement('div');
+                slot.className = 'selection-slot' + (i < selectedTiles.length ? ' filled' : '');
+                if (i < selectedTiles.length) {
+                    slot.textContent = selectedTiles[i].type;
+                }
+                bar.appendChild(slot);
+            }
+        }
+        
+        function selectTile(index) {
+            const tile = boardTiles[index];
+            if (!tile || tile.removed) return;
+            
+            // Check if selection bar is full
+            if (selectedTiles.length >= 7) {
+                playSound('fail');
+                return;
+            }
+            
+            playSound('select');
+            
+            // Save move for undo
+            moveHistory.push({
+                type: 'select',
+                tileIndex: index,
+                selectedState: [...selectedTiles]
+            });
+            
+            // Add to selection
+            selectedTiles.push({ ...tile, originalIndex: index });
+            tile.removed = true;
+            
+            // Update board
+            const tileEl = document.querySelector(`.tile[data-index="${index}"]`);
+            if (tileEl) {
+                tileEl.classList.add('matched');
+                setTimeout(() => tileEl.remove(), 300);
+            }
+            
+            renderSelectionBar();
+            
+            // Check for matches in selection
+            checkMatches();
+            
+            // Check game state
+            setTimeout(() => {
+                if (checkWin()) {
+                    winLevel();
+                } else if (selectedTiles.length >= 7) {
+                    gameOver();
+                }
+            }, 350);
+        }
+        
+        function checkMatches() {
+            // Group by type
+            const groups = {};
+            selectedTiles.forEach((tile, idx) => {
+                if (!groups[tile.type]) groups[tile.type] = [];
+                groups[tile.type].push(idx);
+            });
+            
+            // Find triplets
+            for (const type in groups) {
+                if (groups[type].length >= 3) {
+                    playSound('match');
+                    
+                    // Remove matched tiles (first 3 of this type)
+                    const toRemove = groups[type].slice(0, 3);
+                    toRemove.sort((a, b) => b - a); // Remove from end first
+                    
+                    toRemove.forEach(idx => {
+                        selectedTiles.splice(idx, 1);
+                    });
+                    
+                    // Add score
+                    const bonus = Math.max(0, 100 - hintsUsed * 20 - shufflesUsed * 10);
+                    score += 100 + bonus;
+                    document.getElementById('score').textContent = score;
+                    updateStars();
+                    
+                    renderSelectionBar();
+                    break; // Only remove one triplet at a time
+                }
+            }
+        }
+        
+        function checkWin() {
+            return boardTiles.every(t => t.removed) && selectedTiles.length === 0;
+        }
+        
+        function updateStars() {
+            const config = getLevelConfig(currentLevel);
+            const maxScore = (config.cols * config.rows / 3) * 200;
+            const ratio = score / maxScore;
+            
+            let stars;
+            if (ratio >= 0.8) stars = 3;
+            else if (ratio >= 0.5) stars = 2;
+            else stars = 1;
+            
+            const display = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+            document.getElementById('starsDisplay').textContent = display;
+        }
+        
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            const fill = document.getElementById('timerFill');
+            const config = getLevelConfig(currentLevel);
+            const maxTime = config.time;
+            
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                
+                const percent = (timeLeft / maxTime) * 100;
+                fill.style.width = percent + '%';
+                
+                fill.classList.remove('warning', 'danger');
+                if (percent <= 20) fill.classList.add('danger');
+                else if (percent <= 40) fill.classList.add('warning');
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    loseLevel();
+                }
+            }, 1000);
+        }
+        
+        function undoMove() {
+            if (moveHistory.length === 0) return;
+            
+            const lastMove = moveHistory.pop();
+            if (lastMove.type === 'select') {
+                // Restore tile to board
+                boardTiles[lastMove.tileIndex].removed = false;
+                selectedTiles = lastMove.selectedState;
+                
+                const config = getLevelConfig(currentLevel);
+                renderBoard(config.cols, config.rows);
+                renderSelectionBar();
+                
+                playSound('select');
+            }
+        }
+        
+        function showHint() {
+            hintsUsed++;
+            
+            // Find matching tiles on board
+            const available = boardTiles.filter(t => !t.removed);
+            const counts = {};
+            
+            available.forEach(t => {
+                if (!counts[t.type]) counts[t.type] = [];
+                counts[t.type].push(t.index);
+            });
+            
+            // Also check selection bar
+            selectedTiles.forEach(t => {
+                if (!counts[t.type]) counts[t.type] = [];
+                counts[t.type].push(-1); // Mark as in selection
+            });
+            
+            // Find a type that can form triplet
+            for (const type in counts) {
+                const boardIndices = counts[type].filter(i => i >= 0);
+                const inSelection = counts[type].filter(i => i === -1).length;
+                
+                if (boardIndices.length + inSelection >= 3 && boardIndices.length > 0) {
+                    // Highlight first matching tile on board
+                    const idx = boardIndices[0];
+                    const tileEl = document.querySelector(`.tile[data-index="${idx}"]`);
+                    if (tileEl) {
+                        tileEl.classList.add('hint');
+                        setTimeout(() => tileEl.classList.remove('hint'), 2000);
+                    }
+                    playSound('select');
+                    return;
+                }
+            }
+            
+            // No good hint available
+            playSound('fail');
+        }
+        
+        function shuffleBoard() {
+            shufflesUsed++;
+            
+            const available = boardTiles.filter(t => !t.removed);
+            const types = available.map(t => t.type);
+            
+            // Shuffle types
+            for (let i = types.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [types[i], types[j]] = [types[j], types[i]];
+            }
+            
+            // Assign back
+            available.forEach((t, i) => {
+                t.type = types[i];
+            });
+            
+            const config = getLevelConfig(currentLevel);
+            renderBoard(config.cols, config.rows);
+            playSound('select');
+        }
+        
+        function winLevel() {
+            clearInterval(timerInterval);
+            playSound('win');
+            
+            const config = getLevelConfig(currentLevel);
+            const maxScore = (config.cols * config.rows / 3) * 200;
+            const ratio = score / maxScore;
+            
+            let stars;
+            if (ratio >= 0.8) stars = 3;
+            else if (ratio >= 0.5) stars = 2;
+            else stars = 1;
+            
+            // Save progress
+            if (!levelData[currentLevel] || levelData[currentLevel].stars < stars) {
+                levelData[currentLevel] = { stars, score };
+            }
+            totalScore += score;
+            saveProgress();
+            
+            // Show modal
+            document.getElementById('winStars').textContent = '⭐'.repeat(stars);
+            document.getElementById('winScore').textContent = score;
+            document.getElementById('winModal').classList.add('show');
+        }
+        
+        function loseLevel() {
+            playSound('fail');
+            document.getElementById('loseModal').classList.add('show');
+        }
+        
+        function gameOver() {
+            clearInterval(timerInterval);
+            playSound('fail');
+            document.getElementById('gameOverModal').classList.add('show');
+        }
+        
+        function nextLevel() {
+            document.getElementById('winModal').classList.remove('show');
+            currentLevel = Math.min(currentLevel + 1, 50);
+            startGame();
+        }
+        
+        function restartLevel() {
+            document.getElementById('loseModal').classList.remove('show');
+            document.getElementById('gameOverModal').classList.remove('show');
+            startGame();
+        }
+        
+        // Initialize
+        loadProgress();
+        showStartScreen();
+    </script>
+</body>
+</html>

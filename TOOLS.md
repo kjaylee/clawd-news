@@ -132,4 +132,14 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 ---
 
+---
+
+## 🌐 프로젝트 허브
+- **경로:** `/Users/kjaylee/clawd/`
+- **URL:** https://eastsea.monster
+- **포스트:** `_posts/` 폴더
+- **Jekyll 기반** 사이트
+
+---
+
 Add whatever helps you do your job. This is your cheat sheet.

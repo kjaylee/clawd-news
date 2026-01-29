@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>🔩 Screw Sort Factory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --accent: #e94560;
+            --accent2: #f39c12;
+            --text: #eee;
+            --text-muted: #aaa;
+            --success: #27ae60;
+            --slot-bg: #2d3436;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        
+        #app {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 16px;
+            background: var(--bg-secondary);
+            border-bottom: 2px solid var(--accent);
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .level-badge {
+            background: var(--accent);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .bolts {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(243, 156, 18, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            color: var(--accent2);
+            font-weight: bold;
+        }
+        
+        .header-right {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-card);
+            color: var(--text);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s, background 0.2s;
+        }
+        
+        .icon-btn:hover { background: var(--accent); transform: scale(1.1); }
+        .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .icon-btn .count {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--accent2);
+            color: #000;
+            font-size: 0.65rem;
+            padding: 2px 5px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        .icon-btn { position: relative; }
+        
+        /* Game Area */
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            overflow: hidden;
+        }
+        
+        /* Board */
+        .board {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: center;
+            gap: 8px;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            margin-bottom: 12px;
+            min-height: 200px;
+        }
+        
+        /* Screw */
+        .screw {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+            position: relative;
+            background: radial-gradient(circle at 30% 30%, #fff 0%, var(--screw-color) 40%, #333 100%);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.4), inset 0 2px 4px rgba(255,255,255,0.2);
+        }
+        
+        .screw:hover:not(.locked):not(.moving) { transform: scale(1.1); }
+        .screw:active:not(.locked):not(.moving) { transform: scale(0.95); }
+        
+        .screw.moving {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 100;
+            pointer-events: none;
+        }
+        
+        .screw.rotating {
+            animation: screwRotate 0.4s ease-out;
+        }
+        
+        @keyframes screwRotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .screw.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .screw.locked::after {
+            content: '🔒';
+            position: absolute;
+            font-size: 0.8rem;
+            bottom: -5px;
+            right: -5px;
+        }
+        
+        .screw.rusty {
+            filter: sepia(0.6) saturate(0.7);
+        }
+        
+        .screw.rusty::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: repeating-conic-gradient(from 0deg, transparent 0deg 10deg, rgba(139, 69, 19, 0.3) 10deg 20deg);
+        }
+        
+        .screw.chained::after {
+            content: '⛓️';
+            position: absolute;
+            font-size: 0.7rem;
+            top: -5px;
+            right: -5px;
+        }
+        
+        /* Screw head pattern */
+        .screw-head {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .screw-head::before, .screw-head::after {
+            content: '';
+            position: absolute;
+            background: rgba(0,0,0,0.4);
+            border-radius: 2px;
+        }
+        
+        .screw-head::before {
+            width: 60%;
+            height: 4px;
+        }
+        
+        .screw-head::after {
+            width: 4px;
+            height: 60%;
+        }
+        
+        /* Slots */
+        .slots-area {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+        }
+        
+        .slot {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: var(--slot-bg);
+            border: 3px dashed var(--slot-color, #555);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s;
+        }
+        
+        .slot.filled {
+            border-style: solid;
+        }
+        
+        .slot .slot-count {
+            position: absolute;
+            bottom: -8px;
+            background: var(--slot-color);
+            color: #000;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        
+        .slot.complete {
+            animation: slotComplete 0.5s ease-out;
+            border-color: var(--success);
+        }
+        
+        @keyframes slotComplete {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 0; }
+        }
+        
+        /* Screens */
+        .screen {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .screen h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .screen h2 {
+            font-size: 1.3rem;
+            color: var(--accent2);
+            margin-bottom: 20px;
+        }
+        
+        .screen p {
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .btn {
+            padding: 14px 36px;
+            border: none;
+            border-radius: 30px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin: 8px;
+        }
+        
+        .btn:hover { transform: scale(1.05); }
+        .btn:active { transform: scale(0.95); }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #c0392b);
+            color: white;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text);
+            border: 2px solid var(--accent);
+        }
+        
+        .btn-factory {
+            background: linear-gradient(135deg, var(--accent2), #e67e22);
+            color: #000;
+        }
+        
+        /* Menu Screen */
+        .menu-title {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+        
+        .menu-subtitle {
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+        
+        /* Win Screen */
+        .win-stats {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-box {
+            background: var(--bg-card);
+            padding: 16px 24px;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-box .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--accent2);
+        }
+        
+        .stat-box .label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+        
+        /* Factory Screen */
+        .factory-container {
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .factory-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .factory-bolts {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(243, 156, 18, 0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+            color: var(--accent2);
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        .buildings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .building-card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .building-card.locked {
+            opacity: 0.5;
+            filter: grayscale(0.8);
+        }
+        
+        .building-card.unlocked {
+            border-color: var(--accent2);
+        }
+        
+        .building-card .icon {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+        
+        .building-card .name {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .building-card .desc {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        
+        .building-card .level-req {
+            font-size: 0.7rem;
+            color: var(--accent);
+        }
+        
+        .building-card .upgrade-btn {
+            margin-top: 8px;
+            padding: 6px 12px;
+            border: none;
+            border-radius: 15px;
+            background: var(--accent2);
+            color: #000;
+            font-weight: bold;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        
+        .building-card .upgrade-btn:disabled {
+            background: #555;
+            color: #888;
+            cursor: not-allowed;
+        }
+        
+        .idle-income {
+            text-align: center;
+            padding: 12px;
+            background: var(--bg-card);
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .idle-income .rate {
+            color: var(--success);
+            font-weight: bold;
+        }
+        
+        /* Combo indicator */
+        .combo-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent2);
+            text-shadow: 0 0 20px var(--accent2);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 500;
+        }
+        
+        .combo-indicator.show {
+            animation: comboPop 0.8s ease-out forwards;
+        }
+        
+        @keyframes comboPop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+            30% { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+            100% { opacity: 0; transform: translate(-50%, -70%) scale(1); }
+        }
+        
+        /* Tutorial */
+        .tutorial-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .tutorial-overlay h2 {
+            color: var(--accent2);
+            margin-bottom: 20px;
+        }
+        
+        .tutorial-overlay p {
+            max-width: 300px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .tutorial-hand {
+            font-size: 3rem;
+            animation: tutorialTap 1s ease-in-out infinite;
+        }
+        
+        @keyframes tutorialTap {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        
+        /* Back button */
+        .back-home {
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            z-index: 100;
+            text-decoration: none;
+            background: var(--bg-card);
+            color: var(--text);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+        
+        .back-home:hover { background: var(--accent); }
+        
+        /* Responsive */
+        @media (max-width: 400px) {
+            .screw { width: 42px; height: 42px; font-size: 1.5rem; }
+            .slot { width: 48px; height: 48px; }
+            .header { padding: 8px 12px; }
+            .level-badge { padding: 4px 10px; font-size: 0.8rem; }
+            .bolts { padding: 4px 10px; font-size: 0.85rem; }
+            .icon-btn { width: 36px; height: 36px; font-size: 1rem; }
+        }
+        
+        @media (min-width: 600px) {
+            .board { max-width: 500px; margin: 0 auto 12px; }
+            .slots-area { max-width: 400px; margin: 0 auto; }
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <a href="../" class="back-home">← 게임 목록</a>
+        
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="level-badge">Lv.<span id="levelNum">1</span></div>
+                <div class="bolts">🔩 <span id="boltsCount">0</span></div>
+            </div>
+            <div class="header-right">
+                <button class="icon-btn" id="undoBtn" title="되돌리기">
+                    ↩️
+                    <span class="count" id="undoCount">3</span>
+                </button>
+                <button class="icon-btn" id="hintBtn" title="힌트">
+                    💡
+                    <span class="count" id="hintCount">3</span>
+                </button>
+                <button class="icon-btn" id="factoryBtn" title="팩토리">🏭</button>
+                <button class="icon-btn" id="settingsBtn" title="설정">⚙️</button>
+            </div>
+        </header>
+        
+        <!-- Game Area -->
+        <main class="game-area">
+            <div class="board" id="board"></div>
+            <div class="slots-area" id="slotsArea"></div>
+        </main>
+        
+        <!-- Combo Indicator -->
+        <div class="combo-indicator" id="comboIndicator"></div>
+    </div>
+    
+    <!-- Menu Screen -->
+    <div class="screen" id="menuScreen">
+        <div class="menu-title">🔩</div>
+        <h1>Screw Sort Factory</h1>
+        <p class="menu-subtitle">나사를 색상별로 정리하세요!</p>
+        <button class="btn btn-primary" id="playBtn">▶️ 플레이</button>
+        <button class="btn btn-factory" id="menuFactoryBtn">🏭 팩토리</button>
+    </div>
+    
+    <!-- Win Screen -->
+    <div class="screen" id="winScreen">
+        <h1>🎉 클리어!</h1>
+        <h2>레벨 <span id="winLevel">1</span> 완료</h2>
+        <div class="win-stats">
+            <div class="stat-box">
+                <div class="value" id="winBolts">+10</div>
+                <div class="label">볼트 획득</div>
+            </div>
+            <div class="stat-box">
+                <div class="value" id="winMoves">12</div>
+                <div class="label">이동 횟수</div>
+            </div>
+        </div>
+        <div id="perfectBonus" style="display:none; color: var(--accent2); margin-bottom: 16px;">
+            ⭐ 퍼펙트 클리어! 보너스 x2
+        </div>
+        <button class="btn btn-primary" id="nextLevelBtn">다음 레벨 →</button>
+        <button class="btn btn-secondary" id="winFactoryBtn">🏭 팩토리</button>
+    </div>
+    
+    <!-- Factory Screen -->
+    <div class="screen" id="factoryScreen">
+        <div class="factory-container">
+            <div class="factory-header">
+                <h1>🏭 나의 팩토리</h1>
+                <div class="factory-bolts">🔩 <span id="factoryBolts">0</span></div>
+            </div>
+            
+            <div class="idle-income">
+                자동 수입: <span class="rate" id="idleRate">+0</span> 볼트/분
+            </div>
+            
+            <div class="buildings-grid" id="buildingsGrid"></div>
+            
+            <button class="btn btn-primary" id="closeFactoryBtn">게임으로 돌아가기</button>
+        </div>
+    </div>
+    
+    <!-- Tutorial -->
+    <div class="tutorial-overlay" id="tutorialOverlay" style="display:none;">
+        <h2>🔩 게임 방법</h2>
+        <p>나사를 탭하면 같은 색상의 슬롯으로 이동합니다.<br><br>
+        슬롯에 같은 색 나사 3개가 모이면 클리어!</p>
+        <div class="tutorial-hand">👆</div>
+        <button class="btn btn-primary" id="tutorialOkBtn">알겠어요!</button>
+    </div>
+
+    <script>
+    (function() {
+        'use strict';
+        
+        // ===== BALANCE =====
+        const BALANCE = {
+            baseScrewsPerLevel: 6,
+            screwsIncreasePerLevel: 0.15,
+            colorsUnlockLevels: [1, 11, 31, 61, 81],
+            maxSlots: 5,
+            screwsPerSlot: 3,
+            
+            boltsPerLevel: 10,
+            comboMultiplier: 1.5,
+            perfectClearBonus: 2.0,
+            
+            factoryIdleRate: 1,
+            upgradeBaseCost: 50,
+            upgradeCostMultiplier: 1.8,
+            
+            lockedScrewStartLevel: 31,
+            rustyStartLevel: 45,
+            chainStartLevel: 61,
+            
+            startHints: 3,
+            startUndos: 3
+        };
+        
+        // ===== COLORS =====
+        const SCREW_COLORS = [
+            { name: 'red', hex: '#e74c3c', emoji: '🔴' },
+            { name: 'blue', hex: '#3498db', emoji: '🔵' },
+            { name: 'green', hex: '#27ae60', emoji: '🟢' },
+            { name: 'yellow', hex: '#f1c40f', emoji: '🟡' },
+            { name: 'purple', hex: '#9b59b6', emoji: '🟣' },
+            { name: 'orange', hex: '#e67e22', emoji: '🟠' }
+        ];
+        
+        // ===== BUILDINGS =====
+        const BUILDINGS = [
+            { id: 'collector', name: '나사 수집소', icon: '📦', desc: '볼트 +10%', unlockLevel: 1, bonus: 0.1 },
+            { id: 'conveyor', name: '분류 컨베이어', icon: '🏭', desc: '자동 힌트 1일 1회', unlockLevel: 21, bonus: 1 },
+            { id: 'assembly', name: '조립 라인', icon: '⚙️', desc: '콤보 보너스 +20%', unlockLevel: 41, bonus: 0.2 },
+            { id: 'robot', name: '로봇 팔', icon: '🤖', desc: '되돌리기 +2/일', unlockLevel: 61, bonus: 2 },
+            { id: 'spacedock', name: '우주선 독', icon: '🚀', desc: '모든 보너스 2배', unlockLevel: 81, bonus: 2 }
+        ];
+        
+        // ===== STATE =====
+        let state = {
+            level: 1,
+            bolts: 0,
+            hints: BALANCE.startHints,
+            undos: BALANCE.startUndos,
+            moves: 0,
+            usedHint: false,
+            combo: 0,
+            
+            screws: [],
+            slots: [],
+            history: [],
+            
+            buildings: {},
+            lastIdleCollect: Date.now(),
+            
+            tutorialShown: false
+        };
+        
+        // ===== DOM =====
+        const $ = id => document.getElementById(id);
+        const board = $('board');
+        const slotsArea = $('slotsArea');
+        const levelNum = $('levelNum');
+        const boltsCount = $('boltsCount');
+        const undoCount = $('undoCount');
+        const hintCount = $('hintCount');
+        const comboIndicator = $('comboIndicator');
+        
+        const menuScreen = $('menuScreen');
+        const winScreen = $('winScreen');
+        const factoryScreen = $('factoryScreen');
+        const tutorialOverlay = $('tutorialOverlay');
+        
+        // ===== SAVE/LOAD =====
+        function saveGame() {
+            const saveData = {
+                level: state.level,
+                bolts: state.bolts,
+                hints: state.hints,
+                undos: state.undos,
+                buildings: state.buildings,
+                lastIdleCollect: state.lastIdleCollect,
+                tutorialShown: state.tutorialShown
+            };
+            localStorage.setItem('screwSortFactory', JSON.stringify(saveData));
+        }
+        
+        function loadGame() {
+            try {
+                const data = JSON.parse(localStorage.getItem('screwSortFactory'));
+                if (data) {
+                    state.level = data.level || 1;
+                    state.bolts = data.bolts || 0;
+                    state.hints = data.hints ?? BALANCE.startHints;
+                    state.undos = data.undos ?? BALANCE.startUndos;
+                    state.buildings = data.buildings || {};
+                    state.lastIdleCollect = data.lastIdleCollect || Date.now();
+                    state.tutorialShown = data.tutorialShown || false;
+                }
+            } catch(e) {}
+        }
+        
+        // ===== LEVEL GENERATION =====
+        function getNumColors(level) {
+            let colors = 2;
+            for (let i = 1; i < BALANCE.colorsUnlockLevels.length; i++) {
+                if (level >= BALANCE.colorsUnlockLevels[i]) colors = i + 2;
+            }
+            return Math.min(colors, 6);
+        }
+        
+        function getNumScrews(level) {
+            const base = BALANCE.baseScrewsPerLevel;
+            const increase = Math.floor(level * BALANCE.screwsIncreasePerLevel);
+            return Math.min(base + increase, 24);
+        }
+        
+        function generateLevel(level) {
+            const numColors = getNumColors(level);
+            const numSlots = Math.min(numColors + 1, BALANCE.maxSlots);
+            const screwsPerColor = BALANCE.screwsPerSlot;
+            
+            // Create screws
+            const screws = [];
+            const colors = SCREW_COLORS.slice(0, numColors);
+            
+            colors.forEach((color, colorIndex) => {
+                for (let i = 0; i < screwsPerColor; i++) {
+                    const screw = {
+                        id: screws.length,
+                        colorIndex,
+                        color: color.hex,
+                        colorName: color.name,
+                        state: 'normal' // normal, locked, rusty, chained
+                    };
+                    
+                    // Special screws
+                    if (level >= BALANCE.lockedScrewStartLevel && Math.random() < 0.15) {
+                        screw.state = 'locked';
+                        screw.lockDependency = null; // Will be set later
+                    } else if (level >= BALANCE.rustyStartLevel && Math.random() < 0.1) {
+                        screw.state = 'rusty';
+                        screw.rustyTaps = 2;
+                    } else if (level >= BALANCE.chainStartLevel && Math.random() < 0.1) {
+                        screw.state = 'chained';
+                        screw.chainId = Math.floor(Math.random() * 3);
+                    }
+                    
+                    screws.push(screw);
+                }
+            });
+            
+            // Shuffle screws
+            for (let i = screws.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [screws[i], screws[j]] = [screws[j], screws[i]];
+            }
+            
+            // Set lock dependencies
+            const lockedScrews = screws.filter(s => s.state === 'locked');
+            const normalScrews = screws.filter(s => s.state === 'normal');
+            lockedScrews.forEach(locked => {
+                if (normalScrews.length > 0) {
+                    const dep = normalScrews[Math.floor(Math.random() * normalScrews.length)];
+                    locked.lockDependency = dep.id;
+                }
+            });
+            
+            // Create slots
+            const slots = colors.map((color, i) => ({
+                colorIndex: i,
+                color: color.hex,
+                colorName: color.name,
+                screws: [],
+                complete: false
+            }));
+            
+            return { screws, slots, numSlots };
+        }
+        
+        // ===== RENDERING =====
+        function renderBoard() {
+            board.innerHTML = '';
+            
+            state.screws.forEach((screw, index) => {
+                if (screw.inSlot) return;
+                
+                const el = document.createElement('div');
+                el.className = 'screw';
+                el.dataset.id = screw.id;
+                el.style.setProperty('--screw-color', screw.color);
+                el.style.background = `radial-gradient(circle at 30% 30%, #fff 0%, ${screw.color} 40%, #333 100%)`;
+                
+                if (screw.state === 'locked') el.classList.add('locked');
+                if (screw.state === 'rusty') el.classList.add('rusty');
+                if (screw.state === 'chained') el.classList.add('chained');
+                
+                el.innerHTML = '<div class="screw-head"></div>';
+                
+                el.addEventListener('click', () => handleScrewClick(screw));
+                el.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    handleScrewClick(screw);
+                }, { passive: false });
+                
+                board.appendChild(el);
+            });
+        }
+        
+        function renderSlots() {
+            slotsArea.innerHTML = '';
+            
+            state.slots.forEach((slot, index) => {
+                const el = document.createElement('div');
+                el.className = 'slot';
+                el.style.setProperty('--slot-color', slot.color);
+                el.style.borderColor = slot.color;
+                
+                if (slot.screws.length > 0) el.classList.add('filled');
+                
+                const count = document.createElement('div');
+                count.className = 'slot-count';
+                count.textContent = `${slot.screws.length}/${BALANCE.screwsPerSlot}`;
+                el.appendChild(count);
+                
+                slotsArea.appendChild(el);
+            });
+        }
+        
+        function updateUI() {
+            levelNum.textContent = state.level;
+            boltsCount.textContent = state.bolts;
+            undoCount.textContent = state.undos;
+            hintCount.textContent = state.hints;
+            
+            $('undoBtn').disabled = state.undos <= 0 || state.history.length === 0;
+            $('hintBtn').disabled = state.hints <= 0;
+        }
+        
+        // ===== GAME LOGIC =====
+        function handleScrewClick(screw) {
+            if (screw.inSlot) return;
+            
+            // Check locked
+            if (screw.state === 'locked') {
+                const dep = state.screws.find(s => s.id === screw.lockDependency);
+                if (dep && !dep.inSlot) {
+                    showMessage('🔒 먼저 다른 나사를 제거하세요!');
+                    return;
+                }
+                screw.state = 'normal';
+            }
+            
+            // Check rusty
+            if (screw.state === 'rusty') {
+                screw.rustyTaps--;
+                if (screw.rustyTaps > 0) {
+                    showMessage('🔧 녹 제거 중... 한 번 더!');
+                    const el = document.querySelector(`[data-id="${screw.id}"]`);
+                    if (el) {
+                        el.style.filter = 'sepia(0.3) saturate(0.85)';
+                    }
+                    return;
+                }
+                screw.state = 'normal';
+            }
+            
+            // Check chained
+            if (screw.state === 'chained') {
+                const chainedScrews = state.screws.filter(s => 
+                    s.state === 'chained' && s.chainId === screw.chainId && !s.inSlot
+                );
+                if (chainedScrews.length > 1) {
+                    showMessage('⛓️ 체인으로 연결된 나사입니다!');
+                    return;
+                }
+                screw.state = 'normal';
+            }
+            
+            // Find matching slot
+            const slot = state.slots.find(s => s.colorIndex === screw.colorIndex && !s.complete);
+            if (!slot) {
+                showMessage('❌ 일치하는 슬롯이 없습니다!');
+                return;
+            }
+            
+            // Save history
+            state.history.push({
+                screwId: screw.id,
+                slotIndex: state.slots.indexOf(slot)
+            });
+            
+            // Animate screw to slot
+            animateScrewToSlot(screw, slot);
+        }
+        
+        function animateScrewToSlot(screw, slot) {
+            const screwEl = document.querySelector(`[data-id="${screw.id}"]`);
+            const slotEl = slotsArea.children[state.slots.indexOf(slot)];
+            
+            if (!screwEl || !slotEl) return;
+            
+            const screwRect = screwEl.getBoundingClientRect();
+            const slotRect = slotEl.getBoundingClientRect();
+            
+            screwEl.classList.add('moving', 'rotating');
+            screwEl.style.position = 'fixed';
+            screwEl.style.left = screwRect.left + 'px';
+            screwEl.style.top = screwRect.top + 'px';
+            screwEl.style.zIndex = '100';
+            
+            requestAnimationFrame(() => {
+                screwEl.style.left = (slotRect.left + slotRect.width/2 - screwRect.width/2) + 'px';
+                screwEl.style.top = (slotRect.top + slotRect.height/2 - screwRect.height/2) + 'px';
+            });
+            
+            setTimeout(() => {
+                screw.inSlot = true;
+                slot.screws.push(screw);
+                state.moves++;
+                
+                renderBoard();
+                renderSlots();
+                updateUI();
+                
+                // Check slot completion
+                if (slot.screws.length >= BALANCE.screwsPerSlot) {
+                    completeSlot(slot);
+                }
+            }, 400);
+        }
+        
+        function completeSlot(slot) {
+            slot.complete = true;
+            state.combo++;
+            
+            // Show combo
+            if (state.combo > 1) {
+                showCombo(state.combo);
+            }
+            
+            // Check win
+            const allComplete = state.slots.every(s => s.complete);
+            if (allComplete) {
+                setTimeout(() => winLevel(), 500);
+            }
+            
+            // Unlock locked screws dependent on this slot's screws
+            slot.screws.forEach(s => {
+                state.screws.forEach(other => {
+                    if (other.state === 'locked' && other.lockDependency === s.id) {
+                        other.state = 'normal';
+                    }
+                });
+            });
+            
+            // Unchain screws
+            slot.screws.forEach(s => {
+                if (s.chainId !== undefined) {
+                    state.screws.forEach(other => {
+                        if (other.chainId === s.chainId) {
+                            other.state = 'normal';
+                        }
+                    });
+                }
+            });
+            
+            renderBoard();
+        }
+        
+        function showCombo(combo) {
+            comboIndicator.textContent = `🔥 ${combo}x 콤보!`;
+            comboIndicator.classList.remove('show');
+            void comboIndicator.offsetWidth;
+            comboIndicator.classList.add('show');
+        }
+        
+        function showMessage(msg) {
+            comboIndicator.textContent = msg;
+            comboIndicator.classList.remove('show');
+            void comboIndicator.offsetWidth;
+            comboIndicator.classList.add('show');
+        }
+        
+        // ===== WIN =====
+        function winLevel() {
+            let boltsEarned = BALANCE.boltsPerLevel;
+            
+            // Combo bonus
+            if (state.combo > 1) {
+                boltsEarned = Math.floor(boltsEarned * (1 + (state.combo - 1) * 0.1));
+            }
+            
+            // Perfect clear
+            const isPerfect = !state.usedHint;
+            if (isPerfect) {
+                boltsEarned = Math.floor(boltsEarned * BALANCE.perfectClearBonus);
+            }
+            
+            // Building bonuses
+            if (state.buildings.collector) {
+                boltsEarned = Math.floor(boltsEarned * (1 + BUILDINGS[0].bonus * state.buildings.collector));
+            }
+            if (state.buildings.spacedock) {
+                boltsEarned *= BUILDINGS[4].bonus;
+            }
+            
+            state.bolts += boltsEarned;
+            state.level++;
+            
+            // Update win screen
+            $('winLevel').textContent = state.level - 1;
+            $('winBolts').textContent = `+${boltsEarned}`;
+            $('winMoves').textContent = state.moves;
+            $('perfectBonus').style.display = isPerfect ? 'block' : 'none';
+            
+            saveGame();
+            showScreen(winScreen);
+        }
+        
+        // ===== UNDO =====
+        function undo() {
+            if (state.undos <= 0 || state.history.length === 0) return;
+            
+            const last = state.history.pop();
+            const screw = state.screws.find(s => s.id === last.screwId);
+            const slot = state.slots[last.slotIndex];
+            
+            if (screw && slot) {
+                screw.inSlot = false;
+                slot.screws = slot.screws.filter(s => s.id !== screw.id);
+                slot.complete = false;
+                state.undos--;
+                state.moves--;
+                state.combo = 0;
+                
+                renderBoard();
+                renderSlots();
+                updateUI();
+                saveGame();
+            }
+        }
+        
+        // ===== HINT =====
+        function showHint() {
+            if (state.hints <= 0) return;
+            
+            const availableScrew = state.screws.find(s => 
+                !s.inSlot && s.state === 'normal'
+            );
+            
+            if (availableScrew) {
+                const el = document.querySelector(`[data-id="${availableScrew.id}"]`);
+                if (el) {
+                    el.style.animation = 'none';
+                    void el.offsetWidth;
+                    el.style.animation = 'pulse 0.5s ease-in-out 3';
+                    
+                    state.hints--;
+                    state.usedHint = true;
+                    updateUI();
+                    saveGame();
+                }
+            }
+        }
+        
+        // ===== FACTORY =====
+        function renderFactory() {
+            $('factoryBolts').textContent = state.bolts;
+            
+            // Calculate idle income
+            let idleRate = 0;
+            Object.entries(state.buildings).forEach(([id, level]) => {
+                if (level > 0) idleRate += BALANCE.factoryIdleRate * level;
+            });
+            $('idleRate').textContent = `+${idleRate}`;
+            
+            const grid = $('buildingsGrid');
+            grid.innerHTML = '';
+            
+            BUILDINGS.forEach(building => {
+                const level = state.buildings[building.id] || 0;
+                const unlocked = state.level >= building.unlockLevel;
+                const cost = Math.floor(BALANCE.upgradeBaseCost * Math.pow(BALANCE.upgradeCostMultiplier, level));
+                const canAfford = state.bolts >= cost;
+                
+                const card = document.createElement('div');
+                card.className = `building-card ${unlocked ? 'unlocked' : 'locked'}`;
+                card.innerHTML = `
+                    <div class="icon">${building.icon}</div>
+                    <div class="name">${building.name}</div>
+                    <div class="desc">${building.desc}</div>
+                    ${!unlocked ? 
+                        `<div class="level-req">레벨 ${building.unlockLevel} 필요</div>` :
+                        `<div class="level-req">Lv.${level}</div>
+                         <button class="upgrade-btn" ${!canAfford ? 'disabled' : ''}>
+                            업그레이드 (${cost}🔩)
+                         </button>`
+                    }
+                `;
+                
+                if (unlocked) {
+                    const btn = card.querySelector('.upgrade-btn');
+                    btn.addEventListener('click', () => {
+                        if (state.bolts >= cost) {
+                            state.bolts -= cost;
+                            state.buildings[building.id] = (state.buildings[building.id] || 0) + 1;
+                            saveGame();
+                            renderFactory();
+                        }
+                    });
+                }
+                
+                grid.appendChild(card);
+            });
+        }
+        
+        function collectIdleIncome() {
+            const now = Date.now();
+            const minutes = (now - state.lastIdleCollect) / 60000;
+            
+            let idleRate = 0;
+            Object.entries(state.buildings).forEach(([id, level]) => {
+                if (level > 0) idleRate += BALANCE.factoryIdleRate * level;
+            });
+            
+            const earned = Math.floor(minutes * idleRate);
+            if (earned > 0) {
+                state.bolts += earned;
+                state.lastIdleCollect = now;
+                saveGame();
+            }
+        }
+        
+        // ===== SCREENS =====
+        function showScreen(screen) {
+            [menuScreen, winScreen, factoryScreen].forEach(s => s.classList.remove('active'));
+            if (screen) screen.classList.add('active');
+        }
+        
+        function startLevel() {
+            const { screws, slots } = generateLevel(state.level);
+            state.screws = screws;
+            state.slots = slots;
+            state.history = [];
+            state.moves = 0;
+            state.usedHint = false;
+            state.combo = 0;
+            
+            renderBoard();
+            renderSlots();
+            updateUI();
+            showScreen(null);
+            
+            // Show tutorial for first time
+            if (!state.tutorialShown && state.level === 1) {
+                tutorialOverlay.style.display = 'flex';
+            }
+        }
+        
+        // ===== EVENT LISTENERS =====
+        $('playBtn').addEventListener('click', startLevel);
+        $('menuFactoryBtn').addEventListener('click', () => {
+            renderFactory();
+            showScreen(factoryScreen);
+        });
+        $('nextLevelBtn').addEventListener('click', startLevel);
+        $('winFactoryBtn').addEventListener('click', () => {
+            renderFactory();
+            showScreen(factoryScreen);
+        });
+        $('factoryBtn').addEventListener('click', () => {
+            renderFactory();
+            showScreen(factoryScreen);
+        });
+        $('closeFactoryBtn').addEventListener('click', () => showScreen(null));
+        $('undoBtn').addEventListener('click', undo);
+        $('hintBtn').addEventListener('click', showHint);
+        $('settingsBtn').addEventListener('click', () => {
+            if (confirm('진행 상황을 초기화할까요?')) {
+                localStorage.removeItem('screwSortFactory');
+                location.reload();
+            }
+        });
+        $('tutorialOkBtn').addEventListener('click', () => {
+            tutorialOverlay.style.display = 'none';
+            state.tutorialShown = true;
+            saveGame();
+        });
+        
+        // ===== INIT =====
+        loadGame();
+        collectIdleIncome();
+        updateUI();
+        showScreen(menuScreen);
+        
+        // Add pulse animation for hints
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pulse {
+                0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.7); }
+                50% { transform: scale(1.15); box-shadow: 0 0 20px 10px rgba(233, 69, 96, 0); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+    })();
+    </script>
+</body>
+</html>

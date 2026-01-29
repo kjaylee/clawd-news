@@ -1,5 +1,10 @@
 # HEARTBEAT.md
 
+## 서브에이전트 감독 (매 heartbeat)
+1. `sessions_list` 실행 — 활성 서브에이전트 확인
+2. 정지/에러 발생 시 → 즉시 주인님께 보고
+3. 완료된 작업 → `memory/subagent-log.md` 업데이트
+
 ## 용량 체크 (매 heartbeat)
 1. 로그 용량 확인: `du -sh /tmp/clawdbot/`
 2. 100MB 초과 시 → 3일 이상 된 로그 삭제

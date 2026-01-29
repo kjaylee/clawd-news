@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Crystal Match Quest</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a;font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;color:#fff;touch-action:none;user-select:none;-webkit-user-select:none;}
+canvas{display:block;margin:0 auto;}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+'use strict';
+const C=document.getElementById('c'),X=C.getContext('2d');
+let W,H,CELL,BOARD_X,BOARD_Y,BOARD_SIZE;
+const COLS=8,ROWS=8,GEM_TYPES=6;
+const GEM_COLORS=['#ff4466','#4488ff','#44dd66','#ffdd44','#bb44ff','#ff8844'];
+const GEM_NAMES=['Ruby','Sapphire','Emerald','Topaz','Amethyst','Citrine'];
+const GEM_SHAPES=['diamond','circle','hexagon','star','triangle','square'];
+
+// Balance parameters from spec
+const SCORE_3=30,SCORE_4=80,SCORE_5=150;
+const CRYSTAL_MULT=[1,2,3,5]; // [normal, tier1, tier2, tier3]
+const COMBO_MULT=[1,1,1.5,2.0,2.5]; // index = combo count, 4+ = 2.5
+
+// Game states
+const ST_MENU=0,ST_LEVEL_MAP=1,ST_PLAYING=2,ST_RESULT=3,ST_ENDLESS=4;
+let state=ST_MENU;
+
+// Game data
+let board=[],animating=false,selectedCell=null,swapFrom=null,swapTo=null;
+let score=0,movesLeft=0,combo=0,maxCombo=0,totalMoves=0;
+let currentLevel=0,levelGoal=null,levelComplete=false,levelFailed=false;
+let particles=[],floatingTexts=[],screenShake=0;
+let levelStars={}; // levelNum -> stars (1-3)
+let maxLevelUnlocked=1;
+let endlessHighScore=0;
+
+// Animation state
+let swapAnim=null,fallAnims=[],matchAnims=[],crystalAnims=[];
+let animTime=0,lastTime=0;
+
+// Input
+let touchStart=null,touchCurrent=null,isDragging=false;
+
+// Seeded RNG
+function seededRNG(seed){let s=seed;return()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};}
+let rng=Math.random;
+
+// --- RESIZE ---
+function resize(){
+    const dpr=window.devicePixelRatio||1;
+    W=window.innerWidth;H=window.innerHeight;
+    C.width=W*dpr;C.height=H*dpr;
+    C.style.width=W+'px';C.style.height=H+'px';
+    X.setTransform(dpr,0,0,dpr,0,0);
+    CELL=Math.min(Math.floor((W-20)/COLS),Math.floor((H-160)/ROWS),60);
+    BOARD_SIZE=CELL*COLS;
+    BOARD_X=(W-BOARD_SIZE)/2;
+    BOARD_Y=100;
+}
+window.addEventListener('resize',resize);
+resize();
+
+// --- LEVEL GENERATION ---
+function generateLevel(num){
+    const r=seededRNG(num*7919+1337);
+    const moves=Math.max(15,25-Math.floor(num/10));
+    let goal;
+    const goalType=Math.floor(r()*3);
+    if(num<=10){
+        // Tutorial: score goal
+        goal={type:'score',target:300+num*100,desc:`${300+num*100}점 달성`};
+    } else if(num<=30){
+        if(goalType===0){
+            const color=Math.floor(r()*GEM_TYPES);
+            const count=10+Math.floor(r()*10);
+            goal={type:'clearColor',color,target:count,desc:`${GEM_NAMES[color]} ${count}개 제거`};
+        } else if(goalType===1){
+            goal={type:'crystals',target:2+Math.floor(num/10),desc:`크리스탈 ${2+Math.floor(num/10)}개 생성`};
+        } else {
+            goal={type:'score',target:500+num*80,desc:`${500+num*80}점 달성`};
+        }
+    } else {
+        if(goalType===0){
+            const color=Math.floor(r()*GEM_TYPES);
+            const count=15+Math.floor(r()*15);
+            goal={type:'clearColor',color,target:count,desc:`${GEM_NAMES[color]} ${count}개 제거`};
+        } else if(goalType===1){
+            goal={type:'crystals',target:3+Math.floor(num/15),desc:`크리스탈 ${3+Math.floor(num/15)}개 생성`};
+        } else {
+            goal={type:'score',target:800+num*100,desc:`${800+num*100}점 달성`};
+        }
+    }
+    // Star thresholds
+    const baseScore=goal.type==='score'?goal.target:500+num*50;
+    return{
+        num,moves,goal,
+        starThresholds:[baseScore,Math.floor(baseScore*1.5),Math.floor(baseScore*2)]
+    };
+}
+
+// --- BOARD ---
+function createCell(type,tier=0){
+    return{type,tier,// 0=normal gem, tier 1-3 = crystal
+        x:0,y:0,targetX:0,targetY:0,scale:1,alpha:1,
+        removing:false,sparkle:Math.random()*Math.PI*2};
+}
+
+function initBoard(levelNum){
+    const r=levelNum?seededRNG(levelNum*31337):Math.random;
+    board=[];
+    for(let row=0;row<ROWS;row++){
+        board[row]=[];
+        for(let col=0;col<COLS;col++){
+            let type;
+            do{
+                type=Math.floor((levelNum?r():Math.random())*GEM_TYPES);
+            }while(wouldMatch(row,col,type));
+            const cell=createCell(type);
+            cell.x=col;cell.y=row;cell.targetX=col;cell.targetY=row;
+            board[row][col]=cell;
+        }
+    }
+}
+
+function wouldMatch(row,col,type){
+    // Check horizontal
+    if(col>=2&&board[row][col-1]&&board[row][col-2]&&
+       board[row][col-1].type===type&&board[row][col-2].type===type)return true;
+    // Check vertical
+    if(row>=2&&board[row-1]&&board[row-2]&&
+       board[row-1][col]&&board[row-2][col]&&
+       board[row-1][col].type===type&&board[row-2][col].type===type)return true;
+    return false;
+}
+
+// --- MATCHING ---
+function findMatches(){
+    const matched=new Set();
+    const matchGroups=[];
+    
+    // Horizontal
+    for(let r=0;r<ROWS;r++){
+        let run=[{r,c:0}];
+        for(let c=1;c<COLS;c++){
+            if(board[r][c]&&board[r][c-1]&&board[r][c].type===board[r][c-1].type&&
+               board[r][c].tier===board[r][c-1].tier){
+                run.push({r,c});
+            }else{
+                if(run.length>=3)matchGroups.push([...run]);
+                run=[{r,c}];
+            }
+        }
+        if(run.length>=3)matchGroups.push([...run]);
+    }
+    // Vertical
+    for(let c=0;c<COLS;c++){
+        let run=[{r:0,c}];
+        for(let r=1;r<ROWS;r++){
+            if(board[r][c]&&board[r-1][c]&&board[r][c].type===board[r-1][c].type&&
+               board[r][c].tier===board[r-1][c].tier){
+                run.push({r,c});
+            }else{
+                if(run.length>=3)matchGroups.push([...run]);
+                run=[{r,c}];
+            }
+        }
+        if(run.length>=3)matchGroups.push([...run]);
+    }
+    
+    // Detect L/T shapes by finding intersections
+    const cellGroups={}; // "r,c" -> [groupIdx...]
+    matchGroups.forEach((g,i)=>{
+        g.forEach(p=>{
+            const k=p.r+','+p.c;
+            if(!cellGroups[k])cellGroups[k]=[];
+            cellGroups[k].push(i);
+        });
+    });
+    
+    // Merge intersecting groups
+    const merged=[];
+    const used=new Set();
+    for(let i=0;i<matchGroups.length;i++){
+        if(used.has(i))continue;
+        let group=new Set(matchGroups[i].map(p=>p.r+','+p.c));
+        let queue=[i];used.add(i);
+        while(queue.length){
+            const gi=queue.shift();
+            matchGroups[gi].forEach(p=>{
+                const k=p.r+','+p.c;
+                (cellGroups[k]||[]).forEach(oi=>{
+                    if(!used.has(oi)){
+                        used.add(oi);queue.push(oi);
+                        matchGroups[oi].forEach(p2=>group.add(p2.r+','+p2.c));
+                    }
+                });
+            });
+        }
+        merged.push({
+            cells:Array.from(group).map(k=>{const[r,c]=k.split(',').map(Number);return{r,c};}),
+            isLT:group.size>=5&&matchGroups.filter((_,j)=>used.has(j)||j===i).length>=2
+        });
+    }
+    
+    return merged;
+}
+
+function checkLTShape(cells){
+    // Check if cells form an L or T shape (requires cells from both horizontal and vertical)
+    const rows=new Set(),cols=new Set();
+    cells.forEach(c=>{rows.add(c.r);cols.add(c.c);});
+    return rows.size>=2&&cols.size>=2;
+}
+
+// --- CRYSTAL EFFECTS ---
+function triggerCrystalEffect(cell,row,col){
+    const tier=cell.tier;
+    const toRemove=new Set();
+    
+    if(tier===1){
+        // Row + Column clear
+        for(let c=0;c<COLS;c++)toRemove.add(row+','+c);
+        for(let r=0;r<ROWS;r++)toRemove.add(r+','+col);
+    }else if(tier===2){
+        // 3x3 explosion
+        for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+            const nr=row+dr,nc=col+dc;
+            if(nr>=0&&nr<ROWS&&nc>=0&&nc<COLS)toRemove.add(nr+','+nc);
+        }
+    }else if(tier===3){
+        // Clear all same color
+        const color=cell.type;
+        for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+            if(board[r][c]&&board[r][c].type===color)toRemove.add(r+','+c);
+        }
+    }
+    
+    return Array.from(toRemove).map(k=>{const[r,c]=k.split(',').map(Number);return{r,c};});
+}
+
+// --- PROCESS MATCHES ---
+let goalProgress={};
+let crystalsCreated=0;
+
+function processMatches(callback){
+    const groups=findMatches();
+    if(groups.length===0){callback(false);return;}
+    
+    combo++;
+    if(combo>maxCombo)maxCombo=combo;
+    
+    let totalRemoved=[];
+    let newCrystals=[];
+    
+    groups.forEach(group=>{
+        const cells=group.cells;
+        const isLT=checkLTShape(cells);
+        const size=cells.length;
+        const cellType=board[cells[0].r][cells[0].c].type;
+        const cellTier=board[cells[0].r][cells[0].c].tier;
+        
+        // Check for crystal matches (3 crystals of same tier matched)
+        if(cellTier>0){
+            // Crystal special effect
+            const centerCell=cells[Math.floor(cells.length/2)];
+            const effect=triggerCrystalEffect(board[centerCell.r][centerCell.c],centerCell.r,centerCell.c);
+            effect.forEach(e=>{
+                if(board[e.r][e.c])totalRemoved.push(e);
+            });
+            
+            // Crystal explosion particles
+            const px=BOARD_X+(centerCell.c+0.5)*CELL;
+            const py=BOARD_Y+(centerCell.r+0.5)*CELL;
+            for(let i=0;i<30;i++){
+                const angle=Math.random()*Math.PI*2;
+                const speed=2+Math.random()*6;
+                particles.push({x:px,y:py,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
+                    life:1,color:GEM_COLORS[cellType],size:3+Math.random()*4,type:'spark'});
+            }
+            addFloatingText(px,py,cellTier===1?'💥 행/열 클리어!':cellTier===2?'💥 범위 폭발!':'💥 전체 제거!','#fff',1.2);
+        }
+        
+        // Determine crystal creation
+        let crystalTier=0;
+        if(isLT&&size>=5)crystalTier=3;
+        else if(size>=5)crystalTier=2;
+        else if(size===4)crystalTier=1;
+        
+        // Add base score
+        let baseScore=size===3?SCORE_3:size===4?SCORE_4:SCORE_5;
+        if(cellTier>0)baseScore*=CRYSTAL_MULT[cellTier];
+        const comboMult=combo>=4?COMBO_MULT[4]:COMBO_MULT[combo]||1;
+        const gained=Math.floor(baseScore*comboMult);
+        score+=gained;
+        
+        // Score popup
+        const cx=cells.reduce((s,c)=>s+c.c,0)/cells.length;
+        const cy=cells.reduce((s,c)=>s+c.r,0)/cells.length;
+        const px=BOARD_X+(cx+0.5)*CELL;
+        const py=BOARD_Y+(cy+0.5)*CELL;
+        addFloatingText(px,py,'+'+gained,GEM_COLORS[cellType],combo>1?1+combo*0.1:1);
+        
+        if(combo>1){
+            addFloatingText(px,py-25,combo+'x COMBO!','#ffdd44',1.2);
+        }
+        
+        // Track goal progress
+        cells.forEach(c=>{
+            if(board[c.r][c.c]){
+                const t=board[c.r][c.c].type;
+                if(!goalProgress.colorCleared)goalProgress.colorCleared=new Array(GEM_TYPES).fill(0);
+                goalProgress.colorCleared[t]++;
+            }
+            totalRemoved.push(c);
+        });
+        
+        // Crystal creation
+        if(crystalTier>0&&cellTier===0){
+            const centerIdx=Math.floor(cells.length/2);
+            newCrystals.push({r:cells[centerIdx].r,c:cells[centerIdx].c,type:cellType,tier:crystalTier});
+            crystalsCreated++;
+            goalProgress.crystalsCreated=(goalProgress.crystalsCreated||0)+1;
+        }
+        
+        // Particles for matched gems
+        cells.forEach(c=>{
+            const px=BOARD_X+(c.c+0.5)*CELL;
+            const py=BOARD_Y+(c.r+0.5)*CELL;
+            for(let i=0;i<8;i++){
+                const angle=Math.random()*Math.PI*2;
+                const speed=1+Math.random()*3;
+                particles.push({x:px,y:py,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
+                    life:1,color:GEM_COLORS[cellType],size:2+Math.random()*3,type:'gem'});
+            }
+        });
+    });
+    
+    // Remove matched cells
+    const removeSet=new Set(totalRemoved.map(c=>c.r+','+c.c));
+    
+    // Start remove animation
+    matchAnims=[];
+    removeSet.forEach(k=>{
+        const[r,c]=k.split(',').map(Number);
+        if(board[r][c]){
+            matchAnims.push({r,c,progress:0,cell:{...board[r][c]}});
+        }
+    });
+    
+    screenShake=Math.min(combo*2,10);
+    
+    // After animation, remove and add crystals
+    setTimeout(()=>{
+        removeSet.forEach(k=>{
+            const[r,c]=k.split(',').map(Number);
+            board[r][c]=null;
+        });
+        
+        // Place crystals
+        newCrystals.forEach(nc=>{
+            const cell=createCell(nc.type,nc.tier);
+            cell.x=nc.c;cell.y=nc.r;cell.targetX=nc.c;cell.targetY=nc.r;
+            cell.scale=0;
+            board[nc.r][nc.c]=cell;
+            crystalAnims.push({r:nc.r,c:nc.c,progress:0});
+        });
+        
+        matchAnims=[];
+        
+        // Gravity
+        applyGravity(()=>{
+            // Check cascades
+            processMatches(callback);
+        });
+    },250);
+}
+
+function applyGravity(callback){
+    let fell=false;
+    fallAnims=[];
+    
+    for(let c=0;c<COLS;c++){
+        let emptyRow=ROWS-1;
+        for(let r=ROWS-1;r>=0;r--){
+            if(board[r][c]){
+                if(r!==emptyRow){
+                    board[emptyRow][c]=board[r][c];
+                    board[r][c]=null;
+                    board[emptyRow][c].targetY=emptyRow;
+                    board[emptyRow][c].targetX=c;
+                    const fromY=board[emptyRow][c].y;
+                    board[emptyRow][c].y=fromY; // will animate
+                    fallAnims.push({r:emptyRow,c,fromY,toY:emptyRow});
+                    fell=true;
+                }
+                emptyRow--;
+            }
+        }
+        // Fill empty spots
+        for(let r=emptyRow;r>=0;r--){
+            const type=Math.floor(Math.random()*GEM_TYPES);
+            const cell=createCell(type);
+            cell.x=c;cell.y=r-(emptyRow+1); // start above board
+            cell.targetX=c;cell.targetY=r;
+            board[r][c]=cell;
+            fallAnims.push({r,c,fromY:cell.y,toY:r});
+            fell=true;
+        }
+    }
+    
+    if(fell){
+        animateFall(callback);
+    }else{
+        callback(false);
+    }
+}
+
+function animateFall(callback){
+    let startTime=performance.now();
+    const duration=300;
+    
+    function step(now){
+        const t=Math.min(1,(now-startTime)/duration);
+        const eased=1-Math.pow(1-t,3); // ease out cubic
+        
+        fallAnims.forEach(fa=>{
+            if(board[fa.r][fa.c]){
+                board[fa.r][fa.c].y=fa.fromY+(fa.toY-fa.fromY)*eased;
+            }
+        });
+        
+        if(t<1){
+            requestAnimationFrame(step);
+        }else{
+            fallAnims.forEach(fa=>{
+                if(board[fa.r][fa.c]){
+                    board[fa.r][fa.c].y=fa.toY;
+                }
+            });
+            fallAnims=[];
+            setTimeout(()=>callback(true),50);
+        }
+    }
+    requestAnimationFrame(step);
+}
+
+// --- SWAP ---
+function trySwap(r1,c1,r2,c2){
+    if(animating)return;
+    if(Math.abs(r1-r2)+Math.abs(c1-c2)!==1)return;
+    if(!board[r1][c1]||!board[r2][c2])return;
+    
+    animating=true;
+    
+    // Animate swap
+    const cellA=board[r1][c1],cellB=board[r2][c2];
+    swapAnim={r1,c1,r2,c2,progress:0,startTime:performance.now()};
+    
+    // Perform swap
+    board[r1][c1]=cellB;board[r2][c2]=cellA;
+    cellA.targetX=c2;cellA.targetY=r2;
+    cellB.targetX=c1;cellB.targetY=r1;
+    
+    // Check if valid
+    const matches=findMatches();
+    if(matches.length===0){
+        // Invalid swap - swap back after animation
+        setTimeout(()=>{
+            board[r1][c1]=cellA;board[r2][c2]=cellB;
+            cellA.targetX=c1;cellA.targetY=r1;
+            cellB.targetX=c2;cellB.targetY=r2;
+            cellA.x=c1;cellA.y=r1;
+            cellB.x=c2;cellB.y=r2;
+            swapAnim=null;
+            animating=false;
+        },300);
+        return;
+    }
+    
+    // Valid swap
+    if(state===ST_PLAYING)movesLeft--;
+    totalMoves++;
+    combo=0;
+    
+    setTimeout(()=>{
+        cellA.x=c2;cellA.y=r2;
+        cellB.x=c1;cellB.y=r1;
+        swapAnim=null;
+        
+        processMatches((hadMore)=>{
+            combo=0;
+            checkGameState();
+            animating=false;
+        });
+    },200);
+}
+
+function checkGameState(){
+    if(state===ST_PLAYING){
+        const goal=levelGoal;
+        let achieved=false;
+        
+        if(goal.type==='score'){
+            achieved=score>=goal.target;
+        }else if(goal.type==='clearColor'){
+            achieved=(goalProgress.colorCleared&&goalProgress.colorCleared[goal.color]||0)>=goal.target;
+        }else if(goal.type==='crystals'){
+            achieved=(goalProgress.crystalsCreated||0)>=goal.target;
+        }
+        
+        if(achieved&&!levelComplete){
+            levelComplete=true;
+            // Can keep playing for more stars
+        }
+        
+        if(movesLeft<=0){
+            setTimeout(()=>{
+                if(levelComplete){
+                    showResult(true);
+                }else{
+                    showResult(false);
+                }
+            },500);
+        }
+    }
+}
+
+function showResult(won){
+    state=ST_RESULT;
+    if(won){
+        const lvl=generateLevel(currentLevel);
+        let stars=1;
+        if(score>=lvl.starThresholds[1])stars=2;
+        if(score>=lvl.starThresholds[2])stars=3;
+        levelStars[currentLevel]=Math.max(levelStars[currentLevel]||0,stars);
+        if(currentLevel>=maxLevelUnlocked)maxLevelUnlocked=currentLevel+1;
+        saveProgress();
+    }
+}
+
+// --- PERSISTENCE ---
+function saveProgress(){
+    try{
+        localStorage.setItem('cmq_stars',JSON.stringify(levelStars));
+        localStorage.setItem('cmq_maxLevel',maxLevelUnlocked);
+        localStorage.setItem('cmq_endless',endlessHighScore);
+    }catch(e){}
+}
+function loadProgress(){
+    try{
+        const s=localStorage.getItem('cmq_stars');
+        if(s)levelStars=JSON.parse(s);
+        maxLevelUnlocked=parseInt(localStorage.getItem('cmq_maxLevel'))||1;
+        endlessHighScore=parseInt(localStorage.getItem('cmq_endless'))||0;
+    }catch(e){}
+}
+loadProgress();
+
+// --- CHECK POSSIBLE MOVES ---
+function hasPossibleMoves(){
+    for(let r=0;r<ROWS;r++){
+        for(let c=0;c<COLS;c++){
+            // Try swap right
+            if(c<COLS-1){
+                swap(r,c,r,c+1);
+                if(findMatches().length>0){swap(r,c,r,c+1);return true;}
+                swap(r,c,r,c+1);
+            }
+            // Try swap down
+            if(r<ROWS-1){
+                swap(r,c,r+1,c);
+                if(findMatches().length>0){swap(r,c,r+1,c);return true;}
+                swap(r,c,r+1,c);
+            }
+        }
+    }
+    return false;
+}
+function swap(r1,c1,r2,c2){
+    const t=board[r1][c1];board[r1][c1]=board[r2][c2];board[r2][c2]=t;
+}
+
+function shuffleBoard(){
+    const cells=[];
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(board[r][c])cells.push(board[r][c]);
+    for(let i=cells.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [cells[i],cells[j]]=[cells[j],cells[i]];
+    }
+    let idx=0;
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+        board[r][c]=cells[idx++];
+        board[r][c].x=c;board[r][c].y=r;
+        board[r][c].targetX=c;board[r][c].targetY=r;
+    }
+    // Ensure no matches exist and moves are possible
+    if(findMatches().length>0||!hasPossibleMoves())shuffleBoard();
+}
+
+// --- FLOATING TEXT ---
+function addFloatingText(x,y,text,color,scale=1){
+    floatingTexts.push({x,y,text,color,scale,life:1,vy:-1.5});
+}
+
+// --- START LEVEL ---
+function startLevel(num){
+    currentLevel=num;
+    const lvl=generateLevel(num);
+    movesLeft=lvl.moves;
+    levelGoal=lvl.goal;
+    score=0;combo=0;maxCombo=0;totalMoves=0;
+    levelComplete=false;levelFailed=false;
+    goalProgress={};crystalsCreated=0;
+    particles=[];floatingTexts=[];
+    initBoard(num);
+    // Ensure there are possible moves
+    if(!hasPossibleMoves())shuffleBoard();
+    state=ST_PLAYING;
+    animating=false;
+}
+
+function startEndless(){
+    currentLevel=0;
+    movesLeft=9999;
+    levelGoal={type:'endless',desc:'최고 점수 도전!'};
+    score=0;combo=0;maxCombo=0;totalMoves=0;
+    levelComplete=false;levelFailed=false;
+    goalProgress={};crystalsCreated=0;
+    particles=[];floatingTexts=[];
+    initBoard(0);
+    if(!hasPossibleMoves())shuffleBoard();
+    state=ST_ENDLESS;
+    animating=false;
+}
+
+// --- INPUT ---
+function getCellFromPos(px,py){
+    const col=Math.floor((px-BOARD_X)/CELL);
+    const row=Math.floor((py-BOARD_Y)/CELL);
+    if(col>=0&&col<COLS&&row>=0&&row<ROWS)return{r:row,c:col};
+    return null;
+}
+
+function handlePointerDown(px,py){
+    if(state===ST_MENU){handleMenuClick(px,py);return;}
+    if(state===ST_LEVEL_MAP){handleMapClick(px,py);return;}
+    if(state===ST_RESULT){handleResultClick(px,py);return;}
+    if(state!==ST_PLAYING&&state!==ST_ENDLESS)return;
+    
+    touchStart={x:px,y:py};
+    touchCurrent={x:px,y:py};
+    isDragging=true;
+    selectedCell=getCellFromPos(px,py);
+}
+
+function handlePointerMove(px,py){
+    if(!isDragging||!touchStart)return;
+    touchCurrent={x:px,y:py};
+}
+
+function handlePointerUp(px,py){
+    if(!isDragging||!touchStart)return;
+    
+    if(state===ST_PLAYING||state===ST_ENDLESS){
+        const dx=px-touchStart.x;
+        const dy=py-touchStart.y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        
+        if(dist>15&&selectedCell){
+            let dr=0,dc=0;
+            if(Math.abs(dx)>Math.abs(dy)){
+                dc=dx>0?1:-1;
+            }else{
+                dr=dy>0?1:-1;
+            }
+            const tr=selectedCell.r+dr,tc=selectedCell.c+dc;
+            if(tr>=0&&tr<ROWS&&tc>=0&&tc<COLS){
+                trySwap(selectedCell.r,selectedCell.c,tr,tc);
+            }
+        }
+    }
+    
+    isDragging=false;
+    touchStart=null;
+    touchCurrent=null;
+    selectedCell=null;
+}
+
+C.addEventListener('mousedown',e=>{e.preventDefault();handlePointerDown(e.clientX,e.clientY);});
+C.addEventListener('mousemove',e=>{e.preventDefault();handlePointerMove(e.clientX,e.clientY);});
+C.addEventListener('mouseup',e=>{e.preventDefault();handlePointerUp(e.clientX,e.clientY);});
+C.addEventListener('touchstart',e=>{e.preventDefault();const t=e.touches[0];handlePointerDown(t.clientX,t.clientY);},{passive:false});
+C.addEventListener('touchmove',e=>{e.preventDefault();const t=e.touches[0];handlePointerMove(t.clientX,t.clientY);},{passive:false});
+C.addEventListener('touchend',e=>{e.preventDefault();const t=e.changedTouches[0];handlePointerUp(t.clientX,t.clientY);},{passive:false});
+
+// --- MENU ---
+let menuButtons=[];
+function handleMenuClick(px,py){
+    menuButtons.forEach(b=>{
+        if(px>=b.x&&px<=b.x+b.w&&py>=b.y&&py<=b.y+b.h){
+            b.action();
+        }
+    });
+}
+
+let mapButtons=[];
+let mapScroll=0;
+function handleMapClick(px,py){
+    // Back button
+    if(px<80&&py<50){state=ST_MENU;return;}
+    mapButtons.forEach(b=>{
+        if(px>=b.x&&px<=b.x+b.w&&py>=b.y&&py<=b.y+b.h){
+            b.action();
+        }
+    });
+}
+
+let resultButtons=[];
+function handleResultClick(px,py){
+    resultButtons.forEach(b=>{
+        if(px>=b.x&&px<=b.x+b.w&&py>=b.y&&py<=b.y+b.h){
+            b.action();
+        }
+    });
+}
+
+// --- DRAWING ---
+function drawGem(cx,cy,size,type,tier,sparklePhase,alpha=1,scale=1){
+    X.save();
+    X.globalAlpha=alpha;
+    X.translate(cx,cy);
+    X.scale(scale,scale);
+    
+    const color=GEM_COLORS[type];
+    const s=size*0.38;
+    
+    if(tier===0){
+        // Regular gem
+        drawGemShape(0,0,s,type,color);
+    }else{
+        // Crystal - brighter, more complex
+        const glow=0.3+0.2*Math.sin(sparklePhase);
+        
+        // Outer glow
+        X.shadowColor=color;
+        X.shadowBlur=10+tier*5+glow*10;
+        
+        drawCrystalShape(0,0,s,type,tier,color);
+        
+        X.shadowBlur=0;
+        
+        // Sparkle effect
+        const sparkleCount=tier*2+1;
+        for(let i=0;i<sparkleCount;i++){
+            const angle=(sparklePhase*2+i*Math.PI*2/sparkleCount);
+            const dist=s*0.6;
+            const sx=Math.cos(angle)*dist;
+            const sy=Math.sin(angle)*dist;
+            const ss=2+Math.sin(sparklePhase*3+i)*1.5;
+            X.fillStyle='#fff';
+            X.globalAlpha=alpha*(0.5+0.5*Math.sin(sparklePhase*3+i*2));
+            X.beginPath();
+            X.arc(sx,sy,ss,0,Math.PI*2);
+            X.fill();
+        }
+    }
+    
+    X.restore();
+}
+
+function drawGemShape(cx,cy,s,type,color){
+    X.fillStyle=color;
+    X.strokeStyle='rgba(255,255,255,0.3)';
+    X.lineWidth=1.5;
+    
+    switch(GEM_SHAPES[type]){
+        case 'diamond':
+            X.beginPath();
+            X.moveTo(cx,cy-s);X.lineTo(cx+s,cy);
+            X.lineTo(cx,cy+s);X.lineTo(cx-s,cy);
+            X.closePath();X.fill();X.stroke();
+            // Inner shine
+            X.fillStyle='rgba(255,255,255,0.2)';
+            X.beginPath();
+            X.moveTo(cx,cy-s*0.5);X.lineTo(cx+s*0.3,cy);
+            X.lineTo(cx,cy+s*0.2);X.lineTo(cx-s*0.3,cy);
+            X.closePath();X.fill();
+            break;
+        case 'circle':
+            X.beginPath();X.arc(cx,cy,s,0,Math.PI*2);X.fill();X.stroke();
+            X.fillStyle='rgba(255,255,255,0.25)';
+            X.beginPath();X.arc(cx-s*0.25,cy-s*0.25,s*0.4,0,Math.PI*2);X.fill();
+            break;
+        case 'hexagon':
+            X.beginPath();
+            for(let i=0;i<6;i++){
+                const a=Math.PI/3*i-Math.PI/6;
+                X.lineTo(cx+Math.cos(a)*s,cy+Math.sin(a)*s);
+            }
+            X.closePath();X.fill();X.stroke();
+            X.fillStyle='rgba(255,255,255,0.2)';
+            X.beginPath();
+            for(let i=0;i<6;i++){
+                const a=Math.PI/3*i-Math.PI/6;
+                X.lineTo(cx+Math.cos(a)*s*0.5,cy+Math.sin(a)*s*0.5);
+            }
+            X.closePath();X.fill();
+            break;
+        case 'star':
+            X.beginPath();
+            for(let i=0;i<5;i++){
+                const a1=Math.PI*2/5*i-Math.PI/2;
+                const a2=a1+Math.PI/5;
+                X.lineTo(cx+Math.cos(a1)*s,cy+Math.sin(a1)*s);
+                X.lineTo(cx+Math.cos(a2)*s*0.45,cy+Math.sin(a2)*s*0.45);
+            }
+            X.closePath();X.fill();X.stroke();
+            break;
+        case 'triangle':
+            X.beginPath();
+            X.moveTo(cx,cy-s);
+            X.lineTo(cx+s*0.87,cy+s*0.5);
+            X.lineTo(cx-s*0.87,cy+s*0.5);
+            X.closePath();X.fill();X.stroke();
+            X.fillStyle='rgba(255,255,255,0.2)';
+            X.beginPath();
+            X.moveTo(cx,cy-s*0.4);
+            X.lineTo(cx+s*0.35,cy+s*0.2);
+            X.lineTo(cx-s*0.35,cy+s*0.2);
+            X.closePath();X.fill();
+            break;
+        case 'square':
+            const hs=s*0.8;
+            X.beginPath();
+            X.rect(cx-hs,cy-hs,hs*2,hs*2);
+            X.fill();X.stroke();
+            X.fillStyle='rgba(255,255,255,0.2)';
+            X.fillRect(cx-hs*0.5,cy-hs*0.5,hs,hs*0.5);
+            break;
+    }
+}
+
+function drawCrystalShape(cx,cy,s,type,tier,color){
+    const bright=lightenColor(color,50+tier*20);
+    
+    // Crystal body - more elaborate shape
+    X.fillStyle=bright;
+    X.strokeStyle='rgba(255,255,255,0.6)';
+    X.lineWidth=2;
+    
+    // Main crystal
+    X.beginPath();
+    X.moveTo(cx,cy-s*1.2);
+    X.lineTo(cx+s*0.5,cy-s*0.4);
+    X.lineTo(cx+s*0.8,cy+s*0.2);
+    X.lineTo(cx+s*0.3,cy+s*0.9);
+    X.lineTo(cx-s*0.3,cy+s*0.9);
+    X.lineTo(cx-s*0.8,cy+s*0.2);
+    X.lineTo(cx-s*0.5,cy-s*0.4);
+    X.closePath();
+    X.fill();X.stroke();
+    
+    // Facets
+    X.fillStyle='rgba(255,255,255,0.15)';
+    X.beginPath();
+    X.moveTo(cx,cy-s*1.2);
+    X.lineTo(cx+s*0.5,cy-s*0.4);
+    X.lineTo(cx,cy+s*0.1);
+    X.lineTo(cx-s*0.5,cy-s*0.4);
+    X.closePath();
+    X.fill();
+    
+    // Tier indicator - small gems
+    if(tier>=2){
+        X.fillStyle='#fff';
+        X.font='bold '+(s*0.5)+'px sans-serif';
+        X.textAlign='center';X.textBaseline='middle';
+        X.fillText(tier===2?'II':'III',cx,cy);
+    }
+}
+
+function lightenColor(hex,amt){
+    let r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+    r=Math.min(255,r+amt);g=Math.min(255,g+amt);b=Math.min(255,b+amt);
+    return'#'+[r,g,b].map(v=>v.toString(16).padStart(2,'0')).join('');
+}
+
+function drawBoard(time){
+    // Board background
+    X.fillStyle='rgba(20,20,50,0.9)';
+    const br=8;
+    X.beginPath();
+    X.roundRect(BOARD_X-4,BOARD_Y-4,BOARD_SIZE+8,CELL*ROWS+8,br);
+    X.fill();
+    
+    // Grid lines
+    X.strokeStyle='rgba(100,100,200,0.15)';
+    X.lineWidth=1;
+    for(let r=0;r<=ROWS;r++){
+        X.beginPath();X.moveTo(BOARD_X,BOARD_Y+r*CELL);
+        X.lineTo(BOARD_X+BOARD_SIZE,BOARD_Y+r*CELL);X.stroke();
+    }
+    for(let c=0;c<=COLS;c++){
+        X.beginPath();X.moveTo(BOARD_X+c*CELL,BOARD_Y);
+        X.lineTo(BOARD_X+c*CELL,BOARD_Y+ROWS*CELL);X.stroke();
+    }
+    
+    // Selected cell highlight
+    if(selectedCell&&isDragging){
+        X.fillStyle='rgba(255,255,255,0.15)';
+        X.fillRect(BOARD_X+selectedCell.c*CELL,BOARD_Y+selectedCell.r*CELL,CELL,CELL);
+    }
+    
+    // Gems
+    for(let r=0;r<ROWS;r++){
+        for(let c=0;c<COLS;c++){
+            const cell=board[r][c];
+            if(!cell)continue;
+            
+            // Check if being removed
+            const matchAnim=matchAnims.find(m=>m.r===r&&m.c===c);
+            let alpha=cell.alpha;
+            let scale=cell.scale;
+            
+            if(matchAnim){
+                const p=matchAnim.progress;
+                alpha=1-p;
+                scale=1+p*0.3;
+            }
+            
+            // Crystal spawn animation
+            const crystAnim=crystalAnims.find(ca=>ca.r===r&&ca.c===c);
+            if(crystAnim){
+                scale=crystAnim.progress;
+            }
+            
+            // Smooth position interpolation
+            const displayX=cell.x;
+            const displayY=cell.y;
+            
+            const cx=BOARD_X+(displayX+0.5)*CELL;
+            const cy=BOARD_Y+(displayY+0.5)*CELL;
+            
+            cell.sparkle+=0.03;
+            drawGem(cx,cy,CELL,cell.type,cell.tier,cell.sparkle,alpha,scale);
+        }
+    }
+}
+
+function drawHUD(time){
+    if(state===ST_PLAYING){
+        const lvl=generateLevel(currentLevel);
+        
+        // Top bar
+        X.fillStyle='rgba(10,10,30,0.8)';
+        X.fillRect(0,0,W,90);
+        
+        // Level
+        X.font='bold 16px sans-serif';X.fillStyle='#aaa';X.textAlign='left';
+        X.fillText('LEVEL '+currentLevel,15,25);
+        
+        // Goal
+        X.font='14px sans-serif';X.fillStyle='#ddd';
+        X.fillText('🎯 '+levelGoal.desc,15,50);
+        
+        // Goal progress
+        let progress=0;
+        if(levelGoal.type==='score')progress=Math.min(1,score/levelGoal.target);
+        else if(levelGoal.type==='clearColor')progress=Math.min(1,(goalProgress.colorCleared?goalProgress.colorCleared[levelGoal.color]:0)/levelGoal.target);
+        else if(levelGoal.type==='crystals')progress=Math.min(1,(goalProgress.crystalsCreated||0)/levelGoal.target);
+        
+        // Progress bar
+        const pbx=15,pby=60,pbw=W*0.4,pbh=10;
+        X.fillStyle='rgba(50,50,80,0.8)';
+        X.beginPath();X.roundRect(pbx,pby,pbw,pbh,5);X.fill();
+        if(progress>0){
+            const grad=X.createLinearGradient(pbx,0,pbx+pbw*progress,0);
+            grad.addColorStop(0,'#667eea');grad.addColorStop(1,'#764ba2');
+            X.fillStyle=grad;
+            X.beginPath();X.roundRect(pbx,pby,pbw*progress,pbh,5);X.fill();
+        }
+        if(levelComplete){
+            X.fillStyle='#44ff88';X.font='bold 12px sans-serif';
+            X.fillText('✓ 달성!',pbx+pbw+10,pby+10);
+        }
+        
+        // Moves
+        X.font='bold 20px sans-serif';X.fillStyle=movesLeft<=5?'#ff4466':'#fff';
+        X.textAlign='right';
+        X.fillText(movesLeft,W-15,30);
+        X.font='12px sans-serif';X.fillStyle='#aaa';
+        X.fillText('남은 이동',W-15,48);
+        
+        // Score
+        X.font='bold 18px sans-serif';X.fillStyle='#ffdd44';
+        X.textAlign='center';
+        X.fillText(score.toLocaleString(),W/2,30);
+        X.font='11px sans-serif';X.fillStyle='#aaa';
+        X.fillText('SCORE',W/2,48);
+        
+        // Star thresholds
+        const stars=lvl.starThresholds;
+        for(let i=0;i<3;i++){
+            const filled=score>=stars[i];
+            X.font='14px sans-serif';
+            X.fillStyle=filled?'#ffdd44':'#555';
+            X.fillText(filled?'★':'☆',W/2-30+i*30,70);
+        }
+        
+    }else if(state===ST_ENDLESS){
+        X.fillStyle='rgba(10,10,30,0.8)';
+        X.fillRect(0,0,W,70);
+        
+        X.font='bold 16px sans-serif';X.fillStyle='#bb44ff';X.textAlign='left';
+        X.fillText('♾ 무한 모드',15,25);
+        
+        X.font='10px sans-serif';X.fillStyle='#888';
+        X.fillText('최고: '+endlessHighScore.toLocaleString(),15,45);
+        
+        X.font='bold 22px sans-serif';X.fillStyle='#ffdd44';X.textAlign='center';
+        X.fillText(score.toLocaleString(),W/2,35);
+        X.font='11px sans-serif';X.fillStyle='#aaa';
+        X.fillText('SCORE',W/2,52);
+        
+        // Back button
+        X.font='14px sans-serif';X.fillStyle='#aaa';X.textAlign='right';
+        X.fillText('← 나가기',W-15,30);
+    }
+}
+
+function drawParticles(dt){
+    particles=particles.filter(p=>{
+        p.life-=dt*2;
+        if(p.life<=0)return false;
+        p.x+=p.vx;p.y+=p.vy;
+        p.vy+=0.1; // gravity
+        
+        X.globalAlpha=p.life;
+        X.fillStyle=p.color;
+        if(p.type==='spark'){
+            X.beginPath();
+            // Star-shaped spark
+            const a=performance.now()/200;
+            for(let i=0;i<4;i++){
+                const angle=a+i*Math.PI/2;
+                X.moveTo(p.x,p.y);
+                X.lineTo(p.x+Math.cos(angle)*p.size,p.y+Math.sin(angle)*p.size);
+            }
+            X.lineWidth=2;X.strokeStyle=p.color;X.stroke();
+        }else{
+            X.beginPath();X.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);X.fill();
+        }
+        X.globalAlpha=1;
+        return true;
+    });
+}
+
+function drawFloatingTexts(dt){
+    floatingTexts=floatingTexts.filter(ft=>{
+        ft.life-=dt*1.2;
+        if(ft.life<=0)return false;
+        ft.y+=ft.vy;
+        
+        X.globalAlpha=ft.life;
+        X.font='bold '+Math.floor(16*ft.scale)+'px sans-serif';
+        X.fillStyle=ft.color;
+        X.textAlign='center';
+        X.strokeStyle='rgba(0,0,0,0.5)';X.lineWidth=3;
+        X.strokeText(ft.text,ft.x,ft.y);
+        X.fillText(ft.text,ft.x,ft.y);
+        X.globalAlpha=1;
+        return true;
+    });
+}
+
+// --- MENU SCREEN ---
+function drawMenu(time){
+    // Background
+    const grad=X.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#0a0a2e');grad.addColorStop(1,'#1a0a3e');
+    X.fillStyle=grad;X.fillRect(0,0,W,H);
+    
+    // Animated gem background
+    const t=time/1000;
+    for(let i=0;i<15;i++){
+        const x=((Math.sin(t*0.3+i*1.7)*0.5+0.5)*W);
+        const y=((Math.cos(t*0.2+i*2.3)*0.5+0.5)*H);
+        const type=i%GEM_TYPES;
+        X.globalAlpha=0.12;
+        drawGem(x,y,50,type,0,t+i);
+        X.globalAlpha=1;
+    }
+    
+    // Title
+    X.save();
+    X.textAlign='center';
+    
+    // Title glow
+    X.shadowColor='#bb44ff';X.shadowBlur=30;
+    X.font='bold 36px sans-serif';
+    X.fillStyle='#fff';
+    X.fillText('💎 Crystal Match',W/2,H*0.2);
+    X.font='bold 28px sans-serif';
+    X.fillStyle='#bb88ff';
+    X.fillText('Quest',W/2,H*0.2+40);
+    X.shadowBlur=0;
+    
+    X.font='14px sans-serif';X.fillStyle='#888';
+    X.fillText('Match-3 + Merge 하이브리드 퍼즐',W/2,H*0.2+70);
+    
+    X.restore();
+    
+    // Buttons
+    menuButtons=[];
+    const btnW=220,btnH=55,btnX=(W-btnW)/2;
+    
+    // Level Mode
+    const by1=H*0.45;
+    drawButton(btnX,by1,btnW,btnH,'🗺  레벨 모드','#667eea','#764ba2');
+    menuButtons.push({x:btnX,y:by1,w:btnW,h:btnH,action:()=>{state=ST_LEVEL_MAP;}});
+    
+    // Endless Mode
+    const by2=H*0.45+70;
+    drawButton(btnX,by2,btnW,btnH,'♾  무한 모드','#4ECDC4','#44aa88');
+    menuButtons.push({x:btnX,y:by2,w:btnW,h:btnH,action:startEndless});
+    
+    // High score
+    if(endlessHighScore>0){
+        X.font='13px sans-serif';X.fillStyle='#888';X.textAlign='center';
+        X.fillText('무한 모드 최고: '+endlessHighScore.toLocaleString(),W/2,by2+70);
+    }
+    
+    // Stats
+    const totalStars=Object.values(levelStars).reduce((a,b)=>a+b,0);
+    if(totalStars>0){
+        X.font='14px sans-serif';X.fillStyle='#ffdd44';X.textAlign='center';
+        X.fillText('⭐ '+totalStars+' / '+(maxLevelUnlocked-1)*3,W/2,H*0.85);
+    }
+    
+    X.font='11px sans-serif';X.fillStyle='#555';X.textAlign='center';
+    X.fillText('v1.0 — Jay\'s Games',W/2,H-20);
+}
+
+function drawButton(x,y,w,h,text,c1,c2){
+    const grad=X.createLinearGradient(x,y,x+w,y+h);
+    grad.addColorStop(0,c1);grad.addColorStop(1,c2);
+    X.fillStyle=grad;
+    X.beginPath();X.roundRect(x,y,w,h,12);X.fill();
+    
+    X.fillStyle='rgba(255,255,255,0.1)';
+    X.beginPath();X.roundRect(x,y,w,h/2,{upperLeft:12,upperRight:12,lowerLeft:0,lowerRight:0});X.fill();
+    
+    X.font='bold 17px sans-serif';X.fillStyle='#fff';
+    X.textAlign='center';X.textBaseline='middle';
+    X.fillText(text,x+w/2,y+h/2);
+}
+
+// --- LEVEL MAP ---
+function drawLevelMap(time){
+    const grad=X.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0,'#0a0a2e');grad.addColorStop(1,'#1a0a3e');
+    X.fillStyle=grad;X.fillRect(0,0,W,H);
+    
+    // Header
+    X.font='bold 20px sans-serif';X.fillStyle='#fff';X.textAlign='center';
+    X.fillText('레벨 선택',W/2,35);
+    
+    // Back button
+    X.font='16px sans-serif';X.fillStyle='#aaa';X.textAlign='left';
+    X.fillText('← 뒤로',15,35);
+    
+    mapButtons=[];
+    
+    const cols=5;
+    const btnSize=50;
+    const gap=12;
+    const startX=(W-(cols*(btnSize+gap)-gap))/2;
+    const startY=70;
+    const levelsToShow=Math.max(maxLevelUnlocked+5,20);
+    
+    for(let i=1;i<=levelsToShow;i++){
+        const col=(i-1)%cols;
+        const row=Math.floor((i-1)/cols);
+        const bx=startX+col*(btnSize+gap);
+        const by=startY+row*(btnSize+gap+15)-mapScroll;
+        
+        if(by<50||by>H+50)continue;
+        
+        const unlocked=i<=maxLevelUnlocked;
+        const stars=levelStars[i]||0;
+        
+        if(unlocked){
+            const grad=X.createLinearGradient(bx,by,bx+btnSize,by+btnSize);
+            grad.addColorStop(0,'#334');grad.addColorStop(1,'#223');
+            X.fillStyle=grad;
+            X.strokeStyle=i===maxLevelUnlocked?'#667eea':'#445';
+            X.lineWidth=i===maxLevelUnlocked?2:1;
+        }else{
+            X.fillStyle='rgba(30,30,50,0.5)';
+            X.strokeStyle='#333';X.lineWidth=1;
+        }
+        
+        X.beginPath();X.roundRect(bx,by,btnSize,btnSize,10);X.fill();X.stroke();
+        
+        X.font=unlocked?'bold 18px sans-serif':'16px sans-serif';
+        X.fillStyle=unlocked?'#fff':'#555';
+        X.textAlign='center';X.textBaseline='middle';
+        X.fillText(unlocked?i:'🔒',bx+btnSize/2,by+btnSize/2-(stars>0?5:0));
+        
+        // Stars
+        if(stars>0){
+            X.font='11px sans-serif';
+            let starStr='';
+            for(let s=0;s<3;s++)starStr+=s<stars?'★':'☆';
+            X.fillStyle='#ffdd44';
+            X.fillText(starStr,bx+btnSize/2,by+btnSize-8);
+        }
+        
+        if(unlocked){
+            mapButtons.push({x:bx,y:by,w:btnSize,h:btnSize,action:()=>startLevel(i)});
+        }
+    }
+}
+
+// --- RESULT SCREEN ---
+function drawResult(time){
+    // Overlay
+    X.fillStyle='rgba(0,0,0,0.7)';X.fillRect(0,0,W,H);
+    
+    const won=levelComplete;
+    const lvl=generateLevel(currentLevel);
+    let stars=0;
+    if(won){
+        stars=1;
+        if(score>=lvl.starThresholds[1])stars=2;
+        if(score>=lvl.starThresholds[2])stars=3;
+    }
+    
+    // Panel
+    const pw=Math.min(320,W-40),ph=350;
+    const px=(W-pw)/2,py=(H-ph)/2;
+    
+    X.fillStyle='rgba(20,20,50,0.95)';
+    X.strokeStyle=won?'#667eea':'#ff4466';
+    X.lineWidth=2;
+    X.beginPath();X.roundRect(px,py,pw,ph,16);X.fill();X.stroke();
+    
+    X.textAlign='center';
+    
+    // Title
+    X.font='bold 24px sans-serif';
+    X.fillStyle=won?'#44ff88':'#ff4466';
+    X.fillText(won?'🎉 클리어!':'💔 실패',W/2,py+45);
+    
+    // Level
+    X.font='16px sans-serif';X.fillStyle='#aaa';
+    X.fillText('레벨 '+currentLevel,W/2,py+75);
+    
+    // Stars
+    if(won){
+        const starY=py+115;
+        X.font='36px sans-serif';
+        for(let i=0;i<3;i++){
+            X.fillStyle=i<stars?'#ffdd44':'#444';
+            X.fillText(i<stars?'★':'☆',W/2-45+i*45,starY);
+        }
+    }
+    
+    // Score
+    X.font='bold 28px sans-serif';X.fillStyle='#fff';
+    X.fillText(score.toLocaleString(),W/2,py+170);
+    X.font='12px sans-serif';X.fillStyle='#aaa';
+    X.fillText('SCORE',W/2,py+190);
+    
+    // Stats
+    X.font='13px sans-serif';X.fillStyle='#888';
+    X.fillText('최대 콤보: '+maxCombo+'x  |  크리스탈: '+crystalsCreated,W/2,py+215);
+    
+    resultButtons=[];
+    const btnW=120,btnH=45;
+    
+    if(won){
+        // Next level
+        drawButton(W/2-btnW-10,py+ph-70,btnW,btnH,'다음 ▶','#667eea','#764ba2');
+        resultButtons.push({x:W/2-btnW-10,y:py+ph-70,w:btnW,h:btnH,action:()=>startLevel(currentLevel+1)});
+    }else{
+        // Retry
+        drawButton(W/2-btnW-10,py+ph-70,btnW,btnH,'재시도 🔄','#ff6644','#ff4466');
+        resultButtons.push({x:W/2-btnW-10,y:py+ph-70,w:btnW,h:btnH,action:()=>startLevel(currentLevel)});
+    }
+    
+    // Back to map
+    drawButton(W/2+10,py+ph-70,btnW,btnH,'맵으로','#445','#334');
+    resultButtons.push({x:W/2+10,y:py+ph-70,w:btnW,h:btnH,action:()=>{state=ST_LEVEL_MAP;}});
+}
+
+// --- ENDLESS EXIT CHECK ---
+function checkEndlessExit(px,py){
+    if(state===ST_ENDLESS&&px>W-100&&py<40){
+        if(score>endlessHighScore){
+            endlessHighScore=score;
+            saveProgress();
+        }
+        state=ST_MENU;
+        return true;
+    }
+    return false;
+}
+
+// --- MAIN LOOP ---
+function frame(time){
+    const dt=Math.min(0.05,(time-(lastTime||time))/1000);
+    lastTime=time;
+    animTime=time;
+    
+    // Screen shake
+    let shakeX=0,shakeY=0;
+    if(screenShake>0){
+        shakeX=Math.sin(time*0.1)*screenShake;
+        shakeY=Math.cos(time*0.13)*screenShake;
+        screenShake*=0.9;
+        if(screenShake<0.5)screenShake=0;
+    }
+    
+    X.save();
+    X.translate(shakeX,shakeY);
+    
+    // Clear
+    const bg=X.createLinearGradient(0,0,0,H);
+    bg.addColorStop(0,'#0a0a1a');bg.addColorStop(1,'#0a0a2e');
+    X.fillStyle=bg;X.fillRect(-10,-10,W+20,H+20);
+    
+    // Update match animations
+    matchAnims.forEach(m=>m.progress=Math.min(1,m.progress+dt*6));
+    crystalAnims=crystalAnims.filter(ca=>{
+        ca.progress=Math.min(1,ca.progress+dt*4);
+        return ca.progress<1;
+    });
+    
+    // Swap animation
+    if(swapAnim){
+        const p=Math.min(1,(time-swapAnim.startTime)/200);
+        const eased=p<0.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+        const {r1,c1,r2,c2}=swapAnim;
+        if(board[r1][c1]){
+            board[r1][c1].x=c1+(c2-c1)*(1-eased);
+            board[r1][c1].y=r1+(r2-r1)*(1-eased);
+        }
+        if(board[r2][c2]){
+            board[r2][c2].x=c2+(c1-c2)*(1-eased);
+            board[r2][c2].y=r2+(r1-r2)*(1-eased);
+        }
+    }
+    
+    switch(state){
+        case ST_MENU:drawMenu(time);break;
+        case ST_LEVEL_MAP:drawLevelMap(time);break;
+        case ST_PLAYING:
+        case ST_ENDLESS:
+            drawBoard(time);
+            drawHUD(time);
+            drawParticles(dt);
+            drawFloatingTexts(dt);
+            break;
+        case ST_RESULT:
+            drawBoard(time);
+            drawHUD(time);
+            drawParticles(dt);
+            drawFloatingTexts(dt);
+            drawResult(time);
+            break;
+    }
+    
+    X.restore();
+    requestAnimationFrame(frame);
+}
+
+// Fix: override handlePointerDown to also check endless exit
+const origDown=handlePointerDown;
+handlePointerDown=function(px,py){
+    if(state===ST_ENDLESS&&checkEndlessExit(px,py))return;
+    origDown(px,py);
+};
+
+// Map scroll
+let mapTouchStart=null,mapTouchScrollStart=0;
+C.addEventListener('touchstart',e=>{
+    if(state===ST_LEVEL_MAP){
+        mapTouchStart=e.touches[0].clientY;
+        mapTouchScrollStart=mapScroll;
+    }
+},{passive:true});
+C.addEventListener('touchmove',e=>{
+    if(state===ST_LEVEL_MAP&&mapTouchStart!==null){
+        const dy=mapTouchStart-e.touches[0].clientY;
+        mapScroll=Math.max(0,mapTouchScrollStart+dy);
+    }
+},{passive:true});
+C.addEventListener('touchend',()=>{mapTouchStart=null;},{passive:true});
+C.addEventListener('wheel',e=>{
+    if(state===ST_LEVEL_MAP){
+        mapScroll=Math.max(0,mapScroll+e.deltaY*0.5);
+    }
+},{passive:true});
+
+// Ensure no initial matches after board creation
+function ensureNoMatches(){
+    let safety=0;
+    while(findMatches().length>0&&safety<100){
+        safety++;
+        for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+            if(!board[r][c])continue;
+            board[r][c].type=Math.floor(Math.random()*GEM_TYPES);
+        }
+    }
+    if(!hasPossibleMoves())shuffleBoard();
+}
+
+// --- INIT ---
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
