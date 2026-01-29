@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Slide Block Match</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            overflow: hidden;
+            touch-action: none;
+        }
+        
+        .game-container {
+            max-width: 400px;
+            width: 95%;
+            padding: 15px;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+        }
+        
+        .timer {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #ff6b6b;
+        }
+        
+        .score {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #4ecdc4;
+        }
+        
+        .chain-display {
+            text-align: center;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            height: 30px;
+            color: #ffd93d;
+        }
+        
+        #gameCanvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 12px;
+            background: rgba(0,0,0,0.3);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        
+        .menu {
+            text-align: center;
+        }
+        
+        .menu h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #ffd93d);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .menu p {
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 25px;
+        }
+        
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            font-size: 1.1em;
+            font-weight: bold;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(45deg, #4ecdc4, #6ee7df);
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .high-score {
+            margin-top: 20px;
+            font-size: 1em;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .high-score span {
+            color: #ffd93d;
+            font-weight: bold;
+        }
+        
+        .game-over {
+            text-align: center;
+        }
+        
+        .game-over h2 {
+            font-size: 2em;
+            margin-bottom: 15px;
+            color: #ff6b6b;
+        }
+        
+        .final-score {
+            font-size: 3em;
+            font-weight: bold;
+            color: #4ecdc4;
+            margin: 20px 0;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .instructions {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            font-size: 0.9em;
+            color: rgba(255,255,255,0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <!-- Menu Screen -->
+        <div id="menuScreen" class="menu">
+            <h1>🎮 Slide Match</h1>
+            <p>블록을 밀어 3개 이상 매치하세요!</p>
+            <button class="btn btn-primary" onclick="startGame('timed')">⏱️ 타임 어택 (60초)</button>
+            <button class="btn btn-secondary" onclick="startGame('endless')">♾️ 무한 모드</button>
+            <div class="high-score">🏆 최고 점수: <span id="highScoreDisplay">0</span></div>
+            <div class="instructions">
+                💡 블록을 터치하고 상하좌우로 스와이프!<br>
+                🔥 연쇄 매치로 고득점 노려보세요!
+            </div>
+        </div>
+        
+        <!-- Game Screen -->
+        <div id="gameScreen" class="hidden">
+            <div class="header">
+                <div class="timer" id="timer">⏱️ 60</div>
+                <div class="score">💎 <span id="score">0</span></div>
+            </div>
+            <div class="chain-display" id="chainDisplay"></div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" class="menu game-over hidden">
+            <h2>🎮 게임 종료!</h2>
+            <div class="final-score" id="finalScore">0</div>
+            <p id="newHighScore" class="hidden" style="color: #ffd93d; margin-bottom: 15px;">🏆 새로운 최고 점수!</p>
+            <button class="btn btn-primary" onclick="showMenu()">🏠 메뉴로</button>
+            <button class="btn btn-secondary" onclick="restartGame()">🔄 다시 하기</button>
+        </div>
+    </div>
+    
+    <script>
+        // Game Config
+        const CONFIG = {
+            GRID_SIZE: 8,
+            COLORS: ['#ff6b6b', '#4ecdc4', '#ffd93d', '#a66cff', '#5cb85c'],
+            MATCH_MIN: 3,
+            TIME_LIMIT: 60,
+            BASE_SCORE: 100,
+            CHAIN_MULTIPLIER: 1.5,
+            CELL_SIZE: 0,
+            ANIMATION_SPEED: 150
+        };
+        
+        // Game State
+        let canvas, ctx;
+        let grid = [];
+        let score = 0;
+        let timeLeft = 60;
+        let gameMode = 'timed';
+        let isAnimating = false;
+        let selectedBlock = null;
+        let touchStart = null;
+        let chainCount = 0;
+        let gameInterval = null;
+        let highScore = parseInt(localStorage.getItem('slideMatchHighScore')) || 0;
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            canvas = document.getElementById('gameCanvas');
+            ctx = canvas.getContext('2d');
+            
+            // Calculate cell size based on screen
+            const containerWidth = Math.min(window.innerWidth * 0.95, 400) - 30;
+            CONFIG.CELL_SIZE = Math.floor(containerWidth / CONFIG.GRID_SIZE);
+            canvas.width = CONFIG.CELL_SIZE * CONFIG.GRID_SIZE;
+            canvas.height = CONFIG.CELL_SIZE * CONFIG.GRID_SIZE;
+            
+            // Event listeners
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            
+            document.getElementById('highScoreDisplay').textContent = highScore;
+        });
+        
+        function showMenu() {
+            document.getElementById('menuScreen').classList.remove('hidden');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            document.getElementById('highScoreDisplay').textContent = highScore;
+            if (gameInterval) clearInterval(gameInterval);
+        }
+        
+        function startGame(mode) {
+            gameMode = mode;
+            score = 0;
+            timeLeft = CONFIG.TIME_LIMIT;
+            chainCount = 0;
+            isAnimating = false;
+            
+            document.getElementById('menuScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            document.getElementById('gameOverScreen').classList.add('hidden');
+            
+            initGrid();
+            updateDisplay();
+            render();
+            
+            if (gameInterval) clearInterval(gameInterval);
+            
+            if (mode === 'timed') {
+                document.getElementById('timer').style.display = 'block';
+                gameInterval = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById('timer').textContent = `⏱️ ${timeLeft}`;
+                    if (timeLeft <= 0) {
+                        endGame();
+                    }
+                }, 1000);
+            } else {
+                document.getElementById('timer').style.display = 'none';
+            }
+        }
+        
+        function restartGame() {
+            startGame(gameMode);
+        }
+        
+        function initGrid() {
+            grid = [];
+            for (let y = 0; y < CONFIG.GRID_SIZE; y++) {
+                grid[y] = [];
+                for (let x = 0; x < CONFIG.GRID_SIZE; x++) {
+                    grid[y][x] = {
+                        color: getRandomColor(),
+                        x: x,
+                        y: y,
+                        offsetY: 0,
+                        scale: 1,
+                        removing: false
+                    };
+                }
+            }
+            // Ensure no initial matches
+            while (findMatches().length > 0) {
+                for (let y = 0; y < CONFIG.GRID_SIZE; y++) {
+                    for (let x = 0; x < CONFIG.GRID_SIZE; x++) {
+                        grid[y][x].color = getRandomColor();
+                    }
+                }
+            }
+        }
+        
+        function getRandomColor() {
+            return CONFIG.COLORS[Math.floor(Math.random() * CONFIG.COLORS.length)];
+        }
+        
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const size = CONFIG.CELL_SIZE;
+            const padding = 3;
+            const radius = 8;
+            
+            for (let y = 0; y < CONFIG.GRID_SIZE; y++) {
+                for (let x = 0; x < CONFIG.GRID_SIZE; x++) {
+                    const block = grid[y][x];
+                    if (!block || block.removing) continue;
+                    
+                    const drawX = x * size + padding;
+                    const drawY = y * size + padding + (block.offsetY || 0);
+                    const drawSize = size - padding * 2;
+                    const scale = block.scale || 1;
+                    const scaledSize = drawSize * scale;
+                    const offset = (drawSize - scaledSize) / 2;
+                    
+                    ctx.fillStyle = block.color;
+                    ctx.beginPath();
+                    ctx.roundRect(drawX + offset, drawY + offset, scaledSize, scaledSize, radius);
+                    ctx.fill();
+                    
+                    // Highlight selected
+                    if (selectedBlock && selectedBlock.x === x && selectedBlock.y === y) {
+                        ctx.strokeStyle = 'white';
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
+                    }
+                    
+                    // Shine effect
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    ctx.beginPath();
+                    ctx.roundRect(drawX + offset + 4, drawY + offset + 4, scaledSize * 0.4, scaledSize * 0.3, 4);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        function getGridPos(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((clientX - rect.left) / CONFIG.CELL_SIZE);
+            const y = Math.floor((clientY - rect.top) / CONFIG.CELL_SIZE);
+            return { x, y };
+        }
+        
+        function handleTouchStart(e) {
+            e.preventDefault();
+            if (isAnimating) return;
+            const touch = e.touches[0];
+            const pos = getGridPos(touch.clientX, touch.clientY);
+            if (pos.x >= 0 && pos.x < CONFIG.GRID_SIZE && pos.y >= 0 && pos.y < CONFIG.GRID_SIZE) {
+                selectedBlock = pos;
+                touchStart = { x: touch.clientX, y: touch.clientY };
+                render();
+            }
+        }
+        
+        function handleTouchMove(e) {
+            e.preventDefault();
+        }
+        
+        function handleTouchEnd(e) {
+            e.preventDefault();
+            if (!selectedBlock || !touchStart || isAnimating) return;
+            
+            const touch = e.changedTouches[0];
+            const dx = touch.clientX - touchStart.x;
+            const dy = touch.clientY - touchStart.y;
+            
+            const threshold = 30;
+            let direction = null;
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > threshold) direction = 'right';
+                else if (dx < -threshold) direction = 'left';
+            } else {
+                if (dy > threshold) direction = 'down';
+                else if (dy < -threshold) direction = 'up';
+            }
+            
+            if (direction) {
+                slideBlock(selectedBlock.x, selectedBlock.y, direction);
+            }
+            
+            selectedBlock = null;
+            touchStart = null;
+            render();
+        }
+        
+        function handleMouseDown(e) {
+            if (isAnimating) return;
+            const pos = getGridPos(e.clientX, e.clientY);
+            if (pos.x >= 0 && pos.x < CONFIG.GRID_SIZE && pos.y >= 0 && pos.y < CONFIG.GRID_SIZE) {
+                selectedBlock = pos;
+                touchStart = { x: e.clientX, y: e.clientY };
+                render();
+            }
+        }
+        
+        function handleMouseUp(e) {
+            if (!selectedBlock || !touchStart || isAnimating) return;
+            
+            const dx = e.clientX - touchStart.x;
+            const dy = e.clientY - touchStart.y;
+            
+            const threshold = 30;
+            let direction = null;
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                if (dx > threshold) direction = 'right';
+                else if (dx < -threshold) direction = 'left';
+            } else {
+                if (dy > threshold) direction = 'down';
+                else if (dy < -threshold) direction = 'up';
+            }
+            
+            if (direction) {
+                slideBlock(selectedBlock.x, selectedBlock.y, direction);
+            }
+            
+            selectedBlock = null;
+            touchStart = null;
+            render();
+        }
+        
+        function slideBlock(startX, startY, direction) {
+            let dx = 0, dy = 0;
+            switch (direction) {
+                case 'left': dx = -1; break;
+                case 'right': dx = 1; break;
+                case 'up': dy = -1; break;
+                case 'down': dy = 1; break;
+            }
+            
+            let x = startX, y = startY;
+            let targetX = x, targetY = y;
+            
+            // Find target position (slide until hit edge or another block)
+            while (true) {
+                const nextX = targetX + dx;
+                const nextY = targetY + dy;
+                if (nextX < 0 || nextX >= CONFIG.GRID_SIZE || 
+                    nextY < 0 || nextY >= CONFIG.GRID_SIZE) break;
+                targetX = nextX;
+                targetY = nextY;
+            }
+            
+            if (targetX === startX && targetY === startY) return;
+            
+            // Swap blocks
+            const temp = grid[startY][startX];
+            grid[startY][startX] = grid[targetY][targetX];
+            grid[targetY][targetX] = temp;
+            
+            // Update positions
+            grid[startY][startX].x = startX;
+            grid[startY][startX].y = startY;
+            grid[targetY][targetX].x = targetX;
+            grid[targetY][targetX].y = targetY;
+            
+            render();
+            chainCount = 0;
+            processMatches();
+        }
+        
+        function findMatches() {
+            const matches = new Set();
+            
+            // Horizontal
+            for (let y = 0; y < CONFIG.GRID_SIZE; y++) {
+                let count = 1;
+                for (let x = 1; x < CONFIG.GRID_SIZE; x++) {
+                    if (grid[y][x] && grid[y][x-1] && 
+                        grid[y][x].color === grid[y][x-1].color) {
+                        count++;
+                    } else {
+                        if (count >= CONFIG.MATCH_MIN) {
+                            for (let i = 0; i < count; i++) {
+                                matches.add(`${x-1-i},${y}`);
+                            }
+                        }
+                        count = 1;
+                    }
+                }
+                if (count >= CONFIG.MATCH_MIN) {
+                    for (let i = 0; i < count; i++) {
+                        matches.add(`${CONFIG.GRID_SIZE-1-i},${y}`);
+                    }
+                }
+            }
+            
+            // Vertical
+            for (let x = 0; x < CONFIG.GRID_SIZE; x++) {
+                let count = 1;
+                for (let y = 1; y < CONFIG.GRID_SIZE; y++) {
+                    if (grid[y][x] && grid[y-1][x] && 
+                        grid[y][x].color === grid[y-1][x].color) {
+                        count++;
+                    } else {
+                        if (count >= CONFIG.MATCH_MIN) {
+                            for (let i = 0; i < count; i++) {
+                                matches.add(`${x},${y-1-i}`);
+                            }
+                        }
+                        count = 1;
+                    }
+                }
+                if (count >= CONFIG.MATCH_MIN) {
+                    for (let i = 0; i < count; i++) {
+                        matches.add(`${x},${CONFIG.GRID_SIZE-1-i}`);
+                    }
+                }
+            }
+            
+            return Array.from(matches).map(s => {
+                const [x, y] = s.split(',').map(Number);
+                return { x, y };
+            });
+        }
+        
+        async function processMatches() {
+            isAnimating = true;
+            const matches = findMatches();
+            
+            if (matches.length === 0) {
+                isAnimating = false;
+                chainCount = 0;
+                document.getElementById('chainDisplay').textContent = '';
+                
+                // Check for game over in endless mode
+                if (gameMode === 'endless' && !hasValidMoves()) {
+                    endGame();
+                }
+                return;
+            }
+            
+            chainCount++;
+            const multiplier = Math.pow(CONFIG.CHAIN_MULTIPLIER, chainCount - 1);
+            const points = Math.floor(matches.length * CONFIG.BASE_SCORE * multiplier);
+            score += points;
+            updateDisplay();
+            
+            if (chainCount > 1) {
+                document.getElementById('chainDisplay').textContent = 
+                    `🔥 ${chainCount}연쇄! x${multiplier.toFixed(1)}`;
+            }
+            
+            // Animate removal
+            matches.forEach(m => {
+                if (grid[m.y][m.x]) grid[m.y][m.x].removing = true;
+            });
+            render();
+            
+            await sleep(CONFIG.ANIMATION_SPEED);
+            
+            // Remove matched blocks
+            matches.forEach(m => {
+                grid[m.y][m.x] = null;
+            });
+            
+            // Drop blocks
+            await dropBlocks();
+            
+            // Fill empty spaces
+            fillEmpty();
+            render();
+            
+            await sleep(CONFIG.ANIMATION_SPEED);
+            
+            // Check for more matches (chain reaction)
+            processMatches();
+        }
+        
+        async function dropBlocks() {
+            let dropped = false;
+            
+            for (let x = 0; x < CONFIG.GRID_SIZE; x++) {
+                for (let y = CONFIG.GRID_SIZE - 1; y >= 0; y--) {
+                    if (!grid[y][x]) {
+                        // Find block above
+                        for (let above = y - 1; above >= 0; above--) {
+                            if (grid[above][x]) {
+                                grid[y][x] = grid[above][x];
+                                grid[above][x] = null;
+                                grid[y][x].y = y;
+                                dropped = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if (dropped) {
+                render();
+                await sleep(50);
+            }
+        }
+        
+        function fillEmpty() {
+            for (let y = 0; y < CONFIG.GRID_SIZE; y++) {
+                for (let x = 0; x < CONFIG.GRID_SIZE; x++) {
+                    if (!grid[y][x]) {
+                        grid[y][x] = {
+                            color: getRandomColor(),
+                            x: x,
+                            y: y,
+                            scale: 1
+                        };
+                    }
+                }
+            }
+        }
+        
+        function hasValidMoves() {
+            // Simple check: can any block be moved to create a match?
+            // For simplicity, always return true (full implementation would check all possible slides)
+            return true;
+        }
+        
+        function updateDisplay() {
+            document.getElementById('score').textContent = score.toLocaleString();
+        }
+        
+        function endGame() {
+            if (gameInterval) clearInterval(gameInterval);
+            
+            const isNewHigh = score > highScore;
+            if (isNewHigh) {
+                highScore = score;
+                localStorage.setItem('slideMatchHighScore', highScore);
+            }
+            
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('gameOverScreen').classList.remove('hidden');
+            document.getElementById('finalScore').textContent = score.toLocaleString();
+            document.getElementById('newHighScore').classList.toggle('hidden', !isNewHigh);
+        }
+        
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
+</body>
+</html>
