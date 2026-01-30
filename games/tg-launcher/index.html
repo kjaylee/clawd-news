@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>🎮 East Sea Games</title>
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/games/tg-sdk-wrapper.js"></script>
+    <style>
+        :root {
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+            background: var(--tg-bg, #0f0f1a);
+            color: var(--tg-text, #ffffff);
+            min-height: var(--tg-viewport-height, 100vh);
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* ── Header ── */
+        .header {
+            padding: calc(16px + var(--safe-top)) 20px 12px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.4) 0%, transparent 100%);
+        }
+        .header-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .user-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--tg-button, #3390ec), #6c5ce7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .user-name {
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .user-greeting {
+            font-size: 12px;
+            color: var(--tg-hint, #888);
+        }
+        .header-action {
+            display: flex; gap: 8px;
+        }
+        .icon-btn {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: var(--tg-text, #fff);
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s;
+        }
+        .icon-btn:active { transform: scale(0.9); }
+
+        /* ── Search ── */
+        .search-bar {
+            position: relative;
+            margin: 0 20px 16px;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 12px 16px 12px 40px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: var(--tg-secondary-bg, rgba(255,255,255,0.08));
+            color: var(--tg-text, #fff);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-bar input::placeholder {
+            color: var(--tg-hint, #666);
+        }
+        .search-bar input:focus {
+            border-color: var(--tg-button, #3390ec);
+        }
+        .search-icon {
+            position: absolute;
+            left: 14px; top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            opacity: 0.5;
+        }
+
+        /* ── Categories ── */
+        .categories {
+            display: flex;
+            gap: 8px;
+            padding: 0 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 20px;
+        }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--tg-hint, #aaa);
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+        }
+        .cat-chip.active {
+            background: var(--tg-button, #3390ec);
+            color: var(--tg-button-text, #fff);
+            border-color: var(--tg-button, #3390ec);
+        }
+        .cat-chip:active { transform: scale(0.95); }
+
+        /* ── Section ── */
+        .section {
+            margin-bottom: 24px;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            margin-bottom: 12px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .section-more {
+            font-size: 13px;
+            color: var(--tg-link, #4ea8ff);
+            cursor: pointer;
+        }
+
+        /* ── Featured (horizontal scroll) ── */
+        .featured-scroll {
+            display: flex;
+            gap: 12px;
+            padding: 0 20px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+        }
+        .featured-scroll::-webkit-scrollbar { display: none; }
+        .featured-card {
+            flex: 0 0 240px;
+            border-radius: 16px;
+            overflow: hidden;
+            background: var(--tg-secondary-bg, #16213e);
+            cursor: pointer;
+            transition: transform 0.15s;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .featured-card:active { transform: scale(0.97); }
+        .featured-banner {
+            height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+        }
+        .featured-rank {
+            position: absolute;
+            top: 8px; left: 8px;
+            background: rgba(0,0,0,0.6);
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .featured-info {
+            padding: 10px 14px;
+        }
+        .featured-name {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        .featured-desc {
+            font-size: 12px;
+            color: var(--tg-hint, #888);
+        }
+        .featured-play {
+            margin-top: 8px;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            background: var(--tg-button, #3390ec);
+            color: var(--tg-button-text, #fff);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            min-height: 44px;
+            transition: opacity 0.15s;
+        }
+        .featured-play:active { opacity: 0.8; }
+
+        /* ── Game Grid ── */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            padding: 0 20px;
+        }
+        .game-card {
+            border-radius: 14px;
+            background: var(--tg-secondary-bg, #16213e);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.15s;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .game-card:active { transform: scale(0.96); }
+        .game-icon {
+            height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        .game-meta {
+            padding: 8px 10px 10px;
+        }
+        .game-name {
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .game-genre {
+            font-size: 11px;
+            color: var(--tg-hint, #888);
+            margin-top: 2px;
+        }
+
+        /* ── Footer ── */
+        .footer {
+            text-align: center;
+            padding: 20px 20px calc(20px + var(--safe-bottom));
+            color: var(--tg-hint, #555);
+            font-size: 12px;
+        }
+        .footer a {
+            color: var(--tg-link, #4ea8ff);
+            text-decoration: none;
+        }
+
+        /* ── Loading ── */
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            font-size: 32px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── Gradients for featured cards ── */
+        .grad-1 { background: linear-gradient(135deg, #e94560, #f39c12); }
+        .grad-2 { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
+        .grad-3 { background: linear-gradient(135deg, #00b894, #00cec9); }
+        .grad-4 { background: linear-gradient(135deg, #fd79a8, #e84393); }
+        .grad-5 { background: linear-gradient(135deg, #0984e3, #74b9ff); }
+
+        /* ── No results ── */
+        .no-results {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--tg-hint, #888);
+        }
+        .no-results .emoji { font-size: 48px; margin-bottom: 12px; }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-top">
+        <div class="user-info">
+            <div class="user-avatar" id="userAvatar">🎮</div>
+            <div>
+                <div class="user-name" id="userName">Player</div>
+                <div class="user-greeting" id="userGreeting">게임을 골라보세요!</div>
+            </div>
+        </div>
+        <div class="header-action">
+            <button class="icon-btn" onclick="TG.shareInvite()" title="Invite">👥</button>
+        </div>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="search-bar">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" placeholder="게임 검색...">
+</div>
+
+<!-- Categories -->
+<div class="categories" id="categories"></div>
+
+<!-- Featured Games -->
+<div class="section" id="featuredSection">
+    <div class="section-header">
+        <span class="section-title">🏆 TOP 5 인기 게임</span>
+    </div>
+    <div class="featured-scroll" id="featuredGames"></div>
+</div>
+
+<!-- All Games -->
+<div class="section" id="allGamesSection">
+    <div class="section-header">
+        <span class="section-title" id="allGamesTitle">🎮 전체 게임</span>
+        <span class="section-more" id="gameCount"></span>
+    </div>
+    <div class="game-grid" id="gameGrid"></div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    Made with ❤️ by <a href="https://eastsea.monster">East Sea Games</a><br>
+    <span style="font-size:11px">42 Free HTML5 Games</span>
+</div>
+
+<script>
+'use strict';
+
+// ═══════════════════════════════════════
+// 게임 데이터
+// ═══════════════════════════════════════
+const GAMES = [
+    // TOP 5
+    { id: 'spin-village', name: 'Spin Village', emoji: '🎰', genre: '슬롯/경영', genreEn: 'Slots', cat: 'casual', top: true, grad: 'grad-1' },
+    { id: 'crystal-match', name: 'Crystal Match', emoji: '💎', genre: '매치3', genreEn: 'Match-3', cat: 'puzzle', top: true, grad: 'grad-2' },
+    { id: 'screw-sort-factory', name: 'Screw Sort', emoji: '🔩', genre: '분류 퍼즐', genreEn: 'Sort Puzzle', cat: 'puzzle', top: true, grad: 'grad-3' },
+    { id: 'slime-survivor', name: 'Slime Survivor', emoji: '🟢', genre: '서바이벌', genreEn: 'Survival', cat: 'action', top: true, grad: 'grad-4' },
+    { id: 'idle-slime-merge', name: 'Idle Slime Merge', emoji: '🫧', genre: '아이들/머지', genreEn: 'Idle', cat: 'idle', top: true, grad: 'grad-5' },
+    // Puzzle
+    { id: 'ball-sort', name: 'Ball Sort', emoji: '🔵', genre: '퍼즐', genreEn: 'Puzzle', cat: 'puzzle' },
+    { id: 'chain-pop', name: 'Chain Pop', emoji: '💥', genre: '퍼즐', genreEn: 'Puzzle', cat: 'puzzle' },
+    { id: 'color-sort', name: 'Color Sort', emoji: '🎨', genre: '퍼즐', genreEn: 'Puzzle', cat: 'puzzle' },
+    { id: 'conveyor-sort-factory', name: 'Conveyor Sort', emoji: '🏭', genre: '퍼즐', genreEn: 'Puzzle', cat: 'puzzle' },
+    { id: 'hex-drop', name: 'Hex Drop', emoji: '⬡', genre: '퍼즐', genreEn: 'Puzzle', cat: 'puzzle' },
+    { id: 'laser-reflect', name: 'Laser Reflect', emoji: '🔦', genre: '퍼즐', genreEn: 'Puzzle', cat: 'puzzle' },
+    { id: 'number-drop', name: 'Number Drop', emoji: '🔢', genre: '퍼즐', genreEn: 'Puzzle', cat: 'puzzle' },
+    { id: 'pipe-connect', name: 'Pipe Connect', emoji: '🔧', genre: '퍼즐', genreEn: 'Puzzle', cat: 'puzzle' },
+    { id: 'rope-untangle', name: 'Rope Untangle', emoji: '🪢', genre: '퍼즐', genreEn: 'Puzzle', cat: 'puzzle' },
+    { id: 'slide-block-match', name: 'Slide Block', emoji: '🧩', genre: '퍼즐', genreEn: 'Puzzle', cat: 'puzzle' },
+    // Match
+    { id: 'match-3d-zen', name: 'Match 3D Zen', emoji: '🧘', genre: '매칭', genreEn: 'Match', cat: 'puzzle' },
+    { id: 'zen-tile-match', name: 'Zen Tile Match', emoji: '🀄', genre: '매칭', genreEn: 'Match', cat: 'puzzle' },
+    // Arcade
+    { id: 'block-bounce', name: 'Block Bounce', emoji: '🟫', genre: '아케이드', genreEn: 'Arcade', cat: 'action' },
+    { id: 'brick-breaker', name: 'Brick Breaker', emoji: '🧱', genre: '아케이드', genreEn: 'Arcade', cat: 'action' },
+    { id: 'gravity-orbit', name: 'Gravity Orbit', emoji: '🌍', genre: '아케이드', genreEn: 'Arcade', cat: 'action' },
+    { id: 'hole-swallow', name: 'Hole Swallow', emoji: '🕳️', genre: '아케이드', genreEn: 'Arcade', cat: 'action' },
+    { id: 'infinite-stack-climb', name: 'Stack Climb', emoji: '🏗️', genre: '아케이드', genreEn: 'Arcade', cat: 'action' },
+    { id: 'neon-snake', name: 'Neon Snake', emoji: '🐍', genre: '아케이드', genreEn: 'Arcade', cat: 'action' },
+    { id: 'orbit-striker', name: 'Orbit Striker', emoji: '🎯', genre: '아케이드', genreEn: 'Arcade', cat: 'action' },
+    { id: 'single-tap-golf', name: 'Tap Golf', emoji: '⛳', genre: '스포츠', genreEn: 'Sports', cat: 'action' },
+    { id: 'stack-tower', name: 'Stack Tower', emoji: '🗼', genre: '쌓기', genreEn: 'Stack', cat: 'action' },
+    { id: 'jump-physics', name: 'Jump Physics', emoji: '🦘', genre: '물리', genreEn: 'Physics', cat: 'action' },
+    // Merge
+    { id: 'fruit-merge-drop', name: 'Fruit Merge', emoji: '🍉', genre: '머지', genreEn: 'Merge', cat: 'idle' },
+    { id: 'merge-rush', name: 'Merge Rush', emoji: '⚡', genre: '머지', genreEn: 'Merge', cat: 'idle' },
+    { id: 'merge-tower', name: 'Merge Tower', emoji: '🏰', genre: '머지', genreEn: 'Merge', cat: 'idle' },
+    // Strategy
+    { id: 'bubble-defense', name: 'Bubble Defense', emoji: '🫧', genre: '디펜스', genreEn: 'Defense', cat: 'strategy' },
+    { id: 'pixel-defense', name: 'Pixel Defense', emoji: '👾', genre: '디펜스', genreEn: 'Defense', cat: 'strategy' },
+    { id: 'stack-kingdom', name: 'Stack Kingdom', emoji: '👑', genre: '경영', genreEn: 'Kingdom', cat: 'strategy' },
+    // RPG
+    { id: 'dungeon-run', name: 'Dungeon Run', emoji: '🏃', genre: 'RPG 런', genreEn: 'RPG', cat: 'rpg' },
+    { id: 'polygon-dungeon', name: 'Polygon Dungeon', emoji: '⚔️', genre: 'RPG', genreEn: 'RPG', cat: 'rpg' },
+    { id: 'zombie-survivor', name: 'Zombie Survivor', emoji: '🧟', genre: '서바이벌', genreEn: 'Survival', cat: 'rpg' },
+    { id: 'slime-survivor-premium', name: 'Slime Premium', emoji: '🟢', genre: '서바이벌 PRO', genreEn: 'Survival+', cat: 'rpg' },
+    // Casual
+    { id: 'dice-master', name: 'Dice Master', emoji: '🎲', genre: '캐주얼', genreEn: 'Casual', cat: 'casual' },
+    { id: 'fishing-tycoon', name: 'Fishing Tycoon', emoji: '🎣', genre: '타이쿤', genreEn: 'Tycoon', cat: 'casual' },
+    { id: 'micro-factory', name: 'Micro Factory', emoji: '⚙️', genre: '경영', genreEn: 'Tycoon', cat: 'casual' },
+    { id: 'pet-simulator', name: 'Pet Simulator', emoji: '🐶', genre: '시뮬레이션', genreEn: 'Sim', cat: 'casual' },
+    // Rhythm
+    { id: 'rhythm-pulse', name: 'Rhythm Pulse', emoji: '🎵', genre: '리듬', genreEn: 'Rhythm', cat: 'action' },
+    { id: 'rhythm-runner', name: 'Rhythm Runner', emoji: '🏃‍♂️', genre: '리듬 런', genreEn: 'Rhythm', cat: 'action' },
+];
+
+const CATEGORIES = [
+    { id: 'all', name: '전체', nameEn: 'All', emoji: '🎮' },
+    { id: 'top', name: 'TOP 5', nameEn: 'TOP 5', emoji: '🏆' },
+    { id: 'puzzle', name: '퍼즐', nameEn: 'Puzzle', emoji: '🧩' },
+    { id: 'action', name: '액션', nameEn: 'Action', emoji: '⚡' },
+    { id: 'idle', name: '아이들', nameEn: 'Idle', emoji: '🫧' },
+    { id: 'strategy', name: '전략', nameEn: 'Strategy', emoji: '🏰' },
+    { id: 'rpg', name: 'RPG', nameEn: 'RPG', emoji: '⚔️' },
+    { id: 'casual', name: '캐주얼', nameEn: 'Casual', emoji: '🎲' },
+];
+
+// ═══════════════════════════════════════
+// 앱 상태
+// ═══════════════════════════════════════
+let currentCat = 'all';
+let searchQuery = '';
+const isKo = (TG.getLang?.() || navigator.language || 'en').startsWith('ko');
+
+// ═══════════════════════════════════════
+// 초기화
+// ═══════════════════════════════════════
+function initApp() {
+    setupUser();
+    renderCategories();
+    renderFeatured();
+    renderAllGames();
+    setupSearch();
+
+    // TG Back → 앱 닫기
+    if (TG.isTelegram()) {
+        TG.onBack(() => {
+            if (searchQuery) {
+                document.getElementById('searchInput').value = '';
+                searchQuery = '';
+                renderAllGames();
+                return true;
+            }
+            return false; // close app
+        });
+    }
+}
+
+function setupUser() {
+    const name = TG.getUserName?.() || 'Player';
+    const initial = name.charAt(0).toUpperCase();
+    document.getElementById('userName').textContent = name;
+    document.getElementById('userAvatar').textContent = initial;
+    
+    const hour = new Date().getHours();
+    let greeting;
+    if (isKo) {
+        greeting = hour < 12 ? '좋은 아침이에요! ☀️' : hour < 18 ? '즐거운 오후! 🎮' : '좋은 밤이에요! 🌙';
+    } else {
+        greeting = hour < 12 ? 'Good morning! ☀️' : hour < 18 ? 'Good afternoon! 🎮' : 'Good evening! 🌙';
+    }
+    document.getElementById('userGreeting').textContent = greeting;
+}
+
+// ═══════════════════════════════════════
+// 카테고리 렌더링
+// ═══════════════════════════════════════
+function renderCategories() {
+    const el = document.getElementById('categories');
+    el.innerHTML = CATEGORIES.map(c => 
+        `<div class="cat-chip ${c.id === currentCat ? 'active' : ''}" data-cat="${c.id}">
+            ${c.emoji} ${isKo ? c.name : c.nameEn}
+        </div>`
+    ).join('');
+
+    el.addEventListener('click', (e) => {
+        const chip = e.target.closest('.cat-chip');
+        if (!chip) return;
+        TG.haptic?.('selection');
+        currentCat = chip.dataset.cat;
+        el.querySelectorAll('.cat-chip').forEach(c => c.classList.toggle('active', c.dataset.cat === currentCat));
+        renderAllGames();
+
+        // Show/hide featured
+        document.getElementById('featuredSection').style.display =
+            (currentCat === 'all' || currentCat === 'top') ? '' : 'none';
+    });
+}
+
+// ═══════════════════════════════════════
+// Featured 렌더링
+// ═══════════════════════════════════════
+function renderFeatured() {
+    const el = document.getElementById('featuredGames');
+    const topGames = GAMES.filter(g => g.top);
+    
+    el.innerHTML = topGames.map((g, i) => `
+        <div class="featured-card" data-game="${g.id}">
+            <div class="featured-banner ${g.grad}">
+                <span class="featured-rank">#${i+1}</span>
+                <span style="font-size:48px">${g.emoji}</span>
+            </div>
+            <div class="featured-info">
+                <div class="featured-name">${g.name}</div>
+                <div class="featured-desc">${isKo ? g.genre : g.genreEn}</div>
+                <button class="featured-play">${isKo ? '플레이' : 'Play'} ▶</button>
+            </div>
+        </div>
+    `).join('');
+
+    el.addEventListener('click', (e) => {
+        const card = e.target.closest('.featured-card');
+        if (!card) return;
+        openGame(card.dataset.game);
+    });
+}
+
+// ═══════════════════════════════════════
+// 게임 그리드 렌더링
+// ═══════════════════════════════════════
+function renderAllGames() {
+    let filtered = [...GAMES];
+
+    // 카테고리 필터
+    if (currentCat === 'top') {
+        filtered = filtered.filter(g => g.top);
+    } else if (currentCat !== 'all') {
+        filtered = filtered.filter(g => g.cat === currentCat);
+    }
+
+    // 검색 필터
+    if (searchQuery) {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(g =>
+            g.name.toLowerCase().includes(q) ||
+            g.genre.includes(q) ||
+            (g.genreEn || '').toLowerCase().includes(q)
+        );
+    }
+
+    const grid = document.getElementById('gameGrid');
+    const count = document.getElementById('gameCount');
+    const title = document.getElementById('allGamesTitle');
+
+    count.textContent = `${filtered.length}${isKo ? '개' : ' games'}`;
+
+    if (currentCat === 'top') {
+        title.textContent = isKo ? '🏆 TOP 5' : '🏆 TOP 5';
+    } else if (currentCat !== 'all') {
+        const cat = CATEGORIES.find(c => c.id === currentCat);
+        title.textContent = `${cat.emoji} ${isKo ? cat.name : cat.nameEn}`;
+    } else {
+        title.textContent = isKo ? '🎮 전체 게임' : '🎮 All Games';
+    }
+
+    if (filtered.length === 0) {
+        grid.innerHTML = `
+            <div class="no-results" style="grid-column:1/-1">
+                <div class="emoji">🔍</div>
+                <div>${isKo ? '검색 결과가 없습니다' : 'No games found'}</div>
+            </div>
+        `;
+        return;
+    }
+
+    grid.innerHTML = filtered.map(g => `
+        <div class="game-card" data-game="${g.id}">
+            <div class="game-icon" style="background:${g.top ? 'linear-gradient(135deg, rgba(233,69,96,0.15), rgba(108,92,231,0.15))' : 'rgba(255,255,255,0.03)'}">
+                ${g.emoji}
+            </div>
+            <div class="game-meta">
+                <div class="game-name">${g.name}</div>
+                <div class="game-genre">${isKo ? g.genre : g.genreEn}</div>
+            </div>
+        </div>
+    `).join('');
+
+    grid.addEventListener('click', (e) => {
+        const card = e.target.closest('.game-card');
+        if (!card) return;
+        openGame(card.dataset.game);
+    });
+}
+
+// ═══════════════════════════════════════
+// 검색
+// ═══════════════════════════════════════
+function setupSearch() {
+    const input = document.getElementById('searchInput');
+    let timer;
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            searchQuery = input.value.trim();
+            renderAllGames();
+        }, 200);
+    });
+}
+
+// ═══════════════════════════════════════
+// 게임 열기
+// ═══════════════════════════════════════
+function openGame(gameId) {
+    TG.haptic?.('impact', 'light');
+    const url = `/games/${gameId}/`;
+    
+    if (TG.isTelegram?.()) {
+        // Telegram 내부에서는 같은 WebView에서 이동
+        window.location.href = url;
+    } else {
+        window.location.href = url;
+    }
+}
+
+// ═══════════════════════════════════════
+// 시작
+// ═══════════════════════════════════════
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+} else {
+    initApp();
+}
+</script>
+</body>
+</html>

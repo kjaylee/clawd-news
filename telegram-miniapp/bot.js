@@ -95,7 +95,7 @@ bot.onText(/\/start(.*)/, (msg, match) => {
         text: g.name,
         web_app: { url: `${WEBAPP_URL}/${g.id}/` }
     }]));
-    keyboard.push([{ text: '📋 전체 게임 목록 (42개)', web_app: { url: `${WEBAPP_URL}/` } }]);
+    keyboard.push([{ text: '📋 전체 게임 목록 (42개)', web_app: { url: `${WEBAPP_URL}/tg-launcher/` } }]);
 
     bot.sendMessage(chatId,
         `🎮 안녕하세요 **${user.first_name}**님!\n\n` +
@@ -119,7 +119,7 @@ bot.onText(/\/games/, (msg) => {
         text: g.name,
         web_app: { url: `${WEBAPP_URL}/${g.id}/` }
     }]));
-    keyboard.push([{ text: '🎮 전체 게임 허브', web_app: { url: `${WEBAPP_URL}/` } }]);
+    keyboard.push([{ text: '🎮 전체 게임 허브', web_app: { url: `${WEBAPP_URL}/tg-launcher/` } }]);
 
     bot.sendMessage(chatId,
         `📋 **게임 목록**\n\n` +
@@ -299,12 +299,12 @@ bot.on('message', async (msg) => {
 // ══════════════════════════════════════
 async function setupBot() {
     try {
-        // 메뉴 버튼 설정
+        // 메뉴 버튼 설정 (런처 페이지로 연결)
         await bot.setChatMenuButton({
             menu_button: {
                 type: 'web_app',
                 text: '🎮 Play Games',
-                web_app: { url: `${WEBAPP_URL}/spin-village/` }
+                web_app: { url: `${WEBAPP_URL}/tg-launcher/` }
             }
         });
         console.log('✅ Menu button set');

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
@@ -337,7 +337,8 @@
     </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/telegram-miniapp/public/tg-bridge.js"></script>
+    <script src="/games/tg-sdk-wrapper.js"></script>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div class="header">
@@ -725,9 +726,28 @@
     <!-- Telegram Mini App Init -->
     <script>
     (function() {
-        if (typeof TGBridge !== "undefined") {
-            window.onTGBack = function() { return false; };
-            console.log("[TG] Game ready:", document.title);
+        if (typeof TG !== "undefined" && TG.isTelegram()) {
+            // 뒤로가기 → 런처
+            TG.onBack(() => {
+                if (confirm('게임 목록으로 돌아갈까요?')) {
+                    window.location.href = '/games/tg-launcher/';
+                    return true;
+                }
+                return true; // 앱 닫기 방지
+            });
+
+            // 공유 버튼 추가
+            const shareBtn = document.createElement('button');
+            shareBtn.textContent = '📢';
+            shareBtn.title = '공유';
+            shareBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;width:48px;height:48px;border-radius:50%;border:none;background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,0.4);';
+            shareBtn.onclick = () => {
+                const level = document.querySelector('.stat-value')?.textContent || '1';
+                TG.shareScore(parseInt(level), 'Spin Village', 'spin-village');
+            };
+            document.body.appendChild(shareBtn);
+
+            console.log("[TG] Spin Village ready for", TG.getUserName());
         }
     })();
     </script>

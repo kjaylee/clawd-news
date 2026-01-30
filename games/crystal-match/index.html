@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
@@ -19,7 +19,8 @@ canvas{display:block;margin:0 auto;}
 </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/telegram-miniapp/public/tg-bridge.js"></script>
+    <script src="/games/tg-sdk-wrapper.js"></script>
+<script src="../i18n.js"></script>
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -1439,9 +1440,36 @@ requestAnimationFrame(frame);
     <!-- Telegram Mini App Init -->
     <script>
     (function() {
-        if (typeof TGBridge !== "undefined") {
-            window.onTGBack = function() { return false; };
-            console.log("[TG] Game ready:", document.title);
+        if (typeof TG !== "undefined" && TG.isTelegram()) {
+            TG.onBack(() => {
+                window.location.href = '/games/tg-launcher/';
+                return true;
+            });
+
+            // 레벨 클리어/실패 시 점수 기록 & 공유 (원본 showResult 래핑)
+            const _origShowResult = window.showResult;
+            if (_origShowResult) {
+                window.showResult = function(won) {
+                    _origShowResult(won);
+                    if (won && window.GameScore) {
+                        const score = typeof totalScore !== 'undefined' ? totalScore : 0;
+                        const result = GameScore.save('crystal-match', score);
+                        if (result.isNewBest) TG.haptic('notification', 'success');
+                    }
+                };
+            }
+
+            // 공유 버튼
+            const shareBtn = document.createElement('button');
+            shareBtn.textContent = '📢';
+            shareBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;width:48px;height:48px;border-radius:50%;border:none;background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,0.4);';
+            shareBtn.onclick = () => {
+                const score = typeof totalScore !== 'undefined' ? totalScore : 0;
+                TG.shareScore(score, 'Crystal Match', 'crystal-match');
+            };
+            document.body.appendChild(shareBtn);
+
+            console.log("[TG] Crystal Match ready for", TG.getUserName());
         }
     })();
     </script>

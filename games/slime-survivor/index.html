@@ -1,10 +1,13 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <script data-goatcounter="https://jaygames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>🟢 슬라임 서바이버</title>
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/games/tg-sdk-wrapper.js"></script>
     <!--
         🎨 에셋 출처 (Asset Credits):
         - 모든 그래픽: Custom Pixel Art Sprites (CC0 스타일)
@@ -13,6 +16,14 @@
         - 모든 스프라이트는 Canvas API로 생성됨 (CORS-free, 단일 파일)
     -->
     <style>
+        /* Telegram Mini App Safe Area */
+        :root {
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
+            --tg-viewport-height: 100vh;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -23,7 +34,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: var(--tg-viewport-height, 100vh);
             min-height: 100dvh;
             font-family: 'Segoe UI', sans-serif;
             overflow: hidden;
@@ -178,6 +189,7 @@
             margin-top: 5px;
         }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div id="gameContainer">
@@ -204,7 +216,9 @@
                 <div>처치 수: <span id="finalKills">0</span></div>
                 <div>도달 레벨: <span id="finalLevel">1</span></div>
             </div>
-            <button onclick="restartGame()">다시 하기</button>
+            <button onclick="restartGame()">🔄 다시 하기</button>
+            <button onclick="shareSlimeScore()" style="background:linear-gradient(135deg,#27ae60,#2ecc71);margin-top:8px;">📢 점수 공유</button>
+            <button onclick="goToLauncher()" style="background:rgba(255,255,255,0.15);margin-top:8px;">🏠 게임 목록</button>
         </div>
         <div id="upgradeScreen">
             <h2 style="margin-bottom: 20px; color: #00ff88;">⬆️ 레벨 업!</h2>
@@ -1154,6 +1168,31 @@
             document.getElementById('finalTime').textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
             document.getElementById('finalKills').textContent = game.kills;
             document.getElementById('finalLevel').textContent = game.level;
+
+            // TG: 점수 기록
+            if (window.GameScore) {
+                GameScore.save('slime-survivor', game.kills);
+            }
+            // TG: 햅틱
+            if (window.TG) {
+                TG.haptic('notification', 'error');
+            }
+        }
+
+        // TG: 점수 공유
+        function shareSlimeScore() {
+            if (window.TG && TG.isTelegram()) {
+                const mins = Math.floor(game.time / 60);
+                const secs = Math.floor(game.time % 60);
+                const text = `🟢 슬라임 서바이버에서 ${mins}분 ${secs}초 생존!\n처치: ${game.kills}마리 | 레벨: ${game.level}\n도전해보세요! 👇`;
+                TG.app.openTelegramLink(
+                    `https://t.me/share/url?url=${encodeURIComponent('https://t.me/eastsea_games_bot?startapp=game_slime-survivor')}&text=${encodeURIComponent(text)}`
+                );
+            }
+        }
+
+        function goToLauncher() {
+            window.location.href = '/games/tg-launcher/';
         }
         
         // Android 뒤로가기 → 일시정지

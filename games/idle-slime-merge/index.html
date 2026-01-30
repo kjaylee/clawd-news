@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
@@ -291,7 +291,8 @@ body {
 </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/telegram-miniapp/public/tg-bridge.js"></script>
+    <script src="/games/tg-sdk-wrapper.js"></script>
+<script src="../i18n.js"></script>
 </head>
 <body>
 
@@ -796,9 +797,31 @@ setInterval(() => {
     <!-- Telegram Mini App Init -->
     <script>
     (function() {
-        if (typeof TGBridge !== "undefined") {
-            window.onTGBack = function() { return false; };
-            console.log("[TG] Game ready:", document.title);
+        if (typeof TG !== "undefined" && TG.isTelegram()) {
+            TG.onBack(() => {
+                window.location.href = '/games/tg-launcher/';
+                return true;
+            });
+
+            // 주기적 진행도 기록 (60초마다)
+            setInterval(() => {
+                if (window.GameScore && typeof state !== 'undefined') {
+                    const totalGold = state.gold || 0;
+                    GameScore.save('idle-slime-merge', Math.floor(totalGold));
+                }
+            }, 60000);
+
+            // 공유 버튼
+            const shareBtn = document.createElement('button');
+            shareBtn.textContent = '📢';
+            shareBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;width:48px;height:48px;border-radius:50%;border:none;background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,0.4);';
+            shareBtn.onclick = () => {
+                const gold = typeof state !== 'undefined' ? Math.floor(state.gold || 0) : 0;
+                TG.shareScore(gold, 'Idle Slime Merge', 'idle-slime-merge');
+            };
+            document.body.appendChild(shareBtn);
+
+            console.log("[TG] Idle Slime Merge ready for", TG.getUserName());
         }
     })();
     </script>

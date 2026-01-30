@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
@@ -583,7 +583,8 @@
     </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/telegram-miniapp/public/tg-bridge.js"></script>
+    <script src="/games/tg-sdk-wrapper.js"></script>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div id="app">
@@ -1297,9 +1298,37 @@
     <!-- Telegram Mini App Init -->
     <script>
     (function() {
-        if (typeof TGBridge !== "undefined") {
-            window.onTGBack = function() { return false; };
-            console.log("[TG] Game ready:", document.title);
+        if (typeof TG !== "undefined" && TG.isTelegram()) {
+            TG.onBack(() => {
+                window.location.href = '/games/tg-launcher/';
+                return true;
+            });
+
+            // 레벨 클리어 시 점수 기록
+            const _origCheckWin = window.checkWin;
+            if (_origCheckWin) {
+                window.checkWin = function() {
+                    const result = _origCheckWin();
+                    if (result && window.GameScore) {
+                        const level = typeof currentLevel !== 'undefined' ? currentLevel : 0;
+                        GameScore.save('screw-sort-factory', level);
+                        TG.haptic('notification', 'success');
+                    }
+                    return result;
+                };
+            }
+
+            // 공유 버튼
+            const shareBtn = document.createElement('button');
+            shareBtn.textContent = '📢';
+            shareBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;width:48px;height:48px;border-radius:50%;border:none;background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,0.4);';
+            shareBtn.onclick = () => {
+                const level = typeof currentLevel !== 'undefined' ? currentLevel : 0;
+                TG.shareScore(level, 'Screw Sort Factory', 'screw-sort-factory');
+            };
+            document.body.appendChild(shareBtn);
+
+            console.log("[TG] Screw Sort Factory ready for", TG.getUserName());
         }
     })();
     </script>
