@@ -2,9 +2,17 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
     <title>Spin Village 🎰🏘️</title>
     <style>
+        /* Telegram Mini App Safe Area */
+        :root {
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
+            --tg-viewport-height: 100vh;
+        }
         * {
             margin: 0;
             padding: 0;
@@ -14,7 +22,7 @@
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            min-height: 100vh;
+            min-height: var(--tg-viewport-height, 100vh);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -327,6 +335,9 @@
             text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
         }
     </style>
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/telegram-miniapp/public/tg-bridge.js"></script>
 </head>
 <body>
     <div class="header">
@@ -709,6 +720,16 @@
         
         // Auto-save every 30 seconds
         setInterval(saveGame, 30000);
+    </script>
+
+    <!-- Telegram Mini App Init -->
+    <script>
+    (function() {
+        if (typeof TGBridge !== "undefined") {
+            window.onTGBack = function() { return false; };
+            console.log("[TG] Game ready:", document.title);
+        }
+    })();
     </script>
 </body>
 </html>

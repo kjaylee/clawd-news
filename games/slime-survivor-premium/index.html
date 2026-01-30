@@ -49,7 +49,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: var(--tg-viewport-height, 100vh);
             min-height: 100dvh;
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             overflow: hidden;
@@ -404,6 +404,9 @@
         }
         #pauseBtn:active { transform: scale(0.9); }
     </style>
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/telegram-miniapp/public/tg-bridge.js"></script>
 </head>
 <body>
 <div id="gameContainer">
@@ -2196,5 +2199,15 @@ window.addEventListener('popstate', () => {
     history.pushState(null, '', '');
 });
 </script>
+
+    <!-- Telegram Mini App Init -->
+    <script>
+    (function() {
+        if (typeof TGBridge !== "undefined") {
+            window.onTGBack = function() { return false; };
+            console.log("[TG] Game ready:", document.title);
+        }
+    })();
+    </script>
 </body>
 </html>
