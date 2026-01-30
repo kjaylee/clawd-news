@@ -39,13 +39,12 @@
             // 1. 앱 준비 완료 알림
             this.app.ready();
 
-            // 2. 전체 화면 확장
+            // 2. 전체 화면 확장 (네비게이션 바 유지)
             this.app.expand();
 
-            // 3. 전체 화면 모드 (v8.0+)
-            if (this.app.requestFullscreen) {
-                try { this.app.requestFullscreen(); } catch(e) {}
-            }
+            // 3. 전체 화면 모드는 수동 호출용으로만 제공
+            //    자동 호출 시 네비게이션 바와 콘텐츠가 겹침
+            //    게임에서 필요 시: TG.requestFullscreen()
 
             // 4. 유저 정보
             this.user = this.app.initDataUnsafe?.user || null;
@@ -66,6 +65,9 @@
 
             // 9. 테마 변경 감지
             this.app.onEvent('themeChanged', () => this._applyTheme());
+
+            // 10. 자동 safe area CSS 주입 (네비게이션 바 겹침 방지)
+            this._injectSafeAreaCSS();
 
             this.isReady = true;
             console.log(`[TG] Initialized — user: ${this.getUserId()}, name: ${this.getUserName()}`);
@@ -99,19 +101,51 @@
 
         _setupSafeArea() {
             const root = document.documentElement.style;
-            if (this.app?.safeAreaInset) {
-                const sa = this.app.safeAreaInset;
-                root.setProperty('--safe-top', `${sa.top || 0}px`);
-                root.setProperty('--safe-bottom', `${sa.bottom || 0}px`);
-                root.setProperty('--safe-left', `${sa.left || 0}px`);
-                root.setProperty('--safe-right', `${sa.right || 0}px`);
+            // Device safe area (노치 등)
+            const sa = this.app?.safeAreaInset || {};
+            root.setProperty('--device-safe-top', `${sa.top || 0}px`);
+            root.setProperty('--device-safe-bottom', `${sa.bottom || 0}px`);
+            root.setProperty('--device-safe-left', `${sa.left || 0}px`);
+            root.setProperty('--device-safe-right', `${sa.right || 0}px`);
+
+            // Content safe area (텔레그램 헤더/네비게이션 바 영역)
+            const csa = this.app?.contentSafeAreaInset || {};
+            root.setProperty('--tg-content-safe-top', `${csa.top || 0}px`);
+            root.setProperty('--tg-content-safe-bottom', `${csa.bottom || 0}px`);
+
+            // 합산 safe area (실제 콘텐츠가 시작해야 하는 위치)
+            const totalTop = (sa.top || 0) + (csa.top || 0);
+            const totalBottom = (sa.bottom || 0) + (csa.bottom || 0);
+            root.setProperty('--safe-top', `${totalTop}px`);
+            root.setProperty('--safe-bottom', `${totalBottom}px`);
+            root.setProperty('--safe-left', `${sa.left || 0}px`);
+            root.setProperty('--safe-right', `${sa.right || 0}px`);
+
+            // safe area 변경 감지 (fullscreen 진입/해제 시)
+            if (this.app?.onEvent) {
+                this.app.onEvent('safeAreaChanged', () => this._setupSafeArea());
+                this.app.onEvent('contentSafeAreaChanged', () => this._setupSafeArea());
             }
-            if (this.app?.contentSafeAreaInset) {
-                const csa = this.app.contentSafeAreaInset;
-                const totalTop = (this.app.safeAreaInset?.top || 0) + (csa.top || 0);
-                root.setProperty('--safe-top', `${totalTop}px`);
-            }
+
             this._updateViewport();
+        },
+
+        _injectSafeAreaCSS() {
+            const style = document.createElement('style');
+            style.id = 'tg-safe-area-fix';
+            style.textContent = `
+                body {
+                    padding-top: var(--safe-top, 0px) !important;
+                    padding-bottom: var(--safe-bottom, 0px) !important;
+                    box-sizing: border-box;
+                }
+                /* position:fixed/absolute 요소도 safe area 존중 */
+                [style*="position: fixed"], [style*="position:fixed"],
+                [style*="position: absolute"], [style*="position:absolute"] {
+                    /* 개별 게임에서 top:0 사용 시 --safe-top 고려하도록 */
+                }
+            `;
+            document.head.appendChild(style);
         },
 
         _updateViewport() {
@@ -145,6 +179,18 @@
             root.setProperty('--tg-viewport-height', `${window.innerHeight}px`);
             root.setProperty('--safe-top', 'env(safe-area-inset-top, 0px)');
             root.setProperty('--safe-bottom', 'env(safe-area-inset-bottom, 0px)');
+        },
+
+        // ── 풀스크린 (수동 호출용) ──
+        requestFullscreen() {
+            if (this.app?.requestFullscreen) {
+                try { this.app.requestFullscreen(); } catch(e) {}
+            }
+        },
+        exitFullscreen() {
+            if (this.app?.exitFullscreen) {
+                try { this.app.exitFullscreen(); } catch(e) {}
+            }
         },
 
         // ── 유저 정보 ──
