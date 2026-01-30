@@ -1,18 +1,22 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Gravity Orbit - 중력 궤도</title>
+<title>Gravity Orbit</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a;touch-action:none}
 canvas{display:block;width:100%;height:100%}
 </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
 <canvas id="c"></canvas>
 <script>
+    const T = GameI18n({});
+
+
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 
@@ -546,13 +550,13 @@ function drawHUD() {
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 24px "Segoe UI", sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`점수: ${score}`, 15, 35);
+    ctx.fillText(`${_i18nLang==='ko'?'점수':'Score'}: ${score}`, 15, 35);
 
     // Chain
     if (chain > 1) {
         ctx.fillStyle = '#ffca28';
         ctx.font = 'bold 18px "Segoe UI", sans-serif';
-        ctx.fillText(`x${chainMultiplier} 체인!`, 15, 60);
+        ctx.fillText(`x${chainMultiplier} ${_i18nLang==="ko"?"체인!":"Chain!"}`, 15, 60);
     }
 
     // Stars
@@ -564,7 +568,7 @@ function drawHUD() {
     // Best score
     ctx.fillStyle = '#888';
     ctx.font = '14px "Segoe UI", sans-serif';
-    ctx.fillText(`최고: ${bestScore}`, W - 15, 55);
+    ctx.fillText(`${_i18nLang==="ko"?"최고":"Best"}: ${bestScore}`, W - 15, 55);
 }
 
 function drawMenu() {
@@ -593,33 +597,33 @@ function drawMenu() {
 
     ctx.fillStyle = '#aaaaaa';
     ctx.font = '18px "Segoe UI", sans-serif';
-    ctx.fillText('행성 궤도를 타고 우주를 여행하세요', W / 2, H / 2 - 40);
+    ctx.fillText(_i18nLang==='ko'?'행성 궤도를 타고 우주를 여행하세요':'Ride planet orbits through space', W / 2, H / 2 - 40);
 
     // Tap prompt (pulsing)
     const pulse = 0.7 + Math.sin(t * 3) * 0.3;
     ctx.globalAlpha = pulse;
     ctx.fillStyle = '#4dc9f6';
     ctx.font = 'bold 22px "Segoe UI", sans-serif';
-    ctx.fillText('탭하여 시작', W / 2, H / 2 + 30);
+    ctx.fillText(_i18nLang==='ko'?'탭하여 시작':'Tap to Start', W / 2, H / 2 + 30);
     ctx.globalAlpha = 1;
 
     // Instructions
     ctx.fillStyle = '#666';
     ctx.font = '14px "Segoe UI", sans-serif';
-    ctx.fillText('궤도에서 탭 → 이탈 → 다음 행성 궤도로!', W / 2, H / 2 + 70);
-    ctx.fillText('별을 모으고, 소행성을 피하세요', W / 2, H / 2 + 92);
+    ctx.fillText(_i18nLang==='ko'?'궤도에서 탭 → 이탈 → 다음 행성 궤도로!':'Tap in orbit → Escape → Next planet!', W / 2, H / 2 + 70);
+    ctx.fillText(_i18nLang==='ko'?'별을 모으고, 소행성을 피하세요':'Collect stars, dodge asteroids', W / 2, H / 2 + 92);
 
     // Best score
     if (bestScore > 0) {
         ctx.fillStyle = '#ffca28';
         ctx.font = '16px "Segoe UI", sans-serif';
-        ctx.fillText(`🏆 최고 점수: ${bestScore}`, W / 2, H / 2 + 130);
+        ctx.fillText(`🏆 ${_i18nLang==='ko'?'최고 점수':'High Score'}: ${bestScore}`, W / 2, H / 2 + 130);
     }
 
     // Back link
     ctx.fillStyle = '#667eea';
     ctx.font = '14px "Segoe UI", sans-serif';
-    ctx.fillText('← 게임 목록으로', W / 2, H - 30);
+    ctx.fillText(_i18nLang==='ko'?'← 게임 목록으로':'← Back to Games', W / 2, H - 30);
 }
 
 function drawGameOver() {
@@ -631,31 +635,31 @@ function drawGameOver() {
 
     ctx.fillStyle = '#ff4444';
     ctx.font = 'bold 36px "Segoe UI", sans-serif';
-    ctx.fillText('게임 오버', W / 2, H / 2 - 80);
+    ctx.fillText(_i18nLang==='ko'?'게임 오버':'Game Over', W / 2, H / 2 - 80);
 
     ctx.fillStyle = '#ffffff';
     ctx.font = 'bold 28px "Segoe UI", sans-serif';
-    ctx.fillText(`점수: ${score}`, W / 2, H / 2 - 30);
+    ctx.fillText(`${_i18nLang==="ko"?"점수":"Score"}: ${score}`, W / 2, H / 2 - 30);
 
     ctx.fillStyle = '#ffca28';
     ctx.font = '20px "Segoe UI", sans-serif';
-    ctx.fillText(`⭐ ${starsCollected}개 수집 | x${chainMultiplier} 최대 체인`, W / 2, H / 2 + 10);
+    ctx.fillText(`⭐ ${starsCollected} ${_i18nLang==='ko'?'개 수집':'collected'} | x${chainMultiplier} ${_i18nLang==='ko'?'최대 체인':'max chain'}`, W / 2, H / 2 + 10);
 
     if (score >= bestScore) {
         ctx.fillStyle = '#00e676';
         ctx.font = 'bold 20px "Segoe UI", sans-serif';
-        ctx.fillText('🎉 새 최고 점수!', W / 2, H / 2 + 45);
+        ctx.fillText(_i18nLang==='ko'?'🎉 새 최고 점수!':'🎉 New High Score!', W / 2, H / 2 + 45);
     } else {
         ctx.fillStyle = '#888';
         ctx.font = '16px "Segoe UI", sans-serif';
-        ctx.fillText(`최고 점수: ${bestScore}`, W / 2, H / 2 + 45);
+        ctx.fillText(`${_i18nLang==='ko'?'최고 점수':'High Score'}: ${bestScore}`, W / 2, H / 2 + 45);
     }
 
     const pulse = 0.7 + Math.sin(Date.now() * 0.003 * 3) * 0.3;
     ctx.globalAlpha = pulse;
     ctx.fillStyle = '#4dc9f6';
     ctx.font = 'bold 22px "Segoe UI", sans-serif';
-    ctx.fillText('탭하여 다시 시작', W / 2, H / 2 + 95);
+    ctx.fillText(_i18nLang==='ko'?'탭하여 다시 시작':'Tap to Restart', W / 2, H / 2 + 95);
     ctx.globalAlpha = 1;
 }
 

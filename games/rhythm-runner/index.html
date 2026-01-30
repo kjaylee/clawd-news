@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <script data-goatcounter="https://jaygames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <meta charset="UTF-8">
@@ -151,6 +151,7 @@
             font-size: 1.5rem;
         }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div id="gameContainer">
@@ -158,17 +159,17 @@
         
         <div id="startScreen">
             <h1>🎵 Rhythm Runner</h1>
-            <p class="subtitle">비트에 맞춰 달려라!</p>
+            <p class="subtitle" id="i18nSub">Run to the beat!</p>
             <div class="lane-hints">
                 <div class="lane-hint" style="background: rgba(255, 107, 107, 0.3);">🔴</div>
                 <div class="lane-hint" style="background: rgba(72, 219, 251, 0.3);">🔵</div>
                 <div class="lane-hint" style="background: rgba(254, 202, 87, 0.3);">🟡</div>
             </div>
-            <button class="btn" onclick="startGame()">🎮 시작하기</button>
+            <button class="btn" onclick="startGame()" id="i18nStart">🎮 Start</button>
             <p class="instructions">
-                노트가 판정선에 도달하면<br>
-                해당 레인을 터치하세요!<br>
-                타이밍이 완벽할수록 높은 점수!
+                <span id="i18nHow">Tap the lane when notes reach<br>
+                the judge line!<br>
+                Better timing = higher score!</span>
             </p>
         </div>
         
@@ -176,16 +177,28 @@
             <h1>🎵 Game Over</h1>
             <div class="final-score" id="finalScore">0</div>
             <div class="stats">
-                최대 콤보: <span id="maxCombo">0</span><br>
+                <span id="i18nMC">Max Combo: </span><span id="maxCombo">0</span><br>
                 Perfect: <span id="perfectCount">0</span> | 
                 Good: <span id="goodCount">0</span> | 
                 Miss: <span id="missCount">0</span>
             </div>
-            <button class="btn" onclick="startGame()">🔄 다시하기</button>
+            <button class="btn" onclick="startGame()" id="i18nRetry">🔄 Retry</button>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      sub:{en:'Run to the beat!',ko:'비트에 맞춰 달려라!'},
+      start:{en:'🎮 Start',ko:'🎮 시작하기'}, retry:{en:'🔄 Retry',ko:'🔄 다시하기'},
+      mc:{en:'Max Combo: ',ko:'최대 콤보: '}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nStart:'start',i18nRetry:'retry'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+      var m=document.getElementById('i18nMC');if(m)m.textContent=T('mc');
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startScreen = document.getElementById('startScreen');

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -29,6 +29,7 @@ h2{color:#fff;font-size:1.5rem}
 .combo-display{font-size:1.4rem;font-weight:bold}
 .judge-popup{position:absolute;width:100%;text-align:center;font-size:2rem;font-weight:bold;pointer-events:none;z-index:15;opacity:0;transition:none}
 </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
 <canvas id="c"></canvas>
@@ -40,11 +41,11 @@ h2{color:#fff;font-size:1.5rem}
 <div id="ui" class="active">
   <div id="menuScreen" class="screen show">
     <h1>🎵 RHYTHM PULSE</h1>
-    <p class="subtitle">비트에 맞춰 탭하세요!</p>
+    <p class="subtitle" id="i18nSub">Tap to the beat!</p>
     <p class="stage-info" id="menuStage">STAGE 1 · BPM 120</p>
     <button class="btn" id="playBtn">▶ PLAY</button>
     <p class="subtitle" id="highScoreText">🏆 HIGH SCORE: 0</p>
-    <p class="subtitle" style="font-size:.8rem;margin-top:10px;color:#666">🎹 키보드: D F J / 터치: 3레인 탭</p>
+    <p class="subtitle" style="font-size:.8rem;margin-top:10px;color:#666">🎹 <span id="i18nCtrl">Keyboard: D F J / Touch: 3-lane tap</span></p>
   </div>
   <div id="resultScreen" class="screen">
     <h2 id="resultTitle">🌟 STAGE CLEAR!</h2>
@@ -59,6 +60,16 @@ h2{color:#fff;font-size:1.5rem}
 <div class="judge-popup" id="judgePopup"></div>
 
 <script>
+    const T = GameI18n({
+      sub:{en:'Tap to the beat!',ko:'비트에 맞춰 탭하세요!'},
+      ctrl:{en:'Keyboard: D F J / Touch: 3-lane tap',ko:'키보드: D F J / 터치: 3레인 탭'}
+    });
+    (function(){var s=function(){
+      document.getElementById('i18nSub').textContent=T('sub');
+      var c=document.getElementById('i18nCtrl');if(c)c.textContent=T('ctrl');
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
 'use strict';
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');

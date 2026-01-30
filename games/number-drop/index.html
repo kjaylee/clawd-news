@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Number Drop - 숫자 드롭 퍼즐</title>
+    <title>Number Drop</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -87,6 +87,7 @@
             line-height: 1.6;
         }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div id="game-container">
@@ -94,13 +95,13 @@
         
         <div id="menu" class="overlay">
             <h1>🔢 NUMBER DROP</h1>
-            <p class="subtitle">숫자를 떨어뜨려 합쳐라!</p>
+            <p class="subtitle" id="i18nSub">Drop and merge numbers!</p>
             <button class="btn btn-play" onclick="startGame()">▶ PLAY</button>
             <p class="best-score">🏆 Best: <span id="menu-best">0</span></p>
             <p class="instructions">
-                좌우로 드래그해서 위치 조정<br>
-                터치/클릭하면 숫자가 떨어짐<br>
-                같은 숫자끼리 합쳐서 2048 도전!
+                <span id="i18nHow">Drag left/right to position<br>
+                Tap/click to drop<br>
+                Merge same numbers to reach 2048!</span>
             </p>
         </div>
         
@@ -108,12 +109,22 @@
             <h1>💥 GAME OVER</h1>
             <p class="game-over-score">Score: <span id="final-score">0</span></p>
             <p class="best-score">🏆 Best: <span id="go-best">0</span></p>
-            <button class="btn btn-retry" onclick="startGame()">↻ 다시하기</button>
-            <button class="btn btn-play" onclick="showMenu()">🏠 홈</button>
+            <button class="btn btn-retry" onclick="startGame()" id="i18nRetry">↻ Retry</button>
+            <button class="btn btn-play" onclick="showMenu()" id="i18nHome">🏠 Home</button>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      sub:{en:'Drop and merge numbers!',ko:'숫자를 떨어뜨려 합쳐라!'},
+      retry:{en:'↻ Retry',ko:'↻ 다시하기'}, home:{en:'🏠 Home',ko:'🏠 홈'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nRetry:'retry',i18nHome:'home'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
         

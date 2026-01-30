@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -113,12 +113,13 @@ canvas {
   font-size: 1.1em;
 }
 </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
 
 <div id="menu">
   <h1>🔧 Pipe Connect</h1>
-  <p>파이프를 회전시켜 물길을 연결하세요!</p>
+  <p id="i18nSub">Rotate pipes to connect the water flow!</p>
   <div class="level-info">Level <span id="menuLevel">1</span></div>
   <button class="btn" onclick="startGame()">▶ Play</button>
 </div>
@@ -140,6 +141,12 @@ canvas {
 </div>
 
 <script>
+    const T = GameI18n({
+      sub:{en:'Rotate pipes to connect the water flow!',ko:'파이프를 회전시켜 물길을 연결하세요!'}
+    });
+    (function(){var e=document.getElementById('i18nSub');if(e)e.textContent=T('sub');})();
+
+
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 

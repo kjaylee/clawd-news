@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Rope Untangle - 로프 풀기 퍼즐</title>
+    <title>Rope Untangle</title>
     <style>
         * {
             margin: 0;
@@ -196,13 +196,14 @@
             margin-top: 20px;
         }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div class="title-screen" id="titleScreen">
         <div class="title">🔗 Rope Untangle</div>
-        <div class="subtitle">얽힌 로프를 풀어보세요!</div>
-        <button class="btn btn-start" onclick="startGame()">게임 시작</button>
-        <div class="level-display" id="savedLevel">저장된 레벨: 1</div>
+        <div class="subtitle" id="i18nSub">Untangle the ropes!</div>
+        <button class="btn btn-start" onclick="startGame()" id="i18nStart">Start Game</button>
+        <div class="level-display" id="savedLevel">Saved Level: 1</div>
     </div>
     
     <div class="game-container">
@@ -223,17 +224,31 @@
         <canvas id="gameCanvas"></canvas>
         
         <div class="controls">
-            <button class="btn btn-hint" onclick="showHint()">💡 힌트</button>
-            <button class="btn btn-reset" onclick="resetLevel()">🔄 리셋</button>
+            <button class="btn btn-hint" onclick="showHint()">💡 Hint</button>
+            <button class="btn btn-reset" onclick="resetLevel()">🔄 Reset</button>
         </div>
     </div>
     
     <div class="message" id="message">
-        🎉 클리어!
-        <small>탭하여 다음 레벨</small>
+        <span id="i18nClear">🎉 Clear!</span>
+        <small id="i18nNext">Tap for next level</small>
     </div>
     
     <script>
+    const T = GameI18n({
+      sub:{en:'Untangle the ropes!',ko:'얽힌 로프를 풀어보세요!'}, start:{en:'Start Game',ko:'게임 시작'},
+      saved:{en:'Saved Level: ',ko:'저장된 레벨: '}, clear:{en:'🎉 Clear!',ko:'🎉 클리어!'},
+      next:{en:'Tap for next level',ko:'탭하여 다음 레벨'}
+    });
+    (function(){var s=function(){
+      document.getElementById('i18nSub').textContent=T('sub');
+      document.getElementById('i18nStart').textContent=T('start');
+      document.getElementById('savedLevel').textContent=T('saved')+'1';
+      var c=document.getElementById('i18nClear');if(c)c.textContent=T('clear');
+      var n=document.getElementById('i18nNext');if(n)n.textContent=T('next');
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -264,7 +279,7 @@
                 const data = JSON.parse(saved);
                 level = data.level || 1;
             }
-            document.getElementById('savedLevel').textContent = `저장된 레벨: ${level}`;
+            document.getElementById('savedLevel').textContent = T('saved') + level;
         }
         
         function saveProgress() {

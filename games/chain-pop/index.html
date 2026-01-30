@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -194,30 +194,31 @@
             100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
         }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div id="menu">
         <h1>🎯 Chain Pop</h1>
-        <p style="margin-bottom: 20px; opacity: 0.8;">연결된 블록을 터치해서 터뜨리세요!</p>
-        <button class="btn" onclick="startGame()">▶ 게임 시작</button>
-        <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.6;">2개 이상 연결된 같은 색 블록을 탭!</p>
+        <p style="margin-bottom: 20px; opacity: 0.8;" id="i18nDesc">Pop connected blocks by tapping!</p>
+        <button class="btn" onclick="startGame()" id="i18nStart">▶ Start Game</button>
+        <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.6;" id="i18nHint">Tap 2+ connected same-color blocks!</p>
     </div>
     
     <div id="game-over" class="hidden">
-        <h2>🎉 게임 오버</h2>
+        <h2 id="i18nGO">🎉 Game Over</h2>
         <div class="final-score" id="final-score">0</div>
-        <p>최고 기록: <span id="high-score">0</span></p>
-        <button class="btn" onclick="startGame()">다시 하기</button>
-        <button class="btn" onclick="showMenu()">메뉴로</button>
+        <p id="i18nHS">High Score: <span id="high-score">0</span></p>
+        <button class="btn" onclick="startGame()" id="i18nRetry">Retry</button>
+        <button class="btn" onclick="showMenu()" id="i18nMenu1">Menu</button>
     </div>
     
     <div id="game-container" class="hidden">
         <h1>🎯 Chain Pop</h1>
         
         <div class="stats">
-            <div class="stat">레벨 <span id="level">1</span></div>
-            <div class="stat">점수 <span id="score">0</span></div>
-            <div class="stat">목표 <span id="goal">1000</span></div>
+            <div class="stat" id="i18nLv">Lv <span id="level">1</span></div>
+            <div class="stat" id="i18nSc">Score <span id="score">0</span></div>
+            <div class="stat" id="i18nGl">Goal <span id="goal">1000</span></div>
         </div>
         
         <div class="goal-bar">
@@ -227,14 +228,32 @@
         <div id="game-board"></div>
         
         <div style="margin-top: 15px;">
-            <button class="btn" onclick="shuffle()">🔀 섞기</button>
-            <button class="btn" onclick="showMenu()">🏠 메뉴</button>
+            <button class="btn" onclick="shuffle()" id="i18nShuf">🔀 Shuffle</button>
+            <button class="btn" onclick="showMenu()" id="i18nMenu2">🏠 Menu</button>
         </div>
     </div>
     
     <div class="particles" id="particles"></div>
 
     <script>
+    const T = GameI18n({
+      desc:{en:'Pop connected blocks by tapping!',ko:'연결된 블록을 터치해서 터뜨리세요!'},
+      start:{en:'▶ Start Game',ko:'▶ 게임 시작'}, hint:{en:'Tap 2+ connected same-color blocks!',ko:'2개 이상 연결된 같은 색 블록을 탭!'},
+      go:{en:'🎉 Game Over',ko:'🎉 게임 오버'}, hs:{en:'High Score: ',ko:'최고 기록: '},
+      retry:{en:'Retry',ko:'다시 하기'}, menu:{en:'Menu',ko:'메뉴로'},
+      lv:{en:'Lv ',ko:'레벨 '}, sc:{en:'Score ',ko:'점수 '}, gl:{en:'Goal ',ko:'목표 '},
+      shuf:{en:'🔀 Shuffle',ko:'🔀 섞기'}, home:{en:'🏠 Menu',ko:'🏠 메뉴'}
+    });
+    (function(){var s=function(){
+      var ids={i18nDesc:'desc',i18nStart:'start',i18nHint:'hint',i18nGO:'go',i18nRetry:'retry',i18nMenu1:'menu',i18nShuf:'shuf',i18nMenu2:'home'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+      var x=document.getElementById('i18nHS');if(x)x.childNodes[0].textContent=T('hs');
+      x=document.getElementById('i18nLv');if(x)x.childNodes[0].textContent=T('lv');
+      x=document.getElementById('i18nSc');if(x)x.childNodes[0].textContent=T('sc');
+      x=document.getElementById('i18nGl');if(x)x.childNodes[0].textContent=T('gl');
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         const GRID_SIZE = 8;
         const COLORS = 5;
         const MIN_MATCH = 2;

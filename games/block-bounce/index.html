@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Block Bounce - 블록 바운스</title>
+    <title>Block Bounce</title>
     <style>
         * {
             margin: 0;
@@ -190,6 +190,7 @@
             animation: clear 0.3s ease-out forwards;
         }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div class="container">
@@ -197,7 +198,7 @@
             <div class="title">Block Bounce</div>
             <div class="score-box">
                 <div class="score" id="score">0</div>
-                <div class="high-score">최고: <span id="highScore">0</span></div>
+                <div class="high-score" id="i18nBest">Best: <span id="highScore">0</span></div>
                 <div class="combo" id="combo"></div>
             </div>
         </div>
@@ -208,10 +209,10 @@
     <div class="overlay hidden" id="startOverlay">
         <div class="modal">
             <h2>Block Bounce</h2>
-            <p>블록을 배치해서<br>라인을 완성하세요!</p>
+            <p id="i18nDesc">Place blocks to<br>complete lines!</p>
             <div class="final-score" id="startHighScore">0</div>
-            <p style="color:#888;margin-bottom:20px;">최고 점수</p>
-            <button onclick="startGame()">시작하기</button>
+            <p style="color:#888;margin-bottom:20px;" id="i18nHS">High Score</p>
+            <button onclick="startGame()" id="i18nStart">Start</button>
         </div>
     </div>
 
@@ -219,12 +220,27 @@
         <div class="modal">
             <h2>Game Over</h2>
             <div class="final-score" id="finalScore">0</div>
-            <p style="color:#888;margin-bottom:20px;">점수</p>
-            <button onclick="startGame()">다시 하기</button>
+            <p style="color:#888;margin-bottom:20px;" id="i18nSc">Score</p>
+            <button onclick="startGame()" id="i18nRetry">Retry</button>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      best:{en:'Best: ',ko:'최고: '}, desc:{en:'Place blocks to<br>complete lines!',ko:'블록을 배치해서<br>라인을 완성하세요!'},
+      hs:{en:'High Score',ko:'최고 점수'}, start:{en:'Start',ko:'시작하기'},
+      sc:{en:'Score',ko:'점수'}, retry:{en:'Retry',ko:'다시 하기'}, combo:{en:'Combo!',ko:'콤보!'}
+    });
+    (function(){var s=function(){
+      document.getElementById('i18nBest').childNodes[0].textContent=T('best');
+      document.getElementById('i18nDesc').innerHTML=T('desc');
+      document.getElementById('i18nHS').textContent=T('hs');
+      document.getElementById('i18nStart').textContent=T('start');
+      document.getElementById('i18nSc').textContent=T('sc');
+      document.getElementById('i18nRetry').textContent=T('retry');
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         const GRID_SIZE = 8;
         const COLORS = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6', 'color-7'];
         
@@ -558,7 +574,7 @@
                 const lineScore = Math.floor(100 * linesCleared * comboMultiplier);
                 score += lineScore;
                 
-                document.getElementById('combo').textContent = combo > 1 ? `${combo}x 콤보!` : '';
+                document.getElementById('combo').textContent = combo > 1 ? `${combo}x ${T('combo')}` : '';
                 
                 // Animate clearing
                 const cellsToClear = new Set();

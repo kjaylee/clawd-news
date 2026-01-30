@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <script data-goatcounter="https://jaygames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🦘 점프 피직스</title>
+    <title>🦘 Jump Physics</title>
     <!--
     ==============================================
     🎨 GAME ASSETS CREDITS
@@ -122,41 +122,53 @@
         button:hover { transform: scale(1.05); }
         .controls { margin-top: 20px; font-size: 0.9em; opacity: 0.7; text-align: center; }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="loadingScreen">
             <div class="loader"></div>
-            <div>에셋 로딩 중...</div>
+            <div id="i18nLoad">Loading assets...</div>
         </div>
         <div id="ui">
-            <div>🏆 점수: <span id="score">0</span></div>
-            <div>📏 높이: <span id="height">0</span>m</div>
-            <div>🎯 최고: <span id="best">0</span>m</div>
+            <div id="i18nScL">🏆 Score: <span id="score">0</span></div>
+            <div id="i18nHtL">📏 Height: <span id="height">0</span>m</div>
+            <div id="i18nBsL">🎯 Best: <span id="best">0</span>m</div>
         </div>
         <div id="powerBar"><div id="powerFill"></div></div>
         <div id="startScreen" style="display: none;">
-            <h1>🦘 점프 피직스</h1>
-            <p style="margin-bottom: 30px; opacity: 0.8;">하늘 끝까지 점프!</p>
-            <button id="startBtn">게임 시작</button>
+            <h1>🦘 Jump Physics</h1>
+            <p style="margin-bottom: 30px; opacity: 0.8;" id="i18nSub">Jump to the sky!</p>
+            <button id="startBtn" id="i18nStart">Start Game</button>
             <div class="controls">
-                📱 터치/클릭 홀드 → 파워 충전<br>
-                놓으면 점프!<br>
-                플랫폼을 밟고 올라가세요
+                <span id="i18nHow">📱 Hold touch/click → Charge power<br>
+                Release to jump!<br>
+                Land on platforms and climb!</span>
             </div>
         </div>
         <div id="gameOverScreen">
-            <h1>🎮 게임 오버</h1>
+            <h1 id="i18nGO">🎮 Game Over</h1>
             <div style="margin: 20px 0; font-size: 1.2em;">
-                <div>도달 높이: <span id="finalHeight">0</span>m</div>
-                <div>획득 점수: <span id="finalScore">0</span></div>
+                <div id="i18nFH">Height reached: <span id="finalHeight">0</span>m</div>
+                <div id="i18nFS">Score: <span id="finalScore">0</span></div>
             </div>
-            <button id="restartBtn">다시 하기</button>
+            <button id="restartBtn" id="i18nRetry">Retry</button>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      load:{en:'Loading assets...',ko:'에셋 로딩 중...'},sub:{en:'Jump to the sky!',ko:'하늘 끝까지 점프!'},
+      start:{en:'Start Game',ko:'게임 시작'},go:{en:'🎮 Game Over',ko:'🎮 게임 오버'},
+      retry:{en:'Retry',ko:'다시 하기'}
+    });
+    (function(){var s=function(){
+      var ids={i18nLoad:'load',i18nSub:'sub',i18nStart:'start',i18nGO:'go',i18nRetry:'retry'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         

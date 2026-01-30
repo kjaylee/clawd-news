@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Merge Rush - 머지 러시</title>
+    <title>Merge Rush</title>
     <style>
         * {
             margin: 0;
@@ -351,6 +351,7 @@
             .tile-1024, .tile-2048, .tile-4096, .tile-8192 { font-size: 0.85rem; }
         }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div id="game-container">
@@ -358,29 +359,29 @@
         <div id="start-screen">
             <div class="icon">🚀</div>
             <h1>MERGE RUSH</h1>
-            <p class="subtitle">스와이프로 블록을 합쳐라!</p>
+            <p class="subtitle" id="i18nSub">Swipe to merge blocks!</p>
             
             <div class="mode-buttons">
                 <button class="mode-btn classic" onclick="startGame('classic')">
-                    ♾️ 클래식 모드
+                    ♾️ Classic Mode
                 </button>
                 <button class="mode-btn rush" onclick="startGame('rush')">
-                    ⏱️ 러시 모드 (60초)
+                    ⏱️ Rush Mode (60s)
                 </button>
             </div>
             
             <div class="player-stats">
                 <div class="player-stat">
                     <div class="value" id="total-coins">0</div>
-                    <div class="label">💰 코인</div>
+                    <div class="label" id="i18nCoin">💰 Coins</div>
                 </div>
                 <div class="player-stat">
                     <div class="value" id="best-classic">0</div>
-                    <div class="label">🏆 클래식 베스트</div>
+                    <div class="label" id="i18nCB">🏆 Classic Best</div>
                 </div>
                 <div class="player-stat">
                     <div class="value" id="best-rush">0</div>
-                    <div class="label">⏱️ 러시 베스트</div>
+                    <div class="label" id="i18nRB">⏱️ Rush Best</div>
                 </div>
             </div>
         </div>
@@ -388,7 +389,7 @@
         <!-- Game Screen -->
         <div id="game-screen" style="display: none;">
             <div class="header">
-                <h1>🚀 <span id="mode-label">클래식</span></h1>
+                <h1>🚀 <span id="mode-label">Classic</span></h1>
                 <div class="stats">
                     <div class="stat-box">
                         <div class="stat-label">SCORE</div>
@@ -432,26 +433,40 @@
     <!-- Result Modal -->
     <div id="result-modal" class="modal">
         <div class="modal-content">
-            <h2 id="result-title">🎉 게임 종료!</h2>
+            <h2 id="result-title" id="i18nGO">🎉 Game Over!</h2>
             <div class="stats-display">
                 <div class="stat-item">
                     <div class="stat-big" id="result-score">0</div>
-                    <div class="stat-label">점수</div>
+                    <div class="stat-label" id="i18nScL">Score</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-big" id="result-best">0</div>
-                    <div class="stat-label">베스트</div>
+                    <div class="stat-label" id="i18nBsL">Best</div>
                 </div>
             </div>
             <p id="coins-earned">💰 +0 코인 획득!</p>
             <div class="modal-buttons">
-                <button class="btn btn-primary" onclick="restartGame()">▶ 다시하기</button>
-                <button class="btn btn-secondary" onclick="goHome()">🏠 홈으로</button>
+                <button class="btn btn-primary" onclick="restartGame()" id="i18nRestart">▶ Retry</button>
+                <button class="btn btn-secondary" onclick="goHome()" id="i18nHome">🏠 Home</button>
             </div>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      sub:{en:'Swipe to merge blocks!',ko:'스와이프로 블록을 합쳐라!'},
+      go:{en:'🎉 Game Over!',ko:'🎉 게임 종료!'}, sc:{en:'Score',ko:'점수'}, bs:{en:'Best',ko:'베스트'},
+      restart:{en:'▶ Retry',ko:'▶ 다시하기'}, home:{en:'🏠 Home',ko:'🏠 홈으로'},
+      coin:{en:'💰 Coins',ko:'💰 코인'}, cb:{en:'🏆 Classic Best',ko:'🏆 클래식 베스트'},
+      rb:{en:'⏱️ Rush Best',ko:'⏱️ 러시 베스트'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nGO:'go',i18nScL:'sc',i18nBsL:'bs',i18nRestart:'restart',i18nHome:'home',i18nCoin:'coin',i18nCB:'cb',i18nRB:'rb'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+      if(_i18nLang==='ko')document.getElementById('mode-label').textContent='클래식';
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         // Constants
         const GRID_SIZE = 4;
         const INITIAL_TILES = 2;
@@ -742,10 +757,10 @@
         function showResultModal(isNewBest, coinsEarned) {
             const best = state.mode === 'classic' ? state.bestClassic : state.bestRush;
             
-            document.getElementById('result-title').textContent = isNewBest ? '🎉 새 기록!' : '⏱️ 게임 종료!';
+            document.getElementById('result-title').textContent = isNewBest ? (_i18nLang==='ko'?'🎉 새 기록!':'🎉 New Record!') : (_i18nLang==='ko'?'⏱️ 게임 종료!':'⏱️ Game Over!');
             document.getElementById('result-score').textContent = state.score.toLocaleString();
             document.getElementById('result-best').textContent = best.toLocaleString();
-            document.getElementById('coins-earned').textContent = `💰 +${coinsEarned} 코인 획득!`;
+            document.getElementById('coins-earned').textContent = `💰 +${coinsEarned} ${_i18nLang==='ko'?'코인 획득!':'coins earned!'}`;
             
             document.getElementById('result-modal').classList.add('show');
         }

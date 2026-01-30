@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
@@ -160,19 +160,20 @@
             color: rgba(255,255,255,0.6);
         }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div class="game-container">
         <!-- Menu Screen -->
         <div id="menuScreen" class="menu">
             <h1>🎮 Slide Match</h1>
-            <p>블록을 밀어 3개 이상 매치하세요!</p>
-            <button class="btn btn-primary" onclick="startGame('timed')">⏱️ 타임 어택 (60초)</button>
-            <button class="btn btn-secondary" onclick="startGame('endless')">♾️ 무한 모드</button>
-            <div class="high-score">🏆 최고 점수: <span id="highScoreDisplay">0</span></div>
+            <p id="i18nDesc">Slide blocks to match 3 or more!</p>
+            <button class="btn btn-primary" onclick="startGame('timed')" id="i18nTimed">⏱️ Time Attack (60s)</button>
+            <button class="btn btn-secondary" onclick="startGame('endless')" id="i18nEndless">♾️ Endless Mode</button>
+            <div class="high-score" id="i18nHSWrap">🏆 <span id="i18nHSL">High Score: </span><span id="highScoreDisplay">0</span></div>
             <div class="instructions">
-                💡 블록을 터치하고 상하좌우로 스와이프!<br>
-                🔥 연쇄 매치로 고득점 노려보세요!
+                <span id="i18nHint">💡 Touch a block and swipe!<br>
+                🔥 Chain matches for high scores!</span>
             </div>
         </div>
         
@@ -188,15 +189,30 @@
         
         <!-- Game Over Screen -->
         <div id="gameOverScreen" class="menu game-over hidden">
-            <h2>🎮 게임 종료!</h2>
+            <h2 id="i18nGO">🎮 Game Over!</h2>
             <div class="final-score" id="finalScore">0</div>
-            <p id="newHighScore" class="hidden" style="color: #ffd93d; margin-bottom: 15px;">🏆 새로운 최고 점수!</p>
-            <button class="btn btn-primary" onclick="showMenu()">🏠 메뉴로</button>
-            <button class="btn btn-secondary" onclick="restartGame()">🔄 다시 하기</button>
+            <p id="newHighScore" class="hidden" style="color: #ffd93d; margin-bottom: 15px;">🏆 New High Score!</p>
+            <button class="btn btn-primary" onclick="showMenu()" id="i18nMenu">🏠 Menu</button>
+            <button class="btn btn-secondary" onclick="restartGame()" id="i18nRetry">🔄 Retry</button>
         </div>
     </div>
     
     <script>
+    const T = GameI18n({
+      desc:{en:'Slide blocks to match 3 or more!',ko:'블록을 밀어 3개 이상 매치하세요!'},
+      timed:{en:'⏱️ Time Attack (60s)',ko:'⏱️ 타임 어택 (60초)'},
+      endless:{en:'♾️ Endless Mode',ko:'♾️ 무한 모드'},
+      hs:{en:'High Score: ',ko:'최고 점수: '}, go:{en:'🎮 Game Over!',ko:'🎮 게임 종료!'},
+      menu:{en:'🏠 Menu',ko:'🏠 메뉴로'}, retry:{en:'🔄 Retry',ko:'🔄 다시 하기'},
+      chain:{en:'Chain',ko:'연쇄'}
+    });
+    (function(){var s=function(){
+      var ids={i18nDesc:'desc',i18nTimed:'timed',i18nEndless:'endless',i18nGO:'go',i18nMenu:'menu',i18nRetry:'retry'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+      var h=document.getElementById('i18nHSL');if(h)h.textContent=T('hs');
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         // Game Config
         const CONFIG = {
             GRID_SIZE: 8,
@@ -561,7 +577,7 @@
             
             if (chainCount > 1) {
                 document.getElementById('chainDisplay').textContent = 
-                    `🔥 ${chainCount}연쇄! x${multiplier.toFixed(1)}`;
+                    `🔥 ${chainCount}Chain! x${multiplier.toFixed(1)}`;
             }
             
             // Animate removal

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Hole Swallow - 블랙홀 아케이드</title>
+    <title>Hole Swallow</title>
     <style>
         * {
             margin: 0;
@@ -128,6 +128,7 @@
             transform: scale(0.95);
         }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div id="gameContainer">
@@ -136,15 +137,26 @@
             <div id="timer">⏱️ 60s</div>
             <div id="score">⭐ 0</div>
         </div>
-        <div id="holeSize">🕳️ 크기: 20</div>
+        <div id="holeSize">🕳️ Size: 20</div>
         <div id="overlay">
             <h1>🕳️ Hole Swallow</h1>
-            <p>블랙홀을 움직여 모든 것을 삼켜라!</p>
-            <button class="btn" id="startBtn">▶️ 시작</button>
+            <p id="i18nSub">Move the black hole and swallow everything!</p>
+            <button class="btn" id="startBtn">▶️ Start</button>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      sub:{en:'Move the black hole and swallow everything!',ko:'블랙홀을 움직여 모든 것을 삼켜라!'},
+      start:{en:'▶️ Start',ko:'▶️ 시작'}, retry:{en:'🔄 Retry',ko:'🔄 다시하기'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nStart:'start',i18nRetry:'retry'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+      if(_i18nLang==='ko')document.getElementById('i18nSize').textContent='🕳️ 크기: 20';
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
         const overlay = document.getElementById('overlay');
@@ -280,10 +292,10 @@
                 <h1>🎮 게임 종료!</h1>
                 <div id="finalScore">${gameState.score.toLocaleString()}</div>
                 <div id="stats">
-                    삼킨 물체: ${gameState.swallowed}개<br>
-                    최종 홀 크기: ${Math.floor(gameState.hole.radius)}
+                    ${_i18nLang==='ko'?'삼킨 물체':'Swallowed'}: ${gameState.swallowed}<br>
+                    ${_i18nLang==='ko'?'최종 홀 크기':'Final hole size'}: ${Math.floor(gameState.hole.radius)}
                 </div>
-                <button class="btn" onclick="init()">🔄 다시하기</button>
+                <button class="btn" onclick="init()" id="i18nRetry">🔄 Retry</button>
             `;
             overlay.classList.remove('hidden');
         }
@@ -326,7 +338,7 @@
                             gameState.hole.radius += obj.size * CONFIG.GROWTH_RATE;
                             
                             scoreEl.textContent = `⭐ ${gameState.score.toLocaleString()}`;
-                            holeSizeEl.textContent = `🕳️ 크기: ${Math.floor(gameState.hole.radius)}`;
+                            holeSizeEl.textContent = `🕳️ ${_i18nLang==='ko'?'크기':'Size'}: ${Math.floor(gameState.hole.radius)}`;
                         }
                     }, 200);
                 }

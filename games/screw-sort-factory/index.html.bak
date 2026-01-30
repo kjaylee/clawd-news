@@ -1,18 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>🔩 Screw Sort Factory</title>
     <style>
-        /* Telegram Mini App Safe Area */
-        :root {
-            --safe-top: env(safe-area-inset-top, 0px);
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
-            --safe-left: env(safe-area-inset-left, 0px);
-            --safe-right: env(safe-area-inset-right, 0px);
-            --tg-viewport-height: 100vh;
-        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
         :root {
@@ -581,10 +573,6 @@
             .slots-area { max-width: 400px; margin: 0 auto; }
         }
     </style>
-    <!-- Telegram Mini App SDK -->
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/games/tg-sdk-wrapper.js?v=1769732782"></script>
-<script src="../i18n.js"></script>
 </head>
 <body>
     <div id="app">
@@ -1292,44 +1280,6 @@
         `;
         document.head.appendChild(style);
         
-    })();
-    </script>
-
-    <!-- Telegram Mini App Init -->
-    <script>
-    (function() {
-        if (typeof TG !== "undefined" && TG.isTelegram()) {
-            TG.onBack(() => {
-                window.location.href = '/games/tg-launcher/';
-                return true;
-            });
-
-            // 레벨 클리어 시 점수 기록
-            const _origCheckWin = window.checkWin;
-            if (_origCheckWin) {
-                window.checkWin = function() {
-                    const result = _origCheckWin();
-                    if (result && window.GameScore) {
-                        const level = typeof currentLevel !== 'undefined' ? currentLevel : 0;
-                        GameScore.save('screw-sort-factory', level);
-                        TG.haptic('notification', 'success');
-                    }
-                    return result;
-                };
-            }
-
-            // 공유 버튼
-            const shareBtn = document.createElement('button');
-            shareBtn.textContent = '📢';
-            shareBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;width:48px;height:48px;border-radius:50%;border:none;background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 15px rgba(39,174,96,0.4);';
-            shareBtn.onclick = () => {
-                const level = typeof currentLevel !== 'undefined' ? currentLevel : 0;
-                TG.shareScore(level, 'Screw Sort Factory', 'screw-sort-factory');
-            };
-            document.body.appendChild(shareBtn);
-
-            console.log("[TG] Screw Sort Factory ready for", TG.getUserName());
-        }
     })();
     </script>
 </body>

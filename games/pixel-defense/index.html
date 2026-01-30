@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>픽셀 디펜스 타이쿤 | Pixel Defense Tycoon</title>
-    <meta name="description" content="귀여운 픽셀 기사단으로 성을 지키는 타워 디펜스 게임">
+    <title>Pixel Defense Tycoon</title>
+    <meta name="description" content="Defend your castle with cute pixel knights in this tower defense game">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
         * {
@@ -450,6 +450,7 @@
             100% { opacity: 0; transform: translateY(-40px); }
         }
     </style>
+<script src="../i18n.js"></script>
 </head>
 <body>
     <div id="game-container">
@@ -518,6 +519,9 @@
     </div>
 
     <script>
+    const T = GameI18n({});
+
+
         // Game State
         const state = {
             gold: 100,
