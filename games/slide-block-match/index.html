@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Slide Block Match</title>
+<meta name="description" content="8x8 그리드에서 블록을 밀어 3매치! 연쇄 폭발과 특수 블록의 쾌감!">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;}
+body{background:#0a0a14;color:#e0e0e0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+canvas{display:block;border-radius:8px;}
+#ui-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;display:flex;flex-direction:column;align-items:center;}
+.screen{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:auto;transition:opacity 0.3s;background:rgba(10,10,20,0.95);}
+.screen.hidden{opacity:0;pointer-events:none;}
+.menu-title{font-size:clamp(1.8rem,5vw,2.8rem);font-weight:800;background:linear-gradient(135deg,#00e5ff,#7c4dff,#ff4081);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;text-align:center;}
+.menu-sub{color:#888;font-size:clamp(0.85rem,2.5vw,1rem);margin-bottom:32px;text-align:center;}
+.btn{display:block;width:240px;max-width:80vw;padding:14px 0;margin:8px auto;border:none;border-radius:12px;font-size:1.05rem;font-weight:700;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;text-align:center;}
+.btn:active{transform:scale(0.96);}
+.btn-time{background:linear-gradient(135deg,#00e5ff,#7c4dff);color:#fff;box-shadow:0 4px 20px rgba(0,229,255,0.3);}
+.btn-endless{background:linear-gradient(135deg,#ff4081,#ff6e40);color:#fff;box-shadow:0 4px 20px rgba(255,64,129,0.3);}
+.btn-back{background:rgba(255,255,255,0.1);color:#aaa;border:1px solid #333;margin-top:20px;width:160px;}
+.stats-row{display:flex;gap:20px;margin-top:20px;justify-content:center;flex-wrap:wrap;}
+.stat{text-align:center;}
+.stat-val{font-size:1.4rem;font-weight:800;color:#00e5ff;}
+.stat-label{font-size:0.75rem;color:#666;margin-top:2px;}
+.go-title{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:800;margin-bottom:6px;}
+.go-score{font-size:clamp(2rem,6vw,3rem);font-weight:800;background:linear-gradient(135deg,#ffd700,#ff6e40);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px;}
+.go-best{color:#888;font-size:0.9rem;margin-bottom:24px;}
+.go-new{color:#4ade80;font-size:0.85rem;font-weight:700;margin-top:-18px;margin-bottom:20px;display:none;}
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="ui-overlay">
+  <!-- MENU -->
+  <div class="screen" id="menu-screen">
+    <div class="menu-title">⬛ Slide Block Match</div>
+    <div class="menu-sub">밀어서 맞춰! 연쇄 폭발 퍼즐</div>
+    <button class="btn btn-time" onclick="startGame('time')">⏱️ 타임어택 (60초)</button>
+    <button class="btn btn-endless" onclick="startGame('endless')">♾️ 무한모드</button>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val" id="menu-best-time">0</div><div class="stat-label">타임어택 최고</div></div>
+      <div class="stat"><div class="stat-val" id="menu-best-endless">0</div><div class="stat-label">무한모드 최고</div></div>
+    </div>
+  </div>
+  <!-- GAME OVER -->
+  <div class="screen hidden" id="gameover-screen">
+    <div class="go-title">GAME OVER</div>
+    <div class="go-score" id="go-score">0</div>
+    <div class="go-new" id="go-new">🎉 NEW BEST!</div>
+    <div class="go-best" id="go-best">최고: 0</div>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-val" id="go-chains">0</div><div class="stat-label">최대 콤보</div></div>
+      <div class="stat"><div class="stat-val" id="go-moves">0</div><div class="stat-label">이동 횟수</div></div>
+    </div>
+    <button class="btn btn-time" onclick="restartGame()">🔄 다시하기</button>
+    <button class="btn btn-back" onclick="showMenu()">🏠 메뉴</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+// ── TG SDK ──
+(function(){
+  const s=document.createElement('script');
+  s.src='https://telegram.org/js/telegram-web-app.js';
+  s.onload=function(){if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand();}};
+  document.head.appendChild(s);
+})();
+
+// ── CONSTANTS ──
+const GRID=8, COLORS=5, MATCH_MIN=3, BASE_SCORE=100, CHAIN_MULT=1.5;
+const LINE_BOMB_MATCH=4, COLOR_BOMB_MATCH=5;
+const BLOCK_COLORS=[
+  {h:'#00e5ff',g:'#006064',n:'Cyan'},
+  {h:'#ff4081',g:'#880e4f',n:'Pink'},
+  {h:'#76ff03',g:'#33691e',n:'Lime'},
+  {h:'#ffd740',g:'#ff6f00',n:'Gold'},
+  {h:'#b388ff',g:'#4a148c',n:'Purple'}
+];
+const TYPE_NORMAL=0,TYPE_LINE=1,TYPE_COLOR=2;
+
+// ── STATE ──
+let canvas, ctx, W, H, cellSize, gridOffX, gridOffY;
+let grid=[], animQueue=[], particles=[];
+let score=0, chain=0, maxChain=0, moves=0, timer=60, gameMode='time', gameActive=false, gamePhase='menu';
+let selectedCell=null, swipeStart=null, swipeCell=null;
+let lastTime=0, comboText='', comboAlpha=0, comboScale=1;
+let shakeTimer=0, shakeMag=0;
+let hintTimer=0, hintCells=[];
+
+// ── STORAGE ──
+function getBest(mode){return parseInt(localStorage.getItem('sbm-best-'+mode)||'0');}
+function setBest(mode,v){localStorage.setItem('sbm-best-'+mode,v);}
+
+// ── INIT ──
+function init(){
+  canvas=document.getElementById('game');
+  ctx=canvas.getContext('2d');
+  resize();
+  window.addEventListener('resize',resize);
+  canvas.addEventListener('mousedown',onDown);
+  canvas.addEventListener('mousemove',onMove);
+  canvas.addEventListener('mouseup',onUp);
+  canvas.addEventListener('touchstart',onTouchStart,{passive:false});
+  canvas.addEventListener('touchmove',onTouchMove,{passive:false});
+  canvas.addEventListener('touchend',onTouchEnd,{passive:false});
+  document.getElementById('menu-best-time').textContent=getBest('time');
+  document.getElementById('menu-best-endless').textContent=getBest('endless');
+  requestAnimationFrame(loop);
+}
+
+function resize(){
+  const dpr=Math.min(window.devicePixelRatio||1,2);
+  const maxW=Math.min(window.innerWidth,500);
+  const maxH=window.innerHeight;
+  const topUI=60, botUI=10;
+  const avail=Math.min(maxW-16, maxH-topUI-botUI-16);
+  cellSize=Math.floor(avail/GRID);
+  const gridPx=cellSize*GRID;
+  W=maxW; H=maxH;
+  canvas.width=W*dpr; canvas.height=H*dpr;
+  canvas.style.width=W+'px'; canvas.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  gridOffX=Math.floor((W-gridPx)/2);
+  gridOffY=topUI+Math.floor((H-topUI-botUI-gridPx)/2);
+}
+
+// ── GRID ──
+function createGrid(){
+  grid=[];
+  for(let r=0;r<GRID;r++){
+    grid[r]=[];
+    for(let c=0;c<GRID;c++){
+      grid[r][c]=makeBlock(r,c);
+    }
+  }
+  // Remove initial matches
+  let safe=0;
+  while(findMatches().length>0 && safe++<100){
+    const matches=findMatches();
+    for(const m of matches){
+      for(const [r,c] of m.cells){
+        grid[r][c]=makeBlock(r,c);
+      }
+    }
+  }
+}
+
+function makeBlock(r,c,colorIdx){
+  return{
+    color:colorIdx!==undefined?colorIdx:Math.floor(Math.random()*COLORS),
+    type:TYPE_NORMAL,
+    x:gridOffX+c*cellSize, y:gridOffY+r*cellSize,
+    targetX:gridOffX+c*cellSize, targetY:gridOffY+r*cellSize,
+    scale:1, alpha:1, removing:false, falling:false
+  };
+}
+
+function getBlockPos(r,c){return{x:gridOffX+c*cellSize, y:gridOffY+r*cellSize};}
+
+// ── MATCH DETECTION ──
+function findMatches(){
+  const matches=[];
+  const used=Array.from({length:GRID},()=>Array(GRID).fill(false));
+  // Horizontal
+  for(let r=0;r<GRID;r++){
+    let c=0;
+    while(c<GRID){
+      if(!grid[r][c]||grid[r][c].removing){c++;continue;}
+      const col=grid[r][c].color;
+      let end=c+1;
+      while(end<GRID&&grid[r][end]&&!grid[r][end].removing&&grid[r][end].color===col) end++;
+      if(end-c>=MATCH_MIN){
+        const cells=[];
+        for(let i=c;i<end;i++){cells.push([r,i]);used[r][i]=true;}
+        matches.push({cells,len:end-c,dir:'h'});
+      }
+      c=end;
+    }
+  }
+  // Vertical
+  for(let c=0;c<GRID;c++){
+    let r=0;
+    while(r<GRID){
+      if(!grid[r][c]||grid[r][c].removing){r++;continue;}
+      const col=grid[r][c].color;
+      let end=r+1;
+      while(end<GRID&&grid[end][c]&&!grid[end][c].removing&&grid[end][c].color===col) end++;
+      if(end-r>=MATCH_MIN){
+        const cells=[];
+        for(let i=r;i<end;i++){cells.push([i,c]);used[i][c]=true;}
+        matches.push({cells,len:end-r,dir:'v'});
+      }
+      r=end;
+    }
+  }
+  return matches;
+}
+
+// ── MATCH PROCESSING ──
+function processMatches(){
+  const matches=findMatches();
+  if(matches.length===0){
+    chain=0;
+    if(!hasPossibleMoves()&&gameActive){
+      shuffleBoard();
+    }
+    return false;
+  }
+  chain++;
+  if(chain>maxChain)maxChain=chain;
+  const mult=Math.pow(CHAIN_MULT,chain-1);
+  const allCells=new Set();
+  // Process each match
+  for(const m of matches){
+    const pts=Math.floor(BASE_SCORE*m.len*mult);
+    score+=pts;
+    // Determine special block creation
+    let specialR=-1,specialC=-1,specialType=TYPE_NORMAL;
+    if(m.len>=COLOR_BOMB_MATCH){
+      specialType=TYPE_COLOR;
+      const mid=Math.floor(m.cells.length/2);
+      [specialR,specialC]=m.cells[mid];
+    } else if(m.len>=LINE_BOMB_MATCH){
+      specialType=TYPE_LINE;
+      const mid=Math.floor(m.cells.length/2);
+      [specialR,specialC]=m.cells[mid];
+    }
+    for(const [r,c] of m.cells){
+      const key=r*GRID+c;
+      if(!allCells.has(key)){
+        allCells.add(key);
+        const b=grid[r][c];
+        if(b){
+          // Check if this block is special - trigger it
+          if(b.type===TYPE_LINE){
+            triggerLineBomb(r,c,b.color,allCells);
+          } else if(b.type===TYPE_COLOR){
+            triggerColorBomb(b.color,allCells);
+          }
+          if(r===specialR&&c===specialC){
+            // Create special block here instead of removing
+          } else {
+            spawnExplosionParticles(b.x+cellSize/2,b.y+cellSize/2,BLOCK_COLORS[b.color].h,8);
+            b.removing=true;
+          }
+        }
+      }
+    }
+    // Create special if needed
+    if(specialType!==TYPE_NORMAL&&specialR>=0){
+      const b=grid[specialR][specialC];
+      if(b){
+        b.type=specialType;
+        b.removing=false;
+        b.scale=1.3;
+        spawnExplosionParticles(b.x+cellSize/2,b.y+cellSize/2,'#fff',12);
+      }
+    }
+  }
+  // Show combo
+  if(chain>1){
+    comboText='x'+chain+' CHAIN!';
+    comboAlpha=1;
+    comboScale=1.5;
+    shakeTimer=0.2;
+    shakeMag=chain*2;
+  }
+  // Remove blocks
+  for(const key of allCells){
+    const r=Math.floor(key/GRID), c=key%GRID;
+    if(grid[r][c]&&grid[r][c].removing){
+      grid[r][c]=null;
+    }
+  }
+  // Gravity + fill
+  applyGravity();
+  fillEmpty();
+  return true;
+}
+
+function triggerLineBomb(r,c,color,allCells){
+  shakeTimer=0.3;shakeMag=6;
+  // Clear entire row and column
+  for(let i=0;i<GRID;i++){
+    const key1=r*GRID+i;
+    if(!allCells.has(key1)&&grid[r][i]&&!grid[r][i].removing){
+      allCells.add(key1);
+      grid[r][i].removing=true;
+      spawnExplosionParticles(grid[r][i].x+cellSize/2,grid[r][i].y+cellSize/2,BLOCK_COLORS[grid[r][i].color].h,5);
+      score+=50;
+    }
+    const key2=i*GRID+c;
+    if(!allCells.has(key2)&&grid[i][c]&&!grid[i][c].removing){
+      allCells.add(key2);
+      grid[i][c].removing=true;
+      spawnExplosionParticles(grid[i][c].x+cellSize/2,grid[i][c].y+cellSize/2,BLOCK_COLORS[grid[i][c].color].h,5);
+      score+=50;
+    }
+  }
+  // Line flash particles
+  for(let i=0;i<GRID;i++){
+    spawnLineParticle(gridOffX+i*cellSize+cellSize/2,gridOffY+r*cellSize+cellSize/2);
+    spawnLineParticle(gridOffX+c*cellSize+cellSize/2,gridOffY+i*cellSize+cellSize/2);
+  }
+}
+
+function triggerColorBomb(color,allCells){
+  shakeTimer=0.4;shakeMag=8;
+  for(let r=0;r<GRID;r++){
+    for(let c=0;c<GRID;c++){
+      if(grid[r][c]&&!grid[r][c].removing&&grid[r][c].color===color){
+        const key=r*GRID+c;
+        if(!allCells.has(key)){
+          allCells.add(key);
+          grid[r][c].removing=true;
+          spawnExplosionParticles(grid[r][c].x+cellSize/2,grid[r][c].y+cellSize/2,BLOCK_COLORS[color].h,6);
+          score+=50;
+        }
+      }
+    }
+  }
+}
+
+function applyGravity(){
+  for(let c=0;c<GRID;c++){
+    let empty=GRID-1;
+    for(let r=GRID-1;r>=0;r--){
+      if(grid[r][c]){
+        if(r!==empty){
+          grid[empty][c]=grid[r][c];
+          grid[r][c]=null;
+          const pos=getBlockPos(empty,c);
+          grid[empty][c].targetX=pos.x;
+          grid[empty][c].targetY=pos.y;
+          grid[empty][c].falling=true;
+        }
+        empty--;
+      }
+    }
+  }
+}
+
+function fillEmpty(){
+  for(let c=0;c<GRID;c++){
+    for(let r=0;r<GRID;r++){
+      if(!grid[r][c]){
+        const b=makeBlock(r,c);
+        const pos=getBlockPos(r,c);
+        b.y=gridOffY-cellSize*(GRID-r);
+        b.targetX=pos.x;
+        b.targetY=pos.y;
+        b.falling=true;
+        grid[r][c]=b;
+      }
+    }
+  }
+}
+
+// ── SLIDE LOGIC ──
+function slideBlock(r,c,dir){
+  if(!grid[r][c]||!gameActive||animQueue.length>0) return false;
+  const dr=dir==='up'?-1:dir==='down'?1:0;
+  const dc=dir==='left'?-1:dir==='right'?1:0;
+  let nr=r+dr, nc=c+dc;
+  // Find destination (slide until blocked or edge)
+  while(nr>=0&&nr<GRID&&nc>=0&&nc<GRID&&!grid[nr][nc]){
+    nr+=dr; nc+=dc;
+  }
+  // Step back to last empty
+  nr-=dr; nc-=dc;
+  if(nr===r&&nc===c) return false; // Didn't move
+  // Move block
+  const block=grid[r][c];
+  grid[r][c]=null;
+  grid[nr][nc]=block;
+  const pos=getBlockPos(nr,nc);
+  block.targetX=pos.x;
+  block.targetY=pos.y;
+  moves++;
+  // Queue match check after animation
+  animQueue.push({type:'slide',block,fromR:r,fromC:c,toR:nr,toC:nc});
+  return true;
+}
+
+// ── POSSIBLE MOVES ──
+function hasPossibleMoves(){
+  for(let r=0;r<GRID;r++){
+    for(let c=0;c<GRID;c++){
+      if(!grid[r][c]) continue;
+      // Check if any adjacent cell is empty and sliding there creates a match
+      const dirs=[[-1,0],[1,0],[0,-1],[0,1]];
+      for(const [dr,dc] of dirs){
+        // Trace slide path
+        let nr=r+dr,nc=c+dc;
+        while(nr>=0&&nr<GRID&&nc>=0&&nc<GRID&&!grid[nr][nc]){nr+=dr;nc+=dc;}
+        nr-=dr;nc-=dc;
+        if(nr===r&&nc===c) continue;
+        // Simulate
+        const savedBlock=grid[r][c];
+        grid[r][c]=null;
+        grid[nr][nc]=savedBlock;
+        const hasMatch=findMatches().length>0;
+        grid[nr][nc]=null;
+        grid[r][c]=savedBlock;
+        if(hasMatch) return true;
+      }
+    }
+  }
+  return false;
+}
+
+function shuffleBoard(){
+  const blocks=[];
+  for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++)if(grid[r][c])blocks.push(grid[r][c]);
+  // Fisher-Yates shuffle colors
+  for(let i=blocks.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [blocks[i].color,blocks[j].color]=[blocks[j].color,blocks[i].color];
+  }
+  // Update positions
+  let idx=0;
+  for(let r=0;r<GRID;r++){
+    for(let c=0;c<GRID;c++){
+      if(grid[r][c]){
+        const pos=getBlockPos(r,c);
+        grid[r][c].targetX=pos.x;
+        grid[r][c].targetY=pos.y;
+      }
+    }
+  }
+  comboText='🔀 SHUFFLE!';
+  comboAlpha=1;comboScale=1.2;
+}
+
+// ── INPUT ──
+function screenToGrid(x,y){
+  const c=Math.floor((x-gridOffX)/cellSize);
+  const r=Math.floor((y-gridOffY)/cellSize);
+  if(r>=0&&r<GRID&&c>=0&&c<GRID) return{r,c};
+  return null;
+}
+
+function onDown(e){handleDown(e.offsetX,e.offsetY);}
+function onMove(e){handleMove(e.offsetX,e.offsetY);}
+function onUp(e){handleUp();}
+function onTouchStart(e){
+  e.preventDefault();
+  const t=e.touches[0];
+  const rect=canvas.getBoundingClientRect();
+  handleDown(t.clientX-rect.left,t.clientY-rect.top);
+}
+function onTouchMove(e){
+  e.preventDefault();
+  const t=e.touches[0];
+  const rect=canvas.getBoundingClientRect();
+  handleMove(t.clientX-rect.left,t.clientY-rect.top);
+}
+function onTouchEnd(e){e.preventDefault();handleUp();}
+
+function handleDown(x,y){
+  if(!gameActive||animQueue.length>0) return;
+  const cell=screenToGrid(x,y);
+  if(cell&&grid[cell.r][cell.c]){
+    swipeStart={x,y};
+    swipeCell=cell;
+    selectedCell=cell;
+    hintTimer=0;hintCells=[];
+  }
+}
+function handleMove(x,y){
+  if(!swipeStart||!swipeCell) return;
+  const dx=x-swipeStart.x, dy=y-swipeStart.y;
+  const threshold=cellSize*0.35;
+  if(Math.abs(dx)>threshold||Math.abs(dy)>threshold){
+    let dir;
+    if(Math.abs(dx)>Math.abs(dy)){
+      dir=dx>0?'right':'left';
+    } else {
+      dir=dy>0?'down':'up';
+    }
+    slideBlock(swipeCell.r,swipeCell.c,dir);
+    swipeStart=null;swipeCell=null;selectedCell=null;
+  }
+}
+function handleUp(){
+  swipeStart=null;swipeCell=null;
+  setTimeout(()=>{selectedCell=null;},100);
+}
+
+// ── PARTICLES ──
+function spawnExplosionParticles(x,y,color,count){
+  for(let i=0;i<count;i++){
+    const angle=Math.random()*Math.PI*2;
+    const speed=80+Math.random()*160;
+    particles.push({
+      x,y,
+      vx:Math.cos(angle)*speed,
+      vy:Math.sin(angle)*speed,
+      size:3+Math.random()*5,
+      color,
+      alpha:1,
+      life:0.4+Math.random()*0.4,
+      maxLife:0.4+Math.random()*0.4,
+      type:'circle'
+    });
+  }
+}
+
+function spawnLineParticle(x,y){
+  particles.push({
+    x,y,vx:(Math.random()-0.5)*60,vy:(Math.random()-0.5)*60,
+    size:cellSize*0.4,color:'#fff',alpha:0.8,life:0.3,maxLife:0.3,type:'ring'
+  });
+}
+
+function spawnScoreParticle(x,y,text){
+  particles.push({
+    x,y,vx:0,vy:-60,size:0,color:'#ffd740',alpha:1,
+    life:1,maxLife:1,type:'text',text
+  });
+}
+
+function updateParticles(dt){
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx*dt;
+    p.y+=p.vy*dt;
+    p.vy+=200*dt; // gravity for circles
+    p.life-=dt;
+    p.alpha=Math.max(0,p.life/p.maxLife);
+    if(p.type==='text'){p.vy=-60;p.alpha=p.life/p.maxLife;}
+    if(p.life<=0) particles.splice(i,1);
+  }
+}
+
+function drawParticles(){
+  for(const p of particles){
+    ctx.globalAlpha=p.alpha;
+    if(p.type==='circle'){
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.size*p.alpha,0,Math.PI*2);
+      ctx.fill();
+    } else if(p.type==='ring'){
+      ctx.strokeStyle=p.color;
+      ctx.lineWidth=2;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,p.size*(1-p.alpha),0,Math.PI*2);
+      ctx.stroke();
+    } else if(p.type==='text'){
+      ctx.fillStyle=p.color;
+      ctx.font='bold '+Math.floor(14+p.alpha*6)+'px sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText(p.text,p.x,p.y);
+    }
+  }
+  ctx.globalAlpha=1;
+}
+
+// ── ANIMATION ──
+function updateAnimations(dt){
+  let allDone=true;
+  for(let r=0;r<GRID;r++){
+    for(let c=0;c<GRID;c++){
+      const b=grid[r][c];
+      if(!b) continue;
+      // Smooth movement
+      const speed=cellSize*16;
+      const dx=b.targetX-b.x, dy=b.targetY-b.y;
+      const dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist>1){
+        allDone=false;
+        const step=Math.min(speed*dt,dist);
+        b.x+=dx/dist*step;
+        b.y+=dy/dist*step;
+      } else {
+        b.x=b.targetX;b.y=b.targetY;
+        b.falling=false;
+      }
+      // Scale animation
+      if(b.scale>1){
+        b.scale=Math.max(1,b.scale-dt*3);
+      }
+    }
+  }
+  // Process queue when animations done
+  if(allDone&&animQueue.length>0){
+    animQueue=[];
+    // Chain match check
+    setTimeout(()=>{
+      if(processMatches()){
+        // More matches found, will continue in next frame
+      }
+    },50);
+  }
+  return allDone;
+}
+
+// ── DRAW ──
+function drawBlock(b,r,c){
+  if(!b||b.alpha<=0) return;
+  const col=BLOCK_COLORS[b.color];
+  const pad=2;
+  const x=b.x+pad, y=b.y+pad;
+  const s=(cellSize-pad*2)*b.scale;
+  const cx=b.x+cellSize/2, cy=b.y+cellSize/2;
+  
+  ctx.save();
+  ctx.globalAlpha=b.alpha;
+  
+  if(b.scale!==1){
+    ctx.translate(cx,cy);
+    ctx.scale(b.scale,b.scale);
+    ctx.translate(-cx,-cy);
+  }
+  
+  // Block body with rounded corners
+  const radius=Math.max(4,cellSize*0.15);
+  const bx=b.x+pad, by=b.y+pad, bw=cellSize-pad*2, bh=cellSize-pad*2;
+  
+  // Glow for special blocks
+  if(b.type===TYPE_LINE){
+    ctx.shadowColor=col.h;
+    ctx.shadowBlur=12;
+  } else if(b.type===TYPE_COLOR){
+    ctx.shadowColor='#fff';
+    ctx.shadowBlur=16;
+  }
+  
+  // Gradient fill
+  const grad=ctx.createLinearGradient(bx,by,bx+bw,by+bh);
+  grad.addColorStop(0,col.h);
+  grad.addColorStop(1,col.g);
+  ctx.fillStyle=grad;
+  
+  ctx.beginPath();
+  ctx.moveTo(bx+radius,by);
+  ctx.lineTo(bx+bw-radius,by);
+  ctx.quadraticCurveTo(bx+bw,by,bx+bw,by+radius);
+  ctx.lineTo(bx+bw,by+bh-radius);
+  ctx.quadraticCurveTo(bx+bw,by+bh,bx+bw-radius,by+bh);
+  ctx.lineTo(bx+radius,by+bh);
+  ctx.quadraticCurveTo(bx,by+bh,bx,by+bh-radius);
+  ctx.lineTo(bx,by+radius);
+  ctx.quadraticCurveTo(bx,by,bx+radius,by);
+  ctx.fill();
+  
+  ctx.shadowBlur=0;
+  
+  // Highlight
+  ctx.fillStyle='rgba(255,255,255,0.15)';
+  ctx.beginPath();
+  ctx.moveTo(bx+radius,by);
+  ctx.lineTo(bx+bw-radius,by);
+  ctx.quadraticCurveTo(bx+bw,by,bx+bw,by+radius);
+  ctx.lineTo(bx+bw,by+bh*0.35);
+  ctx.lineTo(bx,by+bh*0.35);
+  ctx.lineTo(bx,by+radius);
+  ctx.quadraticCurveTo(bx,by,bx+radius,by);
+  ctx.fill();
+  
+  // Special block indicators
+  if(b.type===TYPE_LINE){
+    ctx.strokeStyle='#fff';
+    ctx.lineWidth=2;
+    const my=by+bh/2;
+    ctx.beginPath();
+    ctx.moveTo(bx+6,my);ctx.lineTo(bx+bw-6,my);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(bx+bw/2,by+6);ctx.lineTo(bx+bw/2,by+bh-6);
+    ctx.stroke();
+    // Arrows
+    ctx.font='bold '+Math.floor(cellSize*0.3)+'px sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#fff';
+    ctx.fillText('✚',cx,cy);
+  } else if(b.type===TYPE_COLOR){
+    // Rainbow ring
+    const t=performance.now()/500;
+    ctx.lineWidth=3;
+    for(let i=0;i<5;i++){
+      const a=t+i*Math.PI*2/5;
+      ctx.strokeStyle=BLOCK_COLORS[i].h;
+      ctx.beginPath();
+      ctx.arc(cx,cy,cellSize*0.25,a,a+Math.PI*2/5*0.8);
+      ctx.stroke();
+    }
+    ctx.font='bold '+Math.floor(cellSize*0.35)+'px sans-serif';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='#fff';
+    ctx.fillText('💥',cx,cy);
+  }
+  
+  // Selection highlight
+  if(selectedCell&&selectedCell.r===r&&selectedCell.c===c){
+    ctx.strokeStyle='#fff';
+    ctx.lineWidth=2.5;
+    ctx.beginPath();
+    ctx.moveTo(bx+radius,by);
+    ctx.lineTo(bx+bw-radius,by);
+    ctx.quadraticCurveTo(bx+bw,by,bx+bw,by+radius);
+    ctx.lineTo(bx+bw,by+bh-radius);
+    ctx.quadraticCurveTo(bx+bw,by+bh,bx+bw-radius,by+bh);
+    ctx.lineTo(bx+radius,by+bh);
+    ctx.quadraticCurveTo(bx,by+bh,bx,by+bh-radius);
+    ctx.lineTo(bx,by+radius);
+    ctx.quadraticCurveTo(bx,by,bx+radius,by);
+    ctx.stroke();
+  }
+  
+  // Hint glow
+  if(hintCells.some(h=>h[0]===r&&h[1]===c)){
+    const pulse=0.5+0.5*Math.sin(performance.now()/200);
+    ctx.strokeStyle=`rgba(255,255,255,${0.3+pulse*0.4})`;
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(bx+radius,by);
+    ctx.lineTo(bx+bw-radius,by);
+    ctx.quadraticCurveTo(bx+bw,by,bx+bw,by+radius);
+    ctx.lineTo(bx+bw,by+bh-radius);
+    ctx.quadraticCurveTo(bx+bw,by+bh,bx+bw-radius,by+bh);
+    ctx.lineTo(bx+radius,by+bh);
+    ctx.quadraticCurveTo(bx,by+bh,bx,by+bh-radius);
+    ctx.lineTo(bx,by+radius);
+    ctx.quadraticCurveTo(bx,by,bx+radius,by);
+    ctx.stroke();
+  }
+  
+  ctx.restore();
+}
+
+function drawGrid(){
+  // Grid background
+  ctx.fillStyle='rgba(255,255,255,0.03)';
+  const rad=8;
+  const gx=gridOffX-4,gy=gridOffY-4,gw=cellSize*GRID+8,gh=cellSize*GRID+8;
+  ctx.beginPath();
+  ctx.moveTo(gx+rad,gy);ctx.lineTo(gx+gw-rad,gy);ctx.quadraticCurveTo(gx+gw,gy,gx+gw,gy+rad);
+  ctx.lineTo(gx+gw,gy+gh-rad);ctx.quadraticCurveTo(gx+gw,gy+gh,gx+gw-rad,gy+gh);
+  ctx.lineTo(gx+rad,gy+gh);ctx.quadraticCurveTo(gx,gy+gh,gx,gy+gh-rad);
+  ctx.lineTo(gx,gy+rad);ctx.quadraticCurveTo(gx,gy,gx+rad,gy);
+  ctx.fill();
+  
+  // Grid lines
+  ctx.strokeStyle='rgba(255,255,255,0.04)';
+  ctx.lineWidth=1;
+  for(let i=0;i<=GRID;i++){
+    ctx.beginPath();
+    ctx.moveTo(gridOffX+i*cellSize,gridOffY);
+    ctx.lineTo(gridOffX+i*cellSize,gridOffY+GRID*cellSize);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(gridOffX,gridOffY+i*cellSize);
+    ctx.lineTo(gridOffX+GRID*cellSize,gridOffY+i*cellSize);
+    ctx.stroke();
+  }
+  
+  // Blocks
+  for(let r=0;r<GRID;r++){
+    for(let c=0;c<GRID;c++){
+      if(grid[r][c]) drawBlock(grid[r][c],r,c);
+    }
+  }
+}
+
+function drawHUD(){
+  const hudY=12;
+  // Score
+  ctx.fillStyle='#fff';
+  ctx.font='bold '+Math.floor(Math.min(20,W*0.045))+'px sans-serif';
+  ctx.textAlign='left';
+  ctx.fillText('Score: '+score.toLocaleString(),gridOffX,hudY+20);
+  
+  // Timer or moves
+  ctx.textAlign='right';
+  if(gameMode==='time'){
+    const timeColor=timer<=10?'#ff4081':'#00e5ff';
+    ctx.fillStyle=timeColor;
+    ctx.fillText('⏱️ '+Math.ceil(timer)+'s',gridOffX+GRID*cellSize,hudY+20);
+  } else {
+    ctx.fillStyle='#76ff03';
+    ctx.fillText('♾️ Moves: '+moves,gridOffX+GRID*cellSize,hudY+20);
+  }
+  
+  // Chain display
+  if(chain>1){
+    ctx.textAlign='center';
+    ctx.fillStyle='#ffd740';
+    ctx.font='bold '+Math.floor(Math.min(16,W*0.035))+'px sans-serif';
+    ctx.fillText('🔥 '+chain+'x Chain',W/2,hudY+42);
+  }
+  
+  // Combo text
+  if(comboAlpha>0){
+    ctx.save();
+    ctx.globalAlpha=comboAlpha;
+    ctx.fillStyle='#ffd740';
+    const fs=Math.floor(28*comboScale);
+    ctx.font='bold '+fs+'px sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    ctx.fillText(comboText,W/2,gridOffY+GRID*cellSize/2);
+    ctx.restore();
+  }
+}
+
+// ── GAME FLOW ──
+function startGame(mode){
+  gameMode=mode;
+  score=0;chain=0;maxChain=0;moves=0;timer=60;
+  gameActive=true;gamePhase='play';
+  animQueue=[];particles=[];
+  selectedCell=null;swipeStart=null;swipeCell=null;
+  comboAlpha=0;hintTimer=0;hintCells=[];
+  createGrid();
+  document.getElementById('menu-screen').classList.add('hidden');
+  document.getElementById('gameover-screen').classList.add('hidden');
+}
+window.startGame=startGame;
+
+function endGame(){
+  gameActive=false;gamePhase='gameover';
+  const best=getBest(gameMode);
+  const isNew=score>best;
+  if(isNew) setBest(gameMode,score);
+  
+  document.getElementById('go-score').textContent=score.toLocaleString();
+  document.getElementById('go-best').textContent='최고: '+(isNew?score:best).toLocaleString();
+  document.getElementById('go-chains').textContent=maxChain;
+  document.getElementById('go-moves').textContent=moves;
+  document.getElementById('go-new').style.display=isNew?'block':'none';
+  
+  setTimeout(()=>{
+    document.getElementById('gameover-screen').classList.remove('hidden');
+  },500);
+}
+
+function restartGame(){
+  document.getElementById('gameover-screen').classList.add('hidden');
+  startGame(gameMode);
+}
+window.restartGame=restartGame;
+
+function showMenu(){
+  gamePhase='menu';gameActive=false;
+  document.getElementById('gameover-screen').classList.add('hidden');
+  document.getElementById('menu-screen').classList.remove('hidden');
+  document.getElementById('menu-best-time').textContent=getBest('time');
+  document.getElementById('menu-best-endless').textContent=getBest('endless');
+}
+window.showMenu=showMenu;
+
+// ── MAIN LOOP ──
+function loop(ts){
+  const dt=Math.min(0.05,(ts-(lastTime||ts))/1000);
+  lastTime=ts;
+  
+  // Clear
+  ctx.clearRect(0,0,W,H);
+  
+  // Background
+  ctx.fillStyle='#0a0a14';
+  ctx.fillRect(0,0,W,H);
+  
+  // Ambient background glow
+  const bg=ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,W*0.7);
+  bg.addColorStop(0,'rgba(102,126,234,0.04)');
+  bg.addColorStop(1,'transparent');
+  ctx.fillStyle=bg;
+  ctx.fillRect(0,0,W,H);
+  
+  if(gamePhase==='play'){
+    // Update timer
+    if(gameMode==='time'&&gameActive){
+      timer-=dt;
+      if(timer<=0){timer=0;endGame();}
+    }
+    
+    // Hint timer
+    if(gameActive&&animQueue.length===0){
+      hintTimer+=dt;
+      if(hintTimer>5&&hintCells.length===0){
+        findHint();
+      }
+    }
+    
+    // Update
+    updateAnimations(dt);
+    updateParticles(dt);
+    
+    // Shake
+    if(shakeTimer>0){
+      shakeTimer-=dt;
+      const sx=(Math.random()-0.5)*shakeMag;
+      const sy=(Math.random()-0.5)*shakeMag;
+      ctx.save();
+      ctx.translate(sx,sy);
+    }
+    
+    // Combo fade
+    if(comboAlpha>0){
+      comboAlpha-=dt*0.8;
+      comboScale=Math.max(1,comboScale-dt*2);
+    }
+    
+    // Draw
+    drawGrid();
+    drawHUD();
+    drawParticles();
+    
+    if(shakeTimer>0) ctx.restore();
+    
+    // Endless mode: check for deadlock (no empty cells and no matches)
+    if(gameMode==='endless'&&gameActive&&animQueue.length===0){
+      const hasEmpty=grid.some(row=>row.some(b=>!b));
+      if(!hasEmpty&&findMatches().length===0&&!hasPossibleMoves()){
+        shuffleBoard();
+      }
+    }
+  }
+  
+  requestAnimationFrame(loop);
+}
+
+function findHint(){
+  for(let r=0;r<GRID;r++){
+    for(let c=0;c<GRID;c++){
+      if(!grid[r][c]) continue;
+      const dirs=[[-1,0],[1,0],[0,-1],[0,1]];
+      for(const [dr,dc] of dirs){
+        let nr=r+dr,nc=c+dc;
+        while(nr>=0&&nr<GRID&&nc>=0&&nc<GRID&&!grid[nr][nc]){nr+=dr;nc+=dc;}
+        nr-=dr;nc-=dc;
+        if(nr===r&&nc===c) continue;
+        const saved=grid[r][c];
+        grid[r][c]=null;grid[nr][nc]=saved;
+        const has=findMatches().length>0;
+        grid[nr][nc]=null;grid[r][c]=saved;
+        if(has){hintCells=[[r,c]];return;}
+      }
+    }
+  }
+}
+
+// ── START ──
+init();
+</script>
+</body>
+</html>
