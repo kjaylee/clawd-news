@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>Ball Sort Puzzle</title>
+    <meta property="og:title" content="Ball Sort Puzzle">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://eastsea.monster/games/ball-sort/">
+    <meta property="og:description" content="Sort colored balls into tubes! Free HTML5 puzzle game.">
+    <meta property="og:site_name" content="East Sea Games">
+    <meta name="description" content="Ball Sort Puzzle - Sort colored balls into tubes. Free browser game, no download.">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/games/tg-sdk-wrapper.js?v=2"></script>
+    <script src="../i18n.js"></script>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+        body {
+            font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-bg, #0f0f23);
+            color: var(--tg-text, #fff);
+            overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #app {
+            width: 100vw;
+            height: calc(var(--tg-viewport-height, 100vh));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+        .screen { display:none; width:100%; max-width:500px; height:100%; flex-direction:column; align-items:center; padding:16px; }
+        .screen.active { display:flex; }
+
+        /* ═══ MENU ═══ */
+        #screen-menu { justify-content:center; gap:12px; text-align:center; }
+        .logo { font-size:72px; line-height:1; margin-bottom:8px; filter:drop-shadow(0 4px 20px rgba(102,126,234,0.4)); }
+        #screen-menu h1 {
+            font-size:2rem; font-weight:800; letter-spacing:-0.5px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        }
+        .subtitle { color:var(--tg-hint,#888); font-size:0.95rem; margin-bottom:16px; }
+        .menu-buttons { display:flex; flex-direction:column; gap:10px; width:100%; max-width:260px; }
+        .menu-info { display:flex; gap:20px; justify-content:center; margin-top:16px; font-size:0.95rem; color:var(--tg-hint,#aaa); }
+
+        /* ═══ BUTTONS ═══ */
+        .btn {
+            padding:14px 28px; border:none; border-radius:14px; font-size:1rem;
+            font-weight:600; cursor:pointer; transition:transform 0.15s,opacity 0.15s;
+            display:flex; align-items:center; justify-content:center; gap:6px; min-height:48px;
+        }
+        .btn:active { transform:scale(0.95); opacity:0.85; }
+        .btn:disabled { opacity:0.4; pointer-events:none; }
+        .btn-primary { background:linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+        .btn-secondary { background:rgba(255,255,255,0.1); color:var(--tg-text,#fff); border:1px solid rgba(255,255,255,0.15); }
+        .btn-icon {
+            width:40px; height:40px; border:none; border-radius:10px;
+            background:rgba(255,255,255,0.1); color:var(--tg-text,#fff);
+            font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
+            transition:transform 0.15s;
+        }
+        .btn-icon:active { transform:scale(0.9); }
+
+        /* ═══ LEVEL SELECT ═══ */
+        #screen-levels { padding-top:12px; }
+        .screen-header { display:flex; align-items:center; gap:12px; width:100%; margin-bottom:16px; }
+        .screen-header h2 { flex:1; font-size:1.2rem; }
+        .page-info { font-size:0.85rem; color:var(--tg-hint,#888); min-width:50px; text-align:right; }
+        .levels-grid {
+            display:grid; grid-template-columns:repeat(6,1fr); gap:8px;
+            width:100%; flex:1; align-content:start; overflow-y:auto;
+            padding-bottom:60px;
+        }
+        .level-cell {
+            aspect-ratio:1; border-radius:12px; display:flex; flex-direction:column;
+            align-items:center; justify-content:center; cursor:pointer;
+            background:rgba(255,255,255,0.08); border:2px solid transparent;
+            transition:transform 0.15s,border-color 0.15s; position:relative; gap:2px;
+        }
+        .level-cell:active { transform:scale(0.92); }
+        .level-cell.current { border-color:#667eea; background:rgba(102,126,234,0.15); }
+        .level-cell.completed { background:rgba(78,205,196,0.12); }
+        .level-cell.locked { opacity:0.3; pointer-events:none; }
+        .level-num { font-size:1.1rem; font-weight:700; line-height:1; }
+        .level-stars { font-size:0.55rem; line-height:1; letter-spacing:1px; }
+        .levels-nav { display:flex; gap:12px; justify-content:center; padding:12px 0; width:100%; }
+
+        /* ═══ GAME SCREEN ═══ */
+        #screen-game { padding-top:8px; gap:0; }
+        .game-header {
+            display:flex; align-items:center; width:100%; gap:8px;
+            padding-bottom:8px;
+        }
+        .game-info { flex:1; font-size:1rem; font-weight:700; }
+        .game-stats { display:flex; gap:12px; font-size:0.9rem; color:var(--tg-hint,#aaa); }
+        #game-canvas {
+            width:100%; flex:1; min-height:0;
+            border-radius:16px;
+            touch-action:none;
+        }
+        .game-controls { display:flex; gap:8px; padding:10px 0 4px; width:100%; }
+        .btn-control {
+            flex:1; padding:10px 6px; border:none; border-radius:12px;
+            background:rgba(255,255,255,0.08); color:var(--tg-text,#fff);
+            font-size:0.85rem; font-weight:600; cursor:pointer;
+            display:flex; align-items:center; justify-content:center; gap:4px;
+            min-height:44px; transition:transform 0.15s,opacity 0.15s;
+        }
+        .btn-control:active { transform:scale(0.95); opacity:0.8; }
+        .btn-control:disabled { opacity:0.3; pointer-events:none; }
+
+        /* ═══ WIN MODAL ═══ */
+        .modal {
+            display:none; position:fixed; inset:0; z-index:1000;
+            align-items:center; justify-content:center;
+        }
+        .modal.show { display:flex; }
+        .modal-backdrop {
+            position:absolute; inset:0; background:rgba(0,0,0,0.75);
+            backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+        }
+        .modal-content {
+            position:relative; background:var(--tg-secondary-bg,#1a1a2e);
+            border-radius:20px; padding:32px 24px; text-align:center;
+            min-width:280px; max-width:340px; width:85%;
+            box-shadow:0 20px 60px rgba(0,0,0,0.5);
+            border:1px solid rgba(255,255,255,0.1);
+            transform:scale(0.9); opacity:0; transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1),opacity 0.25s;
+        }
+        .modal.show .modal-content { transform:scale(1); opacity:1; }
+        .modal-content h2 { font-size:1.6rem; margin-bottom:16px; }
+        .stars-display { font-size:2.8rem; margin-bottom:16px; letter-spacing:4px; }
+        .stars-display .star { display:inline-block; transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),opacity 0.3s; }
+        .stars-display .star.pop { animation:starPop 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+        @keyframes starPop { 0%{transform:scale(0) rotate(-30deg);} 60%{transform:scale(1.3) rotate(10deg);} 100%{transform:scale(1) rotate(0deg);} }
+        .win-stats { display:flex; justify-content:center; gap:32px; margin-bottom:12px; }
+        .stat { text-align:center; }
+        .stat-value { font-size:1.8rem; font-weight:800; color:#667eea; }
+        .stat-label { font-size:0.75rem; color:var(--tg-hint,#888); text-transform:uppercase; letter-spacing:1px; }
+        .win-reward { font-size:1.1rem; color:#ffd700; font-weight:600; margin-bottom:16px; }
+        .win-buttons { display:flex; flex-direction:column; gap:8px; }
+
+        /* ═══ TOAST ═══ */
+        .toast {
+            position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(20px);
+            background:rgba(0,0,0,0.85); color:#fff; padding:10px 20px;
+            border-radius:10px; font-size:0.9rem; opacity:0;
+            transition:opacity 0.3s,transform 0.3s; z-index:2000; pointer-events:none;
+        }
+        .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+        /* ═══ CONFETTI CANVAS ═══ */
+        #confetti-canvas {
+            position:fixed; inset:0; pointer-events:none; z-index:999;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!-- MENU -->
+    <div id="screen-menu" class="screen active">
+        <div class="logo">🔮</div>
+        <h1 id="t-title">Ball Sort Puzzle</h1>
+        <p class="subtitle" id="t-subtitle">Sort balls by color!</p>
+        <div class="menu-buttons">
+            <button class="btn btn-primary" id="btn-play">▶ Play</button>
+            <button class="btn btn-secondary" id="btn-levels">📋 Levels</button>
+        </div>
+        <div class="menu-info">
+            <span>🪙 <span id="menu-coins">100</span></span>
+            <span>⭐ <span id="menu-stars">0</span></span>
+        </div>
+    </div>
+
+    <!-- LEVEL SELECT -->
+    <div id="screen-levels" class="screen">
+        <div class="screen-header">
+            <button class="btn-icon" id="btn-levels-back">←</button>
+            <h2 id="t-levels-title">Level Select</h2>
+            <div class="page-info"><span id="pg-cur">1</span>/<span id="pg-tot">5</span></div>
+        </div>
+        <div class="levels-grid" id="levels-grid"></div>
+        <div class="levels-nav">
+            <button class="btn-icon" id="btn-pg-prev">◀</button>
+            <button class="btn-icon" id="btn-pg-next">▶</button>
+        </div>
+    </div>
+
+    <!-- GAME -->
+    <div id="screen-game" class="screen">
+        <div class="game-header">
+            <button class="btn-icon" id="btn-game-back">←</button>
+            <div class="game-info"><span id="t-lv">Lv.</span> <span id="game-level">1</span></div>
+            <div class="game-stats">
+                <span>🎯 <span id="game-moves">0</span></span>
+                <span>🪙 <span id="game-coins">100</span></span>
+            </div>
+        </div>
+        <canvas id="game-canvas"></canvas>
+        <div class="game-controls">
+            <button class="btn-control" id="btn-undo" disabled>↩️ <span id="t-undo">Undo</span></button>
+            <button class="btn-control" id="btn-restart">🔄 <span id="t-restart">Restart</span></button>
+            <button class="btn-control" id="btn-hint">💡 <span id="t-hint">Hint</span></button>
+        </div>
+    </div>
+</div>
+
+<!-- WIN MODAL -->
+<div id="modal-win" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+        <h2 id="t-complete">🎉 Complete!</h2>
+        <div class="stars-display" id="win-stars"></div>
+        <div class="win-stats">
+            <div class="stat"><div class="stat-value" id="win-moves">0</div><div class="stat-label" id="t-moves-l">Moves</div></div>
+            <div class="stat"><div class="stat-value" id="win-best">0</div><div class="stat-label" id="t-best-l">Best</div></div>
+        </div>
+        <div class="win-reward">🪙 +<span id="win-reward">10</span></div>
+        <div class="win-buttons">
+            <button class="btn btn-primary" id="btn-next">▶ Next Level</button>
+            <button class="btn btn-secondary" id="btn-replay">🔄 Replay</button>
+            <button class="btn btn-secondary" id="btn-win-levels">📋 Levels</button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- CONFETTI -->
+<canvas id="confetti-canvas"></canvas>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════
+const TUBE_CAP = 4;
+const MAX_LEVELS = 150;
+const LEVELS_PER_PAGE = 30;
+const HINT_COST = 50;
+const CLEAR_REWARD = 10;
+const PERFECT_BONUS = 20;
+
+const BALL_COLORS = [
+    { fill:'#FF6B6B', light:'#FF9E9E', dark:'#D94F4F' },
+    { fill:'#4ECDC4', light:'#7EDDD6', dark:'#37ADA5' },
+    { fill:'#FFE66D', light:'#FFEE99', dark:'#DBBC3D' },
+    { fill:'#AA96DA', light:'#C5B8E8', dark:'#8A76BF' },
+    { fill:'#FF9A76', light:'#FFBB9E', dark:'#D87A56' },
+    { fill:'#6BCB77', light:'#93D99C', dark:'#4EAD5B' },
+    { fill:'#74B9FF', light:'#A0D0FF', dark:'#5296D9' },
+    { fill:'#FD79A8', light:'#FEA4C1', dark:'#D85E8B' },
+];
+
+const LEVEL_TIERS = [
+    { from:1,  to:10,  colors:4, empty:2, star3:15 },
+    { from:11, to:30,  colors:5, empty:2, star3:20 },
+    { from:31, to:60,  colors:6, empty:2, star3:28 },
+    { from:61, to:100, colors:7, empty:2, star3:35 },
+    { from:101,to:999, colors:8, empty:2, star3:45 },
+];
+
+// ══════════════════════════════════════
+// I18N
+// ══════════════════════════════════════
+const LANG = (function(){
+    try { const l = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code;
+          if(l&&l.startsWith('ko')) return 'ko'; } catch(e){}
+    return (navigator.language||'en').startsWith('ko') ? 'ko' : 'en';
+})();
+document.documentElement.lang = LANG;
+
+const S = {
+    title:['Ball Sort Puzzle','볼 소트 퍼즐'],
+    subtitle:['Sort balls by color!','색깔별로 공을 정렬하세요!'],
+    play:['▶  Play','▶  플레이'],
+    levels:['📋  Levels','📋  레벨 선택'],
+    lv:['Lv.','레벨'],
+    undo:['Undo','실행취소'],
+    restart:['Restart','재시작'],
+    hint:['Hint','힌트'],
+    complete:['🎉 Level Complete!','🎉 레벨 클리어!'],
+    movesL:['Moves','이동'],
+    bestL:['Best','최고'],
+    next:['▶  Next Level','▶  다음 레벨'],
+    replay:['🔄  Replay','🔄  다시하기'],
+    levelsTitle:['Level Select','레벨 선택'],
+    noMoves:['No valid moves! Try undo.','이동 불가! 실행취소를 시도하세요.'],
+    hintUsed:['Hint: Move highlighted tube!','힌트: 강조된 튜브를 이동하세요!'],
+    noCoins:['Not enough coins! (Need 50)','코인이 부족합니다! (50 필요)'],
+    locked:['Level locked','잠긴 레벨'],
+};
+const T = k => S[k] ? S[k][LANG==='ko'?1:0] : k;
+
+// ══════════════════════════════════════
+// SEEDED RNG
+// ══════════════════════════════════════
+function mulberry32(a) {
+    return function() {
+        a |= 0; a = a + 0x6D2B79F5 | 0;
+        let t = Math.imul(a ^ a >>> 15, 1 | a);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+}
+
+// ══════════════════════════════════════
+// GAME STATE
+// ══════════════════════════════════════
+const game = {
+    screen: 'menu',
+    level: 1,
+    maxLevel: 1,
+    coins: 100,
+    levelData: {},    // { [level]: { stars, best } }
+    tubes: [],
+    moves: 0,
+    history: [],
+    selected: -1,
+    animating: false,
+    anim: null,       // ball animation
+    hintFrom: -1,
+    hintTo: -1,
+    hintTimer: 0,
+    levelPage: 0,
+};
+
+// ══════════════════════════════════════
+// LEVEL GENERATION
+// ══════════════════════════════════════
+function getLevelConfig(lv) {
+    for (const t of LEVEL_TIERS) if (lv >= t.from && lv <= t.to) return t;
+    return LEVEL_TIERS[LEVEL_TIERS.length - 1];
+}
+
+function getShuffleCount(lv) {
+    if (lv <= 3) return 15 + lv * 5;
+    if (lv <= 10) return 30 + lv * 3;
+    if (lv <= 30) return 50 + lv * 2;
+    if (lv <= 60) return 80 + lv;
+    return 100 + lv;
+}
+
+function generateLevel(lv) {
+    const cfg = getLevelConfig(lv);
+    const rng = mulberry32(lv * 2654435761 + 12345);
+
+    // Solved state
+    const tubes = [];
+    for (let c = 0; c < cfg.colors; c++) tubes.push([c, c, c, c]);
+    for (let e = 0; e < cfg.empty; e++) tubes.push([]);
+
+    // Reverse shuffle (guarantees solvability)
+    const shuffles = getShuffleCount(lv);
+    for (let i = 0; i < shuffles; i++) {
+        const moves = [];
+        for (let f = 0; f < tubes.length; f++) {
+            if (tubes[f].length === 0) continue;
+            for (let t = 0; t < tubes.length; t++) {
+                if (f === t) continue;
+                if (tubes[t].length >= TUBE_CAP) continue;
+                moves.push([f, t]);
+            }
+        }
+        if (moves.length === 0) break;
+        const [f, t] = moves[Math.floor(rng() * moves.length)];
+        tubes[t].push(tubes[f].pop());
+    }
+
+    // Ensure not already solved
+    if (isSolved(tubes)) {
+        const rng2 = mulberry32(lv * 48271 + 99991);
+        for (let i = 0; i < 60; i++) {
+            const moves = [];
+            for (let f = 0; f < tubes.length; f++) {
+                if (tubes[f].length === 0) continue;
+                for (let t = 0; t < tubes.length; t++) {
+                    if (f === t || tubes[t].length >= TUBE_CAP) continue;
+                    moves.push([f, t]);
+                }
+            }
+            if (moves.length === 0) break;
+            const [f, t] = moves[Math.floor(rng2() * moves.length)];
+            tubes[t].push(tubes[f].pop());
+        }
+    }
+    return tubes;
+}
+
+function isSolved(tubes) {
+    for (const t of tubes) {
+        if (t.length === 0) continue;
+        if (t.length !== TUBE_CAP) return false;
+        if (!t.every(b => b === t[0])) return false;
+    }
+    return true;
+}
+
+function canMove(tubes, from, to) {
+    if (from === to) return false;
+    if (tubes[from].length === 0) return false;
+    if (tubes[to].length >= TUBE_CAP) return false;
+    if (tubes[to].length === 0) return true;
+    return tubes[from][tubes[from].length - 1] === tubes[to][tubes[to].length - 1];
+}
+
+// ══════════════════════════════════════
+// STARS
+// ══════════════════════════════════════
+function calcStars(lv, moves) {
+    const cfg = getLevelConfig(lv);
+    if (moves <= cfg.star3) return 3;
+    if (moves <= Math.floor(cfg.star3 * 1.5)) return 2;
+    return 1;
+}
+
+// ══════════════════════════════════════
+// HINT SOLVER (BFS, optimized)
+// ══════════════════════════════════════
+function findHint(tubes) {
+    const key = ts => ts.map(t => t.join(',')).join('|');
+    const init = tubes.map(t => [...t]);
+    const queue = [{ s: init, m: null }]; // m = first move
+    const visited = new Set([key(init)]);
+    let iters = 0;
+    const MAX = 40000;
+
+    while (queue.length > 0 && iters < MAX) {
+        iters++;
+        const { s, m } = queue.shift();
+
+        for (let f = 0; f < s.length; f++) {
+            if (s[f].length === 0) continue;
+            if (s[f].length === TUBE_CAP && s[f].every(b => b === s[f][0])) continue;
+
+            const topBall = s[f][s[f].length - 1];
+            let usedEmpty = false;
+
+            for (let t = 0; t < s.length; t++) {
+                if (f === t) continue;
+                if (s[t].length >= TUBE_CAP) continue;
+
+                if (s[t].length === 0) {
+                    if (usedEmpty) continue;
+                    if (s[f].every(b => b === topBall)) continue;
+                    usedEmpty = true;
+                } else {
+                    if (s[t][s[t].length - 1] !== topBall) continue;
+                }
+
+                const ns = s.map(x => [...x]);
+                ns[t].push(ns[f].pop());
+                const k = key(ns);
+                if (visited.has(k)) continue;
+                visited.add(k);
+
+                const firstMove = m || { from: f, to: t };
+
+                if (isSolved(ns)) return firstMove;
+                queue.push({ s: ns, m: firstMove });
+            }
+        }
+    }
+
+    // Fallback: any valid move
+    for (let f = 0; f < tubes.length; f++)
+        for (let t = 0; t < tubes.length; t++)
+            if (canMove(tubes, f, t)) return { from: f, to: t };
+    return null;
+}
+
+// ══════════════════════════════════════
+// CANVAS RENDERING
+// ══════════════════════════════════════
+const canvas = document.getElementById('game-canvas');
+const ctx = canvas.getContext('2d');
+let cW = 0, cH = 0, dpr = 1;
+let tubeW = 0, tubeH = 0, ballR = 0, tubeGap = 0;
+let tubePositions = []; // [{x,y}]
+
+function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    cW = rect.width;
+    cH = rect.height;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    calcLayout();
+}
+
+function calcLayout() {
+    const count = game.tubes.length;
+    if (count === 0) return;
+
+    const maxPerRow = count <= 7 ? count : Math.ceil(count / 2);
+    const rows = count <= 7 ? 1 : 2;
+
+    const maxTubeW = 56;
+    const minGap = 6;
+    const availW = cW - 24;
+    tubeW = Math.min(maxTubeW, (availW - (maxPerRow - 1) * minGap) / maxPerRow);
+    tubeGap = Math.min(12, (availW - maxPerRow * tubeW) / Math.max(1, maxPerRow - 1));
+    tubeH = tubeW * 3.2;
+    ballR = (tubeW - 10) / 2;
+
+    // Vertical centering
+    const totalH = rows === 1 ? tubeH : (tubeH * 2 + 28);
+    const startY = Math.max(20, (cH - totalH) / 2);
+
+    tubePositions = [];
+    let idx = 0;
+    for (let row = 0; row < rows; row++) {
+        const rowCount = row === 0 ? maxPerRow : count - maxPerRow;
+        const rowW = rowCount * tubeW + (rowCount - 1) * tubeGap;
+        const sx = (cW - rowW) / 2;
+        const sy = startY + row * (tubeH + 28);
+        for (let col = 0; col < rowCount; col++) {
+            tubePositions[idx] = { x: sx + col * (tubeW + tubeGap), y: sy };
+            idx++;
+        }
+    }
+}
+
+function render() {
+    ctx.clearRect(0, 0, cW, cH);
+    if (game.tubes.length === 0) return;
+
+    // Draw tubes
+    for (let i = 0; i < game.tubes.length; i++) {
+        const pos = tubePositions[i];
+        if (!pos) continue;
+        const isSel = (i === game.selected);
+        const isHintFrom = (i === game.hintFrom);
+        const isHintTo = (i === game.hintTo);
+        const isTarget = (game.selected >= 0 && game.selected !== i && canMove(game.tubes, game.selected, i));
+
+        drawTube(pos.x, pos.y, isSel, isTarget, isHintFrom, isHintTo);
+
+        // Draw balls
+        const tube = game.tubes[i];
+        const skipTop = isSel && tube.length > 0 && !game.animating;
+        const drawCount = skipTop ? tube.length - 1 : tube.length;
+
+        for (let j = 0; j < drawCount; j++) {
+            const bx = pos.x + tubeW / 2;
+            const by = pos.y + tubeH - ballR - 5 - j * (ballR * 2 + 3);
+            drawBall(bx, by, ballR, tube[j]);
+        }
+
+        // Selected: draw top ball lifted
+        if (skipTop) {
+            const bx = pos.x + tubeW / 2;
+            const by = pos.y - ballR - 8;
+            drawBall(bx, by, ballR, tube[tube.length - 1]);
+        }
+    }
+
+    // Animated ball
+    if (game.anim) {
+        const a = game.anim;
+        const p = a.progress;
+        let x, y;
+
+        if (p < 0.25) {
+            const t = p / 0.25;
+            x = a.fx;
+            y = a.fy + (a.ay - a.fy) * easeOut(t);
+        } else if (p < 0.75) {
+            const t = (p - 0.25) / 0.5;
+            x = a.fx + (a.tx - a.fx) * easeInOut(t);
+            y = a.ay;
+        } else {
+            const t = (p - 0.75) / 0.25;
+            x = a.tx;
+            y = a.ay + (a.ty - a.ay) * easeIn(t);
+        }
+
+        // Shadow
+        ctx.save();
+        ctx.globalAlpha = 0.2;
+        ctx.beginPath();
+        ctx.ellipse(x, a.ty + ballR + 4, ballR * 0.7, ballR * 0.25, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#000';
+        ctx.fill();
+        ctx.restore();
+
+        drawBall(x, y, ballR, a.color);
+    }
+}
+
+function drawTube(x, y, isSel, isTarget, isHintFrom, isHintTo) {
+    const r = tubeW / 2;
+    ctx.save();
+
+    // Glow
+    if (isSel) {
+        ctx.shadowColor = '#667eea';
+        ctx.shadowBlur = 18;
+    } else if (isHintFrom) {
+        ctx.shadowColor = '#FFE66D';
+        ctx.shadowBlur = 16;
+    } else if (isHintTo) {
+        ctx.shadowColor = '#4ECDC4';
+        ctx.shadowBlur = 16;
+    } else if (isTarget) {
+        ctx.shadowColor = '#4ecdc4';
+        ctx.shadowBlur = 12;
+    }
+
+    // Tube path (open top, rounded bottom)
+    ctx.beginPath();
+    ctx.moveTo(x + 1, y);
+    ctx.lineTo(x + 1, y + tubeH - r);
+    ctx.arc(x + r, y + tubeH - r, r - 1, Math.PI, 0, true);
+    ctx.lineTo(x + tubeW - 1, y);
+
+    // Fill
+    const grd = ctx.createLinearGradient(x, y, x + tubeW, y);
+    grd.addColorStop(0, 'rgba(255,255,255,0.06)');
+    grd.addColorStop(0.35, 'rgba(255,255,255,0.13)');
+    grd.addColorStop(0.65, 'rgba(255,255,255,0.10)');
+    grd.addColorStop(1, 'rgba(255,255,255,0.04)');
+    ctx.fillStyle = grd;
+    ctx.fill();
+
+    // Stroke
+    ctx.strokeStyle = isSel ? '#667eea' :
+                      isHintFrom ? '#FFE66D' :
+                      isHintTo ? '#4ECDC4' :
+                      isTarget ? 'rgba(78,205,196,0.6)' :
+                      'rgba(255,255,255,0.22)';
+    ctx.lineWidth = (isSel || isHintFrom || isHintTo) ? 2.5 : 1.5;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.restore();
+}
+
+function drawBall(cx, cy, r, colorIdx) {
+    const c = BALL_COLORS[colorIdx];
+    if (!c) return;
+    ctx.save();
+
+    // Shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.25)';
+    ctx.shadowBlur = 5;
+    ctx.shadowOffsetY = 2;
+
+    // Gradient
+    const g = ctx.createRadialGradient(cx - r * 0.3, cy - r * 0.3, r * 0.08, cx, cy, r);
+    g.addColorStop(0, c.light);
+    g.addColorStop(0.55, c.fill);
+    g.addColorStop(1, c.dark);
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = g;
+    ctx.fill();
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
+
+    // Specular
+    const sg = ctx.createRadialGradient(cx - r * 0.28, cy - r * 0.32, r * 0.04, cx - r * 0.15, cy - r * 0.2, r * 0.45);
+    sg.addColorStop(0, 'rgba(255,255,255,0.55)');
+    sg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fillStyle = sg;
+    ctx.fill();
+
+    ctx.restore();
+}
+
+// Easing
+function easeOut(t) { return 1 - (1 - t) * (1 - t); }
+function easeIn(t) { return t * t; }
+function easeInOut(t) { return t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2; }
+
+// ══════════════════════════════════════
+// ANIMATION LOOP
+// ══════════════════════════════════════
+let rafId = 0;
+
+function gameLoop() {
+    // Update ball animation
+    if (game.anim) {
+        game.anim.progress += 0.045;
+        if (game.anim.progress >= 1) {
+            // Complete
+            game.tubes[game.anim.toIdx].push(game.anim.color);
+            game.moves++;
+            game.anim = null;
+            game.animating = false;
+            game.selected = -1;
+            updateGameUI();
+
+            if (isSolved(game.tubes)) {
+                setTimeout(onWin, 350);
+            }
+        }
+    }
+
+    // Hint flash timer
+    if (game.hintTimer > 0) {
+        game.hintTimer--;
+        if (game.hintTimer <= 0) {
+            game.hintFrom = -1;
+            game.hintTo = -1;
+        }
+    }
+
+    render();
+    rafId = requestAnimationFrame(gameLoop);
+}
+
+// ══════════════════════════════════════
+// INPUT
+// ══════════════════════════════════════
+function getTubeAt(px, py) {
+    for (let i = 0; i < tubePositions.length; i++) {
+        const p = tubePositions[i];
+        if (px >= p.x - 4 && px <= p.x + tubeW + 4 && py >= p.y - ballR * 3 && py <= p.y + tubeH + 4) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function onCanvasTap(px, py) {
+    if (game.animating) return;
+
+    // Clear hint
+    game.hintFrom = -1;
+    game.hintTo = -1;
+    game.hintTimer = 0;
+
+    const idx = getTubeAt(px, py);
+    if (idx < 0) {
+        game.selected = -1;
+        return;
+    }
+
+    if (game.selected < 0) {
+        // Select
+        if (game.tubes[idx].length > 0) {
+            game.selected = idx;
+            haptic('selection');
+        }
+    } else if (game.selected === idx) {
+        // Deselect
+        game.selected = -1;
+    } else {
+        // Try move
+        if (canMove(game.tubes, game.selected, idx)) {
+            doMove(game.selected, idx);
+        } else if (game.tubes[idx].length > 0) {
+            game.selected = idx;
+            haptic('impact', 'light');
+        } else {
+            game.selected = -1;
+        }
+    }
+}
+
+canvas.addEventListener('click', function(e) {
+    const r = canvas.getBoundingClientRect();
+    onCanvasTap(e.clientX - r.left, e.clientY - r.top);
+});
+
+canvas.addEventListener('touchstart', function(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const r = canvas.getBoundingClientRect();
+    onCanvasTap(touch.clientX - r.left, touch.clientY - r.top);
+}, { passive: false });
+
+// ══════════════════════════════════════
+// GAME LOGIC
+// ══════════════════════════════════════
+function doMove(from, to) {
+    // Save history
+    game.history.push({
+        tubes: game.tubes.map(t => [...t]),
+        moves: game.moves
+    });
+
+    const ball = game.tubes[from].pop();
+    const fPos = tubePositions[from];
+    const tPos = tubePositions[to];
+    const fromBallY = fPos.y + tubeH - ballR - 5 - game.tubes[from].length * (ballR * 2 + 3);
+    const toBallY = tPos.y + tubeH - ballR - 5 - game.tubes[to].length * (ballR * 2 + 3);
+
+    game.animating = true;
+    game.selected = -1;
+    game.anim = {
+        color: ball,
+        fromIdx: from,
+        toIdx: to,
+        fx: fPos.x + tubeW / 2,
+        fy: fPos.y - ballR - 8,
+        tx: tPos.x + tubeW / 2,
+        ty: toBallY,
+        ay: Math.min(fPos.y, tPos.y) - ballR * 2 - 20,
+        progress: 0
+    };
+
+    haptic('impact', 'medium');
+    updateGameUI();
+}
+
+function undoMove() {
+    if (game.history.length === 0 || game.animating) return;
+    const prev = game.history.pop();
+    game.tubes = prev.tubes;
+    game.moves = prev.moves;
+    game.selected = -1;
+    game.hintFrom = -1;
+    game.hintTo = -1;
+    game.hintTimer = 0;
+    haptic('impact', 'light');
+    updateGameUI();
+}
+
+function restartLevel() {
+    game.tubes = generateLevel(game.level);
+    game.moves = 0;
+    game.history = [];
+    game.selected = -1;
+    game.animating = false;
+    game.anim = null;
+    game.hintFrom = -1;
+    game.hintTo = -1;
+    game.hintTimer = 0;
+    calcLayout();
+    updateGameUI();
+    haptic('notification', 'warning');
+}
+
+function useHint() {
+    if (game.animating) return;
+    if (game.coins < HINT_COST) {
+        showToast(T('noCoins'));
+        haptic('notification', 'error');
+        return;
+    }
+
+    const hint = findHint(game.tubes);
+    if (!hint) {
+        showToast(T('noMoves'));
+        haptic('notification', 'error');
+        return;
+    }
+
+    game.coins -= HINT_COST;
+    game.hintFrom = hint.from;
+    game.hintTo = hint.to;
+    game.hintTimer = 90; // ~1.5 sec at 60fps
+    showToast(T('hintUsed'));
+    haptic('notification', 'success');
+    updateGameUI();
+    saveProgress();
+}
+
+// ══════════════════════════════════════
+// WIN
+// ══════════════════════════════════════
+function onWin() {
+    const stars = calcStars(game.level, game.moves);
+    const prev = game.levelData[game.level];
+    const bestMoves = prev ? Math.min(prev.best, game.moves) : game.moves;
+    const bestStars = prev ? Math.max(prev.stars, stars) : stars;
+
+    game.levelData[game.level] = { stars: bestStars, best: bestMoves };
+
+    // Coins
+    let reward = CLEAR_REWARD;
+    if (stars === 3) reward += PERFECT_BONUS;
+    game.coins += reward;
+
+    // Unlock next
+    if (game.level >= game.maxLevel && game.level < MAX_LEVELS) {
+        game.maxLevel = game.level + 1;
+    }
+
+    saveProgress();
+
+    // Show modal
+    document.getElementById('win-moves').textContent = game.moves;
+    document.getElementById('win-best').textContent = bestMoves;
+    document.getElementById('win-reward').textContent = reward;
+
+    // Stars animation
+    const starsEl = document.getElementById('win-stars');
+    starsEl.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+        const span = document.createElement('span');
+        span.className = 'star';
+        span.textContent = i < stars ? '⭐' : '☆';
+        span.style.opacity = '0';
+        span.style.transform = 'scale(0)';
+        starsEl.appendChild(span);
+        if (i < stars) {
+            setTimeout(() => {
+                span.style.opacity = '1';
+                span.style.transform = 'scale(1)';
+                span.classList.add('pop');
+            }, 200 + i * 250);
+        } else {
+            setTimeout(() => {
+                span.style.opacity = '0.3';
+                span.style.transform = 'scale(1)';
+            }, 200 + i * 250);
+        }
+    }
+
+    const modal = document.getElementById('modal-win');
+    modal.classList.add('show');
+
+    // Confetti
+    if (stars >= 2) spawnConfetti();
+
+    haptic('notification', 'success');
+}
+
+// ══════════════════════════════════════
+// CONFETTI
+// ══════════════════════════════════════
+const confCanvas = document.getElementById('confetti-canvas');
+const confCtx = confCanvas.getContext('2d');
+let confetti = [];
+let confRafId = 0;
+
+function resizeConfetti() {
+    confCanvas.width = window.innerWidth * (window.devicePixelRatio || 1);
+    confCanvas.height = window.innerHeight * (window.devicePixelRatio || 1);
+    confCtx.setTransform(window.devicePixelRatio || 1, 0, 0, window.devicePixelRatio || 1, 0, 0);
+}
+
+function spawnConfetti() {
+    resizeConfetti();
+    confetti = [];
+    for (let i = 0; i < 80; i++) {
+        confetti.push({
+            x: Math.random() * window.innerWidth,
+            y: -10 - Math.random() * 40,
+            vx: (Math.random() - 0.5) * 5,
+            vy: Math.random() * 3 + 2,
+            size: Math.random() * 7 + 3,
+            color: BALL_COLORS[Math.floor(Math.random() * BALL_COLORS.length)].fill,
+            rotation: Math.random() * Math.PI * 2,
+            rotSpeed: (Math.random() - 0.5) * 0.15,
+            life: 1,
+        });
+    }
+    if (!confRafId) confettiLoop();
+}
+
+function confettiLoop() {
+    confCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    confetti = confetti.filter(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.08;
+        p.rotation += p.rotSpeed;
+        p.life -= 0.008;
+
+        if (p.life <= 0) return false;
+
+        confCtx.save();
+        confCtx.globalAlpha = Math.max(0, p.life);
+        confCtx.translate(p.x, p.y);
+        confCtx.rotate(p.rotation);
+        confCtx.fillStyle = p.color;
+        confCtx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+        confCtx.restore();
+        return true;
+    });
+
+    if (confetti.length > 0) {
+        confRafId = requestAnimationFrame(confettiLoop);
+    } else {
+        confRafId = 0;
+        confCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    }
+}
+
+// ══════════════════════════════════════
+// SAVE / LOAD
+// ══════════════════════════════════════
+const SAVE_KEY = 'ballsort_v1';
+
+function saveProgress() {
+    try {
+        const uid = window.TG?.getUserId?.() || 'anon';
+        const data = {
+            level: game.level,
+            maxLevel: game.maxLevel,
+            coins: game.coins,
+            levelData: game.levelData,
+        };
+        localStorage.setItem(`${SAVE_KEY}_${uid}`, JSON.stringify(data));
+    } catch (e) { console.warn('Save failed:', e); }
+}
+
+function loadProgress() {
+    try {
+        const uid = window.TG?.getUserId?.() || 'anon';
+        const raw = localStorage.getItem(`${SAVE_KEY}_${uid}`);
+        if (raw) {
+            const d = JSON.parse(raw);
+            game.level = d.level || 1;
+            game.maxLevel = d.maxLevel || 1;
+            game.coins = d.coins ?? 100;
+            game.levelData = d.levelData || {};
+        }
+    } catch (e) { console.warn('Load failed:', e); }
+}
+
+// ══════════════════════════════════════
+// SCREENS
+// ══════════════════════════════════════
+function showScreen(name) {
+    game.screen = name;
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+
+    if (name === 'game') {
+        resizeCanvas();
+        if (!rafId) rafId = requestAnimationFrame(gameLoop);
+    } else {
+        if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    }
+}
+
+// --- Menu ---
+function showMenu() {
+    document.getElementById('menu-coins').textContent = game.coins;
+    const totalStars = Object.values(game.levelData).reduce((s, d) => s + (d.stars || 0), 0);
+    document.getElementById('menu-stars').textContent = totalStars;
+    showScreen('menu');
+}
+
+// --- Level Select ---
+function showLevelSelect(page) {
+    if (page === undefined) page = Math.floor((game.level - 1) / LEVELS_PER_PAGE);
+    game.levelPage = Math.max(0, Math.min(page, Math.ceil(MAX_LEVELS / LEVELS_PER_PAGE) - 1));
+
+    const totalPages = Math.ceil(MAX_LEVELS / LEVELS_PER_PAGE);
+    document.getElementById('pg-cur').textContent = game.levelPage + 1;
+    document.getElementById('pg-tot').textContent = totalPages;
+
+    const grid = document.getElementById('levels-grid');
+    grid.innerHTML = '';
+
+    const start = game.levelPage * LEVELS_PER_PAGE + 1;
+    const end = Math.min(start + LEVELS_PER_PAGE - 1, MAX_LEVELS);
+
+    for (let lv = start; lv <= end; lv++) {
+        const cell = document.createElement('div');
+        cell.className = 'level-cell';
+
+        const data = game.levelData[lv];
+        const isUnlocked = lv <= game.maxLevel;
+
+        if (!isUnlocked) {
+            cell.classList.add('locked');
+            cell.innerHTML = `<div class="level-num">🔒</div>`;
+        } else {
+            if (lv === game.level) cell.classList.add('current');
+            if (data) cell.classList.add('completed');
+
+            const stars = data ? '⭐'.repeat(data.stars) + '☆'.repeat(3 - data.stars) : '☆☆☆';
+            cell.innerHTML = `<div class="level-num">${lv}</div><div class="level-stars">${stars}</div>`;
+            cell.onclick = () => startLevel(lv);
+        }
+
+        grid.appendChild(cell);
+    }
+
+    document.getElementById('btn-pg-prev').disabled = game.levelPage <= 0;
+    document.getElementById('btn-pg-next').disabled = game.levelPage >= totalPages - 1;
+
+    showScreen('levels');
+}
+
+// --- Game ---
+function startLevel(lv) {
+    game.level = lv;
+    game.tubes = generateLevel(lv);
+    game.moves = 0;
+    game.history = [];
+    game.selected = -1;
+    game.animating = false;
+    game.anim = null;
+    game.hintFrom = -1;
+    game.hintTo = -1;
+    game.hintTimer = 0;
+    showScreen('game');
+    resizeCanvas();
+    calcLayout();
+    updateGameUI();
+    saveProgress();
+}
+
+function updateGameUI() {
+    document.getElementById('game-level').textContent = game.level;
+    document.getElementById('game-moves').textContent = game.moves;
+    document.getElementById('game-coins').textContent = game.coins;
+    document.getElementById('btn-undo').disabled = game.history.length === 0 || game.animating;
+}
+
+function nextLevel() {
+    document.getElementById('modal-win').classList.remove('show');
+    if (game.level < MAX_LEVELS) {
+        startLevel(game.level + 1);
+    } else {
+        showMenu();
+    }
+}
+
+function replayLevel() {
+    document.getElementById('modal-win').classList.remove('show');
+    startLevel(game.level);
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+let toastTimer = 0;
+function showToast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ══════════════════════════════════════
+// HAPTIC
+// ══════════════════════════════════════
+function haptic(type, style) {
+    try { window.TG?.haptic?.(type, style); } catch(e) {}
+}
+
+// ══════════════════════════════════════
+// EVENT BINDINGS
+// ══════════════════════════════════════
+document.getElementById('btn-play').onclick = () => startLevel(game.level);
+document.getElementById('btn-levels').onclick = () => showLevelSelect();
+document.getElementById('btn-levels-back').onclick = () => showMenu();
+document.getElementById('btn-game-back').onclick = () => { saveProgress(); showMenu(); };
+document.getElementById('btn-undo').onclick = undoMove;
+document.getElementById('btn-restart').onclick = restartLevel;
+document.getElementById('btn-hint').onclick = useHint;
+document.getElementById('btn-next').onclick = nextLevel;
+document.getElementById('btn-replay').onclick = replayLevel;
+document.getElementById('btn-win-levels').onclick = () => { document.getElementById('modal-win').classList.remove('show'); showLevelSelect(); };
+document.getElementById('btn-pg-prev').onclick = () => showLevelSelect(game.levelPage - 1);
+document.getElementById('btn-pg-next').onclick = () => showLevelSelect(game.levelPage + 1);
+
+// TG back button
+if (window.TG) {
+    TG.onBack(() => {
+        if (document.getElementById('modal-win').classList.contains('show')) {
+            document.getElementById('modal-win').classList.remove('show');
+            return true;
+        }
+        if (game.screen === 'game') { saveProgress(); showMenu(); return true; }
+        if (game.screen === 'levels') { showMenu(); return true; }
+        return false;
+    });
+}
+
+// Resize
+window.addEventListener('resize', () => {
+    if (game.screen === 'game') { resizeCanvas(); }
+    resizeConfetti();
+});
+
+// ══════════════════════════════════════
+// I18N APPLY
+// ══════════════════════════════════════
+function applyI18n() {
+    document.getElementById('t-title').textContent = T('title');
+    document.getElementById('t-subtitle').textContent = T('subtitle');
+    document.getElementById('btn-play').textContent = T('play');
+    document.getElementById('btn-levels').textContent = T('levels');
+    document.getElementById('t-lv').textContent = T('lv');
+    document.getElementById('t-undo').textContent = T('undo');
+    document.getElementById('t-restart').textContent = T('restart');
+    document.getElementById('t-hint').textContent = T('hint');
+    document.getElementById('t-complete').textContent = T('complete');
+    document.getElementById('t-moves-l').textContent = T('movesL');
+    document.getElementById('t-best-l').textContent = T('bestL');
+    document.getElementById('btn-next').textContent = T('next');
+    document.getElementById('btn-replay').textContent = T('replay');
+    document.getElementById('btn-win-levels').textContent = T('levels');
+    document.getElementById('t-levels-title').textContent = T('levelsTitle');
+    document.title = T('title');
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+function init() {
+    applyI18n();
+    loadProgress();
+    showMenu();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+</script>
+</body>
+</html>
