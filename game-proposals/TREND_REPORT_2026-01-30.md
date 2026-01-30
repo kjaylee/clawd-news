@@ -55,16 +55,45 @@
 - **워드 게임** 장르 미보유 → 028-word-chain-blast 예정
 - **서바이벌 장르** 2개 있으나 (zombie/slime) 트렌드 대비 부족
 
-### 미구현 기획서 (7개)
+### 미구현 기획서 (3개)
 | # | 게임 | 상태 |
 |---|------|------|
-| 003 | Merge Rush | 미구현 (초기) |
-| 013 | Screw Sort Factory | 미구현 |
-| 017 | Slide Block Match | 미구현 |
-| 020 | Match 3D Zen | 미구현 |
-| 022 | Conveyor Sort Factory | 미구현 |
-| 027 | Traffic Escape | 🔨 구현 중 (서브에이전트) |
-| 028 | Word Chain Blast | 미구현 (신규) |
+| 022 | Conveyor Sort Factory | 🔨 구현 중 (17:00 서브에이전트) |
+| 028 | Word Chain Blast | 미구현 |
+| 029 | Gem Cascade | 미구현 (신규 — 17:00) |
+
+### 제거됨 (품질 미달, _removed/)
+| 게임 | 사유 |
+|------|------|
+| 003 Merge Rush | 품질 미달 제거 |
+| 013 Screw Sort Factory | 품질 미달 제거 |
+| 017 Slide Block Match | 품질 미달 제거 |
+| 020 Match 3D Zen | 품질 미달 제거 |
+| + color-sort, merge-tower, rhythm-runner, stack-kingdom, zen-tile-match |
+
+### 구현 완료 (최근)
+| # | 게임 | 날짜 |
+|---|------|------|
+| 027 | Traffic Escape | 2026-01-30 |
+| 026 | Sushi Sprint | 2026-01-30 |
 
 ---
-*Last updated: 2026-01-30 16:00 KST*
+
+## 📊 오후 5시 업데이트
+
+### 새 기획서 추가
+20. **029-gem-cascade** — 클러스터 탭 + 캐스케이드 연쇄 퍼즐. Match-3 $9.7B 시장 공략. 탭 조작 → 연쇄 폭발 쾌감. 스페셜 보석 콤보 시스템.
+
+### 구현 진행
+21. **022-conveyor-sort-factory** — 서브에이전트 구현 착수 (17:00)
+    - Pixel Flow 인스파이어 팩토리 소팅 퍼즐
+    - 컨베이어 벨트 + 레일 스위치 + 색상 빈
+
+### 포트폴리오 현황
+- **활성 게임:** 34개 (games/ 디렉토리)
+- **제거됨:** 9개 (_removed/)
+- **미구현 기획서:** 3개 (022 구현 중, 028, 029)
+- **총 기획서:** 29개 (001-029)
+
+---
+*Last updated: 2026-01-30 17:00 KST*
