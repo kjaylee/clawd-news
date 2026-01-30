@@ -11,7 +11,7 @@
 - 게임 개발, AI, 자동화에 관심
 
 ## 진행 중인 프로젝트 [importance: 5]
-- 게임 포털: **46개 게임** (SEO+PWA+TG SDK+크로스프로모 완비)
+- 게임 포털: **47개 게임** (SEO+PWA+TG SDK+크로스프로모 완비)
 - 삼국지 패왕전: **Phase 2 완성** (Godot 4.6, 58장수/34스테이지/장비/가챠/전투v2)
 - Godot 4.6 파이프라인: MiniPC 가동 중
 - **텔레그램 Mini App 봇: 구축 완료!** (`/Users/kjaylee/clawd/telegram-miniapp/`)
@@ -25,7 +25,7 @@
 ## ⚠️ 세션 리셋 대비 — 내가 만든 것 [importance: 5]
 - **telegram-miniapp/** — TG 봇+서버+결제 (내가 만듦!)
 - **skills/blender-pipeline/** — Blender 헤드리스 스킬 (내가 만듦!)
-- **games/ 46개** — HTML5 게임 전부 (내가 만듦!)
+- **games/ 47개** — HTML5 게임 전부 (내가 만듦!)
 - **삼국지 패왕전** — Godot 프로젝트 (내가 만듦!)
 - **jay-projects/** — 블로그, 마케팅 콘텐츠 (내가 만듦!)
 - 세션 리셋되면 이 섹션 먼저 읽을 것!
