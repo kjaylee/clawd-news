@@ -3,7 +3,9 @@
 
   <!-- Main Pages -->
   <url><loc>https://eastsea.monster/games/</loc><lastmod>2026-01-30</lastmod><changefreq>daily</changefreq><priority>1.0</priority></url>
-<!-- Games (37) -->
+  <url><loc>https://eastsea.monster/games/tg-launcher/</loc><lastmod>2026-01-30</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+
+  <!-- Games (39) -->
   <url><loc>https://eastsea.monster/games/ball-sort/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://eastsea.monster/games/block-bounce/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://eastsea.monster/games/brick-breaker/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
@@ -24,6 +26,7 @@
   <url><loc>https://eastsea.monster/games/jump-physics/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://eastsea.monster/games/laser-reflect/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://eastsea.monster/games/mahjong-zen/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://eastsea.monster/games/merge-bloom/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://eastsea.monster/games/micro-factory/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://eastsea.monster/games/neon-snake/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://eastsea.monster/games/number-drop/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
@@ -40,12 +43,7 @@
   <url><loc>https://eastsea.monster/games/sushi-sprint/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://eastsea.monster/games/three-kingdoms/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://eastsea.monster/games/traffic-escape/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://eastsea.monster/games/word-chain-blast/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
   <url><loc>https://eastsea.monster/games/zombie-survivor/</loc><lastmod>2026-01-30</lastmod><changefreq>monthly</changefreq><priority>0.7</priority></url>
 
-  <url>
-    <loc>https://eastsea.monster/games/word-chain-blast/</loc>
-    <lastmod>2026-01-30</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
 </urlset>
