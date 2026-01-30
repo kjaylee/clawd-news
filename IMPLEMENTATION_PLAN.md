@@ -1,22 +1,50 @@
-# Implementation Plan - 게임 포털 통합 + 웹디자인 폴리싱
+# Memory Persistence Implementation Plan
 
-## DONE ✅
+**목표:** 컨텍스트 초기화되어도 기억을 유지하는 시스템
 
-- [x] Task 1: 게임 포털 완전 리빌드 (games/index.html) — 28개 게임 통합, 필터/검색, 반응형 디자인
-- [x] Task 2: 메인 페이지 업데이트 (index.md) + 사이드바 네비게이션 (default.html) 정리
-- [x] Task 3: Git commit + push + Pages 빌드 확인 ✅
+## Specs
+- `specs/memory-hierarchy.md` - 계층적 메모리 구조
+- `specs/memory-summarize.md` - 일일 요약 스크립트
+- `specs/memory-briefing.md` - 세션 브리핑 생성
+- `specs/memory-importance.md` - 중요도 태깅 시스템
+- `specs/memory-agents-update.md` - AGENTS.md 업데이트
 
-## 결과
+## TODO
 
-- **게임 포털**: https://kjaylee.github.io/clawd-news/games/
-  - 11개 신규 로컬 게임 (✨ NEW 배지)
-  - 17개 클래식 외부 게임 (🔗 외부 배지, eastsea.monster 링크)
-  - 카테고리 필터 8종 (전체/퍼즐/아케이드/액션/리듬/시뮬/디펜스/스포츠)
-  - 실시간 텍스트 검색
-  - 반응형 그리드 (모바일 1열, 태블릿 2열, 데스크톱 3열)
-- **메인 페이지**: 게임 섹션 → 대표 5개 + 통합 포털 링크
-- **사이드바**: "🕹️ 게임 포털 (28종)" 링크 추가
+(모두 완료!)
 
-## 커밋
-- 9ad43ec: 게임 포털 통합 (27개)
-- 83625a1: Fruit Merge Drop 추가 (28개)
+## DONE
+
+- [x] **Task 1: 메모리 디렉토리 구조 생성**
+  - `memory/archive/` 폴더 생성 ✅
+  - `memory/core.md` 초기 파일 생성 ✅
+  - `memory/today.md` 심볼릭 링크 생성 ✅
+
+- [x] **Task 2: scripts 폴더 및 유틸리티**
+  - `scripts/` 폴더 생성 ✅
+  - `scripts/memory_utils.py` - 공통 함수 ✅
+
+- [x] **Task 3: summarize_day.py 구현**
+  - 일일 기록 요약 스크립트 ✅
+  - importance 자동 태깅 ✅
+  - core.md 업데이트 제안 출력 ✅
+
+- [x] **Task 4: generate_briefing.py 구현**
+  - 세션 브리핑 생성 ✅
+  - BRIEFING.md 출력 ✅
+
+- [x] **Task 5: update_today_link.py 구현**
+  - today.md 심볼릭 링크 갱신 ✅
+  - 오래된 파일 archive/로 이동 ✅
+
+- [x] **Task 6: AGENTS.md 업데이트**
+  - 새 메모리 시스템 지시 추가 ✅
+  - 하트비트 유지보수 지시 추가 ✅
+
+- [x] **Task 7: 테스트**
+  - 모든 스크립트 테스트 완료 ✅
+
+---
+Created: 2026-01-29
+Completed: 2026-01-29 22:40
+Status: ✅ COMPLETE

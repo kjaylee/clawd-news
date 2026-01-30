@@ -86,5 +86,31 @@
 - 신흥 시장 (인도/파키스탄): 광고 기반 + 보상형 플레이
 - 남아시아 다운로드 급증 (파키스탄 APAC TOP5 진입)
 
+## 🆕 2026-01-30 오전 업데이트 — 최신 검색 결과
+
+### 모바일 게임 시장 $173.4B 돌파 (2026)
+- Singular: 소셜-게이밍 플랫폼 융합 가속, AI 개인화, 광고 기반 수익화 실험
+- Bigabid: 뉴럴 네트워크 기반 UA, 크로스 플랫폼 혁신
+- 전략 게임이 다운로드 4%인데 매출 21.4% → **니치 장르가 매출 핵심**
+
+### 하이퍼캐주얼 → 하이브리드캐주얼 전환 완료 (2026)
+- 하이퍼캐주얼은 더 이상 "disposable experience" 아님
+- 빠른 런치 + 확장형 수익화 + 데이터 기반 참여도 설계
+- Stack, 2048 류 게임이 인플루언서 숏폼 콘텐츠로 바이럴
+- 리텐션 중심 설계가 업계 표준
+
+### 2026년 1월 주목할 모바일 게임
+- **Arknights: Endfield** — 모바일 기대작, 깊은 게임플레이 + 개선된 비주얼
+- **Red Dead Redemption, Subnautica** — PC/콘솔 게임의 모바일 포팅 가속
+- **Persona 5: The Phantom X, Path of Exile Mobile** — IP 기반 대작 모바일화
+- Pocket Gamer: 2026년은 "quality over quantity" 기조 확정
+
+### 💡 새로운 인사이트
+1. **니치 장르 = 매출 엔진**: 전략(4% DL → 21% Rev) — 소규모 DL로 큰 매출 가능
+2. **크로스 플랫폼 필수**: PC/콘솔 → 모바일 포팅이 2026년 메가트렌드
+3. **AI UA 표준화**: 뉴럴 네트워크 기반 유저 획득이 마케팅 기본
+4. **숏폼 바이럴**: 인플루언서 15초 영상이 UA 채널로 부상
+5. **LTV 중심 전환**: CPI 최적화 → LTV+리텐션 최적화로 패러다임 전환
+
 ---
-*Source: Udonis, Gamigion, PocketGamer, Antier Solutions, Blockchain Ads, Airbridge/SensorTower*
+*Source: Udonis, Gamigion, PocketGamer, Antier Solutions, Blockchain Ads, Airbridge/SensorTower, Singular, Bigabid*

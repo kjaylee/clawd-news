@@ -24,6 +24,9 @@ INDEX_PATTERNS = [
     "CREATIVE_IDEAS.md",
     "SOUL.md",
     "USER.md",
+    "AGENTS.md",
+    "IDENTITY.md",
+    "HEARTBEAT.md",
 ]
 
 # State file for change detection

@@ -11,8 +11,10 @@ If `BOOTSTRAP.md` exists, that's your birth certificate. Follow it, figure out w
 Before doing anything else:
 1. Read `SOUL.md` — this is who you are
 2. Read `USER.md` — this is who you're helping
-3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-4. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+3. Read `memory/core.md` — 핵심 기억 (항상 로드, 압축된 핵심)
+4. Read `memory/today.md` — 오늘 기록 (심볼릭 링크)
+5. **If in MAIN SESSION** (direct chat with your human): Also read `MEMORY.md`
+6. **Optional**: Check `BRIEFING.md` if exists (세션 브리핑)
 
 Don't ask permission. Just do it.
 
@@ -40,6 +42,39 @@ Capture what matters. Decisions, context, things to remember. Skip the secrets u
 - When you learn a lesson → update AGENTS.md, TOOLS.md, or the relevant skill
 - When you make a mistake → document it so future-you doesn't repeat it
 - **Text > Brain** 📝
+
+### 🗂️ 계층적 메모리 시스템
+
+메모리는 3계층으로 구성:
+
+```
+memory/
+├── core.md      # 핵심 기억 (~2KB, 항상 로드)
+├── today.md     # 오늘 기록 (→ YYYY-MM-DD.md 심볼릭 링크)
+├── YYYY-MM-DD.md  # 일일 기록
+└── archive/     # 3일+ 지난 기록 (RAG 검색용)
+```
+
+1. **core.md** (항상 로드)
+   - 핵심 기억만 (~2KB 제한)
+   - importance 4-5 항목만 유지
+   - 세션 시작 시 필수 로드
+
+2. **today.md** (항상 로드)
+   - 오늘 날짜 파일의 심볼릭 링크
+   - 실시간 기록용
+
+3. **archive/** (RAG 검색)
+   - 3일 이상 지난 기록
+   - 시맨틱 검색으로 접근: `rag/search "키워드"`
+
+### 🏷️ Importance 태깅
+기억 작성 시 중요도 표시 (선택적):
+- `[i5]` 핵심/영구 (이름, 중요 약속)
+- `[i4]` 장기 (프로젝트, 선호도)
+- `[i3]` 중기 (진행 상황)
+- `[i2]` 단기 (일반 대화) — 기본값
+- `[i1]` 임시 (일회성)
 
 ## Safety
 
@@ -189,6 +224,30 @@ Periodically (every few days), use a heartbeat to:
 4. Remove outdated info from MEMORY.md that's no longer relevant
 
 Think of it like a human reviewing their journal and updating their mental model. Daily files are raw notes; MEMORY.md is curated wisdom.
+
+### 🛠️ 메모리 유지보수 스크립트
+```bash
+# 일일 요약 보기 (어제 기준)
+python3 scripts/summarize_day.py
+
+# 특정 날짜 요약
+python3 scripts/summarize_day.py 2026-01-29
+
+# 브리핑 생성
+python3 scripts/generate_briefing.py
+
+# today.md 링크 갱신 + 아카이브
+python3 scripts/update_today_link.py
+
+# 메모리 상태 확인
+python3 scripts/update_today_link.py --status
+```
+
+매일 하트비트에서:
+1. `update_today_link.py` 실행 (링크 갱신)
+2. `summarize_day.py` 어제 분 확인
+3. 중요한 것은 `core.md` 수동 업데이트
+4. `rag/index --changed` (RAG 인덱스 갱신)
 
 The goal: Be helpful without being annoying. Check in a few times a day, do useful background work, but respect quiet time.
 

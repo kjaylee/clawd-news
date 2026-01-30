@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <title>East Sea Games 🎮</title>
+
+    <!-- Telegram Mini App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <style>
+        /* ── Telegram 테마 변수 ── */
+        :root {
+            --tg-bg: #ffffff;
+            --tg-text: #000000;
+            --tg-hint: #999999;
+            --tg-link: #2481cc;
+            --tg-button: #2481cc;
+            --tg-button-text: #ffffff;
+            --tg-secondary-bg: #f0f0f0;
+            --tg-viewport-height: 100vh;
+            --tg-viewport-stable-height: 100vh;
+            --safe-top: env(safe-area-inset-top, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-left: env(safe-area-inset-left, 0px);
+            --safe-right: env(safe-area-inset-right, 0px);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--tg-bg);
+            color: var(--tg-text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            padding-top: var(--safe-top);
+            padding-bottom: var(--safe-bottom);
+            padding-left: var(--safe-left);
+            padding-right: var(--safe-right);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── 로딩 화면 ── */
+        #loading-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--tg-bg);
+            transition: opacity 0.3s ease;
+        }
+        #loading-screen.hidden { opacity: 0; pointer-events: none; }
+        .loader { width: 50px; height: 50px; border: 4px solid var(--tg-secondary-bg); border-top-color: var(--tg-button); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-text { margin-top: 16px; color: var(--tg-hint); font-size: 14px; }
+
+        /* ── 게임 iframe ── */
+        #game-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: transparent;
+        }
+
+        /* ── 오버레이 UI (상점, 광고 등) ── */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .overlay.active { display: flex; }
+        .overlay-panel {
+            background: var(--tg-bg);
+            border-radius: 16px;
+            padding: 24px;
+            width: 100%;
+            max-width: 360px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .overlay-panel h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        /* ── 상점 아이템 ── */
+        .shop-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 12px;
+            background: var(--tg-secondary-bg);
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .shop-item:active { transform: scale(0.97); }
+        .shop-item-icon { font-size: 28px; }
+        .shop-item-info { flex: 1; }
+        .shop-item-name { font-weight: 600; font-size: 14px; }
+        .shop-item-desc { font-size: 12px; color: var(--tg-hint); }
+        .shop-item-price {
+            background: var(--tg-button);
+            color: var(--tg-button-text);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        /* ── 광고 슬롯 ── */
+        .ad-slot {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 14px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            cursor: pointer;
+            margin-top: 12px;
+            font-weight: 600;
+            transition: transform 0.1s;
+        }
+        .ad-slot:active { transform: scale(0.97); }
+
+        /* ── 닫기 버튼 ── */
+        .close-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-top: 12px;
+            border: none;
+            border-radius: 12px;
+            background: var(--tg-secondary-bg);
+            color: var(--tg-text);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<!-- 로딩 화면 -->
+<div id="loading-screen">
+    <div class="loader"></div>
+    <div class="loader-text">게임 로딩 중...</div>
+</div>
+
+<!-- 게임 iframe -->
+<iframe id="game-frame" sandbox="allow-scripts allow-same-origin allow-popups" allow="autoplay"></iframe>
+
+<!-- 상점 오버레이 -->
+<div id="shop-overlay" class="overlay">
+    <div class="overlay-panel">
+        <h2>🛒 상점</h2>
+        <div id="shop-items"></div>
+        <div class="ad-slot" onclick="WrapperAds.showRewarded()">
+            📺 광고 보고 보상 받기
+        </div>
+        <button class="close-btn" onclick="WrapperShop.hide()">닫기</button>
+    </div>
+</div>
+
+<script>
+// ================================================================
+// Telegram Mini App 게임 래퍼 — 핵심 모듈
+// ================================================================
+
+// ── 1. Telegram WebApp 초기화 모듈 ──
+const TG = {
+    app: window.Telegram?.WebApp,
+    user: null,
+    isReady: false,
+
+    init() {
+        if (!this.app) {
+            console.warn('[TG] Not running inside Telegram');
+            return false;
+        }
+
+        // 앱 준비 완료 알림
+        this.app.ready();
+
+        // 전체화면 확장
+        this.app.expand();
+
+        // 풀스크린 요청 (v8.0+)
+        if (this.app.requestFullscreen) {
+            try { this.app.requestFullscreen(); } catch(e) {}
+        }
+
+        // 유저 정보
+        this.user = this.app.initDataUnsafe?.user || null;
+
+        // 테마 적용
+        this._applyTheme();
+
+        // 뷰포트 이벤트
+        this.app.onEvent('viewportChanged', (e) => {
+            if (e.isStateStable) this._syncViewport();
+        });
+        this._syncViewport();
+
+        // 뒤로가기 버튼
+        this._setupBackButton();
+
+        // 세이프 에리어 (v8.0+)
+        this._applySafeArea();
+
+        this.isReady = true;
+        console.log(`[TG] Initialized — user: ${this.user?.id || 'anonymous'}`);
+        return true;
+    },
+
+    // 테마 파라미터 → CSS 변수
+    _applyTheme() {
+        const tp = this.app.themeParams;
+        if (!tp) return;
+        const root = document.documentElement.style;
+        root.setProperty('--tg-bg', tp.bg_color || '#ffffff');
+        root.setProperty('--tg-text', tp.text_color || '#000000');
+        root.setProperty('--tg-hint', tp.hint_color || '#999999');
+        root.setProperty('--tg-link', tp.link_color || '#2481cc');
+        root.setProperty('--tg-button', tp.button_color || '#2481cc');
+        root.setProperty('--tg-button-text', tp.button_text_color || '#ffffff');
+        root.setProperty('--tg-secondary-bg', tp.secondary_bg_color || '#f0f0f0');
+    },
+
+    _syncViewport() {
+        const h = this.app.viewportStableHeight || this.app.viewportHeight;
+        if (h) {
+            document.documentElement.style.setProperty('--tg-viewport-height', `${h}px`);
+            document.documentElement.style.setProperty('--tg-viewport-stable-height', `${h}px`);
+        }
+    },
+
+    _applySafeArea() {
+        if (this.app.safeAreaInset) {
+            const sa = this.app.safeAreaInset;
+            const root = document.documentElement.style;
+            root.setProperty('--safe-top', `${sa.top || 0}px`);
+            root.setProperty('--safe-bottom', `${sa.bottom || 0}px`);
+            root.setProperty('--safe-left', `${sa.left || 0}px`);
+            root.setProperty('--safe-right', `${sa.right || 0}px`);
+        }
+        // contentSafeAreaInset (v8.0+)
+        if (this.app.contentSafeAreaInset) {
+            const csa = this.app.contentSafeAreaInset;
+            const root = document.documentElement.style;
+            // Add content safe area on top of device safe area
+            const totalTop = (this.app.safeAreaInset?.top || 0) + (csa.top || 0);
+            root.setProperty('--safe-top', `${totalTop}px`);
+        }
+    },
+
+    _setupBackButton() {
+        if (!this.app.BackButton) return;
+        this.app.BackButton.show();
+        this.app.BackButton.onClick(() => {
+            // 상점이 열려있으면 상점 닫기
+            if (document.getElementById('shop-overlay').classList.contains('active')) {
+                WrapperShop.hide();
+                return;
+            }
+            // 게임 내 뒤로가기 시도
+            const frame = document.getElementById('game-frame');
+            if (frame?.contentWindow) {
+                frame.contentWindow.postMessage({ type: 'tg-back' }, '*');
+            }
+            // 0.5초 후에도 처리 안되면 앱 닫기
+            setTimeout(() => { this.app.close(); }, 500);
+        });
+    },
+
+    // ── 유틸리티 ──
+    getUserId()  { return this.user?.id || 'anonymous'; },
+    getUserName(){ return this.user?.first_name || 'Player'; },
+    isPremium()  { return !!this.user?.is_premium; },
+    getLang()    { return this.user?.language_code || 'en'; },
+    getInitData(){ return this.app?.initData || ''; },
+
+    // 햅틱 피드백
+    haptic(type, style) {
+        if (!this.app?.HapticFeedback) return;
+        switch(type) {
+            case 'impact':       this.app.HapticFeedback.impactOccurred(style || 'medium'); break;
+            case 'notification': this.app.HapticFeedback.notificationOccurred(style || 'success'); break;
+            case 'selection':    this.app.HapticFeedback.selectionChanged(); break;
+        }
+    },
+
+    // 공유
+    share(text, url) {
+        if (this.app) {
+            this.app.openTelegramLink(
+                `https://t.me/share/url?url=${encodeURIComponent(url || '')}&text=${encodeURIComponent(text)}`
+            );
+        }
+    },
+
+    // 유저별 데이터 저장/로드
+    saveData(key, value) {
+        localStorage.setItem(`tg_${this.getUserId()}_${key}`, JSON.stringify(value));
+    },
+    loadData(key, fallback = null) {
+        try {
+            const raw = localStorage.getItem(`tg_${this.getUserId()}_${key}`);
+            return raw ? JSON.parse(raw) : fallback;
+        } catch { return fallback; }
+    },
+
+    // 클라우드 스토리지 (v6.9+)
+    async cloudGet(key) {
+        return new Promise((resolve) => {
+            if (this.app?.CloudStorage) {
+                this.app.CloudStorage.getItem(key, (err, val) => resolve(err ? null : val));
+            } else { resolve(null); }
+        });
+    },
+    async cloudSet(key, value) {
+        return new Promise((resolve) => {
+            if (this.app?.CloudStorage) {
+                this.app.CloudStorage.setItem(key, String(value), (err) => resolve(!err));
+            } else { resolve(false); }
+        });
+    }
+};
+
+
+// ── 2. 상점 모듈 (Stars 결제) ──
+const WrapperShop = {
+    API_URL: '', // 서버 URL — 배포 시 설정
+
+    // 상품 카탈로그 (게임별로 오버라이드 가능)
+    products: [
+        { id: 'coins_s',  icon: '💰', name: '코인 5,000',       desc: '기본 코인 팩',       stars: 10  },
+        { id: 'coins_m',  icon: '💰', name: '코인 30,000',      desc: '대량 코인 팩',       stars: 50  },
+        { id: 'coins_l',  icon: '💰', name: '코인 75,000',      desc: '메가 코인 팩',       stars: 100 },
+        { id: 'spins_5',  icon: '🎰', name: '추가 스핀 5회',    desc: '즉시 스핀 충전',     stars: 15  },
+        { id: 'lives_5',  icon: '❤️', name: '생명 5개',          desc: '즉시 생명 충전',     stars: 10  },
+        { id: 'shield',   icon: '🛡️', name: '실드 1개',          desc: '공격 1회 방어',      stars: 20  },
+        { id: 'vip_1d',   icon: '👑', name: 'VIP 1일',          desc: '24시간 2x 보상',     stars: 50  },
+    ],
+
+    // 상점 열기
+    show(customProducts) {
+        const items = customProducts || this.products;
+        const container = document.getElementById('shop-items');
+        container.innerHTML = items.map(p => `
+            <div class="shop-item" onclick="WrapperShop.purchase('${p.id}')">
+                <div class="shop-item-icon">${p.icon}</div>
+                <div class="shop-item-info">
+                    <div class="shop-item-name">${p.name}</div>
+                    <div class="shop-item-desc">${p.desc}</div>
+                </div>
+                <div class="shop-item-price">⭐ ${p.stars}</div>
+            </div>
+        `).join('');
+        document.getElementById('shop-overlay').classList.add('active');
+    },
+
+    hide() {
+        document.getElementById('shop-overlay').classList.remove('active');
+    },
+
+    // 결제 실행
+    async purchase(productId) {
+        if (!TG.app) {
+            alert('텔레그램에서만 구매할 수 있습니다.');
+            return;
+        }
+        try {
+            const res = await fetch(`${this.API_URL}/api/invoice`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Init-Data': TG.getInitData()
+                },
+                body: JSON.stringify({ productId, userId: TG.getUserId() })
+            });
+            if (!res.ok) throw new Error('Invoice creation failed');
+            const { invoiceLink } = await res.json();
+
+            TG.app.openInvoice(invoiceLink, (status) => {
+                if (status === 'paid') {
+                    TG.haptic('notification', 'success');
+                    // 게임에 결제 성공 알림
+                    const frame = document.getElementById('game-frame');
+                    frame?.contentWindow?.postMessage({
+                        type: 'tg-payment-success',
+                        productId
+                    }, '*');
+                    this.hide();
+                } else if (status === 'failed') {
+                    TG.app.showAlert('결제에 실패했습니다. 다시 시도해주세요.');
+                }
+            });
+        } catch(err) {
+            console.error('[Shop] Purchase error:', err);
+            TG.app?.showAlert?.('결제 처리 중 오류가 발생했습니다.') || alert('결제 오류');
+        }
+    }
+};
+
+
+// ── 3. 광고 모듈 (보상형 광고 placeholder) ──
+const WrapperAds = {
+    ready: false,
+    monetagZone: '', // Monetag Zone ID
+
+    init() {
+        // 광고 SDK 로드 (실제 배포 시 활성화)
+        if (!this.monetagZone) {
+            console.log('[Ads] No zone ID — ad SDK not loaded (placeholder mode)');
+            this.ready = false;
+            return;
+        }
+        // Monetag SDK 동적 로드
+        const s = document.createElement('script');
+        s.src = `https://monetag.com/sdk/rewarded.js?zone=${this.monetagZone}`;
+        s.async = true;
+        s.onload = () => { this.ready = true; console.log('[Ads] SDK loaded'); };
+        document.head.appendChild(s);
+    },
+
+    // 보상형 광고 표시
+    showRewarded(onComplete) {
+        if (!this.ready) {
+            // Placeholder: 실제 광고 없으면 바로 보상 (개발용)
+            console.log('[Ads] Placeholder — simulating ad watch');
+            TG.app?.showPopup?.({
+                title: '📺 광고 (개발 모드)',
+                message: '실제 환경에서는 보상형 광고가 표시됩니다.\n개발 모드에서는 즉시 보상합니다.',
+                buttons: [
+                    { id: 'ok', type: 'ok', text: '보상 받기' }
+                ]
+            }, () => {
+                TG.haptic('notification', 'success');
+                if (onComplete) onComplete(true);
+                // 게임에 광고 완료 알림
+                const frame = document.getElementById('game-frame');
+                frame?.contentWindow?.postMessage({ type: 'tg-ad-reward' }, '*');
+            });
+            return;
+        }
+        // 실제 Monetag 호출
+        if (window.monetag?.show) {
+            window.monetag.show({
+                zone: this.monetagZone,
+                type: 'rewarded',
+                onComplete: () => {
+                    TG.haptic('notification', 'success');
+                    if (onComplete) onComplete(true);
+                    const frame = document.getElementById('game-frame');
+                    frame?.contentWindow?.postMessage({ type: 'tg-ad-reward' }, '*');
+                },
+                onClose: () => { if (onComplete) onComplete(false); },
+                onError: () => { if (onComplete) onComplete(false); }
+            });
+        }
+    }
+};
+
+
+// ── 4. 게임 로더 ──
+const GameLoader = {
+    load(gameUrl) {
+        const frame = document.getElementById('game-frame');
+        const loading = document.getElementById('loading-screen');
+
+        frame.src = gameUrl;
+        frame.onload = () => {
+            loading.classList.add('hidden');
+            setTimeout(() => { loading.style.display = 'none'; }, 300);
+
+            // 게임에 TG 컨텍스트 전달
+            frame.contentWindow.postMessage({
+                type: 'tg-init',
+                user: TG.user,
+                theme: TG.app?.themeParams || {},
+                isPremium: TG.isPremium(),
+                lang: TG.getLang()
+            }, '*');
+        };
+    }
+};
+
+
+// ── 5. 게임 ↔ 래퍼 메시지 브릿지 ──
+window.addEventListener('message', (event) => {
+    const { type, data } = event.data || {};
+    switch(type) {
+        // 게임 → 래퍼: 상점 열기
+        case 'tg-open-shop':
+            WrapperShop.show(data?.products);
+            break;
+        // 게임 → 래퍼: 결제 요청
+        case 'tg-purchase':
+            WrapperShop.purchase(data?.productId);
+            break;
+        // 게임 → 래퍼: 보상형 광고 요청
+        case 'tg-show-ad':
+            WrapperAds.showRewarded((ok) => {
+                const frame = document.getElementById('game-frame');
+                frame?.contentWindow?.postMessage({
+                    type: 'tg-ad-result',
+                    watched: ok,
+                    rewardType: data?.rewardType
+                }, '*');
+            });
+            break;
+        // 게임 → 래퍼: 햅틱
+        case 'tg-haptic':
+            TG.haptic(data?.hapticType || 'impact', data?.style || 'medium');
+            break;
+        // 게임 → 래퍼: 공유
+        case 'tg-share':
+            TG.share(data?.text, data?.url);
+            break;
+        // 게임 → 래퍼: 점수 저장 (서버)
+        case 'tg-save-score':
+            fetch(`${WrapperShop.API_URL}/api/score`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Init-Data': TG.getInitData()
+                },
+                body: JSON.stringify({
+                    gameId: data?.gameId,
+                    score: data?.score,
+                    userId: TG.getUserId()
+                })
+            }).catch(err => console.error('[Score] Save error:', err));
+            break;
+        // 게임 → 래퍼: 뒤로가기 처리 완료
+        case 'tg-back-handled':
+            // 게임이 자체 처리했으므로 앱 닫기 안 함
+            break;
+    }
+});
+
+
+// ── 초기화 ──
+document.addEventListener('DOMContentLoaded', () => {
+    const isTG = TG.init();
+
+    // 환경설정
+    const params = new URLSearchParams(window.location.search);
+    const gameUrl = params.get('game');
+    const apiUrl = params.get('api');
+
+    if (apiUrl) WrapperShop.API_URL = apiUrl;
+    WrapperAds.monetagZone = params.get('ad_zone') || '';
+    WrapperAds.init();
+
+    // 게임 로드
+    if (gameUrl) {
+        GameLoader.load(decodeURIComponent(gameUrl));
+    } else {
+        // 기본: URL에서 게임 경로 추출
+        const gameName = params.get('name') || 'spin-village';
+        const baseUrl = params.get('base') || '/games';
+        GameLoader.load(`${baseUrl}/${gameName}/index.html`);
+    }
+});
+</script>
+
+</body>
+</html>
