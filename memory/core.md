@@ -12,7 +12,7 @@
 
 ## 진행 중인 프로젝트 [importance: 4]
 - 게임 포털: 36개 게임 (SEO+PWA+TG SDK 완비)
-- 삼국지 패왕전: GDD v2.0 완성, Godot 구현 대기
+- 삼국지 패왕전: **MVP 완성 + 배포** (Godot 4.6, eastsea.monster/games/three-kingdoms/)
 - Godot 4.6 파이프라인: MiniPC 가동 중
 - 텔레그램 Mini App: 봇+런처 준비, BotFather 토큰 대기
 - RAG 시맨틱 검색 구축 완료
@@ -21,6 +21,7 @@
 - 텍스트 > 뇌 (기억할 것은 파일에 기록)
 - 서브에이전트 활용으로 컨텍스트 관리
 - Ralph Loop로 구현 진행
+- **조사/연구/리포트 = 서브에이전트 스폰해서 허브 포스트로 올리게 하고, 텔레그램엔 링크 + 간략 설명만**
 
 ## 서브에이전트 스폰 규칙 [importance: 5]
 - **thinking 레벨 미스 김이 판단:**

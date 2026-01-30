@@ -1,7 +1,7 @@
 ---
 title: "Dario Amodei의 20,000단어 경고: 기술의 사춘기 — 완전 분석 리포트"
 date: 2026-01-30 18:30:00 +0900
-categories: [AI, analysis]
+categories: [analysis]
 tags: [dario-amodei, anthropic, ai-risk, ai-safety, essay-analysis]
 description: "Anthropic CEO Dario Amodei가 2026년 1월 발표한 에세이 'The Adolescence of Technology'의 상세 분석. 5대 문명적 위험, 해법, 업계 반응까지."
 ---
