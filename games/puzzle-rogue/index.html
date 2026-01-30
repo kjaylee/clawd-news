@@ -180,6 +180,28 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* Mute FAB */
 .mute-fab{position:fixed;top:10px;right:10px;width:44px;height:44px;border-radius:50%;background:rgba(30,30,50,.85);border:2px solid rgba(240,192,64,.3);color:var(--gold);font-size:1.3em;cursor:pointer;z-index:999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);transition:all .2s}
 .mute-fab:active{transform:scale(.9);background:rgba(240,192,64,.2)}
+
+/* Particle Canvas */
+#particle-canvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:50}
+/* Vignette Overlay */
+.vignette-overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:40;transition:box-shadow .5s}
+/* Juice Text */
+.juice-text{position:absolute;font-weight:900;pointer-events:none;z-index:100;text-shadow:2px 2px 4px rgba(0,0,0,.8);white-space:nowrap}
+.juice-text.critical{font-size:2.2em;color:#ff4444;text-shadow:0 0 20px rgba(255,0,0,.8),0 0 40px rgba(255,0,0,.4),2px 2px 4px #000;animation:juicePop 1.2s ease-out forwards}
+.juice-text.combo{font-size:1.8em;color:var(--gold);text-shadow:0 0 15px rgba(240,192,64,.8),0 0 30px rgba(240,192,64,.4),2px 2px 4px #000;animation:juicePop 1s ease-out forwards}
+.juice-text.levelup{font-size:2.5em;color:#fff;text-shadow:0 0 30px rgba(240,192,64,1),0 0 60px rgba(240,192,64,.6);animation:levelUpPop 2s ease-out forwards}
+@keyframes juicePop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3) rotate(-5deg)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.4) rotate(3deg)}30%{transform:translate(-50%,-50%) scale(1) rotate(0)}100%{opacity:0;transform:translate(-50%,-50%) translateY(-60px) scale(.8)}}
+@keyframes levelUpPop{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.5)}40%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) scale(1.2)}}
+/* Enhanced Shake */
+.shake-light{animation:shakeLight .2s}
+.shake-heavy{animation:shakeHeavy .4s}
+@keyframes shakeLight{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+@keyframes shakeHeavy{0%,100%{transform:translate(0)}10%{transform:translate(-8px,-3px)}20%{transform:translate(6px,2px)}30%{transform:translate(-4px,-2px)}40%{transform:translate(4px,1px)}50%{transform:translate(-2px,-1px)}}
+/* Vignette Pulse */
+@keyframes vignettePulse{0%,100%{opacity:.7}50%{opacity:1}}
+/* Celebrate Flash */
+.celebrate-flash{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:45;background:radial-gradient(circle,rgba(240,192,64,.4) 0%,transparent 70%);animation:celebrateFlash 1s ease-out forwards}
+@keyframes celebrateFlash{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
 </style>
 </head>
 <body>
@@ -303,6 +325,8 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <button class="back-btn" onclick="showScreen('title-screen')">← Back</button>
 </div>
 
+<canvas id="particle-canvas"></canvas>
+<div id="vignette-overlay" class="vignette-overlay"></div>
 <button class="mute-fab" id="mute-btn" onclick="toggleMute()">🔊</button>
 </div>
 
@@ -627,6 +651,217 @@ function playSFX(type) {
     }
   };
   if (sfx[type]) sfx[type]();
+}
+
+// ===== PARTICLE & JUICE SYSTEM =====
+const juiceParticles = [];
+let bgParticles = [];
+let particleCanvas, particleCtx;
+let comboCounter = 0;
+
+function initParticleSystem() {
+  particleCanvas = document.getElementById('particle-canvas');
+  if (!particleCanvas) return;
+  particleCtx = particleCanvas.getContext('2d');
+  resizeParticleCanvas();
+  window.addEventListener('resize', resizeParticleCanvas);
+  initBgParticles();
+  animateParticles();
+}
+
+function resizeParticleCanvas() {
+  if (!particleCanvas) return;
+  const app = document.getElementById('app');
+  particleCanvas.width = app.offsetWidth;
+  particleCanvas.height = app.offsetHeight;
+}
+
+function animateParticles() {
+  if (!particleCtx) { requestAnimationFrame(animateParticles); return; }
+  particleCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+
+  // Background particles
+  for (let i = bgParticles.length - 1; i >= 0; i--) {
+    const p = bgParticles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.life -= p.decay;
+    if (p.life <= 0) resetBgParticle(p);
+    particleCtx.globalAlpha = p.life * p.maxAlpha;
+    particleCtx.fillStyle = p.color;
+    particleCtx.beginPath();
+    particleCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+    particleCtx.fill();
+  }
+
+  // Effect particles
+  for (let i = juiceParticles.length - 1; i >= 0; i--) {
+    const p = juiceParticles[i];
+    p.x += p.vx; p.y += p.vy;
+    p.vy += (p.gravity || 0);
+    p.life -= p.decay;
+    p.size *= (p.shrink || 1);
+    if (p.life <= 0) { juiceParticles.splice(i, 1); continue; }
+    particleCtx.globalAlpha = Math.max(0, p.life) * p.maxAlpha;
+    particleCtx.fillStyle = p.color;
+    if (p.shape === 'rect') {
+      particleCtx.save();
+      particleCtx.translate(p.x, p.y);
+      particleCtx.rotate(p.rot || 0);
+      particleCtx.fillRect(-p.size / 2, -p.size * (p.aspect || 1) / 2, p.size, p.size * (p.aspect || 1));
+      particleCtx.restore();
+      p.rot = (p.rot || 0) + (p.spin || 0);
+    } else {
+      particleCtx.beginPath();
+      particleCtx.arc(p.x, p.y, Math.max(0.5, p.size), 0, Math.PI * 2);
+      particleCtx.fill();
+    }
+  }
+
+  particleCtx.globalAlpha = 1;
+  requestAnimationFrame(animateParticles);
+}
+
+function initBgParticles() {
+  bgParticles = [];
+  for (let i = 0; i < 25; i++) {
+    const p = {};
+    resetBgParticle(p);
+    p.life = Math.random();
+    bgParticles.push(p);
+  }
+}
+
+function resetBgParticle(p) {
+  const w = particleCanvas ? particleCanvas.width : 480;
+  const h = particleCanvas ? particleCanvas.height : 800;
+  if (Math.random() < 0.6) {
+    // Dungeon dust
+    p.x = Math.random() * w; p.y = Math.random() * h;
+    p.vx = (Math.random() - 0.5) * 0.3; p.vy = -0.2 - Math.random() * 0.3;
+    p.size = 1 + Math.random() * 2; p.color = '#998866';
+    p.maxAlpha = 0.15 + Math.random() * 0.15; p.decay = 0.002 + Math.random() * 0.003;
+  } else {
+    // Torch spark
+    p.x = Math.random() < 0.5 ? w * 0.08 : w * 0.92;
+    p.y = h * 0.15 + Math.random() * h * 0.3;
+    p.vx = (Math.random() - 0.5) * 0.8; p.vy = -0.5 - Math.random() * 1;
+    p.size = 1 + Math.random() * 2;
+    p.color = Math.random() < 0.5 ? '#ff8844' : '#ffcc44';
+    p.maxAlpha = 0.4 + Math.random() * 0.3; p.decay = 0.008 + Math.random() * 0.008;
+  }
+  p.life = 1;
+}
+
+function spawnKillParticles(x, y) {
+  const colors = ['#cc3333', '#aa2222', '#ff5555', '#882222', '#555'];
+  for (let i = 0; i < 20; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const spd = 1 + Math.random() * 4;
+    juiceParticles.push({
+      x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd - 1,
+      gravity: 0.1, size: 2 + Math.random() * 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      maxAlpha: 0.8 + Math.random() * 0.2, life: 1,
+      decay: 0.02 + Math.random() * 0.02,
+      shape: Math.random() < 0.6 ? 'circle' : 'rect', shrink: 0.97,
+      rot: Math.random() * Math.PI * 2, spin: (Math.random() - 0.5) * 0.2,
+      aspect: 0.5 + Math.random()
+    });
+  }
+  // Smoke puffs
+  for (let i = 0; i < 8; i++) {
+    juiceParticles.push({
+      x: x + (Math.random() - 0.5) * 20, y: y + (Math.random() - 0.5) * 20,
+      vx: (Math.random() - 0.5) * 1, vy: -0.5 - Math.random() * 0.5,
+      gravity: -0.02, size: 8 + Math.random() * 12, color: '#444',
+      maxAlpha: 0.4, life: 1, decay: 0.015, shape: 'circle', shrink: 1.02
+    });
+  }
+}
+
+function spawnConfetti(x, y, count) {
+  const colors = ['#f0c040', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6', '#f1c40f', '#ff6b6b', '#48dbfb'];
+  for (let i = 0; i < (count || 40); i++) {
+    const a = Math.random() * Math.PI * 2;
+    const spd = 2 + Math.random() * 5;
+    juiceParticles.push({
+      x, y, vx: Math.cos(a) * spd, vy: Math.sin(a) * spd - 3,
+      gravity: 0.08, size: 3 + Math.random() * 5,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      maxAlpha: 1, life: 1, decay: 0.01 + Math.random() * 0.01,
+      shape: 'rect', shrink: 0.99,
+      rot: Math.random() * Math.PI * 2, spin: (Math.random() - 0.5) * 0.3,
+      aspect: 0.3 + Math.random() * 0.7
+    });
+  }
+}
+
+function spawnLevelUpBurst(x, y) {
+  // Golden star ring
+  for (let i = 0; i < 16; i++) {
+    const a = (i / 16) * Math.PI * 2;
+    juiceParticles.push({
+      x, y, vx: Math.cos(a) * 3, vy: Math.sin(a) * 3,
+      gravity: 0, size: 4 + Math.random() * 4, color: '#f0c040',
+      maxAlpha: 1, life: 1, decay: 0.015, shape: 'circle', shrink: 0.98
+    });
+  }
+  // Light bloom
+  for (let i = 0; i < 30; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const d = 20 + Math.random() * 40;
+    juiceParticles.push({
+      x: x + Math.cos(a) * d, y: y + Math.sin(a) * d,
+      vx: Math.cos(a) * 1.5, vy: Math.sin(a) * 1.5,
+      gravity: 0, size: 2 + Math.random() * 3,
+      color: Math.random() < 0.5 ? '#fff' : '#f0c040',
+      maxAlpha: 0.8, life: 1, decay: 0.02, shape: 'circle', shrink: 0.97
+    });
+  }
+}
+
+function showJuiceText(text, className) {
+  const container = document.getElementById('grid-container');
+  if (!container) return;
+  const el = document.createElement('div');
+  el.className = 'juice-text ' + className;
+  el.textContent = text;
+  el.style.left = '50%';
+  el.style.top = `${30 + Math.random() * 20}%`;
+  container.appendChild(el);
+  setTimeout(() => el.remove(), className === 'levelup' ? 2000 : 1200);
+}
+
+function celebrateFlash() {
+  const app = document.getElementById('app');
+  const flash = document.createElement('div');
+  flash.className = 'celebrate-flash';
+  app.appendChild(flash);
+  setTimeout(() => flash.remove(), 1000);
+}
+
+function screenShake(intensity) {
+  const screen = document.getElementById('battle-screen');
+  if (!screen) return;
+  screen.classList.remove('shake', 'shake-light', 'shake-heavy');
+  void screen.offsetWidth;
+  const cls = intensity === 'heavy' ? 'shake-heavy' : intensity === 'light' ? 'shake-light' : 'shake';
+  screen.classList.add(cls);
+  setTimeout(() => screen.classList.remove(cls), intensity === 'heavy' ? 400 : 300);
+}
+
+function updateVignette() {
+  const vig = document.getElementById('vignette-overlay');
+  if (!vig || !run) { if (vig) { vig.style.boxShadow = 'none'; vig.style.animation = 'none'; } return; }
+  const pct = run.hp / run.maxHp;
+  if (pct < 0.3) {
+    const intensity = (0.3 - pct) / 0.3;
+    vig.style.boxShadow = `inset 0 0 ${100 + 60 * intensity}px rgba(${Math.floor(180 * intensity)}, 0, 0, ${0.4 * intensity})`;
+    vig.style.animation = pct < 0.15 ? 'vignettePulse 1s infinite' : 'none';
+  } else {
+    vig.style.boxShadow = 'none';
+    vig.style.animation = 'none';
+  }
 }
 
 // ===== DB =====
@@ -1093,8 +1328,13 @@ async function processMatches() {
     if (chainCount > 1) {
       showChainPopup(chainCount);
       playSFX('chain');
+      comboCounter = chainCount;
+      if (chainCount >= 3) {
+        showJuiceText(chainCount >= 5 ? `MEGA COMBO ×${chainCount}!` : `COMBO ×${chainCount}!`, 'combo');
+      }
     } else {
       playSFX('match');
+      comboCounter = 1;
     }
 
     // Apply match effects
@@ -1174,9 +1414,12 @@ function applyMatchEffects(counts, total, chain) {
       dmg *= 2;
       floatText(`💥 CRIT! ${dmg}`, 'var(--red)');
       playSFX('crit');
+      showJuiceText('CRITICAL!', 'critical');
+      screenShake('heavy');
     } else {
       floatText(`⚔️ ${dmg}`, 'var(--red)');
       playSFX('attack');
+      screenShake('light');
     }
 
     battle.enemy.hp = Math.max(0, battle.enemy.hp - dmg);
@@ -1312,8 +1555,8 @@ async function enemyTurn() {
       run.hp -= dmg;
       floatText(`💔 -${dmg}`, 'var(--red)');
       playSFX('enemy_hit');
-      document.getElementById('battle-screen').classList.add('shake');
-      setTimeout(() => document.getElementById('battle-screen').classList.remove('shake'), 300);
+      screenShake(dmg > run.maxHp * 0.2 ? 'heavy' : 'light');
+      updateVignette();
       
       // Knight reflect
       if (run.heroKey === 'knight' && run.shield > 0) {
@@ -1502,6 +1745,9 @@ function updateBattleUI() {
   // Relics
   const relicsEl = document.getElementById('b-relics');
   relicsEl.innerHTML = run.relics.map(r => `<span class="relic-icon" title="${r.name}">${r.icon}</span>`).join('');
+
+  // Vignette
+  updateVignette();
 }
 
 // ===== FLOOR CLEARED =====
@@ -1509,6 +1755,14 @@ function floorCleared() {
   killCount++;
   animating = false;
   playSFX('door');
+  // Kill particles at enemy sprite position
+  const sprite = document.getElementById('b-esprite');
+  if (sprite && particleCanvas) {
+    const rect = sprite.getBoundingClientRect();
+    const appRect = document.getElementById('app').getBoundingClientRect();
+    spawnKillParticles(rect.left - appRect.left + rect.width / 2, rect.top - appRect.top + rect.height / 2);
+  }
+  celebrateFlash();
   
   // Gold reward
   let goldReward = 10 + run.floor * 3 + Math.floor(Math.random() * 10);
@@ -1524,6 +1778,15 @@ function floorCleared() {
   if (run.floor >= 25) {
     victory();
     return;
+  }
+
+  // Boss floor clear celebration
+  if (run.floor % 5 === 0 && particleCanvas) {
+    const cx = particleCanvas.width / 2;
+    const cy = particleCanvas.height / 2;
+    spawnLevelUpBurst(cx, cy);
+    spawnConfetti(cx, cy, 30);
+    showJuiceText('⭐ BOSS SLAIN!', 'levelup');
   }
 
   // Every 5th floor: event choice
@@ -1693,6 +1956,16 @@ function victory() {
   animating = false;
   stopBGM();
   playSFX('levelup');
+  // Victory celebration
+  if (particleCanvas) {
+    const cx = particleCanvas.width / 2;
+    const cy = particleCanvas.height / 2;
+    spawnConfetti(cx, cy, 60);
+    spawnLevelUpBurst(cx, cy);
+    setTimeout(() => spawnConfetti(cx, cy * 0.7, 30), 300);
+    setTimeout(() => spawnConfetti(cx, cy * 1.3, 30), 600);
+  }
+  showJuiceText('🏆 VICTORY!', 'levelup');
   const sp = 25 * 10 + killCount * 2 + 200; // bonus for clearing
   meta.soulPoints += sp;
   meta.bestFloor = 25;
@@ -1705,6 +1978,7 @@ function victory() {
 
 function returnToTitle() {
   stopBGM();
+  updateVignette();
   run = null;
   battle = null;
   selectedGem = null;
@@ -1842,6 +2116,7 @@ async function init() {
   if (!meta.unlockedHeroes) meta.unlockedHeroes = ['warrior'];
   
   updateTitleStats();
+  initParticleSystem();
 }
 
 init();
