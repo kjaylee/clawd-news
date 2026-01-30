@@ -166,4 +166,22 @@
 - **금일 구현:** sushi-sprint, traffic-escape, conveyor-sort, gem-cascade, word-chain-blast, merge-bloom(진행중)
 
 ---
-*Last updated: 2026-01-30 20:00 KST*
+
+## 📊 오후 9시 업데이트
+
+### 시장 확인
+43. **Tap Away 3D 클론 포화** — Google Play/App Store에 "Take Away", "Tap Away 3D", "Block Away" 등 다수 클론. 3D 시장 경쟁 치열하지만 2D HTML5 경량 버전은 미개척 틈새
+44. **하이퍼캐주얼 → 하이브리드 캐주얼 전환 가속** — Udonis: 순수 하이퍼캐주얼 시장 점유율 하락 지속, "깊이 있는 캐주얼"이 수익성 우위 확정적
+45. **캐주얼 게임 CPI 안정** — Match-3 $9.7B (장르 매출 40%), No-Lives 시스템이 D30 26% 리텐션 핵심
+
+### 구현 진행
+46. **032-tap-away-puzzle** — 🔨 서브에이전트 구현 착수 (21:00). 2D Tap Away 로직 퍼즐, 50+ 레벨, 스타 시스템.
+
+### 포트폴리오 현황
+- **활성 게임:** 40개+ (merge-bloom 추가)
+- **미구현 기획서:** 1개 (032 구현중)
+- **총 기획서:** 32개 (001-032)
+- **금일 구현:** sushi-sprint, traffic-escape, conveyor-sort, gem-cascade, word-chain-blast, merge-bloom, tap-away(진행중)
+
+---
+*Last updated: 2026-01-30 21:00 KST*
