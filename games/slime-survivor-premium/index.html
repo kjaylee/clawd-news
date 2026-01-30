@@ -413,6 +413,124 @@
             line-height: 1;
         }
         #pauseBtn:active { transform: scale(0.9); }
+        /* Mute FAB */
+        #muteFab {
+            position: absolute;
+            bottom: calc(var(--safe-bottom, 0px) + 16px);
+            right: 16px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.5);
+            border: 2px solid rgba(255,255,255,0.15);
+            color: #fff;
+            font-size: 22px;
+            cursor: pointer;
+            z-index: 55;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            pointer-events: auto;
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
+            transition: transform 0.2s, background 0.2s;
+            line-height: 1;
+        }
+        #muteFab:active { transform: scale(0.85); }
+        #muteFab.muted { background: rgba(255,0,0,0.3); border-color: rgba(255,68,102,0.4); }
+        /* Combo text overlay */
+        #comboTextOverlay {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            font-size: clamp(2rem, 8vw, 4rem);
+            font-weight: 900;
+            color: #fff;
+            text-shadow: 0 0 20px rgba(255,100,0,0.8), 0 0 40px rgba(255,50,0,0.5), 2px 4px 8px rgba(0,0,0,0.8);
+            pointer-events: none;
+            z-index: 80;
+            opacity: 0;
+            transition: none;
+            white-space: nowrap;
+            letter-spacing: 2px;
+            font-family: 'Courier New', monospace;
+        }
+        @keyframes comboTextPop {
+            0% { opacity:0; transform: translate(-50%,-50%) scale(0.3) rotate(-5deg); }
+            15% { opacity:1; transform: translate(-50%,-50%) scale(1.3) rotate(2deg); }
+            30% { transform: translate(-50%,-50%) scale(1) rotate(0deg); }
+            80% { opacity:1; }
+            100% { opacity:0; transform: translate(-50%,-50%) scale(0.8) translateY(-30px); }
+        }
+        #comboTextOverlay.active {
+            animation: comboTextPop 1.5s ease-out forwards;
+        }
+        /* Boss entrance overlay */
+        #bossEntrance {
+            position: absolute;
+            inset: 0;
+            z-index: 90;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        #bossEntrance.active { opacity: 1; }
+        #bossEntrance .boss-dim {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+        }
+        #bossEntrance .boss-banner {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        #bossEntrance .boss-warn {
+            font-size: clamp(1.5rem, 6vw, 3rem);
+            font-weight: 900;
+            color: #ff4444;
+            text-shadow: 0 0 20px #ff0000, 0 0 40px #ff0000;
+            animation: bossPulse 0.4s ease-in-out infinite alternate;
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        #bossEntrance .boss-name {
+            margin-top: 12px;
+            font-size: clamp(1rem, 4vw, 1.8rem);
+            color: #ffd700;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(255,215,0,0.6);
+            opacity: 0;
+            animation: bossNameFade 0.5s 0.6s ease forwards;
+        }
+        @keyframes bossPulse {
+            from { transform: scale(1); text-shadow: 0 0 20px #ff0000; }
+            to { transform: scale(1.05); text-shadow: 0 0 40px #ff0000, 0 0 60px #ff4400; }
+        }
+        @keyframes bossNameFade {
+            from { opacity:0; transform: translateY(10px); }
+            to { opacity:1; transform: translateY(0); }
+        }
+        /* Scanlines for boss entrance */
+        #bossEntrance .boss-scanlines {
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(255,0,0,0.03) 2px,
+                rgba(255,0,0,0.03) 4px
+            );
+            animation: scanScroll 0.5s linear infinite;
+        }
+        @keyframes scanScroll {
+            from { transform: translateY(0); }
+            to { transform: translateY(4px); }
+        }
     </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -473,6 +591,20 @@
     </div>
     <div id="xpBarOuter"><div id="xpBarInner"></div></div>
     <button id="pauseBtn" style="display:none;">⏸️</button>
+    <button id="muteFab" onclick="toggleMuteFab()">🔊</button>
+
+    <!-- Combo Text Overlay -->
+    <div id="comboTextOverlay"></div>
+
+    <!-- Boss Entrance Overlay -->
+    <div id="bossEntrance">
+        <div class="boss-dim"></div>
+        <div class="boss-scanlines"></div>
+        <div class="boss-banner">
+            <div class="boss-warn">⚠️ BOSS INCOMING ⚠️</div>
+            <div class="boss-name" id="bossNamePlate">💀 SKULL LORD</div>
+        </div>
+    </div>
 
     <!-- Toast Container -->
     <div id="toastContainer"></div>
@@ -549,19 +681,32 @@
 'use strict';
 
 // ═══════════════════════════════════════════════════════════════
-// 🔊 SOUND SYSTEM (Web Audio API - Procedural)
+// 🔊 SOUND SYSTEM (Web Audio API - Procedural + BGM)
 // ═══════════════════════════════════════════════════════════════
 const AudioManager = {
     ctx: null,
     enabled: true,
     masterGain: null,
+    sfxGain: null,
+    bgmGain: null,
+    bgmPlaying: false,
+    bgmNodes: [],
+    _xpPickupCounter: 0,
 
     init() {
         try {
+            if (this.ctx) return; // already initialized
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
             this.masterGain = this.ctx.createGain();
             this.masterGain.gain.value = 0.3;
             this.masterGain.connect(this.ctx.destination);
+            // Separate SFX and BGM buses
+            this.sfxGain = this.ctx.createGain();
+            this.sfxGain.gain.value = 1.0;
+            this.sfxGain.connect(this.masterGain);
+            this.bgmGain = this.ctx.createGain();
+            this.bgmGain.gain.value = 0.35;
+            this.bgmGain.connect(this.masterGain);
         } catch(e) { this.enabled = false; }
     },
 
@@ -573,6 +718,12 @@ const AudioManager = {
         this.enabled = !this.enabled;
         if (this.masterGain) this.masterGain.gain.value = this.enabled ? 0.3 : 0;
         document.getElementById('soundToggle').textContent = this.enabled ? 'ON' : 'OFF';
+        // Update mute FAB
+        const fab = document.getElementById('muteFab');
+        if (fab) {
+            fab.textContent = this.enabled ? '🔊' : '🔇';
+            fab.classList.toggle('muted', !this.enabled);
+        }
     },
 
     _play(freq, type, duration, volume = 0.5, detune = 0) {
@@ -585,14 +736,14 @@ const AudioManager = {
         gain.gain.setValueAtTime(volume, this.ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
         osc.connect(gain);
-        gain.connect(this.masterGain);
+        gain.connect(this.sfxGain);
         osc.start();
         osc.stop(this.ctx.currentTime + duration);
     },
 
     _noise(duration, volume = 0.2) {
         if (!this.enabled || !this.ctx) return;
-        const bufferSize = this.ctx.sampleRate * duration;
+        const bufferSize = Math.floor(this.ctx.sampleRate * duration);
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
@@ -602,13 +753,170 @@ const AudioManager = {
         gain.gain.setValueAtTime(volume, this.ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
         src.connect(gain);
-        gain.connect(this.masterGain);
+        gain.connect(this.sfxGain);
         src.start();
     },
 
-    shoot() {
-        this._play(800, 'square', 0.08, 0.15);
-        this._play(600, 'sawtooth', 0.06, 0.1);
+    // ── BGM: 8-bit Chiptune C-Am-F-G + Drums ──
+    startBGM() {
+        if (!this.ctx || this.bgmPlaying) return;
+        this.bgmPlaying = true;
+        const ctx = this.ctx;
+        const bpm = 130;
+        const beatLen = 60 / bpm;
+        const barLen = beatLen * 4;
+        const totalBars = 4; // C-Am-F-G pattern
+        const loopLen = barLen * totalBars;
+
+        const scheduleLoop = () => {
+            if (!this.bgmPlaying) return;
+            const now = ctx.currentTime + 0.05;
+
+            // Chord pattern: C-Am-F-G (each 1 bar)
+            const chords = [
+                [261.63, 329.63, 392.00], // C major
+                [220.00, 261.63, 329.63], // Am
+                [174.61, 220.00, 261.63], // F major
+                [196.00, 246.94, 293.66], // G major
+            ];
+
+            for (let bar = 0; bar < totalBars; bar++) {
+                const chord = chords[bar];
+                const barStart = now + bar * barLen;
+
+                // Arpeggio pattern (8th notes)
+                for (let n = 0; n < 8; n++) {
+                    const noteTime = barStart + n * (beatLen / 2);
+                    const noteIdx = n % chord.length;
+                    const octave = (n >= 4) ? 2 : 1;
+                    const freq = chord[noteIdx] * octave;
+
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.value = freq;
+                    g.gain.setValueAtTime(0.08, noteTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, noteTime + beatLen * 0.45);
+                    osc.connect(g);
+                    g.connect(this.bgmGain);
+                    osc.start(noteTime);
+                    osc.stop(noteTime + beatLen * 0.5);
+                    this.bgmNodes.push(osc);
+                }
+
+                // Bass line (root note, each beat)
+                for (let b = 0; b < 4; b++) {
+                    const bassTime = barStart + b * beatLen;
+                    const bassFreq = chord[0] / 2;
+                    const bassOsc = ctx.createOscillator();
+                    const bassG = ctx.createGain();
+                    bassOsc.type = 'triangle';
+                    bassOsc.frequency.value = bassFreq;
+                    bassG.gain.setValueAtTime(0.12, bassTime);
+                    bassG.gain.exponentialRampToValueAtTime(0.001, bassTime + beatLen * 0.8);
+                    bassOsc.connect(bassG);
+                    bassG.connect(this.bgmGain);
+                    bassOsc.start(bassTime);
+                    bassOsc.stop(bassTime + beatLen * 0.9);
+                    this.bgmNodes.push(bassOsc);
+                }
+
+                // Drums: kick on 1,3 / snare(noise) on 2,4 / hihat on 8ths
+                for (let b = 0; b < 4; b++) {
+                    const drumTime = barStart + b * beatLen;
+                    // Kick (beats 1, 3)
+                    if (b === 0 || b === 2) {
+                        const kickOsc = ctx.createOscillator();
+                        const kickG = ctx.createGain();
+                        kickOsc.type = 'sine';
+                        kickOsc.frequency.setValueAtTime(150, drumTime);
+                        kickOsc.frequency.exponentialRampToValueAtTime(40, drumTime + 0.12);
+                        kickG.gain.setValueAtTime(0.18, drumTime);
+                        kickG.gain.exponentialRampToValueAtTime(0.001, drumTime + 0.15);
+                        kickOsc.connect(kickG);
+                        kickG.connect(this.bgmGain);
+                        kickOsc.start(drumTime);
+                        kickOsc.stop(drumTime + 0.2);
+                        this.bgmNodes.push(kickOsc);
+                    }
+                    // Snare (beats 2, 4) — noise burst
+                    if (b === 1 || b === 3) {
+                        const snareLen = 0.1;
+                        const snareBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * snareLen), ctx.sampleRate);
+                        const sd = snareBuf.getChannelData(0);
+                        for (let si = 0; si < sd.length; si++) sd[si] = Math.random() * 2 - 1;
+                        const snareSrc = ctx.createBufferSource();
+                        const snareG = ctx.createGain();
+                        snareSrc.buffer = snareBuf;
+                        snareG.gain.setValueAtTime(0.1, drumTime);
+                        snareG.gain.exponentialRampToValueAtTime(0.001, drumTime + snareLen);
+                        snareSrc.connect(snareG);
+                        snareG.connect(this.bgmGain);
+                        snareSrc.start(drumTime);
+                        this.bgmNodes.push(snareSrc);
+                    }
+                    // Hi-hat (every 8th note)
+                    for (let h = 0; h < 2; h++) {
+                        const hhTime = drumTime + h * (beatLen / 2);
+                        const hhLen = 0.04;
+                        const hhBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * hhLen), ctx.sampleRate);
+                        const hd = hhBuf.getChannelData(0);
+                        for (let hi = 0; hi < hd.length; hi++) hd[hi] = Math.random() * 2 - 1;
+                        const hhSrc = ctx.createBufferSource();
+                        const hhG = ctx.createGain();
+                        // Hi-pass filter for metallic sound
+                        const hhFilter = ctx.createBiquadFilter();
+                        hhFilter.type = 'highpass';
+                        hhFilter.frequency.value = 8000;
+                        hhSrc.buffer = hhBuf;
+                        hhG.gain.setValueAtTime(0.04, hhTime);
+                        hhG.gain.exponentialRampToValueAtTime(0.001, hhTime + hhLen);
+                        hhSrc.connect(hhFilter);
+                        hhFilter.connect(hhG);
+                        hhG.connect(this.bgmGain);
+                        hhSrc.start(hhTime);
+                        this.bgmNodes.push(hhSrc);
+                    }
+                }
+            }
+
+            // Clean old nodes
+            this.bgmNodes = this.bgmNodes.filter(n => {
+                try { n._ended; return true; } catch(e) { return false; }
+            });
+            if (this.bgmNodes.length > 200) this.bgmNodes.splice(0, this.bgmNodes.length - 50);
+
+            // Schedule next loop
+            this._bgmTimeout = setTimeout(scheduleLoop, (loopLen - 0.1) * 1000);
+        };
+
+        scheduleLoop();
+    },
+
+    stopBGM() {
+        this.bgmPlaying = false;
+        if (this._bgmTimeout) clearTimeout(this._bgmTimeout);
+        this.bgmNodes.forEach(n => { try { n.stop(); } catch(e) {} });
+        this.bgmNodes = [];
+    },
+
+    // ── SFX: Weapon-specific ──
+    shootEnergy() {
+        // Woosh sound for energy ball
+        this._play(800, 'square', 0.06, 0.12);
+        this._play(1200, 'sine', 0.04, 0.08);
+    },
+
+    shootFire() {
+        // Crackle for fire
+        this._noise(0.08, 0.12);
+        this._play(300, 'sawtooth', 0.1, 0.1, Math.random() * 200);
+    },
+
+    orbitalHum() {
+        // Low hum for orbital weapon
+        this._play(120, 'triangle', 0.15, 0.06);
+        this._play(180, 'sine', 0.1, 0.04);
     },
 
     hit() {
@@ -622,22 +930,38 @@ const AudioManager = {
         this._noise(0.1, 0.1);
     },
 
+    // XP pickup — rising pitch each consecutive pickup
     pickup() {
-        this._play(880, 'sine', 0.1, 0.2);
-        this._play(1100, 'sine', 0.1, 0.15);
+        this._xpPickupCounter++;
+        const basePitch = 880 + Math.min(this._xpPickupCounter * 40, 600);
+        this._play(basePitch, 'sine', 0.08, 0.15);
+        this._play(basePitch * 1.25, 'sine', 0.06, 0.1);
+        // Reset counter after a gap
+        clearTimeout(this._xpResetTimer);
+        this._xpResetTimer = setTimeout(() => { this._xpPickupCounter = 0; }, 500);
     },
 
+    // Level up fanfare — triumphant arpeggio melody
     levelUp() {
-        const t = this.ctx ? this.ctx.currentTime : 0;
-        [523, 659, 784, 1047].forEach((f, i) => {
-            setTimeout(() => this._play(f, 'sine', 0.2, 0.25), i * 80);
+        // C-E-G-C5-E5 fast arpeggio + harmony
+        const melody = [523, 659, 784, 1047, 1319, 1047];
+        melody.forEach((f, i) => {
+            setTimeout(() => {
+                this._play(f, 'square', 0.15, 0.2);
+                this._play(f * 0.5, 'triangle', 0.2, 0.12); // bass harmony
+            }, i * 70);
         });
+        // Final chord
+        setTimeout(() => {
+            [1047, 1319, 1568].forEach(f => this._play(f, 'sine', 0.5, 0.12));
+        }, melody.length * 70);
     },
 
     gameOver() {
-        [400, 350, 300, 200].forEach((f, i) => {
-            setTimeout(() => this._play(f, 'sawtooth', 0.3, 0.2), i * 150);
+        [400, 350, 300, 250, 200, 150].forEach((f, i) => {
+            setTimeout(() => this._play(f, 'sawtooth', 0.4, 0.2), i * 130);
         });
+        this._noise(0.3, 0.08);
     },
 
     coinPickup() {
@@ -645,17 +969,44 @@ const AudioManager = {
         setTimeout(() => this._play(1500, 'sine', 0.08, 0.12), 50);
     },
 
+    // Boss alert — ominous warning
     bossAlert() {
-        [200, 250, 200, 250, 300].forEach((f, i) => {
-            setTimeout(() => this._play(f, 'square', 0.15, 0.3), i * 120);
+        // Low ominous rumble
+        this._play(80, 'sawtooth', 0.8, 0.15);
+        this._noise(0.6, 0.08);
+        // Warning stabs
+        [200, 250, 200, 250, 300, 400].forEach((f, i) => {
+            setTimeout(() => {
+                this._play(f, 'square', 0.12, 0.25);
+                if (i >= 4) this._play(f * 0.5, 'sawtooth', 0.15, 0.15);
+            }, i * 130);
         });
-        this._noise(0.5, 0.05);
+        // Impact at end
+        setTimeout(() => {
+            this._play(60, 'sine', 0.3, 0.3);
+            this._noise(0.2, 0.15);
+        }, 800);
     },
 
     achievement() {
         [660, 880, 1100, 880, 1320].forEach((f, i) => {
             setTimeout(() => this._play(f, 'sine', 0.15, 0.2), i * 100);
         });
+    },
+
+    // Combo milestone sound
+    comboMilestone() {
+        this._play(600, 'square', 0.08, 0.2);
+        this._play(900, 'square', 0.08, 0.18);
+        setTimeout(() => {
+            this._play(1200, 'square', 0.15, 0.2);
+            this._play(1500, 'sine', 0.1, 0.15);
+        }, 80);
+    },
+
+    // Backward compat — generic shoot
+    shoot() {
+        this.shootEnergy();
     }
 };
 
@@ -1062,6 +1413,12 @@ let screenFlash = { alpha: 0, color: '#fff' };
 let comboCount = 0, comboTimer = 0;
 let totalScore = 0, runCoins = 0;
 
+// Juice systems
+let slowMotion = { active: false, timer: 0, scale: 1, zoom: 1 };
+let comboText = { active: false, text: '', timer: 0 };
+let bossEntranceActive = false;
+let killStreak = 0, killStreakTimer = 0; // for massacre/unstoppable tracking
+
 // ── Input ──
 let inputDir = { x: 0, y: 0 };
 let joystickActive = false;
@@ -1204,16 +1561,46 @@ function spawnEnemy() {
 }
 
 function spawnBoss() {
+    // Cinematic boss entrance
+    bossEntranceActive = true;
     AudioManager.bossAlert();
-    showToast('⚠️ BOSS INCOMING!');
-    screenFlash = { alpha: 0.5, color: '#ff0000' };
-    const diffMult = 1 + (game.time / 60) * 0.5;
-    enemies.push({
-        x: Math.random() * W, y: -50,
-        radius: 30, speed: 0.6, hp: 500 * diffMult, maxHp: 500 * diffMult,
-        sprite: 'boss', xp: 50, coins: 20,
-        flash: 0, isBoss: true
-    });
+    screenShake.intensity = 8;
+
+    // Boss name variety based on wave
+    const bossWave = Math.floor(game.time / 90) + 1;
+    const bossNames = ['💀 SKULL LORD', '👹 MEGA SLIME', '🔥 INFERNO KING', '❄️ FROST TITAN', '⚡ STORM BRINGER'];
+    const bossName = bossNames[(bossWave - 1) % bossNames.length];
+    const namePlate = document.getElementById('bossNamePlate');
+    if (namePlate) namePlate.textContent = bossName;
+
+    // Show boss entrance overlay
+    const entrance = document.getElementById('bossEntrance');
+    entrance.classList.add('active');
+
+    // Dim BGM during entrance
+    if (AudioManager.bgmGain) {
+        AudioManager.bgmGain.gain.setValueAtTime(0.1, AudioManager.ctx.currentTime);
+    }
+
+    // After entrance animation, spawn the boss
+    setTimeout(() => {
+        entrance.classList.remove('active');
+        bossEntranceActive = false;
+        // Restore BGM
+        if (AudioManager.bgmGain) {
+            AudioManager.bgmGain.gain.setValueAtTime(0.35, AudioManager.ctx.currentTime);
+        }
+        screenFlash = { alpha: 0.5, color: '#ff0000' };
+        screenShake.intensity = 15;
+
+        const diffMult = 1 + (game.time / 60) * 0.5;
+        enemies.push({
+            x: Math.random() * W, y: -50,
+            radius: 30, speed: 0.6, hp: 500 * diffMult, maxHp: 500 * diffMult,
+            sprite: 'boss', xp: 50, coins: 20,
+            flash: 0, isBoss: true
+        });
+    }, 1800);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -1274,6 +1661,15 @@ function initGame(daily = false) {
     inputDir = { x: 0, y: 0 };
     screenShake = { x: 0, y: 0, intensity: 0 };
     screenFlash = { alpha: 0, color: '#fff' };
+    // Reset juice systems
+    slowMotion = { active: false, timer: 0, scale: 1, zoom: 1 };
+    comboText = { active: false, text: '', timer: 0 };
+    killStreak = 0; killStreakTimer = 0;
+    bossEntranceActive = false;
+    const ctOverlay = document.getElementById('comboTextOverlay');
+    if (ctOverlay) ctOverlay.classList.remove('active');
+    const bossEnt = document.getElementById('bossEntrance');
+    if (bossEnt) bossEnt.classList.remove('active');
 }
 
 function setJoystickEnabled(on) {
@@ -1289,6 +1685,8 @@ function startNormalGame() {
     hideAllScreens();
     setJoystickEnabled(true);
     document.getElementById('pauseBtn').style.display = 'block';
+    showMuteFab(true);
+    AudioManager.startBGM();
     lastTime = performance.now();
     requestAnimationFrame(gameLoop);
 }
@@ -1300,6 +1698,8 @@ function startDailyChallenge() {
     hideAllScreens();
     setJoystickEnabled(true);
     document.getElementById('pauseBtn').style.display = 'block';
+    showMuteFab(true);
+    AudioManager.startBGM();
     lastTime = performance.now();
     showToast(`📅 데일리: ${dailyModifiers.name}`);
     requestAnimationFrame(gameLoop);
@@ -1329,11 +1729,23 @@ function resumeGame() {
 
 function toggleSound() { AudioManager.toggle(); }
 
+function toggleMuteFab() {
+    AudioManager.resume();
+    AudioManager.toggle();
+}
+
+function showMuteFab(show) {
+    const fab = document.getElementById('muteFab');
+    if (fab) fab.style.display = show ? 'flex' : 'none';
+}
+
 function goToMenu() {
     if (game) game.running = false;
+    AudioManager.stopBGM();
     hideAllScreens();
     setJoystickEnabled(false);
     document.getElementById('pauseBtn').style.display = 'none';
+    showMuteFab(false);
     buildStartScreen();
     document.getElementById('startScreen').classList.remove('hidden');
 }
@@ -1350,8 +1762,24 @@ function hideAllScreens() {
 function gameLoop(timestamp) {
     if (!game || !game.running) return;
     const rawDelta = (timestamp - lastTime) / 1000;
-    const delta = Math.min(rawDelta, 0.05);
+    let delta = Math.min(rawDelta, 0.05);
     lastTime = timestamp;
+
+    // Slow-motion processing (always ticks, even when game paused for visual effect)
+    if (slowMotion.active) {
+        slowMotion.timer -= rawDelta;
+        if (slowMotion.timer <= 0) {
+            slowMotion.active = false;
+            slowMotion.scale = 1;
+            slowMotion.zoom = 1;
+        } else {
+            // Ease out of slow-mo
+            const t = slowMotion.timer / 0.3;
+            slowMotion.scale = 0.15 + (1 - 0.15) * (1 - t);
+            slowMotion.zoom = 1 + 0.05 * t;
+        }
+        delta *= slowMotion.scale;
+    }
 
     if (!game.paused) {
         game.time += delta;
@@ -1401,6 +1829,18 @@ function update(delta) {
     if (comboTimer > 0) {
         comboTimer -= delta;
         if (comboTimer <= 0) comboCount = 0;
+    }
+
+    // Kill streak timer (for combo text like MASSACRE, UNSTOPPABLE)
+    if (killStreakTimer > 0) {
+        killStreakTimer -= delta;
+        if (killStreakTimer <= 0) killStreak = 0;
+    }
+
+    // Combo text timer
+    if (comboText.active) {
+        comboText.timer -= delta;
+        if (comboText.timer <= 0) comboText.active = false;
     }
 
     // Spawn
@@ -1515,24 +1955,47 @@ function update(delta) {
             let dmg = Math.max(1, (e.isBoss ? 20 : 10) - player.armor);
             player.hp -= dmg;
             player.invincible = 0.5;
-            createParticles(player.x, player.y, '#ff0000', 8);
+            createParticles(player.x, player.y, '#ff0000', e.isBoss ? 15 : 8);
             createDmgNumber(player.x, player.y - player.radius, dmg, '#ff4444');
-            screenShake.intensity = e.isBoss ? 12 : 6;
-            screenFlash = { alpha: 0.3, color: '#ff0000' };
+            // Stronger screen shake for boss attacks
+            screenShake.intensity = e.isBoss ? 18 : 8;
+            screenFlash = { alpha: e.isBoss ? 0.5 : 0.3, color: '#ff0000' };
             AudioManager.hit();
+            // Boss hit: brief slow-mo for impact feel
+            if (e.isBoss && !slowMotion.active) {
+                slowMotion.active = true;
+                slowMotion.timer = 0.15;
+                slowMotion.scale = 0.3;
+                slowMotion.zoom = 1.02;
+            }
             if (player.hp <= 0) { gameOver(); return; }
         }
     }
 
-    // XP orbs
+    // XP orbs — acceleration curve magnet + glow trail
     for (let i = xpOrbs.length - 1; i >= 0; i--) {
         const orb = xpOrbs[i];
         orb.pulse += delta * 5;
         const dist = Math.hypot(orb.x - player.x, orb.y - player.y);
         if (dist < player.magnetRange) {
-            const spd = 0.15 * (1 + (player.magnetRange - dist) / 60);
+            // Smooth acceleration curve: faster as orb gets closer
+            const t = 1 - (dist / player.magnetRange); // 0 at edge, 1 at center
+            const accel = t * t * t; // cubic ease-in
+            const spd = 0.05 + accel * 0.5;
             orb.x += (player.x - orb.x) * spd;
             orb.y += (player.y - orb.y) * spd;
+            // Glow trail particles when being pulled
+            if (Math.random() < 0.3 + accel * 0.5) {
+                particles.push({
+                    x: orb.x + (Math.random() - 0.5) * 8,
+                    y: orb.y + (Math.random() - 0.5) * 8,
+                    vx: (player.x - orb.x) * 0.02,
+                    vy: (player.y - orb.y) * 0.02,
+                    life: 0.2 + accel * 0.3,
+                    color: accel > 0.5 ? '#ffffff' : '#88ffaa',
+                    size: 2 + accel * 3
+                });
+            }
         }
         if (dist < player.radius + orb.radius) {
             const gained = Math.floor(orb.xp * game.xpMult);
@@ -1637,6 +2100,17 @@ function killEnemy(e, idx) {
     comboTimer = 2;
     const comboMult = 1 + Math.min(comboCount, 50) * 0.05;
 
+    // Kill streak tracking (for combo text)
+    killStreak++;
+    killStreakTimer = 1.5;
+
+    // Combo text milestones
+    if (killStreak === 10) triggerComboText('🔥 KILLING SPREE!', '#ff8800');
+    else if (killStreak === 20) triggerComboText('💀 MASSACRE!', '#ff4444');
+    else if (killStreak === 35) triggerComboText('⚡ UNSTOPPABLE!', '#ffdd00');
+    else if (killStreak === 50) triggerComboText('👑 GODLIKE!', '#ff00ff');
+    else if (killStreak >= 75 && killStreak % 25 === 0) triggerComboText('🌟 LEGENDARY!', '#00ffff');
+
     // Score
     const baseScore = (e.isBoss ? 500 : 50) + e.xp * 10;
     totalScore += Math.floor(baseScore * comboMult * game.scoreMult);
@@ -1654,25 +2128,102 @@ function killEnemy(e, idx) {
         }
     }
 
-    // Effects
-    const particleCount = e.isBoss ? 30 : 10;
-    for (let i = 0; i < particleCount; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 2 + Math.random() * (e.isBoss ? 8 : 4);
-        particles.push({
-            x: e.x, y: e.y,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            life: 0.5 + Math.random() * 0.5,
-            color: e.isBoss ? `hsl(${Math.random()*60}, 100%, 60%)` : '#ff6600',
-            size: e.isBoss ? 6 : 4
-        });
+    // ── Type-specific death particles ──
+    const particleCount = e.isBoss ? 35 : 12;
+    const spriteType = e.sprite;
+
+    if (spriteType.includes('Slime') || spriteType === 'boss') {
+        // Slime = water droplet / splat particles
+        const slimeColors = {
+            'redSlime': ['#ff4444','#ff8888','#cc2222'],
+            'orangeSlime': ['#ff8800','#ffaa44','#cc6600'],
+            'purpleSlime': ['#ff00ff','#ff88ff','#8b008b'],
+            'blueSlime': ['#0088ff','#44aaff','#0044aa'],
+            'boss': ['#ff4444','#ffd700','#ff0000','#ffff00']
+        };
+        const colors = slimeColors[spriteType] || ['#44cc44','#88ff88','#1a5c1a'];
+        for (let i = 0; i < particleCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 1.5 + Math.random() * (e.isBoss ? 8 : 5);
+            // Bigger, rounder "droplet" particles
+            particles.push({
+                x: e.x, y: e.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - Math.random() * 2, // slight upward bias
+                life: 0.4 + Math.random() * 0.6,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                size: (e.isBoss ? 5 : 3) + Math.random() * 4
+            });
+        }
+        // Extra splash ring
+        for (let i = 0; i < 6; i++) {
+            const angle = (Math.PI * 2 / 6) * i;
+            particles.push({
+                x: e.x, y: e.y,
+                vx: Math.cos(angle) * 3, vy: Math.sin(angle) * 3,
+                life: 0.3, color: colors[0], size: 2
+            });
+        }
+    } else if (spriteType === 'skull') {
+        // Skull = bone fragment particles (white/gray sharp shards)
+        const boneColors = ['#ffffff','#cccccc','#999999','#dddddd','#aaaaaa'];
+        for (let i = 0; i < particleCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 5;
+            particles.push({
+                x: e.x + (Math.random()-0.5) * 10,
+                y: e.y + (Math.random()-0.5) * 10,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 1, // upward scatter
+                life: 0.5 + Math.random() * 0.7,
+                color: boneColors[Math.floor(Math.random() * boneColors.length)],
+                size: 2 + Math.random() * 3
+            });
+        }
+        // Dust cloud
+        for (let i = 0; i < 5; i++) {
+            particles.push({
+                x: e.x + (Math.random()-0.5)*15,
+                y: e.y + (Math.random()-0.5)*15,
+                vx: (Math.random()-0.5)*2, vy: -Math.random()*1.5,
+                life: 0.6, color: 'rgba(200,200,200,0.5)', size: 6 + Math.random()*4
+            });
+        }
+    } else if (spriteType === 'bat') {
+        // Bat = dark purple wispy particles
+        const batColors = ['#4a4a6e','#6a4a8e','#8844aa','#2a2a4e'];
+        for (let i = 0; i < particleCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 1 + Math.random() * 3;
+            particles.push({
+                x: e.x, y: e.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 2, // float upward
+                life: 0.6 + Math.random() * 0.8,
+                color: batColors[Math.floor(Math.random() * batColors.length)],
+                size: 2 + Math.random() * 3
+            });
+        }
+    } else {
+        // Fallback generic
+        for (let i = 0; i < particleCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * (e.isBoss ? 8 : 4);
+            particles.push({
+                x: e.x, y: e.y,
+                vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+                life: 0.5 + Math.random() * 0.5,
+                color: e.isBoss ? `hsl(${Math.random()*60}, 100%, 60%)` : '#ff6600',
+                size: e.isBoss ? 6 : 4
+            });
+        }
     }
 
     if (e.isBoss) {
-        screenShake.intensity = 15;
-        screenFlash = { alpha: 0.6, color: '#ffd700' };
+        screenShake.intensity = 18;
+        screenFlash = { alpha: 0.7, color: '#ffd700' };
         showToast('👑 BOSS DEFEATED! +500');
+        triggerComboText('💥 BOSS SLAIN!', '#ffd700');
     }
 
     AudioManager.kill();
@@ -1683,13 +2234,38 @@ function killEnemy(e, idx) {
     checkAchievements();
 }
 
+// ── Combo Text System ──
+function triggerComboText(text, color) {
+    const overlay = document.getElementById('comboTextOverlay');
+    if (!overlay) return;
+    overlay.textContent = text;
+    overlay.style.color = color || '#fff';
+    overlay.classList.remove('active');
+    // Force reflow to restart animation
+    void overlay.offsetWidth;
+    overlay.classList.add('active');
+    AudioManager.comboMilestone();
+    // Extra screen shake for milestone
+    screenShake.intensity = Math.max(screenShake.intensity, 10);
+    screenFlash = { alpha: 0.3, color: color || '#ffffff' };
+}
+
 function levelUp() {
     game.level++;
     game.xp -= game.xpToLevel;
     game.xpToLevel = Math.floor(game.xpToLevel * 1.4);
-    game.paused = true;
     AudioManager.levelUp();
-    screenFlash = { alpha: 0.4, color: '#00ff88' };
+    screenFlash = { alpha: 0.5, color: '#00ff88' };
+    screenShake.intensity = 8;
+
+    // Slow-motion effect (0.3s)
+    slowMotion.active = true;
+    slowMotion.timer = 0.3;
+    slowMotion.scale = 0.15;
+    slowMotion.zoom = 1.05;
+
+    // Pause after slow-mo ends
+    setTimeout(() => { game.paused = true; }, 300);
 
     // Level-up particles
     for (let i = 0; i < 40; i++) {
@@ -1733,6 +2309,7 @@ function levelUp() {
 
 function gameOver() {
     game.running = false;
+    AudioManager.stopBGM();
     AudioManager.gameOver();
     screenShake.intensity = 20;
 
@@ -1810,6 +2387,14 @@ function gameOver() {
 function render() {
     ctx.save();
     ctx.translate(screenShake.x, screenShake.y);
+
+    // Slow-motion zoom effect
+    if (slowMotion.active && slowMotion.zoom > 1) {
+        const z = slowMotion.zoom;
+        ctx.translate(W / 2, H / 2);
+        ctx.scale(z, z);
+        ctx.translate(-W / 2, -H / 2);
+    }
 
     // Background
     ctx.fillStyle = '#0f1020';
