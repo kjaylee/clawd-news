@@ -7,7 +7,7 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
-canvas{display:block;margin:0 auto;image-rendering:crisp-edges}
+canvas{display:block;margin:0 auto}
 </style>
 </head>
 <body>
@@ -18,1446 +18,799 @@ canvas{display:block;margin:0 auto;image-rendering:crisp-edges}
 //  GEM CASCADE 💎 — Cluster Clearing + Cascade Chain Puzzle
 // ============================================================
 
-// --- i18n ---
-const LANG = (() => {
-  const b = (navigator.language || 'en').toLowerCase();
-  if (b.startsWith('ko')) return 'ko';
-  if (b.startsWith('ja')) return 'ja';
-  if (b.startsWith('zh')) return 'zh';
-  return 'en';
-})();
-
-const T = {
-  en: {
-    title: 'GEM CASCADE',
-    start: '▶  INFINITE MODE',
-    best: 'BEST',
-    score: 'Score',
-    chain: 'Chain',
-    wave: 'Wave',
-    gameOver: 'GAME OVER',
-    finalScore: 'Final Score',
-    bestChain: 'Best Chain',
-    waveReached: 'Wave Reached',
-    newBest: '🏆 NEW BEST!',
-    restart: '▶  PLAY AGAIN',
-    home: '🏠  HOME',
-    cascade: 'CASCADE',
-    huge: 'HUGE!',
-    mega: 'MEGA!!',
-    ultra: 'ULTRA!!!',
-    tapToStart: 'Tap clusters of 2+ same gems',
-    waveCleared: 'WAVE CLEAR!',
-  },
-  ko: {
-    title: '젬 캐스케이드',
-    start: '▶  무한 모드 시작',
-    best: '최고점수',
-    score: '점수',
-    chain: '체인',
-    wave: '웨이브',
-    gameOver: '게임 오버',
-    finalScore: '최종 점수',
-    bestChain: '최대 체인',
-    waveReached: '도달 웨이브',
-    newBest: '🏆 신기록!',
-    restart: '▶  다시하기',
-    home: '🏠  홈',
-    cascade: '캐스케이드',
-    huge: '대박!',
-    mega: '메가!!',
-    ultra: '울트라!!!',
-    tapToStart: '같은 색 보석 2개 이상 탭!',
-    waveCleared: '웨이브 클리어!',
-  },
-  ja: {
-    title: 'ジェムカスケード',
-    start: '▶  無限モード',
-    best: 'ベスト',
-    score: 'スコア',
-    chain: 'チェーン',
-    wave: 'ウェーブ',
-    gameOver: 'ゲームオーバー',
-    finalScore: '最終スコア',
-    bestChain: '最大チェーン',
-    waveReached: '到達ウェーブ',
-    newBest: '🏆 新記録！',
-    restart: '▶  もう一度',
-    home: '🏠  ホーム',
-    cascade: 'カスケード',
-    huge: 'すごい！',
-    mega: 'メガ!!',
-    ultra: 'ウルトラ!!!',
-    tapToStart: '同色2個以上タップ！',
-    waveCleared: 'ウェーブクリア！',
-  },
-  zh: {
-    title: '宝石连锁',
-    start: '▶  无限模式',
-    best: '最高分',
-    score: '分数',
-    chain: '连锁',
-    wave: '波次',
-    gameOver: '游戏结束',
-    finalScore: '最终分数',
-    bestChain: '最大连锁',
-    waveReached: '到达波次',
-    newBest: '🏆 新纪录！',
-    restart: '▶  再来一次',
-    home: '🏠  主页',
-    cascade: '连锁',
-    huge: '厉害！',
-    mega: '超级!!',
-    ultra: '究极!!!',
-    tapToStart: '点击2个以上同色宝石！',
-    waveCleared: '波次通过！',
-  },
+/* ─── i18n ─── */
+const LANG=(()=>{const b=(navigator.language||'en').toLowerCase();
+if(b.startsWith('ko'))return'ko';if(b.startsWith('ja'))return'ja';
+if(b.startsWith('zh'))return'zh';return'en'})();
+const T={
+en:{title:'GEM CASCADE',start:'▶  INFINITE MODE',best:'BEST',score:'Score',chain:'Chain',wave:'Wave',
+gameOver:'GAME OVER',finalScore:'Final Score',bestChain:'Best Chain',waveReached:'Wave Reached',
+newBest:'🏆 NEW BEST!',restart:'▶  PLAY AGAIN',home:'🏠  HOME',
+cascade:'CASCADE',huge:'HUGE!',mega:'MEGA!!',ultra:'ULTRA!!!',
+tapHint:'Tap clusters of 2+ same gems',waveCleared:'WAVE CLEAR!',noMoves:'SHUFFLE!'},
+ko:{title:'젬 캐스케이드',start:'▶  무한 모드 시작',best:'최고점수',score:'점수',chain:'체인',wave:'웨이브',
+gameOver:'게임 오버',finalScore:'최종 점수',bestChain:'최대 체인',waveReached:'도달 웨이브',
+newBest:'🏆 신기록!',restart:'▶  다시하기',home:'🏠  홈',
+cascade:'캐스케이드',huge:'대박!',mega:'메가!!',ultra:'울트라!!!',
+tapHint:'같은 색 보석 2개 이상 탭!',waveCleared:'웨이브 클리어!',noMoves:'셔플!'},
+ja:{title:'ジェムカスケード',start:'▶  無限モード',best:'ベスト',score:'スコア',chain:'チェーン',wave:'ウェーブ',
+gameOver:'ゲームオーバー',finalScore:'最終スコア',bestChain:'最大チェーン',waveReached:'到達ウェーブ',
+newBest:'🏆 新記録！',restart:'▶  もう一度',home:'🏠  ホーム',
+cascade:'カスケード',huge:'すごい！',mega:'メガ!!',ultra:'ウルトラ!!!',
+tapHint:'同色2個以上タップ！',waveCleared:'ウェーブクリア！',noMoves:'シャッフル！'},
+zh:{title:'宝石连锁',start:'▶  无限模式',best:'最高分',score:'分数',chain:'连锁',wave:'波次',
+gameOver:'游戏结束',finalScore:'最终分数',bestChain:'最大连锁',waveReached:'到达波次',
+newBest:'🏆 新纪录！',restart:'▶  再来一次',home:'🏠  主页',
+cascade:'连锁',huge:'厉害！',mega:'超级!!',ultra:'究极!!!',
+tapHint:'点击2个以上同色宝石！',waveCleared:'波次通过！',noMoves:'洗牌！'}
 };
-const t = T[LANG];
+const t=T[LANG];
 
-// --- Balance ---
-const B = {
-  COLS: 8, ROWS: 10,
-  NUM_COLORS: 5, MAX_COLORS: 6,
-  MIN_CLUSTER: 2,
-  BOMB_THRESHOLD: 7, RAINBOW_THRESHOLD: 10, LINE_THRESHOLD: 13,
-  FALL_SPEED: 14, POP_DURATION: 280, CASCADE_DELAY: 180,
-  WAVE_SCORE_TARGET: 5000, WAVE_NEW_ROWS: 1,
-  SCORE_BASE: 10, CASCADE_BONUS: 0.5,
-};
+/* ─── Balance ─── */
+const B={COLS:8,ROWS:10,NUM_COLORS:5,MAX_COLORS:6,MIN_CLUSTER:2,
+BOMB_TH:7,RAINBOW_TH:10,LINE_TH:13,
+FALL_SPEED:0.16,POP_MS:280,CASCADE_MS:220,
+WAVE_TARGET:5000,WAVE_ROWS:1,
+SCORE_BASE:10,CASCADE_MULT:0.5};
 
-// --- Colors ---
-const GEM_COLORS = [
-  { name: 'ruby',     fill: '#e63946', glow: '#ff6b6b',  dark: '#9b1d25',  icon: '♦' },
-  { name: 'sapphire', fill: '#457b9d', glow: '#6bb5e0',  dark: '#1d3557',  icon: '◆' },
-  { name: 'emerald',  fill: '#2a9d8f', glow: '#52e0c4',  dark: '#155e54',  icon: '◈' },
-  { name: 'topaz',    fill: '#e9c46a', glow: '#fff3b0',  dark: '#c89520',  icon: '✦' },
-  { name: 'amethyst', fill: '#9b5de5', glow: '#c89bff',  dark: '#5c2d91',  icon: '❖' },
-  { name: 'diamond',  fill: '#f0f0f0', glow: '#ffffff',  dark: '#a0a0a0',  icon: '✧' },
+/* ─── Colors ─── */
+const COLORS=[
+{name:'ruby',    f:'#e63946',g:'#ff6b6b',d:'#9b1d25'},
+{name:'sapphire',f:'#457b9d',g:'#6bb5e0',d:'#1d3557'},
+{name:'emerald', f:'#2a9d8f',g:'#52e0c4',d:'#155e54'},
+{name:'topaz',   f:'#e9c46a',g:'#fff3b0',d:'#c89520'},
+{name:'amethyst',f:'#9b5de5',g:'#c89bff',d:'#5c2d91'},
+{name:'diamond', f:'#d0d0d0',g:'#ffffff',d:'#808080'}
 ];
+const SP={NORM:0,BOMB:1,RAIN:2,LINE:3};
 
-const SPECIAL = { NORMAL: 0, BOMB: 1, RAINBOW: 2, LINE: 3 };
+/* ─── Canvas ─── */
+const cvs=document.getElementById('gc');
+const ctx=cvs.getContext('2d');
+let W,H,CELL,GX,GY,GW,GH,UI_H;
+let dpr=Math.min(window.devicePixelRatio||1,3);
 
-// --- Canvas ---
-const cvs = document.getElementById('gc');
-const ctx = cvs.getContext('2d');
-let W, H, CELL, GRID_X, GRID_Y, GRID_W, GRID_H, UI_H;
-let dpr = Math.min(window.devicePixelRatio || 1, 3);
-
-function resize() {
-  W = window.innerWidth;
-  H = window.innerHeight;
-  dpr = Math.min(window.devicePixelRatio || 1, 3);
-  cvs.width = W * dpr;
-  cvs.height = H * dpr;
-  cvs.style.width = W + 'px';
-  cvs.style.height = H + 'px';
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-  UI_H = Math.min(70, H * 0.09);
-  const availH = H - UI_H - 20;
-  const availW = W - 20;
-  CELL = Math.floor(Math.min(availW / B.COLS, availH / B.ROWS));
-  CELL = Math.min(CELL, 64);
-  GRID_W = CELL * B.COLS;
-  GRID_H = CELL * B.ROWS;
-  GRID_X = Math.floor((W - GRID_W) / 2);
-  GRID_Y = UI_H + Math.floor((H - UI_H - GRID_H) / 2);
+function resize(){
+  W=window.innerWidth;H=window.innerHeight;
+  dpr=Math.min(window.devicePixelRatio||1,3);
+  cvs.width=W*dpr;cvs.height=H*dpr;
+  cvs.style.width=W+'px';cvs.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  UI_H=Math.min(68,H*0.09);
+  const aH=H-UI_H-16,aW=W-16;
+  CELL=Math.floor(Math.min(aW/B.COLS,aH/B.ROWS));
+  CELL=Math.min(CELL,60);
+  GW=CELL*B.COLS;GH=CELL*B.ROWS;
+  GX=Math.floor((W-GW)/2);
+  GY=UI_H+Math.floor((H-UI_H-GH)/2);
 }
-resize();
-window.addEventListener('resize', resize);
+resize();window.addEventListener('resize',resize);
 
-// --- State ---
-let state = 'menu'; // menu | playing | cascading | gameOver
-let grid = [];
-let score = 0, bestScore = 0, wave = 1, cascadeCount = 0, maxChain = 0;
-let waveTarget = B.WAVE_SCORE_TARGET;
-let waveScore = 0;
-let numColors = B.NUM_COLORS;
-let particles = [];
-let floatingTexts = [];
-let cascadeTexts = [];
-let hoverCluster = [];
-let animatingGems = [];
-let pendingCascade = false;
-let cascadeTimer = 0;
-let gameOverAnim = 0;
-let waveClearAnim = 0;
-let shakeAmount = 0;
-let bgPulse = 0;
-let menuAnim = 0;
-let selectedCluster = [];
+/* ─── State ─── */
+let phase='menu';// menu|play|cascade|over
+let grid=[],score=0,best=0,wave=1,chain=0,maxChain=0;
+let waveTarget=B.WAVE_TARGET,waveScore=0,numColors=B.NUM_COLORS;
+let particles=[],popups=[],banners=[];
+let hoverCells=[];
+let shakeAmt=0,bgPulse=0,menuT=0,overT=0,waveClearT=0;
+let lastTime=0;
 
-// --- localStorage ---
-try { bestScore = parseInt(localStorage.getItem('gemCascadeBest')) || 0; } catch(e) {}
-function saveBest() {
-  try { localStorage.setItem('gemCascadeBest', bestScore); } catch(e) {}
+try{best=parseInt(localStorage.getItem('gemCascadeBest'))||0}catch(e){}
+function saveBest(){try{localStorage.setItem('gemCascadeBest',best)}catch(e){}}
+
+/* ─── Gem ─── */
+function mkGem(c,r,ci,sp){
+  return{c,r,x:GX+c*CELL+CELL/2,y:GY+r*CELL+CELL/2,
+  ty:GY+r*CELL+CELL/2,ci:ci??Math.floor(Math.random()*numColors),
+  sp:sp||SP.NORM,sc:1,al:1,fall:false,rm:false,rmT:0,
+  bounce:0,spawn:1,ph:Math.random()*6.28};
 }
 
-// --- Gem class ---
-function createGem(col, row, colorIdx, special) {
-  return {
-    col, row,
-    x: GRID_X + col * CELL + CELL / 2,
-    y: GRID_Y + row * CELL + CELL / 2,
-    targetY: GRID_Y + row * CELL + CELL / 2,
-    colorIdx: colorIdx !== undefined ? colorIdx : Math.floor(Math.random() * numColors),
-    special: special || SPECIAL.NORMAL,
-    scale: 1,
-    alpha: 1,
-    falling: false,
-    removing: false,
-    removeTimer: 0,
-    bounceV: 0,
-    spawnAnim: 1,
-    pulsePhase: Math.random() * Math.PI * 2,
-  };
-}
-
-// --- Grid ---
-function initGrid() {
-  grid = [];
-  for (let c = 0; c < B.COLS; c++) {
-    grid[c] = [];
-    for (let r = 0; r < B.ROWS; r++) {
-      const gem = createGem(c, r);
-      gem.y = GRID_Y + r * CELL + CELL / 2 - GRID_H - Math.random() * 200;
-      gem.spawnAnim = 0;
-      grid[c][r] = gem;
+/* ─── Grid init ─── */
+function initGrid(){
+  grid=[];
+  for(let c=0;c<B.COLS;c++){grid[c]=[];
+    for(let r=0;r<B.ROWS;r++){
+      const g=mkGem(c,r);
+      g.y=GY+r*CELL+CELL/2-GH-Math.random()*300;
+      g.spawn=0;grid[c][r]=g;
     }
   }
 }
-
-function getGem(c, r) {
-  if (c < 0 || c >= B.COLS || r < 0 || r >= B.ROWS) return null;
-  return grid[c][r];
+function gem(c,r){
+  if(c<0||c>=B.COLS||r<0||r>=B.ROWS)return null;
+  return grid[c]?grid[c][r]:null;
 }
 
-// --- BFS Cluster ---
-function findCluster(col, row) {
-  const gem = getGem(col, row);
-  if (!gem || gem.removing) return [];
-  const color = gem.colorIdx;
-  const visited = new Set();
-  const cluster = [];
-  const queue = [[col, row]];
-  visited.add(col + ',' + row);
+/* ─── BFS cluster ─── */
+function bfs(col,row){
+  const g0=gem(col,row);if(!g0||g0.rm)return[];
+  const ci=g0.ci,vis=new Set(),cl=[];
+  const q=[[col,row]];vis.add(col*100+row);
+  while(q.length){
+    const[c,r]=q.shift();const g=gem(c,r);
+    if(!g||g.rm||g.ci!==ci)continue;
+    cl.push(g);
+    for(const[dc,dr]of[[0,-1],[0,1],[-1,0],[1,0]]){
+      const nc=c+dc,nr=r+dr,k=nc*100+nr;
+      if(!vis.has(k)&&nc>=0&&nc<B.COLS&&nr>=0&&nr<B.ROWS){
+        vis.add(k);
+        const ng=gem(nc,nr);
+        if(ng&&!ng.rm&&ng.ci===ci)q.push([nc,nr]);
+      }
+    }
+  }
+  return cl.length>=B.MIN_CLUSTER?cl:[];
+}
 
-  while (queue.length > 0) {
-    const [c, r] = queue.shift();
-    const g = getGem(c, r);
-    if (!g || g.removing || g.colorIdx !== color) continue;
-    cluster.push(g);
-    const dirs = [[0,-1],[0,1],[-1,0],[1,0]];
-    for (const [dc, dr] of dirs) {
-      const nc = c + dc, nr = r + dr;
-      const key = nc + ',' + nr;
-      if (!visited.has(key) && nc >= 0 && nc < B.COLS && nr >= 0 && nr < B.ROWS) {
-        visited.add(key);
-        const ng = getGem(nc, nr);
-        if (ng && !ng.removing && ng.colorIdx === color) {
-          queue.push([nc, nr]);
+/* ─── Find all clusters ─── */
+function allClusters(){
+  const vis=new Set(),out=[];
+  for(let c=0;c<B.COLS;c++)for(let r=0;r<B.ROWS;r++){
+    const k=c*100+r;if(vis.has(k))continue;
+    const g=gem(c,r);if(!g||g.rm){vis.add(k);continue;}
+    const cl=bfs(c,r);
+    if(cl.length>=B.MIN_CLUSTER){cl.forEach(x=>vis.add(x.c*100+x.r));out.push(cl);}
+    else vis.add(k);
+  }
+  return out;
+}
+
+/* ─── Spawn particles ─── */
+function spawnParts(x,y,color,n,spd){
+  for(let i=0;i<n;i++){
+    const a=Math.random()*6.28,s=1+Math.random()*(spd||4);
+    particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,
+      color:Math.random()>0.4?color:'#fff',
+      life:0.4+Math.random()*0.5,sz:2+Math.random()*4});
+  }
+}
+
+/* ─── Remove cluster ─── */
+function removeCluster(cl){
+  if(!cl.length)return;
+  const n=cl.length;
+  const cb=1+chain*B.CASCADE_MULT;
+  const pts=Math.floor(n*n*B.SCORE_BASE*cb);
+  score+=pts;waveScore+=pts;
+
+  let cx=0,cy=0;cl.forEach(g=>{cx+=g.x;cy+=g.y});
+  cx/=n;cy/=n;
+
+  popups.push({x:cx,y:cy,text:'+'+pts.toLocaleString(),
+    life:1,color:COLORS[cl[0].ci].g,sz:n>6?24:18});
+
+  cl.forEach(g=>{
+    spawnParts(g.x,g.y,COLORS[g.ci].f,6,4);
+    g.rm=true;g.rmT=1;
+  });
+
+  if(n>=5)shakeAmt=Math.min(8,n*0.8);
+  if(n>=10)bgPulse=1;
+
+  // Special gem
+  let sp=null;
+  if(n>=B.LINE_TH)sp=SP.LINE;
+  else if(n>=B.RAINBOW_TH)sp=SP.RAIN;
+  else if(n>=B.BOMB_TH)sp=SP.BOMB;
+
+  if(sp!==null){
+    const mid=cl[Math.floor(cl.length/2)];
+    mid.rm=false;mid.rmT=0;mid.sp=sp;mid.sc=0.1;mid.spawn=0;
+    spawnParts(mid.x,mid.y,'#fff',15,5);
+  }
+}
+
+/* ─── Activate special ─── */
+function activateSpecial(g){
+  const affected=[];
+  if(g.sp===SP.BOMB){
+    for(let dc=-1;dc<=1;dc++)for(let dr=-1;dr<=1;dr++){
+      const t=gem(g.c+dc,g.r+dr);if(t&&!t.rm)affected.push(t);
+    }
+    shakeAmt=10;
+    popups.push({x:g.x,y:g.y,text:'💣 BOOM!',life:1.2,color:'#fff',sz:24});
+  }else if(g.sp===SP.RAIN){
+    const ci=g.ci;
+    for(let c=0;c<B.COLS;c++)for(let r=0;r<B.ROWS;r++){
+      const t=gem(c,r);if(t&&!t.rm&&t.ci===ci)affected.push(t);
+    }
+    bgPulse=1;shakeAmt=12;
+    popups.push({x:g.x,y:g.y,text:'🌈 RAINBOW!',life:1.2,color:'#fff',sz:24});
+  }else if(g.sp===SP.LINE){
+    for(let c=0;c<B.COLS;c++){const t=gem(c,g.r);if(t&&!t.rm)affected.push(t);}
+    for(let r=0;r<B.ROWS;r++){const t=gem(g.c,r);if(t&&!t.rm&&t.r!==g.r)affected.push(t);}
+    shakeAmt=15;bgPulse=1;
+    popups.push({x:g.x,y:g.y,text:'⚡ LINE!',life:1.2,color:'#fff',sz:24});
+  }
+
+  const cb=1+chain*B.CASCADE_MULT;
+  const pts=Math.floor(affected.length*affected.length*B.SCORE_BASE*cb);
+  score+=pts;waveScore+=pts;
+
+  const chainSpecials=[];
+  affected.forEach(t=>{
+    spawnParts(t.x,t.y,COLORS[t.ci].f,8,5);
+    if(t.sp!==SP.NORM&&t!==g){chainSpecials.push(t);}
+    t.rm=true;t.rmT=1;
+  });
+  // Chain specials (delayed)
+  chainSpecials.forEach((s,i)=>{
+    setTimeout(()=>{if(s.rm){s.rm=false;activateSpecial(s);s.rm=true;s.rmT=1;}},100*(i+1));
+  });
+}
+
+/* ─── Gravity ─── */
+function applyGravity(){
+  let moved=false;
+  for(let c=0;c<B.COLS;c++){
+    let wr=B.ROWS-1;
+    for(let r=B.ROWS-1;r>=0;r--){
+      const g=grid[c][r];
+      if(g&&!g.rm){
+        if(r!==wr){
+          grid[c][wr]=g;grid[c][r]=null;
+          g.r=wr;g.ty=GY+wr*CELL+CELL/2;
+          g.fall=true;moved=true;
         }
+        wr--;
       }
     }
-  }
-  return cluster.length >= B.MIN_CLUSTER ? cluster : [];
-}
-
-// --- Find all auto-cascadable clusters ---
-function findAllClusters() {
-  const visited = new Set();
-  const clusters = [];
-  for (let c = 0; c < B.COLS; c++) {
-    for (let r = 0; r < B.ROWS; r++) {
-      const key = c + ',' + r;
-      if (visited.has(key)) continue;
-      const g = getGem(c, r);
-      if (!g || g.removing) { visited.add(key); continue; }
-      const cluster = findCluster(c, r);
-      if (cluster.length >= B.MIN_CLUSTER) {
-        cluster.forEach(gem => visited.add(gem.col + ',' + gem.row));
-        clusters.push(cluster);
-      } else {
-        visited.add(key);
-      }
-    }
-  }
-  return clusters;
-}
-
-// --- Remove cluster ---
-function removeCluster(cluster) {
-  if (cluster.length === 0) return;
-
-  const clusterSize = cluster.length;
-  const cascadeBonus = 1 + cascadeCount * B.CASCADE_BONUS;
-  const pts = Math.floor(clusterSize * clusterSize * B.SCORE_BASE * cascadeBonus);
-  score += pts;
-  waveScore += pts;
-
-  // Center of cluster for effects
-  let cx = 0, cy = 0;
-  cluster.forEach(g => { cx += g.x; cy += g.y; });
-  cx /= cluster.length;
-  cy /= cluster.length;
-
-  // Score popup
-  floatingTexts.push({
-    x: cx, y: cy, text: '+' + pts.toLocaleString(),
-    life: 1, color: GEM_COLORS[cluster[0].colorIdx].glow, size: clusterSize > 6 ? 24 : 18,
-  });
-
-  // Particles
-  cluster.forEach(g => {
-    const color = GEM_COLORS[g.colorIdx];
-    for (let i = 0; i < 6; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 1 + Math.random() * 4;
-      particles.push({
-        x: g.x, y: g.y,
-        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
-        color: Math.random() > 0.5 ? color.fill : color.glow,
-        life: 0.5 + Math.random() * 0.5,
-        size: 2 + Math.random() * 4,
-      });
-    }
-    g.removing = true;
-    g.removeTimer = 1;
-  });
-
-  // Screen shake for big clusters
-  if (clusterSize >= 5) shakeAmount = Math.min(8, clusterSize * 0.8);
-  if (clusterSize >= 10) bgPulse = 1;
-
-  // Special gem generation
-  let specialGem = null;
-  if (clusterSize >= B.LINE_THRESHOLD) {
-    specialGem = SPECIAL.LINE;
-  } else if (clusterSize >= B.RAINBOW_THRESHOLD) {
-    specialGem = SPECIAL.RAINBOW;
-  } else if (clusterSize >= B.BOMB_THRESHOLD) {
-    specialGem = SPECIAL.BOMB;
-  }
-
-  if (specialGem !== null) {
-    // Place special at center of cluster
-    const centerGem = cluster[Math.floor(cluster.length / 2)];
-    centerGem.removing = false;
-    centerGem.removeTimer = 0;
-    centerGem.special = specialGem;
-    centerGem.scale = 0.1;
-    centerGem.spawnAnim = 0;
-    // Flash effect
-    for (let i = 0; i < 15; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 5;
-      particles.push({
-        x: centerGem.x, y: centerGem.y,
-        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
-        color: '#ffffff',
-        life: 0.6 + Math.random() * 0.4,
-        size: 3 + Math.random() * 5,
-      });
-    }
-  }
-}
-
-// --- Activate special gem ---
-function activateSpecial(gem) {
-  const affected = [];
-  if (gem.special === SPECIAL.BOMB) {
-    // 3×3 area
-    for (let dc = -1; dc <= 1; dc++) {
-      for (let dr = -1; dr <= 1; dr++) {
-        const g = getGem(gem.col + dc, gem.row + dr);
-        if (g && !g.removing) affected.push(g);
-      }
-    }
-    shakeAmount = 10;
-  } else if (gem.special === SPECIAL.RAINBOW) {
-    // All gems of tapped color neighbor
-    const targetColor = gem.colorIdx;
-    for (let c = 0; c < B.COLS; c++) {
-      for (let r = 0; r < B.ROWS; r++) {
-        const g = getGem(c, r);
-        if (g && !g.removing && g.colorIdx === targetColor) affected.push(g);
-      }
-    }
-    bgPulse = 1;
-    shakeAmount = 12;
-  } else if (gem.special === SPECIAL.LINE) {
-    // Full row + full col
-    for (let c = 0; c < B.COLS; c++) {
-      const g = getGem(c, gem.row);
-      if (g && !g.removing) affected.push(g);
-    }
-    for (let r = 0; r < B.ROWS; r++) {
-      const g = getGem(gem.col, r);
-      if (g && !g.removing && g.row !== gem.row) affected.push(g);
-    }
-    shakeAmount = 15;
-    bgPulse = 1;
-  }
-
-  // Score
-  const pts = affected.length * affected.length * B.SCORE_BASE * (1 + cascadeCount * B.CASCADE_BONUS);
-  score += Math.floor(pts);
-  waveScore += Math.floor(pts);
-
-  floatingTexts.push({
-    x: gem.x, y: gem.y,
-    text: gem.special === SPECIAL.BOMB ? '💣 BOOM!' : gem.special === SPECIAL.RAINBOW ? '🌈 RAINBOW!' : '⚡ LINE!',
-    life: 1.2, color: '#ffffff', size: 26,
-  });
-
-  affected.forEach(g => {
-    const color = GEM_COLORS[g.colorIdx];
-    for (let i = 0; i < 8; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 2 + Math.random() * 5;
-      particles.push({
-        x: g.x, y: g.y,
-        vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 2,
-        color: Math.random() > 0.3 ? color.fill : '#fff',
-        life: 0.4 + Math.random() * 0.5,
-        size: 3 + Math.random() * 5,
-      });
-    }
-    // Chain special+special combos
-    if (g.special !== SPECIAL.NORMAL && g !== gem) {
-      g.removing = true;
-      g.removeTimer = 1;
-      setTimeout(() => activateSpecial(g), 100);
-      return;
-    }
-    g.removing = true;
-    g.removeTimer = 1;
-  });
-}
-
-// --- Gravity ---
-function applyGravity() {
-  let moved = false;
-  for (let c = 0; c < B.COLS; c++) {
-    let writeRow = B.ROWS - 1;
-    for (let r = B.ROWS - 1; r >= 0; r--) {
-      const g = grid[c][r];
-      if (g && !g.removing) {
-        if (r !== writeRow) {
-          grid[c][writeRow] = g;
-          grid[c][r] = null;
-          g.row = writeRow;
-          g.targetY = GRID_Y + writeRow * CELL + CELL / 2;
-          g.falling = true;
-          moved = true;
-        }
-        writeRow--;
-      }
-    }
-    // Fill empty spaces with new gems from top
-    for (let r = writeRow; r >= 0; r--) {
-      const gem = createGem(c, r);
-      gem.y = GRID_Y - (writeRow - r + 1) * CELL - CELL / 2;
-      gem.targetY = GRID_Y + r * CELL + CELL / 2;
-      gem.falling = true;
-      gem.spawnAnim = 0;
-      grid[c][r] = gem;
-      moved = true;
-    }
-  }
-  // Remove null entries (shouldn't exist but safety)
-  for (let c = 0; c < B.COLS; c++) {
-    for (let r = 0; r < B.ROWS; r++) {
-      if (!grid[c][r]) {
-        grid[c][r] = createGem(c, r);
-      }
+    // Fill empty from top
+    for(let r=wr;r>=0;r--){
+      const ng=mkGem(c,r);
+      ng.y=GY-(wr-r+1)*CELL-CELL/2;
+      ng.ty=GY+r*CELL+CELL/2;
+      ng.fall=true;ng.spawn=0;
+      grid[c][r]=ng;moved=true;
     }
   }
   return moved;
 }
 
-// --- Wave system ---
-function checkWave() {
-  if (waveScore >= waveTarget) {
-    wave++;
-    waveScore = 0;
-    waveTarget = Math.floor(B.WAVE_SCORE_TARGET * (1 + (wave - 1) * 0.3));
-    if (wave >= 15) numColors = B.MAX_COLORS;
-
-    waveClearAnim = 1;
-    cascadeTexts.push({
-      text: t.waveCleared + ' ' + (wave - 1), life: 1.5, color: '#ffd700', size: 32,
-    });
-
-    // Add new rows from bottom
-    addNewRows(B.WAVE_NEW_ROWS);
-    return true;
+/* ─── Wave ─── */
+function checkWave(){
+  if(waveScore>=waveTarget){
+    wave++;waveScore=0;
+    waveTarget=Math.floor(B.WAVE_TARGET*(1+(wave-1)*0.3));
+    if(wave>=15)numColors=B.MAX_COLORS;
+    waveClearT=1.5;
+    banners.push({text:t.waveCleared+' '+(wave-1),life:1.5,color:'#ffd700',sz:30});
+    addNewRows(B.WAVE_ROWS);
   }
-  return false;
 }
 
-function addNewRows(count) {
-  // Shift all gems up
-  for (let c = 0; c < B.COLS; c++) {
-    for (let r = 0; r < B.ROWS; r++) {
-      const g = grid[c][r];
-      if (g) {
-        g.row -= count;
-        g.targetY = GRID_Y + g.row * CELL + CELL / 2;
-        g.falling = true;
-        if (g.row < 0) {
-          // Game over check
-          g.removing = true;
-        }
+function addNewRows(count){
+  // Check if top rows occupied → game over
+  for(let c=0;c<B.COLS;c++){
+    for(let r=0;r<count;r++){
+      const g=gem(c,r);
+      if(g&&!g.rm){endGame();return;}
+    }
+  }
+  // Shift everything up by count
+  for(let c=0;c<B.COLS;c++){
+    for(let r=0;r<B.ROWS-count;r++){
+      grid[c][r]=grid[c][r+count];
+      if(grid[c][r]){
+        grid[c][r].r=r;
+        grid[c][r].ty=GY+r*CELL+CELL/2;
+        grid[c][r].fall=true;
       }
     }
-    // Add new gems at bottom
-    for (let i = 0; i < count; i++) {
-      const r = B.ROWS - 1 - i;
-      const gem = createGem(c, r);
-      gem.y = GRID_Y + (B.ROWS + i) * CELL + CELL / 2;
-      gem.spawnAnim = 0;
-      grid[c][r] = gem;
+    for(let r=B.ROWS-count;r<B.ROWS;r++){
+      const ng=mkGem(c,r);
+      ng.y=GY+(B.ROWS+1)*CELL+CELL/2;
+      ng.spawn=0;grid[c][r]=ng;
     }
-  }
-
-  // Rebuild grid
-  const newGrid = [];
-  for (let c = 0; c < B.COLS; c++) {
-    newGrid[c] = [];
-    for (let r = 0; r < B.ROWS; r++) {
-      newGrid[c][r] = null;
-    }
-  }
-  for (let c = 0; c < B.COLS; c++) {
-    for (let r = 0; r < B.ROWS; r++) {
-      const g = grid[c][r];
-      if (g && !g.removing && g.row >= 0 && g.row < B.ROWS) {
-        newGrid[c][g.row] = g;
-      }
-    }
-  }
-  // Fill remaining
-  for (let c = 0; c < B.COLS; c++) {
-    for (let r = 0; r < B.ROWS; r++) {
-      if (!newGrid[c][r]) {
-        newGrid[c][r] = createGem(c, r);
-      }
-    }
-  }
-  grid = newGrid;
-
-  // Check game over
-  checkGameOver();
-}
-
-function checkGameOver() {
-  // Check if any valid move exists in top rows
-  for (let c = 0; c < B.COLS; c++) {
-    const g = grid[c][0];
-    if (g && g.row < 0) {
-      endGame();
-      return true;
-    }
-  }
-  return false;
-}
-
-function endGame() {
-  state = 'gameOver';
-  gameOverAnim = 0;
-  maxChain = Math.max(maxChain, cascadeCount);
-  if (score > bestScore) {
-    bestScore = score;
-    saveBest();
   }
 }
 
-// --- Tap handling ---
-function handleTap(px, py) {
-  if (state === 'menu') {
-    // Check start button
-    const btnW = Math.min(280, W * 0.7);
-    const btnH = 56;
-    const btnX = W / 2 - btnW / 2;
-    const btnY = H / 2 - 10;
-    if (px >= btnX && px <= btnX + btnW && py >= btnY && py <= btnY + btnH) {
-      startGame();
+function endGame(){
+  phase='over';overT=0;
+  maxChain=Math.max(maxChain,chain);
+  if(score>best){best=score;saveBest();}
+}
+
+/* ─── Shuffle ─── */
+function shuffle(){
+  const vals=[];
+  for(let c=0;c<B.COLS;c++)for(let r=0;r<B.ROWS;r++){
+    const g=gem(c,r);if(g&&!g.rm)vals.push(g.ci);
+  }
+  for(let i=vals.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [vals[i],vals[j]]=[vals[j],vals[i]];
+  }
+  let idx=0;
+  for(let c=0;c<B.COLS;c++)for(let r=0;r<B.ROWS;r++){
+    const g=gem(c,r);if(g&&!g.rm){g.ci=vals[idx++];g.spawn=0;}
+  }
+  banners.push({text:t.noMoves,life:1,color:'#88ddff',sz:26});
+  // Ensure at least one cluster exists
+  if(!allClusters().length){
+    for(let c=0;c<B.COLS-1;c+=2){
+      const g1=gem(c,B.ROWS-1),g2=gem(c+1,B.ROWS-1);
+      if(g1&&g2)g2.ci=g1.ci;
+    }
+  }
+}
+
+/* ─── Input ─── */
+function onTap(px,py){
+  if(phase==='menu'){
+    const bw=Math.min(280,W*0.7),bh=56;
+    const bx=W/2-bw/2,by=H/2-10;
+    if(px>=bx&&px<=bx+bw&&py>=by&&py<=by+bh)startGame();
+    return;
+  }
+  if(phase==='over'){
+    const bw=Math.min(280,W*0.7),bh=50,cx=W/2;
+    const ry=H/2+80,hy=H/2+140;
+    if(px>=cx-bw/2&&px<=cx+bw/2){
+      if(py>=ry&&py<=ry+bh){startGame();return;}
+      if(py>=hy&&py<=hy+bh){phase='menu';return;}
     }
     return;
   }
+  if(phase!=='play')return;
 
-  if (state === 'gameOver') {
-    const btnW = Math.min(280, W * 0.7);
-    const btnH = 50;
-    const cx = W / 2;
-    // Restart
-    const restartY = H / 2 + 80;
-    if (px >= cx - btnW / 2 && px <= cx + btnW / 2 && py >= restartY && py <= restartY + btnH) {
-      startGame();
-      return;
-    }
-    // Home
-    const homeY = H / 2 + 140;
-    if (px >= cx - btnW / 2 && px <= cx + btnW / 2 && py >= homeY && py <= homeY + btnH) {
-      state = 'menu';
-      return;
-    }
-    return;
+  const gc=Math.floor((px-GX)/CELL),gr=Math.floor((py-GY)/CELL);
+  if(gc<0||gc>=B.COLS||gr<0||gr>=B.ROWS)return;
+  const g=gem(gc,gr);if(!g||g.rm||g.fall)return;
+
+  if(g.sp!==SP.NORM){
+    chain=0;activateSpecial(g);g.sp=SP.NORM;g.rm=true;g.rmT=1;
+    phase='cascade';return;
   }
-
-  if (state !== 'playing') return;
-
-  // Grid coords
-  const gc = Math.floor((px - GRID_X) / CELL);
-  const gr = Math.floor((py - GRID_Y) / CELL);
-  if (gc < 0 || gc >= B.COLS || gr < 0 || gr >= B.ROWS) return;
-
-  const gem = getGem(gc, gr);
-  if (!gem || gem.removing || gem.falling) return;
-
-  // Special gem tap
-  if (gem.special !== SPECIAL.NORMAL) {
-    cascadeCount = 0;
-    activateSpecial(gem);
-    gem.special = SPECIAL.NORMAL;
-    gem.removing = true;
-    gem.removeTimer = 1;
-    state = 'cascading';
-    cascadeTimer = B.CASCADE_DELAY;
-    return;
-  }
-
-  const cluster = findCluster(gc, gr);
-  if (cluster.length < B.MIN_CLUSTER) return;
-
-  cascadeCount = 0;
-  removeCluster(cluster);
-  state = 'cascading';
-  cascadeTimer = B.CASCADE_DELAY;
+  const cl=bfs(gc,gr);
+  if(cl.length<B.MIN_CLUSTER)return;
+  chain=0;removeCluster(cl);phase='cascade';
 }
 
-function handleHover(px, py) {
-  if (state !== 'playing') { hoverCluster = []; return; }
-  const gc = Math.floor((px - GRID_X) / CELL);
-  const gr = Math.floor((py - GRID_Y) / CELL);
-  if (gc < 0 || gc >= B.COLS || gr < 0 || gr >= B.ROWS) { hoverCluster = []; return; }
-  const gem = getGem(gc, gr);
-  if (!gem || gem.removing) { hoverCluster = []; return; }
-  if (gem.special !== SPECIAL.NORMAL) {
-    hoverCluster = [gem];
-    return;
-  }
-  hoverCluster = findCluster(gc, gr);
+function onHover(px,py){
+  if(phase!=='play'){hoverCells=[];return;}
+  const gc=Math.floor((px-GX)/CELL),gr=Math.floor((py-GY)/CELL);
+  if(gc<0||gc>=B.COLS||gr<0||gr>=B.ROWS){hoverCells=[];return;}
+  const g=gem(gc,gr);if(!g||g.rm){hoverCells=[];return;}
+  if(g.sp!==SP.NORM){hoverCells=[g];return;}
+  hoverCells=bfs(gc,gr);
 }
 
-// --- Game start ---
-function startGame() {
-  state = 'playing';
-  score = 0;
-  wave = 1;
-  waveScore = 0;
-  waveTarget = B.WAVE_SCORE_TARGET;
-  cascadeCount = 0;
-  maxChain = 0;
-  numColors = B.NUM_COLORS;
-  particles = [];
-  floatingTexts = [];
-  cascadeTexts = [];
-  hoverCluster = [];
-  gameOverAnim = 0;
-  waveClearAnim = 0;
+cvs.addEventListener('pointerdown',e=>{e.preventDefault();
+  const r=cvs.getBoundingClientRect();onTap(e.clientX-r.left,e.clientY-r.top);});
+cvs.addEventListener('pointermove',e=>{
+  const r=cvs.getBoundingClientRect();onHover(e.clientX-r.left,e.clientY-r.top);});
+
+function startGame(){
+  phase='play';score=0;wave=1;waveScore=0;chain=0;maxChain=0;
+  waveTarget=B.WAVE_TARGET;numColors=B.NUM_COLORS;
+  particles=[];popups=[];banners=[];hoverCells=[];
+  overT=0;waveClearT=0;
   initGrid();
 }
 
-// --- Input ---
-cvs.addEventListener('pointerdown', e => {
-  e.preventDefault();
-  const rect = cvs.getBoundingClientRect();
-  handleTap(e.clientX - rect.left, e.clientY - rect.top);
-});
-cvs.addEventListener('pointermove', e => {
-  const rect = cvs.getBoundingClientRect();
-  handleHover(e.clientX - rect.left, e.clientY - rect.top);
-});
+/* ─── Easing ─── */
+function easeOutBack(x){const c1=1.70158,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2);}
+function easeOutCubic(x){return 1-Math.pow(1-x,3);}
 
-// --- Update ---
-const dt = 1 / 60;
-
-function update() {
-  menuAnim += 0.02;
-  if (shakeAmount > 0) shakeAmount *= 0.88;
-  if (shakeAmount < 0.1) shakeAmount = 0;
-  if (bgPulse > 0) bgPulse *= 0.95;
-  if (waveClearAnim > 0) waveClearAnim -= 0.02;
+/* ─── Update ─── */
+function update(dt){
+  menuT+=dt;
+  if(shakeAmt>0){shakeAmt*=Math.pow(0.88,dt*60);if(shakeAmt<0.1)shakeAmt=0;}
+  if(bgPulse>0)bgPulse*=Math.pow(0.95,dt*60);
+  if(waveClearT>0)waveClearT-=dt;
 
   // Particles
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const p = particles[i];
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.15;
-    p.life -= dt;
-    p.size *= 0.97;
-    if (p.life <= 0 || p.size < 0.3) particles.splice(i, 1);
+  for(let i=particles.length-1;i>=0;i--){
+    const p=particles[i];
+    p.x+=p.vx*dt*60;p.y+=p.vy*dt*60;p.vy+=0.15*dt*60;
+    p.life-=dt;p.sz*=Math.pow(0.97,dt*60);
+    if(p.life<=0||p.sz<0.3)particles.splice(i,1);
+  }
+  // Popups
+  for(let i=popups.length-1;i>=0;i--){
+    popups[i].y-=1.2*dt*60;popups[i].life-=dt*0.8;
+    if(popups[i].life<=0)popups.splice(i,1);
+  }
+  // Banners
+  for(let i=banners.length-1;i>=0;i--){
+    banners[i].life-=dt*0.7;
+    if(banners[i].life<=0)banners.splice(i,1);
   }
 
-  // Floating texts
-  for (let i = floatingTexts.length - 1; i >= 0; i--) {
-    const ft = floatingTexts[i];
-    ft.y -= 1.2;
-    ft.life -= dt * 0.8;
-    if (ft.life <= 0) floatingTexts.splice(i, 1);
+  if(phase==='over'){
+    overT=Math.min(1,overT+dt*2);
+    updateGems(dt);return;
   }
+  if(phase==='menu')return;
 
-  // Cascade texts
-  for (let i = cascadeTexts.length - 1; i >= 0; i--) {
-    const ct = cascadeTexts[i];
-    ct.life -= dt * 0.7;
-    if (ct.life <= 0) cascadeTexts.splice(i, 1);
-  }
+  updateGems(dt);
 
-  if (state === 'gameOver') {
-    gameOverAnim = Math.min(1, gameOverAnim + 0.03);
-    // Still animate gems falling off
-    updateGemPositions();
-    return;
-  }
-
-  if (state === 'menu') return;
-
-  // Update gem positions (falling)
-  updateGemPositions();
-
-  // Cascade logic
-  if (state === 'cascading') {
-    // Wait for remove animations to finish
-    let anyRemoving = false;
-    for (let c = 0; c < B.COLS; c++) {
-      for (let r = 0; r < B.ROWS; r++) {
-        const g = grid[c][r];
-        if (g && g.removing) {
-          g.removeTimer -= dt * 3;
-          g.scale = Math.max(0, g.removeTimer);
-          g.alpha = Math.max(0, g.removeTimer);
-          if (g.removeTimer <= 0) {
-            grid[c][r] = null;
-          } else {
-            anyRemoving = true;
-          }
-        }
-      }
+  if(phase==='cascade'){
+    // 1) Finish remove animations
+    let anyRm=false;
+    for(let c=0;c<B.COLS;c++)for(let r=0;r<B.ROWS;r++){
+      const g=grid[c][r];if(!g||!g.rm)continue;
+      g.rmT-=dt*3.5;g.sc=Math.max(0,g.rmT);g.al=Math.max(0,g.rmT);
+      if(g.rmT<=0)grid[c][r]=null;else anyRm=true;
     }
+    if(anyRm)return;
 
-    if (!anyRemoving) {
-      // Apply gravity
-      applyGravity();
-      // Wait for gems to settle
-      let anyFalling = false;
-      for (let c = 0; c < B.COLS; c++) {
-        for (let r = 0; r < B.ROWS; r++) {
-          const g = grid[c][r];
-          if (g && g.falling) { anyFalling = true; break; }
-        }
-        if (anyFalling) break;
+    // 2) Gravity
+    applyGravity();
+
+    // 3) Wait for fall
+    let anyFall=false;
+    for(let c=0;c<B.COLS&&!anyFall;c++)
+      for(let r=0;r<B.ROWS&&!anyFall;r++){
+        const g=gem(c,r);if(g&&g.fall)anyFall=true;
       }
+    if(anyFall)return;
 
-      if (!anyFalling) {
-        cascadeTimer -= 16;
-        if (cascadeTimer <= 0) {
-          // Check for new clusters
-          const newClusters = findAllClusters();
-          if (newClusters.length > 0) {
-            cascadeCount++;
-            maxChain = Math.max(maxChain, cascadeCount);
-
-            // Cascade text
-            let cascText = t.cascade + ' x' + cascadeCount;
-            let cascColor = '#ffdd00';
-            let cascSize = 24;
-            if (cascadeCount >= 8) { cascText = t.ultra + ' x' + cascadeCount; cascColor = '#ff0044'; cascSize = 36; }
-            else if (cascadeCount >= 5) { cascText = t.mega + ' x' + cascadeCount; cascColor = '#ff6600'; cascSize = 30; }
-            else if (cascadeCount >= 3) { cascText = t.huge + ' x' + cascadeCount; cascColor = '#ffaa00'; cascSize = 27; }
-
-            cascadeTexts.push({ text: cascText, life: 1.2, color: cascColor, size: cascSize });
-            bgPulse = Math.min(1, 0.3 + cascadeCount * 0.1);
-
-            newClusters.forEach(cluster => removeCluster(cluster));
-            cascadeTimer = B.CASCADE_DELAY;
-          } else {
-            // No more cascades — check wave
-            cascadeCount = 0;
-            state = 'playing';
-            checkWave();
-
-            // Check if any moves available
-            const moves = findAllClusters();
-            if (moves.length === 0) {
-              // Shuffle
-              shuffleBoard();
-            }
-          }
-        }
-      }
+    // 4) Check new clusters (cascade)
+    const cls=allClusters();
+    if(cls.length){
+      chain++;maxChain=Math.max(maxChain,chain);
+      let txt=t.cascade+' x'+chain,col='#ffdd00',sz=24;
+      if(chain>=8){txt=t.ultra+' x'+chain;col='#ff0044';sz=36;}
+      else if(chain>=5){txt=t.mega+' x'+chain;col='#ff6600';sz=30;}
+      else if(chain>=3){txt=t.huge+' x'+chain;col='#ffaa00';sz=27;}
+      banners.push({text:txt,life:1.2,color:col,sz});
+      bgPulse=Math.min(1,0.3+chain*0.1);
+      cls.forEach(cl=>removeCluster(cl));
+    }else{
+      chain=0;phase='play';
+      checkWave();
+      if(!allClusters().length)shuffle();
     }
   }
 }
 
-function updateGemPositions() {
-  for (let c = 0; c < B.COLS; c++) {
-    for (let r = 0; r < B.ROWS; r++) {
-      const g = grid[c][r];
-      if (!g || g.removing) continue;
-      
-      g.x = GRID_X + g.col * CELL + CELL / 2;
-      g.targetY = GRID_Y + g.row * CELL + CELL / 2;
-
-      if (g.falling) {
-        const diff = g.targetY - g.y;
-        if (Math.abs(diff) < 1) {
-          g.y = g.targetY;
-          g.falling = false;
-          g.bounceV = -3;
-        } else {
-          g.y += diff * 0.18;
-          if (g.y > g.targetY) g.y = g.targetY;
-        }
-      } else {
-        // Bounce
-        if (Math.abs(g.bounceV) > 0.1) {
-          g.bounceV *= 0.85;
-        } else {
-          g.bounceV = 0;
-        }
-      }
-
-      // Spawn animation
-      if (g.spawnAnim < 1) {
-        g.spawnAnim = Math.min(1, g.spawnAnim + 0.06);
-        g.scale = easeOutBack(g.spawnAnim);
-      } else {
-        g.scale = 1;
-      }
-      g.alpha = 1;
+function updateGems(dt){
+  for(let c=0;c<B.COLS;c++)for(let r=0;r<B.ROWS;r++){
+    const g=grid[c][r];if(!g||g.rm)continue;
+    g.x=GX+g.c*CELL+CELL/2;
+    g.ty=GY+g.r*CELL+CELL/2;
+    if(g.fall){
+      const diff=g.ty-g.y;
+      if(Math.abs(diff)<1){g.y=g.ty;g.fall=false;g.bounce=-2.5;}
+      else g.y+=diff*B.FALL_SPEED*dt*60;
+    }else{
+      if(Math.abs(g.bounce)>0.1)g.bounce*=Math.pow(0.85,dt*60);else g.bounce=0;
     }
+    if(g.spawn<1){g.spawn=Math.min(1,g.spawn+dt*3.5);g.sc=easeOutBack(g.spawn);}
+    else g.sc=1;
+    g.al=1;
   }
 }
 
-function shuffleBoard() {
-  // Collect all gems
-  const gems = [];
-  for (let c = 0; c < B.COLS; c++) {
-    for (let r = 0; r < B.ROWS; r++) {
-      if (grid[c][r]) gems.push(grid[c][r].colorIdx);
-    }
-  }
-  // Fisher-Yates
-  for (let i = gems.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [gems[i], gems[j]] = [gems[j], gems[i]];
-  }
-  let idx = 0;
-  for (let c = 0; c < B.COLS; c++) {
-    for (let r = 0; r < B.ROWS; r++) {
-      if (grid[c][r]) {
-        grid[c][r].colorIdx = gems[idx++];
-        grid[c][r].spawnAnim = 0;
-      }
-    }
-  }
-  // Check again
-  if (findAllClusters().length === 0) {
-    // Force some clusters
-    for (let c = 0; c < B.COLS - 1; c++) {
-      for (let r = 0; r < B.ROWS; r += 3) {
-        if (grid[c][r] && grid[c + 1][r]) {
-          grid[c + 1][r].colorIdx = grid[c][r].colorIdx;
-        }
-      }
-    }
-  }
-}
+/* ─── Draw ─── */
+const stars=Array.from({length:60},()=>({
+  x:Math.random(),y:Math.random(),sz:0.5+Math.random()*1.5,
+  sp:0.0001+Math.random()*0.0003,ph:Math.random()*6.28}));
 
-function easeOutBack(t) {
-  const c1 = 1.70158;
-  const c3 = c1 + 1;
-  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
-}
+function draw(now){
+  const bgR=10+bgPulse*30|0,bgG=10+bgPulse*5|0,bgB=26+bgPulse*10|0;
+  ctx.fillStyle=`rgb(${bgR},${bgG},${bgB})`;
+  ctx.fillRect(0,0,W,H);
 
-function easeOutCubic(t) {
-  return 1 - Math.pow(1 - t, 3);
-}
+  // Stars
+  const st=now*0.001;
+  stars.forEach(s=>{
+    const a=0.2+0.3*Math.sin(st*2+s.ph);
+    ctx.fillStyle=`rgba(255,255,255,${a})`;
+    ctx.fillRect(s.x*W,(s.y+st*s.sp)%1*H,s.sz,s.sz);
+  });
 
-// --- Draw ---
-function draw() {
-  // Background
-  const bgR = Math.floor(10 + bgPulse * 30);
-  const bgG = Math.floor(10 + bgPulse * 5);
-  const bgB = Math.floor(26 + bgPulse * 10);
-  ctx.fillStyle = `rgb(${bgR},${bgG},${bgB})`;
-  ctx.fillRect(0, 0, W, H);
+  if(phase==='menu'){drawMenu(now);return;}
 
-  // Background stars
-  drawStars();
-
-  if (state === 'menu') {
-    drawMenu();
-    return;
-  }
-
-  // Apply shake
   ctx.save();
-  if (shakeAmount > 0) {
-    ctx.translate(
-      (Math.random() - 0.5) * shakeAmount * 2,
-      (Math.random() - 0.5) * shakeAmount * 2
-    );
-  }
+  if(shakeAmt>0)ctx.translate((Math.random()-.5)*shakeAmt*2,(Math.random()-.5)*shakeAmt*2);
 
-  // UI
-  drawUI();
-
-  // Grid background
-  drawGridBG();
-
-  // Gems
-  drawGems();
-
-  // Hover highlight
-  drawHover();
-
-  // Particles
-  drawParticles();
-
-  // Floating texts
-  drawFloatingTexts();
-
+  drawUI();drawGridBG();drawGems(now);drawHover(now);drawParts();drawPopups();
   ctx.restore();
+  drawBanners();
+  if(waveClearT>0){ctx.fillStyle=`rgba(255,215,0,${waveClearT*0.07})`;ctx.fillRect(0,0,W,H);}
+  if(phase==='over')drawOver();
+}
 
-  // Cascade texts (not shaken)
-  drawCascadeTexts();
+function drawMenu(now){
+  const ts=Math.min(48,W*0.1);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.shadowColor='#6bb5e0';ctx.shadowBlur=20;
+  ctx.fillStyle='#fff';
+  ctx.font=`bold ${ts}px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText('💎 '+t.title,W/2,H*0.25);
+  ctx.shadowBlur=0;
 
-  // Wave clear
-  if (waveClearAnim > 0) {
-    drawWaveClear();
+  ctx.font=`14px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillStyle=`rgba(255,255,255,${0.5+0.2*Math.sin(menuT*3)})`;
+  ctx.fillText(t.tapHint,W/2,H*0.34);
+
+  // Orbiting gems
+  const time=now*0.001;
+  const sz=Math.min(32,W*0.07);
+  for(let i=0;i<6;i++){
+    const a=time*0.3+i*Math.PI/3;
+    const rad=Math.min(90,W*0.18);
+    drawGemIcon(W/2+Math.cos(a)*rad,H*0.25+Math.sin(a)*rad*0.5,
+      sz*0.5,COLORS[i],SP.NORM,0.5+0.3*Math.sin(time+i));
   }
-
-  // Game over overlay
-  if (state === 'gameOver') {
-    drawGameOver();
-  }
-}
-
-// --- Background stars ---
-const stars = [];
-for (let i = 0; i < 60; i++) {
-  stars.push({
-    x: Math.random(), y: Math.random(),
-    size: 0.5 + Math.random() * 1.5,
-    speed: 0.0001 + Math.random() * 0.0003,
-    phase: Math.random() * Math.PI * 2,
-  });
-}
-
-function drawStars() {
-  const time = Date.now() * 0.001;
-  stars.forEach(s => {
-    const alpha = 0.2 + 0.3 * Math.sin(time * 2 + s.phase);
-    ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-    ctx.fillRect(s.x * W, (s.y + time * s.speed) % 1 * H, s.size, s.size);
-  });
-}
-
-// --- Draw menu ---
-function drawMenu() {
-  // Title
-  const titleSize = Math.min(48, W * 0.1);
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  
-  // Title glow
-  const glowAlpha = 0.4 + 0.2 * Math.sin(menuAnim * 2);
-  ctx.shadowColor = '#6bb5e0';
-  ctx.shadowBlur = 20;
-  ctx.fillStyle = '#ffffff';
-  ctx.font = `bold ${titleSize}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText('💎 ' + t.title, W / 2, H * 0.28);
-  ctx.shadowBlur = 0;
-
-  // Subtitle
-  ctx.font = `${14}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillStyle = `rgba(255,255,255,${0.5 + 0.2 * Math.sin(menuAnim * 3)})`;
-  ctx.fillText(t.tapToStart, W / 2, H * 0.36);
-
-  // Animated gems in background
-  drawMenuGems();
 
   // Start button
-  const btnW = Math.min(280, W * 0.7);
-  const btnH = 56;
-  const btnX = W / 2 - btnW / 2;
-  const btnY = H / 2 - 10;
+  const bw=Math.min(280,W*0.7),bh=56;
+  const bx=W/2-bw/2,by=H/2-10;
+  const gr=ctx.createLinearGradient(bx,by,bx+bw,by+bh);
+  gr.addColorStop(0,'#e63946');gr.addColorStop(1,'#9b5de5');
+  ctx.fillStyle=gr;rr(ctx,bx,by,bw,bh,12);ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.font=`bold 20px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText(t.start,W/2,by+bh/2);
 
-  // Button glow
-  const grad = ctx.createLinearGradient(btnX, btnY, btnX + btnW, btnY + btnH);
-  grad.addColorStop(0, '#e63946');
-  grad.addColorStop(1, '#9b5de5');
-  ctx.fillStyle = grad;
-  roundRect(ctx, btnX, btnY, btnW, btnH, 12);
-  ctx.fill();
-
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${20}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(t.start, W / 2, btnY + btnH / 2);
-
-  // Best score
-  if (bestScore > 0) {
-    ctx.fillStyle = '#ffd700';
-    ctx.font = `bold ${22}px 'Segoe UI', system-ui, sans-serif`;
-    ctx.fillText('🏆 ' + t.best + ': ' + bestScore.toLocaleString(), W / 2, H * 0.72);
+  if(best>0){
+    ctx.fillStyle='#ffd700';
+    ctx.font=`bold 22px 'Segoe UI',system-ui,sans-serif`;
+    ctx.fillText('🏆 '+t.best+': '+best.toLocaleString(),W/2,H*0.72);
   }
 
-  // Version
-  ctx.fillStyle = 'rgba(255,255,255,0.2)';
-  ctx.font = `${11}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText('v1.0 — East Sea Games', W / 2, H - 20);
+  ctx.fillStyle='rgba(255,255,255,0.2)';
+  ctx.font=`11px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText('v1.0 — East Sea Games',W/2,H-20);
 }
 
-function drawMenuGems() {
-  const time = Date.now() * 0.001;
-  const size = Math.min(36, W * 0.08);
-  for (let i = 0; i < 6; i++) {
-    const angle = time * 0.3 + i * Math.PI / 3;
-    const radius = Math.min(100, W * 0.2);
-    const x = W / 2 + Math.cos(angle) * radius;
-    const y = H * 0.28 + Math.sin(angle) * radius * 0.5;
-    const color = GEM_COLORS[i];
-    drawGemShape(x, y, size * 0.6, color, SPECIAL.NORMAL, 0.5 + 0.3 * Math.sin(time + i), 1);
-  }
-}
+function drawUI(){
+  const gr=ctx.createLinearGradient(0,0,0,UI_H);
+  gr.addColorStop(0,'rgba(15,15,35,0.95)');gr.addColorStop(1,'rgba(15,15,35,0.7)');
+  ctx.fillStyle=gr;ctx.fillRect(0,0,W,UI_H);
+  ctx.strokeStyle='rgba(255,255,255,0.1)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(0,UI_H);ctx.lineTo(W,UI_H);ctx.stroke();
 
-// --- Draw UI ---
-function drawUI() {
-  // Top bar background
-  const grad = ctx.createLinearGradient(0, 0, 0, UI_H);
-  grad.addColorStop(0, 'rgba(15,15,35,0.95)');
-  grad.addColorStop(1, 'rgba(15,15,35,0.7)');
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, W, UI_H);
-
-  // Bottom line
-  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(0, UI_H);
-  ctx.lineTo(W, UI_H);
-  ctx.stroke();
-
-  const y = UI_H / 2;
-  const lx = 10;
-  const rx = W - 10;
+  const y=UI_H/2,lx=12,rx=W-12;
 
   // Score
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  ctx.font = `${11}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(t.score, lx, y - 12);
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${20}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(score.toLocaleString(), lx, y + 10);
+  ctx.textAlign='left';ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.font=`11px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText(t.score,lx,y-12);
+  ctx.fillStyle='#fff';
+  ctx.font=`bold 18px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText(score.toLocaleString(),lx,y+10);
 
-  // Wave (center)
-  ctx.textAlign = 'center';
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  ctx.font = `${11}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(t.wave, W / 2, y - 12);
-  ctx.fillStyle = '#ffd700';
-  ctx.font = `bold ${20}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(wave.toString(), W / 2, y + 10);
+  // Wave center
+  ctx.textAlign='center';
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.font=`11px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText(t.wave,W/2,y-12);
+  ctx.fillStyle='#ffd700';
+  ctx.font=`bold 18px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText(wave.toString(),W/2,y+6);
 
-  // Wave progress bar
-  const barW = 80;
-  const barH = 4;
-  const barX = W / 2 - barW / 2;
-  const barY = y + 24;
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
-  roundRect(ctx, barX, barY, barW, barH, 2);
-  ctx.fill();
-  const prog = Math.min(1, waveScore / waveTarget);
-  const progGrad = ctx.createLinearGradient(barX, 0, barX + barW * prog, 0);
-  progGrad.addColorStop(0, '#e63946');
-  progGrad.addColorStop(1, '#ffd700');
-  ctx.fillStyle = progGrad;
-  roundRect(ctx, barX, barY, barW * prog, barH, 2);
-  ctx.fill();
-
-  // Chain (right)
-  ctx.textAlign = 'right';
-  ctx.fillStyle = 'rgba(255,255,255,0.6)';
-  ctx.font = `${11}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(t.chain, rx, y - 12);
-  const chainColor = cascadeCount >= 5 ? '#ff4444' : cascadeCount >= 3 ? '#ffaa00' : '#fff';
-  ctx.fillStyle = chainColor;
-  ctx.font = `bold ${20}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText('x' + cascadeCount, rx, y + 10);
-}
-
-// --- Draw grid background ---
-function drawGridBG() {
-  // Grid border glow
-  ctx.strokeStyle = 'rgba(100,150,255,0.15)';
-  ctx.lineWidth = 2;
-  roundRect(ctx, GRID_X - 3, GRID_Y - 3, GRID_W + 6, GRID_H + 6, 8);
-  ctx.stroke();
-
-  // Cell backgrounds
-  for (let c = 0; c < B.COLS; c++) {
-    for (let r = 0; r < B.ROWS; r++) {
-      const x = GRID_X + c * CELL;
-      const y = GRID_Y + r * CELL;
-      ctx.fillStyle = (c + r) % 2 === 0 ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.05)';
-      ctx.fillRect(x, y, CELL, CELL);
-    }
+  // Wave progress
+  const bw=70,bh=4,bx=W/2-bw/2,by2=y+20;
+  ctx.fillStyle='rgba(255,255,255,0.15)';rr(ctx,bx,by2,bw,bh,2);ctx.fill();
+  const pr=Math.min(1,waveScore/waveTarget);
+  if(pr>0){
+    const pg=ctx.createLinearGradient(bx,0,bx+bw*pr,0);
+    pg.addColorStop(0,'#e63946');pg.addColorStop(1,'#ffd700');
+    ctx.fillStyle=pg;rr(ctx,bx,by2,bw*pr,bh,2);ctx.fill();
   }
 
-  // Danger zone indicator (top row)
-  const dangerAlpha = 0.1 + 0.05 * Math.sin(Date.now() * 0.003);
-  ctx.fillStyle = `rgba(255,0,0,${dangerAlpha})`;
-  ctx.fillRect(GRID_X, GRID_Y, GRID_W, CELL);
+  // Chain right
+  ctx.textAlign='right';
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.font=`11px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText(t.chain,rx,y-12);
+  ctx.fillStyle=chain>=5?'#ff4444':chain>=3?'#ffaa00':'#fff';
+  ctx.font=`bold 18px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText('x'+chain,rx,y+10);
 }
 
-// --- Draw gems ---
-function drawGems() {
-  for (let c = 0; c < B.COLS; c++) {
-    for (let r = 0; r < B.ROWS; r++) {
-      const g = grid[c][r];
-      if (!g || (g.removing && g.removeTimer <= 0)) continue;
+function drawGridBG(){
+  ctx.strokeStyle='rgba(100,150,255,0.12)';ctx.lineWidth=2;
+  rr(ctx,GX-3,GY-3,GW+6,GH+6,8);ctx.stroke();
+  for(let c=0;c<B.COLS;c++)for(let r=0;r<B.ROWS;r++){
+    ctx.fillStyle=(c+r)%2===0?'rgba(255,255,255,0.025)':'rgba(0,0,0,0.04)';
+    ctx.fillRect(GX+c*CELL,GY+r*CELL,CELL,CELL);
+  }
+  // Danger zone
+  const da=0.08+0.04*Math.sin(Date.now()*0.003);
+  ctx.fillStyle=`rgba(255,0,0,${da})`;
+  ctx.fillRect(GX,GY,GW,CELL);
+}
 
-      const color = GEM_COLORS[g.colorIdx];
-      const scale = g.scale * (1 + g.bounceV * 0.03);
-      const alpha = g.alpha;
-      const size = (CELL - 6) * 0.5 * scale;
-
-      drawGemShape(g.x, g.y + g.bounceV, size, color, g.special, alpha, scale);
-    }
+function drawGems(now){
+  const time=(now||0)*0.002;
+  for(let c=0;c<B.COLS;c++)for(let r=0;r<B.ROWS;r++){
+    const g=grid[c][r];if(!g||(g.rm&&g.rmT<=0))continue;
+    const col=COLORS[g.ci];
+    const sc=g.sc*(1+g.bounce*0.03);
+    const sz=(CELL-6)*0.5*sc;
+    drawGemIcon(g.x,g.y+g.bounce,sz,col,g.sp,g.al,time);
   }
 }
 
-function drawGemShape(x, y, size, color, special, alpha, scale) {
-  ctx.save();
-  ctx.globalAlpha = alpha;
-  ctx.translate(x, y);
-  ctx.scale(scale, scale);
+function drawGemIcon(x,y,size,col,sp,al,time){
+  ctx.save();ctx.globalAlpha=al;ctx.translate(x,y);
+  time=time||Date.now()*0.002;
 
-  const time = Date.now() * 0.002;
-
-  if (special === SPECIAL.BOMB) {
-    // Bomb: dark circle with timer icon
-    const grad = ctx.createRadialGradient(0, -size * 0.2, 0, 0, 0, size);
-    grad.addColorStop(0, '#ff6644');
-    grad.addColorStop(0.5, '#cc2200');
-    grad.addColorStop(1, '#660000');
-    ctx.fillStyle = grad;
+  if(sp===SP.BOMB){
+    const g=ctx.createRadialGradient(0,-size*0.2,0,0,0,size);
+    g.addColorStop(0,'#ff6644');g.addColorStop(0.5,'#cc2200');g.addColorStop(1,'#660000');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,size,0,6.28);ctx.fill();
+    ctx.fillStyle='#ffff00';ctx.beginPath();
+    ctx.arc(size*0.5,-size*0.5,2.5+Math.sin(time*5)*2,0,6.28);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font=`bold ${size*0.9}px sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('💣',0,1);
+  }else if(sp===SP.RAIN){
+    const h=(time*50)%360;
+    const g=ctx.createRadialGradient(0,-size*0.3,size*0.1,0,0,size);
+    g.addColorStop(0,`hsl(${h},100%,80%)`);g.addColorStop(0.5,`hsl(${(h+120)%360},100%,60%)`);
+    g.addColorStop(1,`hsl(${(h+240)%360},100%,40%)`);
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,size,0,6.28);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font=`bold ${size*0.8}px sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('🌈',0,1);
+  }else if(sp===SP.LINE){
+    const g=ctx.createRadialGradient(0,-size*0.2,0,0,0,size);
+    g.addColorStop(0,'#fff8a0');g.addColorStop(0.5,'#ffcc00');g.addColorStop(1,'#ff8800');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,size,0,6.28);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font=`bold ${size*0.9}px sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('⚡',0,1);
+  }else{
+    // Normal gem — faceted diamond
+    ctx.shadowColor=col.g;ctx.shadowBlur=6;
+    const gr=ctx.createRadialGradient(-size*0.25,-size*0.25,0,0,0,size);
+    gr.addColorStop(0,col.g);gr.addColorStop(0.6,col.f);gr.addColorStop(1,col.d);
+    ctx.fillStyle=gr;
     ctx.beginPath();
-    ctx.arc(0, 0, size, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Fuse spark
-    ctx.fillStyle = '#ffff00';
-    ctx.beginPath();
-    ctx.arc(size * 0.5, -size * 0.5, 3 + Math.sin(time * 5) * 2, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Text
-    ctx.fillStyle = '#fff';
-    ctx.font = `bold ${size}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('💣', 0, 0);
-  } else if (special === SPECIAL.RAINBOW) {
-    // Rainbow: prismatic
-    const hue = (time * 50) % 360;
-    const grad = ctx.createRadialGradient(0, -size * 0.3, size * 0.1, 0, 0, size);
-    grad.addColorStop(0, `hsl(${hue},100%,80%)`);
-    grad.addColorStop(0.5, `hsl(${(hue + 120) % 360},100%,60%)`);
-    grad.addColorStop(1, `hsl(${(hue + 240) % 360},100%,40%)`);
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(0, 0, size, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Sparkle
-    ctx.fillStyle = '#fff';
-    ctx.font = `bold ${size * 0.8}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🌈', 0, 1);
-  } else if (special === SPECIAL.LINE) {
-    // Line: bolt shape
-    const grad = ctx.createRadialGradient(0, -size * 0.2, 0, 0, 0, size);
-    grad.addColorStop(0, '#fff8a0');
-    grad.addColorStop(0.5, '#ffcc00');
-    grad.addColorStop(1, '#ff8800');
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(0, 0, size, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.fillStyle = '#fff';
-    ctx.font = `bold ${size}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('⚡', 0, 1);
-  } else {
-    // Normal gem — beautiful faceted look
-    // Outer glow
-    ctx.shadowColor = color.glow;
-    ctx.shadowBlur = 8;
-
-    // Main body
-    const grad = ctx.createRadialGradient(-size * 0.25, -size * 0.25, 0, 0, 0, size);
-    grad.addColorStop(0, color.glow);
-    grad.addColorStop(0.6, color.fill);
-    grad.addColorStop(1, color.dark);
-    ctx.fillStyle = grad;
-
-    // Diamond shape
-    ctx.beginPath();
-    ctx.moveTo(0, -size);
-    ctx.lineTo(size * 0.85, -size * 0.15);
-    ctx.lineTo(size * 0.55, size * 0.8);
-    ctx.lineTo(0, size);
-    ctx.lineTo(-size * 0.55, size * 0.8);
-    ctx.lineTo(-size * 0.85, -size * 0.15);
-    ctx.closePath();
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    ctx.moveTo(0,-size);
+    ctx.lineTo(size*0.85,-size*0.15);
+    ctx.lineTo(size*0.55,size*0.8);
+    ctx.lineTo(0,size);
+    ctx.lineTo(-size*0.55,size*0.8);
+    ctx.lineTo(-size*0.85,-size*0.15);
+    ctx.closePath();ctx.fill();
+    ctx.shadowBlur=0;
 
     // Inner facet
-    ctx.fillStyle = `rgba(255,255,255,0.15)`;
+    ctx.fillStyle='rgba(255,255,255,0.15)';
     ctx.beginPath();
-    ctx.moveTo(0, -size * 0.7);
-    ctx.lineTo(size * 0.5, -size * 0.1);
-    ctx.lineTo(0, size * 0.3);
-    ctx.lineTo(-size * 0.5, -size * 0.1);
-    ctx.closePath();
-    ctx.fill();
+    ctx.moveTo(0,-size*0.7);ctx.lineTo(size*0.5,-size*0.1);
+    ctx.lineTo(0,size*0.3);ctx.lineTo(-size*0.5,-size*0.1);
+    ctx.closePath();ctx.fill();
 
     // Shine
-    ctx.fillStyle = `rgba(255,255,255,${0.35 + 0.1 * Math.sin(time + x + y)})`;
+    ctx.fillStyle=`rgba(255,255,255,${0.35+0.1*Math.sin(time+x+y)})`;
     ctx.beginPath();
-    ctx.ellipse(-size * 0.2, -size * 0.35, size * 0.2, size * 0.12, -0.4, 0, Math.PI * 2);
+    ctx.ellipse(-size*0.2,-size*0.35,size*0.2,size*0.12,-0.4,0,6.28);
     ctx.fill();
 
     // Border
-    ctx.strokeStyle = `rgba(255,255,255,0.25)`;
-    ctx.lineWidth = 1;
+    ctx.strokeStyle='rgba(255,255,255,0.2)';ctx.lineWidth=0.8;
     ctx.beginPath();
-    ctx.moveTo(0, -size);
-    ctx.lineTo(size * 0.85, -size * 0.15);
-    ctx.lineTo(size * 0.55, size * 0.8);
-    ctx.lineTo(0, size);
-    ctx.lineTo(-size * 0.55, size * 0.8);
-    ctx.lineTo(-size * 0.85, -size * 0.15);
-    ctx.closePath();
-    ctx.stroke();
+    ctx.moveTo(0,-size);
+    ctx.lineTo(size*0.85,-size*0.15);
+    ctx.lineTo(size*0.55,size*0.8);
+    ctx.lineTo(0,size);
+    ctx.lineTo(-size*0.55,size*0.8);
+    ctx.lineTo(-size*0.85,-size*0.15);
+    ctx.closePath();ctx.stroke();
   }
-
   ctx.restore();
 }
 
-// --- Draw hover ---
-function drawHover() {
-  if (hoverCluster.length === 0) return;
-  const time = Date.now() * 0.004;
-  const pulse = 0.7 + 0.3 * Math.sin(time);
-
-  hoverCluster.forEach(g => {
-    if (g.removing) return;
-    ctx.strokeStyle = `rgba(255,255,255,${pulse * 0.6})`;
-    ctx.lineWidth = 2;
-    const x = GRID_X + g.col * CELL + 2;
-    const y = GRID_Y + g.row * CELL + 2;
-    roundRect(ctx, x, y, CELL - 4, CELL - 4, 6);
-    ctx.stroke();
-
-    // Glow
-    ctx.fillStyle = `rgba(255,255,255,${pulse * 0.08})`;
-    roundRect(ctx, x, y, CELL - 4, CELL - 4, 6);
-    ctx.fill();
+function drawHover(now){
+  if(!hoverCells.length)return;
+  const pulse=0.7+0.3*Math.sin((now||0)*0.004);
+  hoverCells.forEach(g=>{
+    if(g.rm)return;
+    ctx.strokeStyle=`rgba(255,255,255,${pulse*0.6})`;ctx.lineWidth=2;
+    const x=GX+g.c*CELL+2,y=GY+g.r*CELL+2;
+    rr(ctx,x,y,CELL-4,CELL-4,6);ctx.stroke();
+    ctx.fillStyle=`rgba(255,255,255,${pulse*0.08})`;
+    rr(ctx,x,y,CELL-4,CELL-4,6);ctx.fill();
   });
-
-  // Cluster size indicator
-  if (hoverCluster.length >= B.MIN_CLUSTER) {
-    const cx = hoverCluster.reduce((s, g) => s + g.x, 0) / hoverCluster.length;
-    const cy = hoverCluster.reduce((s, g) => s + g.y, 0) / hoverCluster.length;
-    ctx.fillStyle = `rgba(255,255,255,${pulse})`;
-    ctx.font = `bold 16px 'Segoe UI', system-ui, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(hoverCluster.length.toString(), cx, cy - CELL * 0.6);
+  if(hoverCells.length>=B.MIN_CLUSTER){
+    const cx=hoverCells.reduce((s,g)=>s+GX+g.c*CELL+CELL/2,0)/hoverCells.length;
+    const cy=hoverCells.reduce((s,g)=>s+GY+g.r*CELL+CELL/2,0)/hoverCells.length;
+    ctx.fillStyle=`rgba(255,255,255,${pulse})`;
+    ctx.font=`bold 15px 'Segoe UI',system-ui,sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(hoverCells.length.toString(),cx,cy-CELL*0.6);
   }
 }
 
-// --- Draw particles ---
-function drawParticles() {
-  particles.forEach(p => {
-    ctx.globalAlpha = Math.max(0, p.life);
-    ctx.fillStyle = p.color;
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-    ctx.fill();
-  });
-  ctx.globalAlpha = 1;
+function drawParts(){
+  particles.forEach(p=>{
+    ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,p.sz,0,6.28);ctx.fill();
+  });ctx.globalAlpha=1;
 }
-
-// --- Draw floating texts ---
-function drawFloatingTexts() {
-  floatingTexts.forEach(ft => {
-    ctx.globalAlpha = Math.max(0, ft.life);
-    ctx.fillStyle = ft.color;
-    ctx.font = `bold ${ft.size}px 'Segoe UI', system-ui, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.5)';
-    ctx.shadowBlur = 4;
-    ctx.fillText(ft.text, ft.x, ft.y);
-    ctx.shadowBlur = 0;
-  });
-  ctx.globalAlpha = 1;
+function drawPopups(){
+  popups.forEach(f=>{
+    ctx.globalAlpha=Math.max(0,f.life);ctx.fillStyle=f.color;
+    ctx.font=`bold ${f.sz}px 'Segoe UI',system-ui,sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor='rgba(0,0,0,0.5)';ctx.shadowBlur=4;
+    ctx.fillText(f.text,f.x,f.y);ctx.shadowBlur=0;
+  });ctx.globalAlpha=1;
 }
-
-// --- Draw cascade texts ---
-function drawCascadeTexts() {
-  cascadeTexts.forEach(ct => {
-    const alpha = Math.min(1, ct.life * 2);
-    const scale = 1 + (1 - Math.min(1, ct.life * 3)) * 0.3;
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    ctx.translate(W / 2, GRID_Y + GRID_H / 2);
-    ctx.scale(scale, scale);
-    ctx.fillStyle = ct.color;
-    ctx.font = `bold ${ct.size}px 'Segoe UI', system-ui, sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.shadowColor = 'rgba(0,0,0,0.7)';
-    ctx.shadowBlur = 8;
-    ctx.fillText(ct.text, 0, 0);
-    ctx.shadowBlur = 0;
+function drawBanners(){
+  banners.forEach(b=>{
+    const a=Math.min(1,b.life*2);
+    const sc=1+(1-Math.min(1,b.life*3))*0.3;
+    ctx.save();ctx.globalAlpha=a;
+    ctx.translate(W/2,GY+GH/2);ctx.scale(sc,sc);
+    ctx.fillStyle=b.color;
+    ctx.font=`bold ${b.sz}px 'Segoe UI',system-ui,sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor='rgba(0,0,0,0.7)';ctx.shadowBlur=8;
+    ctx.fillText(b.text,0,0);ctx.shadowBlur=0;
     ctx.restore();
   });
 }
 
-// --- Draw wave clear ---
-function drawWaveClear() {
-  const alpha = waveClearAnim;
-  ctx.fillStyle = `rgba(255,215,0,${alpha * 0.1})`;
-  ctx.fillRect(0, 0, W, H);
-}
+function drawOver(){
+  const a=easeOutCubic(overT);
+  ctx.fillStyle=`rgba(0,0,0,${a*0.75})`;ctx.fillRect(0,0,W,H);
+  ctx.save();ctx.translate(0,(1-a)*50);
+  const cy=H/2-60,isNew=score>=best&&score>0;
 
-// --- Draw game over ---
-function drawGameOver() {
-  const a = easeOutCubic(gameOverAnim);
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillStyle='#fff';
+  ctx.font=`bold 30px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText('💎 '+t.gameOver+' 💎',W/2,cy-60);
 
-  // Overlay
-  ctx.fillStyle = `rgba(0,0,0,${a * 0.75})`;
-  ctx.fillRect(0, 0, W, H);
+  if(isNew){ctx.fillStyle='#ffd700';
+    ctx.font=`bold 20px 'Segoe UI',system-ui,sans-serif`;
+    ctx.fillText(t.newBest,W/2,cy-28);}
 
-  ctx.save();
-  ctx.translate(0, (1 - a) * 50);
-
-  const cy = H / 2 - 60;
-  const isNew = score >= bestScore && score > 0;
-
-  // Title
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${32}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText('💎 ' + t.gameOver + ' 💎', W / 2, cy - 60);
-
-  if (isNew) {
-    ctx.fillStyle = '#ffd700';
-    ctx.font = `bold ${20}px 'Segoe UI', system-ui, sans-serif`;
-    ctx.fillText(t.newBest, W / 2, cy - 28);
-  }
-
-  // Stats
-  const stats = [
-    [t.finalScore, score.toLocaleString()],
-    [t.bestChain, 'x' + maxChain],
-    [t.waveReached, wave.toString()],
-  ];
-
-  stats.forEach(([label, val], i) => {
-    const sy = cy + 10 + i * 36;
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.font = `${14}px 'Segoe UI', system-ui, sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.fillText(label, W / 2 - 10, sy);
-    ctx.fillStyle = '#fff';
-    ctx.font = `bold ${20}px 'Segoe UI', system-ui, sans-serif`;
-    ctx.textAlign = 'left';
-    ctx.fillText(val, W / 2 + 10, sy);
+  const stats=[[t.finalScore,score.toLocaleString()],
+    [t.bestChain,'x'+maxChain],[t.waveReached,wave.toString()]];
+  stats.forEach(([l,v],i)=>{
+    const sy=cy+10+i*36;
+    ctx.fillStyle='rgba(255,255,255,0.6)';
+    ctx.font=`14px 'Segoe UI',system-ui,sans-serif`;
+    ctx.textAlign='right';ctx.fillText(l,W/2-10,sy);
+    ctx.fillStyle='#fff';
+    ctx.font=`bold 18px 'Segoe UI',system-ui,sans-serif`;
+    ctx.textAlign='left';ctx.fillText(v,W/2+10,sy);
   });
 
-  // Buttons
-  const btnW = Math.min(280, W * 0.7);
-  const btnH = 50;
+  const bw=Math.min(280,W*0.7),bh=50;
 
   // Restart
-  const ry = cy + 140;
-  const grad1 = ctx.createLinearGradient(W / 2 - btnW / 2, ry, W / 2 + btnW / 2, ry + btnH);
-  grad1.addColorStop(0, '#e63946');
-  grad1.addColorStop(1, '#9b5de5');
-  ctx.fillStyle = grad1;
-  roundRect(ctx, W / 2 - btnW / 2, ry, btnW, btnH, 10);
-  ctx.fill();
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${18}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.fillText(t.restart, W / 2, ry + btnH / 2);
+  const ry=cy+140;
+  const rg=ctx.createLinearGradient(W/2-bw/2,ry,W/2+bw/2,ry+bh);
+  rg.addColorStop(0,'#e63946');rg.addColorStop(1,'#9b5de5');
+  ctx.fillStyle=rg;rr(ctx,W/2-bw/2,ry,bw,bh,10);ctx.fill();
+  ctx.fillStyle='#fff';ctx.font=`bold 18px 'Segoe UI',system-ui,sans-serif`;
+  ctx.textAlign='center';ctx.fillText(t.restart,W/2,ry+bh/2);
 
   // Home
-  const hy = ry + 60;
-  ctx.fillStyle = 'rgba(255,255,255,0.15)';
-  roundRect(ctx, W / 2 - btnW / 2, hy, btnW, btnH, 10);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-  ctx.lineWidth = 1;
-  roundRect(ctx, W / 2 - btnW / 2, hy, btnW, btnH, 10);
-  ctx.stroke();
-  ctx.fillStyle = '#fff';
-  ctx.font = `bold ${18}px 'Segoe UI', system-ui, sans-serif`;
-  ctx.fillText(t.home, W / 2, hy + btnH / 2);
-
+  const hy=ry+60;
+  ctx.fillStyle='rgba(255,255,255,0.15)';rr(ctx,W/2-bw/2,hy,bw,bh,10);ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;
+  rr(ctx,W/2-bw/2,hy,bw,bh,10);ctx.stroke();
+  ctx.fillStyle='#fff';ctx.font=`bold 18px 'Segoe UI',system-ui,sans-serif`;
+  ctx.fillText(t.home,W/2,hy+bh/2);
   ctx.restore();
 }
 
-// --- Utility ---
-function roundRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.arcTo(x + w, y, x + w, y + r, r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-  ctx.lineTo(x + r, y + h);
-  ctx.arcTo(x, y + h, x, y + h - r, r);
-  ctx.lineTo(x, y + r);
-  ctx.arcTo(x, y, x + r, y, r);
-  ctx.closePath();
+/* ─── Utility ─── */
+function rr(c,x,y,w,h,r){
+  c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);
+  c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);c.lineTo(x+r,y+h);
+  c.arcTo(x,y+h,x,y+h-r,r);c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);c.closePath();
 }
 
-// --- Main loop ---
-function loop() {
-  update();
-  draw();
+/* ─── Main loop ─── */
+function loop(now){
+  const dt=Math.min(0.05,lastTime?((now-lastTime)/1000):0.016);
+  lastTime=now;
+  update(dt);draw(now);
   requestAnimationFrame(loop);
 }
-
 requestAnimationFrame(loop);
 </script>
 </body>
