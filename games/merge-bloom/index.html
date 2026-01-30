@@ -537,6 +537,7 @@ function doMerge(fromC, fromR, toC, toR) {
   if (now - G.lastMergeTime < CFG.COMBO_WINDOW) {
     G.combo++;
     if (G.combo > 1) SFX.combo();
+    if (G.combo >= 3) polishComboFloat('🌿 COMBO ×' + G.combo + '!');
   } else {
     G.combo = 1;
   }
@@ -557,6 +558,8 @@ function doMerge(fromC, fromR, toC, toR) {
   spawnScorePop(cx, cy, '+' + pts + (G.combo > 1 ? ' ×' + G.combo : ''));
 
   SFX.merge(newLevel);
+  SND.merge(newLevel);
+  if (newLevel >= 5) polishBloomCelebrate();
 
   // Check unlock new flower types
   const typesNeeded = Math.min(3 + Math.floor(G.totalMerges / 30), CFG.MAX_FLOWER_TYPES);
@@ -1720,12 +1723,159 @@ function init() {
   // Start game loop
   requestAnimationFrame(gameLoop);
 
+  // Polish init
+  GardenParticles.init();
+  SND.startBGM();
+
   // Show menu
   S.showScreen('menu');
 }
 
 // Start
 document.addEventListener('DOMContentLoaded', init);
+
+// ===== POLISH: Sound System =====
+const SND = (() => {
+  let ctx, muted = false, bgmGain, bgmStarted = false;
+  function ac() { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); return ctx; }
+  function play(freq, dur, type='sine', vol=0.15) {
+    if (muted) return;
+    const c = ac(), o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(vol, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+    o.connect(g); g.connect(c.destination);
+    o.start(); o.stop(c.currentTime + dur);
+  }
+  return {
+    merge(level) {
+      play(300 + level * 80, 0.25, 'sine', 0.12);
+      if (level >= 4) { setTimeout(() => play(600 + level * 60, 0.15, 'triangle', 0.08), 80); }
+      if (level >= 5) {
+        setTimeout(() => play(800, 0.3, 'sine', 0.1), 50);
+        setTimeout(() => play(1000, 0.3, 'sine', 0.08), 150);
+        setTimeout(() => play(1200, 0.4, 'triangle', 0.06), 250);
+      }
+    },
+    harvest() { play(500, 0.15); setTimeout(() => play(700, 0.1, 'triangle', 0.1), 80); },
+    plant() { play(200, 0.2, 'triangle', 0.1); setTimeout(() => play(350, 0.15, 'sine', 0.08), 100); },
+    energy() { play(800, 0.15, 'sine', 0.08); setTimeout(() => play(1000, 0.1, 'sine', 0.06), 100); },
+    combo(n) { for(let i=0;i<Math.min(n,5);i++) setTimeout(()=>play(400+i*100,0.12,'triangle',0.08),i*60); },
+    click() { play(600, 0.05, 'sine', 0.05); },
+    startBGM() {
+      if (bgmStarted || muted) return;
+      try {
+        const c = ac(); bgmGain = c.createGain(); bgmGain.gain.value = 0.04; bgmGain.connect(c.destination);
+        const chords = [[261,329,392],[220,261,329],[174,220,261],[196,246,329]];
+        let bar=0;
+        (function loop(){
+          if(muted||!bgmStarted)return;
+          const ch=chords[bar%4]; ch.forEach(f=>{const o=c.createOscillator();o.type='sine';o.frequency.value=f;o.connect(bgmGain);o.start();o.stop(c.currentTime+2.8);});
+          bar++; setTimeout(loop,3000);
+        })();
+        bgmStarted = true;
+      } catch(e) {}
+    },
+    stopBGM() { bgmStarted = false; if(bgmGain) bgmGain.gain.value = 0; },
+    get muted() { return muted; },
+    toggle() { muted = !muted; if(muted) this.stopBGM(); else this.startBGM(); return muted; }
+  };
+})();
+
+// ===== POLISH: Particle Background =====
+const GardenParticles = (() => {
+  let canvas, ctx2d, particles=[], raf;
+  const TYPES = ['🌸','🍃','✨','🦋'];
+  function init() {
+    canvas = document.getElementById('particleBg');
+    if (!canvas) return;
+    ctx2d = canvas.getContext('2d');
+    resize();
+    for(let i=0;i<20;i++) particles.push(makeP());
+    loop();
+  }
+  function resize() { canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+  function makeP() {
+    return { x:Math.random()*window.innerWidth, y:Math.random()*window.innerHeight,
+             vx:(Math.random()-.5)*.3, vy:-Math.random()*.5-.1, size:12+Math.random()*8,
+             type:TYPES[Math.floor(Math.random()*TYPES.length)], opacity:Math.random()*.3+.1,
+             rot:Math.random()*360, rotV:(Math.random()-.5)*2 };
+  }
+  function loop() {
+    ctx2d.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p => {
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.rotV;
+      if(p.y<-20){p.y=canvas.height+20;p.x=Math.random()*canvas.width;}
+      if(p.x<-20)p.x=canvas.width+20; if(p.x>canvas.width+20)p.x=-20;
+      ctx2d.globalAlpha=p.opacity; ctx2d.font=p.size+'px serif';
+      ctx2d.save(); ctx2d.translate(p.x,p.y); ctx2d.rotate(p.rot*Math.PI/180);
+      ctx2d.fillText(p.type,0,0); ctx2d.restore();
+    });
+    ctx2d.globalAlpha=1;
+    raf=requestAnimationFrame(loop);
+  }
+  window.addEventListener('resize', resize);
+  return { init };
+})();
+
+// ===== POLISH: Juice Functions =====
+function polishComboFloat(text, color='#2e7d32') {
+  const el = document.createElement('div');
+  el.className = 'combo-float';
+  el.textContent = text;
+  el.style.color = color;
+  el.style.textShadow = '0 2px 8px rgba(0,0,0,.15)';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1300);
+}
+
+function polishMergeBurst(x, y) {
+  for(let i=0;i<8;i++){
+    const spark=document.createElement('div');
+    spark.style.cssText='position:fixed;z-index:200;pointer-events:none;font-size:14px;';
+    spark.textContent=['✨','🌟','💫','⭐'][i%4];
+    const angle=i*(360/8)*Math.PI/180;
+    const dist=30+Math.random()*20;
+    spark.style.left=(x+Math.cos(angle)*dist)+'px';
+    spark.style.top=(y+Math.sin(angle)*dist)+'px';
+    spark.style.transition='all 0.6s ease-out';
+    spark.style.opacity='1';
+    document.body.appendChild(spark);
+    requestAnimationFrame(()=>{
+      spark.style.left=(x+Math.cos(angle)*dist*2.5)+'px';
+      spark.style.top=(y+Math.sin(angle)*dist*2.5-20)+'px';
+      spark.style.opacity='0';
+    });
+    setTimeout(()=>spark.remove(),700);
+  }
+}
+
+function polishBloomCelebrate() {
+  polishComboFloat('🌸 BLOOM! 🌸', '#e91e63');
+  SND.merge(5);
+  for(let i=0;i<15;i++){
+    setTimeout(()=>{
+      const petal=document.createElement('div');
+      petal.style.cssText='position:fixed;z-index:200;pointer-events:none;font-size:20px;opacity:1;transition:all 1.5s ease-out;';
+      petal.textContent=['🌸','🌺','🌷','🌹','💐'][i%5];
+      petal.style.left=Math.random()*window.innerWidth+'px';
+      petal.style.top=window.innerHeight*.4+'px';
+      document.body.appendChild(petal);
+      requestAnimationFrame(()=>{
+        petal.style.top=(Math.random()*window.innerHeight*.3)+'px';
+        petal.style.left=(Math.random()*window.innerWidth)+'px';
+        petal.style.opacity='0';
+        petal.style.transform='scale(1.5) rotate('+(Math.random()*360)+'deg)';
+      });
+      setTimeout(()=>petal.remove(),1600);
+    },i*50);
+  }
+}
+
+function polishToggleMute() {
+  const m = SND.toggle();
+  document.getElementById('muteFab').textContent = m ? '🔇' : '🔊';
+}
 </script>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="../tg-sdk-wrapper.js"></script>
