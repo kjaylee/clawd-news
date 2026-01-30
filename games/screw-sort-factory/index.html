@@ -583,12 +583,12 @@
     </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/games/tg-sdk-wrapper.js?v=1769732782"></script>
+    <script src="/games/tg-sdk-wrapper.js?v=1769733061"></script>
 <script src="../i18n.js"></script>
 </head>
 <body>
     <div id="app">
-        <a href="../" class="back-home">← 게임 목록</a>
+        <a href="../" class="back-home">← Games</a>
         
         <!-- Header -->
         <header class="header">
@@ -597,16 +597,16 @@
                 <div class="bolts">🔩 <span id="boltsCount">0</span></div>
             </div>
             <div class="header-right">
-                <button class="icon-btn" id="undoBtn" title="되돌리기">
+                <button class="icon-btn" id="undoBtn" title="Undo">
                     ↩️
                     <span class="count" id="undoCount">3</span>
                 </button>
-                <button class="icon-btn" id="hintBtn" title="힌트">
+                <button class="icon-btn" id="hintBtn" title="Hint">
                     💡
                     <span class="count" id="hintCount">3</span>
                 </button>
-                <button class="icon-btn" id="factoryBtn" title="팩토리">🏭</button>
-                <button class="icon-btn" id="settingsBtn" title="설정">⚙️</button>
+                <button class="icon-btn" id="factoryBtn" title="Factory">🏭</button>
+                <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
             </div>
         </header>
         
@@ -624,42 +624,42 @@
     <div class="screen" id="menuScreen">
         <div class="menu-title">🔩</div>
         <h1>Screw Sort Factory</h1>
-        <p class="menu-subtitle">나사를 색상별로 정리하세요!</p>
-        <button class="btn btn-primary" id="playBtn">▶️ 플레이</button>
-        <button class="btn btn-factory" id="menuFactoryBtn">🏭 팩토리</button>
+        <p class="menu-subtitle" id="i18nSub">Sort screws by color!</p>
+        <button class="btn btn-primary" id="playBtn" id="i18nPlay">▶️ Play</button>
+        <button class="btn btn-factory" id="menuFactoryBtn" id="i18nFact">🏭 Factory</button>
     </div>
     
     <!-- Win Screen -->
     <div class="screen" id="winScreen">
-        <h1>🎉 클리어!</h1>
-        <h2>레벨 <span id="winLevel">1</span> 완료</h2>
+        <h1 id="i18nClear">🎉 Clear!</h1>
+        <h2 id="i18nWinLv">Level <span id="winLevel">1</span> Complete</h2>
         <div class="win-stats">
             <div class="stat-box">
                 <div class="value" id="winBolts">+10</div>
-                <div class="label">볼트 획득</div>
+                <div class="label" id="i18nBolts">Bolts Earned</div>
             </div>
             <div class="stat-box">
                 <div class="value" id="winMoves">12</div>
-                <div class="label">이동 횟수</div>
+                <div class="label" id="i18nMoves">Moves</div>
             </div>
         </div>
         <div id="perfectBonus" style="display:none; color: var(--accent2); margin-bottom: 16px;">
-            ⭐ 퍼펙트 클리어! 보너스 x2
+            <span id="i18nPerf">⭐ Perfect Clear! Bonus x2</span>
         </div>
-        <button class="btn btn-primary" id="nextLevelBtn">다음 레벨 →</button>
-        <button class="btn btn-secondary" id="winFactoryBtn">🏭 팩토리</button>
+        <button class="btn btn-primary" id="nextLevelBtn" id="i18nNext">Next Level →</button>
+        <button class="btn btn-secondary" id="winFactoryBtn" id="i18nFact2">🏭 Factory</button>
     </div>
     
     <!-- Factory Screen -->
     <div class="screen" id="factoryScreen">
         <div class="factory-container">
             <div class="factory-header">
-                <h1>🏭 나의 팩토리</h1>
+                <h1 id="i18nMyFact">🏭 My Factory</h1>
                 <div class="factory-bolts">🔩 <span id="factoryBolts">0</span></div>
             </div>
             
             <div class="idle-income">
-                자동 수입: <span class="rate" id="idleRate">+0</span> 볼트/분
+                자동 수입: <span class="rate" id="idleRate">+0</span> bolts/min
             </div>
             
             <div class="buildings-grid" id="buildingsGrid"></div>
@@ -1297,6 +1297,20 @@
 
     <!-- Telegram Mini App Init -->
     <script>
+    const T = GameI18n({
+      sub:{en:'Sort screws by color!',ko:'나사를 색상별로 정리하세요!'},
+      play:{en:'▶️ Play',ko:'▶️ 플레이'}, fact:{en:'🏭 Factory',ko:'🏭 팩토리'},
+      clear:{en:'🎉 Clear!',ko:'🎉 클리어!'}, bolts:{en:'Bolts Earned',ko:'볼트 획득'},
+      moves:{en:'Moves',ko:'이동 횟수'}, perf:{en:'⭐ Perfect Clear! Bonus x2',ko:'⭐ 퍼펙트 클리어! 보너스 x2'},
+      next:{en:'Next Level →',ko:'다음 레벨 →'}, myFact:{en:'🏭 My Factory',ko:'🏭 나의 팩토리'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nPlay:'play',i18nFact:'fact',i18nClear:'clear',i18nBolts:'bolts',
+        i18nMoves:'moves',i18nPerf:'perf',i18nNext:'next',i18nFact2:'fact',i18nMyFact:'myFact'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
     (function() {
         if (typeof TG !== "undefined" && TG.isTelegram()) {
             TG.onBack(() => {

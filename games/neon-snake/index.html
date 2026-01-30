@@ -4,10 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>🐍 Neon Snake — Jay's Game Arcade</title>
-<meta name="description" content="네온 스네이크 - 클래식 스네이크의 모던 리메이크! 파워업, 콤보, 네온 비주얼로 즐기는 중독 아케이드">
+<meta name="description" content="Neon Snake - A modern remake of classic Snake! Power-ups, combos, and neon visuals">
 <link rel="canonical" href="https://eastsea.monster/games/neon-snake/">
-<meta property="og:title" content="🐍 Neon Snake — 네온 스네이크">
-<meta property="og:description" content="클래식 스네이크의 네온 리메이크! 파워업과 콤보로 최고점에 도전!">
+<meta property="og:title" content="🐍 Neon Snake">
+<meta property="og:description" content="A neon remake of classic Snake! Power-ups and combos for the highest score!">
 <meta property="og:url" content="https://eastsea.monster/games/neon-snake/">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -59,21 +59,32 @@ canvas{display:block;border-radius:8px;image-rendering:pixelated}
   <canvas id="gameCanvas"></canvas>
   <div id="overlay">
     <h1>🐍 Neon Snake</h1>
-    <p class="subtitle">클래식 스네이크의 네온 리메이크</p>
+    <p class="subtitle" id="i18nSub">A neon remake of classic Snake</p>
     <div class="legend">
       <span class="legend-item">🍎 +10</span>
       <span class="legend-item">⭐ +50</span>
-      <span class="legend-item">⚡ 스피드</span>
-      <span class="legend-item">👻 고스트</span>
+      <span class="legend-item" id="i18nSp">⚡ Speed</span>
+      <span class="legend-item" id="i18nGh">👻 Ghost</span>
     </div>
-    <button class="btn" id="startBtn">▶ 시작</button>
+    <button class="btn" id="startBtn" id="i18nStart">▶ Start</button>
     <div class="controls-hint">
-      📱 스와이프 또는 ⌨️ 방향키/WASD
+      <span id="i18nCtrl">📱 Swipe or ⌨️ Arrow keys/WASD</span>
     </div>
   </div>
 </div>
 
 <script>
+    const T = GameI18n({
+      sub:{en:'A neon remake of classic Snake',ko:'클래식 스네이크의 네온 리메이크'},
+      start:{en:'▶ Start',ko:'▶ 시작'}, sp:{en:'⚡ Speed',ko:'⚡ 스피드'},
+      gh:{en:'👻 Ghost',ko:'👻 고스트'}, ctrl:{en:'📱 Swipe or ⌨️ Arrow keys/WASD',ko:'📱 스와이프 또는 ⌨️ 방향키/WASD'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nStart:'start',i18nSp:'sp',i18nGh:'gh',i18nCtrl:'ctrl'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
 (function(){
 'use strict';
 

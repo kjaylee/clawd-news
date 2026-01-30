@@ -272,12 +272,12 @@
     <!-- Start Screen -->
     <div class="screen active" id="startScreen">
         <h1>🧘 Match 3D Zen</h1>
-        <h2>릴렉싱 매치 퍼즐</h2>
+        <h2 id="i18nSub">Relaxing Match Puzzle</h2>
         <div class="stats" id="startStats">
             레벨: <span id="displayLevel">1</span><br>
             💰 <span id="displayCoins">100</span>
         </div>
-        <button class="btn btn-primary" onclick="startGame()">▶ 플레이</button>
+        <button class="btn btn-primary" onclick="startGame()" id="i18nPlay">▶ Play</button>
     </div>
     
     <!-- Game Screen -->
@@ -285,9 +285,9 @@
         <div class="level-info">Lv.<span id="levelNum">1</span></div>
         <div class="coins-display">💰 <span id="coins">100</span></div>
         <div class="header-buttons">
-            <button class="header-btn" onclick="useShuffle()" title="셔플">🔄</button>
-            <button class="header-btn" onclick="useHint()" title="힌트">💡</button>
-            <button class="header-btn" onclick="useUndo()" title="되돌리기">↩️</button>
+            <button class="header-btn" onclick="useShuffle()" title="Shuffle">🔄</button>
+            <button class="header-btn" onclick="useHint()" title="Hint">💡</button>
+            <button class="header-btn" onclick="useUndo()" title="Undo">↩️</button>
         </div>
     </div>
     
@@ -295,7 +295,7 @@
         <div class="items-container" id="itemsContainer"></div>
         
         <div class="slot-container">
-            <div class="slot-label">매칭 슬롯 (7칸)</div>
+            <div class="slot-label" id="i18nSlot">Match Slot (7)</div>
             <div class="slots" id="slots">
                 <div class="slot"></div>
                 <div class="slot"></div>
@@ -310,25 +310,41 @@
     
     <!-- Win Screen -->
     <div class="screen" id="winScreen">
-        <h1>🎉 클리어!</h1>
+        <h1 id="i18nClear">🎉 Clear!</h1>
         <div class="stats">
             레벨 <span id="winLevel">1</span> 완료<br>
-            +20 코인!
+            <span id="i18nCoins">+20 coins!</span>
         </div>
-        <button class="btn btn-primary" onclick="nextLevel()">다음 레벨 ▶</button>
+        <button class="btn btn-primary" onclick="nextLevel()" id="i18nNext">Next Level ▶</button>
     </div>
     
     <!-- Game Over Screen -->
     <div class="screen" id="gameOverScreen">
-        <h1>😵 게임 오버</h1>
-        <h2>슬롯이 가득 찼어요</h2>
-        <button class="btn btn-primary" onclick="retryLevel()">🔄 다시 하기</button>
-        <button class="btn btn-secondary" onclick="watchAdRetry()">📺 광고 보고 계속</button>
+        <h1 id="i18nGO">😵 Game Over</h1>
+        <h2 id="i18nFull">Slot is full!</h2>
+        <button class="btn btn-primary" onclick="retryLevel()" id="i18nRetry">🔄 Retry</button>
+        <button class="btn btn-secondary" onclick="watchAdRetry()" id="i18nAd">📺 Watch Ad to Continue</button>
     </div>
     
     <div class="toast" id="toast"></div>
     
     <script>
+    const T = GameI18n({
+      sub:{en:'Relaxing Match Puzzle',ko:'릴렉싱 매치 퍼즐'}, play:{en:'▶ Play',ko:'▶ 플레이'},
+      slot:{en:'Match Slot (7)',ko:'매칭 슬롯 (7칸)'}, clear:{en:'🎉 Clear!',ko:'🎉 클리어!'},
+      next:{en:'Next Level ▶',ko:'다음 레벨 ▶'}, lvsel:{en:'Level Select',ko:'레벨 선택'},
+      go:{en:'😵 Game Over',ko:'😵 게임 오버'}, full:{en:'Slot is full!',ko:'슬롯이 가득 찼어요'},
+      retry:{en:'🔄 Retry',ko:'🔄 다시 하기'}, ad:{en:'📺 Watch Ad to Continue',ko:'📺 광고 보고 계속'},
+      to:{en:"Time's Up!",ko:'시간 초과!'}, tryAgain:{en:'Try again!',ko:'다시 도전해보세요'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nPlay:'play',i18nSlot:'slot',i18nClear:'clear',i18nNext:'next',
+        i18nGO:'go',i18nFull:'full',i18nRetry:'retry',i18nAd:'ad',i18nTO:'to',i18nTryAgain:'tryAgain'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+      var ls=document.querySelectorAll('[id^="i18nLvSel"]');ls.forEach(function(e){e.textContent=T('lvsel');});
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         // Item types by category
         const ITEM_TYPES = {
             fruits: ['🍎', '🍊', '🍋', '🍇', '🍓', '🍌', '🍑', '🥝', '🍒', '🍈', '🍐', '🫐'],

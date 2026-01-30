@@ -291,7 +291,7 @@ body {
 </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/games/tg-sdk-wrapper.js?v=1769732782"></script>
+    <script src="/games/tg-sdk-wrapper.js?v=1769733061"></script>
 <script src="../i18n.js"></script>
 </head>
 <body>
@@ -311,18 +311,18 @@ body {
 </div>
 
 <div id="controls">
-  <button class="btn" id="btn-summon">🆕 소환: 50G</button>
-  <button class="btn" id="btn-prestige" disabled>⭐ 프레스티지</button>
-  <button class="btn" id="btn-boost">🚀 2x 30s</button>
+  <button class="btn" id="btn-summon" id="i18nSummon">🆕 Summon: 50G</button>
+  <button class="btn" id="btn-prestige" disabled id="i18nPrestige">⭐ Prestige</button>
+  <button class="btn" id="btn-boost" id="i18nBoost">🚀 2x 30s</button>
 </div>
 
 <div id="drag-ghost"></div>
 <div id="toast"></div>
 <div id="offline-popup">
-  <h3>💤 오프라인 수익</h3>
-  <p>방치하는 동안 슬라임들이 열심히 일했어요!</p>
+  <h3 id="i18nOff">💤 Offline Earnings</h3>
+  <p id="i18nOffDesc">Your slimes worked hard while you were away!</p>
   <div class="amount" id="offline-amount">+0</div>
-  <button onclick="closeOffline()">받기!</button>
+  <button onclick="closeOffline()" id="i18nClaim">Claim!</button>
 </div>
 
 <script>
@@ -337,16 +337,16 @@ const BOOST_DURATION = 30000;
 
 const SLIME_DATA = [
   null, // index 0 unused
-  { name: '물방울', color: '#7EC8E3', gps: 1, shadow: '#5BA0B5' },
-  { name: '젤리',   color: '#5CB85C', gps: 3, shadow: '#3D8B3D' },
-  { name: '슬라임', color: '#F0AD4E', gps: 8, shadow: '#C88A2E' },
-  { name: '젤라틴', color: '#D9534F', gps: 20, shadow: '#B03A37' },
-  { name: '블롭',   color: '#9B59B6', gps: 50, shadow: '#7D3F92' },
-  { name: '우즈',   color: '#E74C3C', gps: 130, shadow: '#BF2718' },
-  { name: '겔',     color: '#1ABC9C', gps: 350, shadow: '#148F77' },
-  { name: '플라즈마', color: '#F39C12', gps: 1000, shadow: '#C87F0A' },
-  { name: '코스믹', color: '#3498DB', gps: 3000, shadow: '#2471A3' },
-  { name: '킹슬라임', color: '#FFD700', gps: 10000, shadow: '#CCB100' },
+  { name: _i18nLang==='ko'?'물방울':'Droplet', color: '#7EC8E3', gps: 1, shadow: '#5BA0B5' },
+  { name: _i18nLang==='ko'?'젤리':'Jelly',   color: '#5CB85C', gps: 3, shadow: '#3D8B3D' },
+  { name: _i18nLang==='ko'?'슬라임':'Slime', color: '#F0AD4E', gps: 8, shadow: '#C88A2E' },
+  { name: _i18nLang==='ko'?'젤라틴':'Gelatin', color: '#D9534F', gps: 20, shadow: '#B03A37' },
+  { name: _i18nLang==='ko'?'블롭':'Blob',   color: '#9B59B6', gps: 50, shadow: '#7D3F92' },
+  { name: _i18nLang==='ko'?'우즈':'Ooze',   color: '#E74C3C', gps: 130, shadow: '#BF2718' },
+  { name: _i18nLang==='ko'?'겔':'Gel',     color: '#1ABC9C', gps: 350, shadow: '#148F77' },
+  { name: _i18nLang==='ko'?'플라즈마':'Plasma', color: '#F39C12', gps: 1000, shadow: '#C87F0A' },
+  { name: _i18nLang==='ko'?'코스믹':'Cosmic', color: '#3498DB', gps: 3000, shadow: '#2471A3' },
+  { name: _i18nLang==='ko'?'킹슬라임':'King Slime', color: '#FFD700', gps: 10000, shadow: '#CCB100' },
 ];
 
 // ──────── STATE ────────
@@ -461,19 +461,19 @@ function updateUI() {
 
   const pInfo = document.getElementById('prestige-info');
   if (state.prestigeCount > 0) {
-    pInfo.textContent = `⭐ 프레스티지 ${state.prestigeCount}회 (보너스 +${Math.round(state.prestigeBonus * 100)}%)`;
+    pInfo.textContent = `⭐ ${_i18nLang==='ko'?'프레스티지':'Prestige'} ${state.prestigeCount}${_i18nLang==='ko'?'회':''} (+${Math.round(state.prestigeBonus * 100)}%)`;
   } else {
     pInfo.textContent = '';
   }
 
   const badge = document.getElementById('highest-badge');
   if (state.highestLevel > 0) {
-    badge.textContent = `최고 Lv.${state.highestLevel}`;
+    badge.textContent = `${_i18nLang==='ko'?'최고':'Best'} Lv.${state.highestLevel}`;
   }
 
   // Button states
   document.getElementById('btn-summon').disabled = state.gold < SUMMON_COST || !hasEmptyCell();
-  document.getElementById('btn-summon').textContent = `🆕 소환: ${fmt(SUMMON_COST)}G`;
+  document.getElementById('btn-summon').textContent = `🆕 ${_i18nLang==='ko'?'소환':'Summon'}: ${fmt(SUMMON_COST)}G`;
 
   const canPrestige = state.grid.some(s => s && s.level >= PRESTIGE_MIN_LEVEL);
   document.getElementById('btn-prestige').disabled = !canPrestige;
@@ -796,6 +796,18 @@ setInterval(() => {
 
     <!-- Telegram Mini App Init -->
     <script>
+    const T = GameI18n({
+      summon:{en:'🆕 Summon: 50G',ko:'🆕 소환: 50G'}, prestige:{en:'⭐ Prestige',ko:'⭐ 프레스티지'},
+      boost:{en:'🚀 2x 30s',ko:'🚀 2x 30s'}, off:{en:'💤 Offline Earnings',ko:'💤 오프라인 수익'},
+      offDesc:{en:'Your slimes worked hard while you were away!',ko:'방치하는 동안 슬라임들이 열심히 일했어요!'},
+      claim:{en:'Claim!',ko:'받기!'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSummon:'summon',i18nPrestige:'prestige',i18nBoost:'boost',i18nOff:'off',i18nOffDesc:'offDesc',i18nClaim:'claim'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
     (function() {
         if (typeof TG !== "undefined" && TG.isTelegram()) {
             TG.onBack(() => {

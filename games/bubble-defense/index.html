@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Bubble Defense - 버블 디펜스</title>
+    <title>Bubble Defense</title>
     <style>
         * {
             margin: 0;
@@ -139,12 +139,12 @@
         <!-- 시작 화면 -->
         <div id="startScreen" class="overlay">
             <h1>🫧 Bubble Defense</h1>
-            <p>버블을 쏴서 매치하고<br>타워를 세워 적을 막아라!</p>
-            <button class="btn" onclick="startGame()">게임 시작</button>
+            <p id="i18nDesc">Shoot bubbles to match them<br>and build towers to stop enemies!</p>
+            <button class="btn" onclick="startGame()" id="i18nStart">Start Game</button>
             <div class="instructions">
-                🎯 드래그로 조준, 떼면 발사<br>
-                🏰 에너지로 타워 건설<br>
-                👾 적이 기지에 도달하면 체력 감소
+                <span id="i18nH1">🎯 Drag to aim, release to shoot</span><br>
+                <span id="i18nH2">🏰 Build towers with energy</span><br>
+                <span id="i18nH3">👾 Enemies reaching base drain HP</span>
             </div>
         </div>
         
@@ -152,22 +152,22 @@
         <div id="gameOverScreen" class="overlay hidden">
             <h1>💔 Game Over</h1>
             <div class="stats">
-                <div>웨이브: <span id="finalWave">0</span></div>
-                <div>점수: <span id="finalScore">0</span></div>
-                <div>처치한 적: <span id="finalKills">0</span></div>
+                <div id="i18nWv">Wave: <span id="finalWave">0</span></div>
+                <div id="i18nFS">Score: <span id="finalScore">0</span></div>
+                <div id="i18nFK">Kills: <span id="finalKills">0</span></div>
             </div>
-            <button class="btn" onclick="startGame()">다시 시작</button>
+            <button class="btn" onclick="startGame()" id="i18nRestart">Restart</button>
         </div>
         
         <!-- 승리 화면 -->
         <div id="winScreen" class="overlay hidden">
             <h1>🎉 Victory!</h1>
-            <h2>스테이지 클리어!</h2>
+            <h2 id="i18nSC">Stage Clear!</h2>
             <div class="stats">
-                <div>점수: <span id="winScore">0</span></div>
-                <div>처치한 적: <span id="winKills">0</span></div>
+                <div id="i18nWS">Score: <span id="winScore">0</span></div>
+                <div id="i18nWK">Kills: <span id="winKills">0</span></div>
             </div>
-            <button class="btn" onclick="startGame()">다시 플레이</button>
+            <button class="btn" onclick="startGame()" id="i18nRP">Play Again</button>
         </div>
         
         <div class="credits">
@@ -176,6 +176,17 @@
     </div>
 
     <script>
+    const T = GameI18n({
+      desc:{en:'Shoot bubbles to match them<br>and build towers to stop enemies!',ko:'버블을 쏴서 매치하고<br>타워를 세워 적을 막아라!'},
+      start:{en:'Start Game',ko:'게임 시작'}, restart:{en:'Restart',ko:'다시 시작'},
+      sc:{en:'Stage Clear!',ko:'스테이지 클리어!'}, rp:{en:'Play Again',ko:'다시 플레이'}
+    });
+    (function(){var s=function(){
+      var ids={i18nDesc:'desc',i18nStart:'start',i18nRestart:'restart',i18nSC:'sc',i18nRP:'rp'};
+      for(var id in ids){var e=document.getElementById(id);if(e){if(id==='i18nDesc')e.innerHTML=T(ids[id]);else e.textContent=T(ids[id]);}}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         // ==================== 게임 설정 ====================
         const CONFIG = {
             // 버블
@@ -530,10 +541,10 @@
         
         // ==================== 타워 시스템 ====================
         const TOWER_TYPES = [
-            { name: '아처', cost: 50, damage: 10, range: 120, speed: 1000, color: '#88ff88', icon: '🏹' },
-            { name: '화염', cost: 80, damage: 15, range: 100, speed: 1500, color: '#ff8844', icon: '🔥', dot: true },
-            { name: '얼음', cost: 80, damage: 8, range: 110, speed: 1200, color: '#44aaff', icon: '❄️', slow: 0.5 },
-            { name: '번개', cost: 100, damage: 20, range: 150, speed: 2000, color: '#ffff44', icon: '⚡', chain: 2 }
+            { name: _i18nLang==='ko'?'아처':'Archer', cost: 50, damage: 10, range: 120, speed: 1000, color: '#88ff88', icon: '🏹' },
+            { name: _i18nLang==='ko'?'화염':'Fire', cost: 80, damage: 15, range: 100, speed: 1500, color: '#ff8844', icon: '🔥', dot: true },
+            { name: _i18nLang==='ko'?'얼음':'Ice', cost: 80, damage: 8, range: 110, speed: 1200, color: '#44aaff', icon: '❄️', slow: 0.5 },
+            { name: _i18nLang==='ko'?'번개':'Lightning', cost: 100, damage: 20, range: 150, speed: 2000, color: '#ffff44', icon: '⚡', chain: 2 }
         ];
         
         function createTower(type, slotIndex) {
@@ -593,10 +604,10 @@
         
         // ==================== 적 시스템 ====================
         const ENEMY_TYPES = [
-            { name: '슬라임', health: 30, speed: 0.5, color: '#44ff44', gold: 5, radius: 15 },
-            { name: '고블린', health: 50, speed: 0.8, color: '#4488ff', gold: 8, radius: 12 },
-            { name: '오크', health: 100, speed: 0.3, color: '#ff8844', gold: 15, radius: 20 },
-            { name: '보스', health: 300, speed: 0.2, color: '#ff44ff', gold: 50, radius: 25 }
+            { name: _i18nLang==='ko'?'슬라임':'Slime', health: 30, speed: 0.5, color: '#44ff44', gold: 5, radius: 15 },
+            { name: _i18nLang==='ko'?'고블린':'Goblin', health: 50, speed: 0.8, color: '#4488ff', gold: 8, radius: 12 },
+            { name: _i18nLang==='ko'?'오크':'Orc', health: 100, speed: 0.3, color: '#ff8844', gold: 15, radius: 20 },
+            { name: _i18nLang==='ko'?'보스':'Boss', health: 300, speed: 0.2, color: '#ff44ff', gold: 50, radius: 25 }
         ];
         
         // 적 경로 (S자)

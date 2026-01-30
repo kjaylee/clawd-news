@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f0f1a">
-    <title>🟢 슬라임 서바이버 PREMIUM</title>
+    <title>🟢 Slime Survivor PREMIUM</title>
     <meta name="description" content="Ultimate pixel-art survivor roguelike. Survive endless waves, level up, unlock weapons, and compete on the leaderboard!">
     <!--
         ============================================
@@ -461,7 +461,7 @@
         <div id="goDailyBadge" class="daily-badge" style="display:none;">📅 데일리 챌린지</div>
         <div class="go-stats" id="goStats"></div>
         <div class="btn-row">
-            <button class="btn" onclick="restartGame()">🔄 다시 하기</button>
+            <button class="btn" onclick="restartGame()" id="i18nRetry">🔄 Retry</button>
             <button class="btn btn-share" onclick="shareScore()">📤 공유하기</button>
         </div>
         <div class="btn-row">
@@ -2203,6 +2203,16 @@ window.addEventListener('popstate', () => {
 
     <!-- Telegram Mini App Init -->
     <script>
+    const T = GameI18n({
+      start:{en:'Start Game',ko:'게임 시작'}, retry:{en:'🔄 Retry',ko:'🔄 다시 하기'},
+      lvUp:{en:'⬆️ Level Up!',ko:'⬆️ 레벨 업!'}
+    });
+    (function(){var s=function(){
+      var ids={i18nStart:'start',i18nRetry:'retry',i18nLvUp:'lvUp'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
     (function() {
         if (typeof TGBridge !== "undefined") {
             window.onTGBack = function() { return false; };

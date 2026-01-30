@@ -4,7 +4,7 @@
     <script data-goatcounter="https://jaygames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🎣 낚시 타이쿤</title>
+    <title>🎣 Fishing Tycoon</title>
     <style>
         * {
             margin: 0;
@@ -243,8 +243,8 @@
                 💰 <span id="money">0</span>원
             </div>
             <div style="display: flex; gap: 5px;">
-                <button class="btn" onclick="openModal('collection')">📖 도감</button>
-                <button class="btn" onclick="openModal('shop')">🛒 상점</button>
+                <button class="btn" onclick="openModal('collection')" id="i18nCol">📖 Collection</button>
+                <button class="btn" onclick="openModal('shop')" id="i18nShop">🛒 Shop</button>
             </div>
         </div>
         
@@ -256,49 +256,59 @@
         
         <div id="collectionModal" class="modal">
             <button class="close-btn" onclick="closeModal()">✕</button>
-            <h2>📖 물고기 도감</h2>
+            <h2 id="i18nColTitle">📖 Fish Collection</h2>
             <div id="fishGrid" class="fish-grid"></div>
         </div>
         
         <div id="shopModal" class="modal">
             <button class="close-btn" onclick="closeModal()">✕</button>
-            <h2>🛒 낚싯대 상점</h2>
+            <h2 id="i18nShopTitle">🛒 Rod Shop</h2>
             <div id="shopList"></div>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      col:{en:'📖 Collection',ko:'📖 도감'}, shop:{en:'🛒 Shop',ko:'🛒 상점'},
+      colTitle:{en:'📖 Fish Collection',ko:'📖 물고기 도감'}, shopTitle:{en:'🛒 Rod Shop',ko:'🛒 낚싯대 상점'}
+    });
+    (function(){var s=function(){
+      var ids={i18nCol:'col',i18nShop:'shop',i18nColTitle:'colTitle',i18nShopTitle:'shopTitle'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         // ==================== 게임 상수 ====================
         const FISH_DATA = [
-            { id: 1, name: '붕어', emoji: '🐟', price: 50, rarity: 'common', weight: 40 },
-            { id: 2, name: '잉어', emoji: '🐟', price: 80, rarity: 'common', weight: 30 },
-            { id: 3, name: '금붕어', emoji: '🐠', price: 150, rarity: 'uncommon', weight: 15 },
-            { id: 4, name: '열대어', emoji: '🐠', price: 200, rarity: 'uncommon', weight: 10 },
-            { id: 5, name: '복어', emoji: '🐡', price: 300, rarity: 'rare', weight: 5 },
-            { id: 6, name: '해파리', emoji: '🪼', price: 250, rarity: 'rare', weight: 6 },
-            { id: 7, name: '문어', emoji: '🐙', price: 400, rarity: 'rare', weight: 4 },
-            { id: 8, name: '오징어', emoji: '🦑', price: 350, rarity: 'rare', weight: 5 },
-            { id: 9, name: '돌고래', emoji: '🐬', price: 800, rarity: 'epic', weight: 2 },
-            { id: 10, name: '고래', emoji: '🐋', price: 1500, rarity: 'epic', weight: 1 },
-            { id: 11, name: '상어', emoji: '🦈', price: 2000, rarity: 'legendary', weight: 0.5 },
-            { id: 12, name: '범고래', emoji: '🐳', price: 3000, rarity: 'legendary', weight: 0.3 },
+            { id: 1, name: _i18nLang==='ko'?'붕어':'Crucian Carp', emoji: '🐟', price: 50, rarity: 'common', weight: 40 },
+            { id: 2, name: _i18nLang==='ko'?'잉어':'Carp', emoji: '🐟', price: 80, rarity: 'common', weight: 30 },
+            { id: 3, name: _i18nLang==='ko'?'금붕어':'Goldfish', emoji: '🐠', price: 150, rarity: 'uncommon', weight: 15 },
+            { id: 4, name: _i18nLang==='ko'?'열대어':'Tropical Fish', emoji: '🐠', price: 200, rarity: 'uncommon', weight: 10 },
+            { id: 5, name: _i18nLang==='ko'?'복어':'Pufferfish', emoji: '🐡', price: 300, rarity: 'rare', weight: 5 },
+            { id: 6, name: _i18nLang==='ko'?'해파리':'Jellyfish', emoji: '🪼', price: 250, rarity: 'rare', weight: 6 },
+            { id: 7, name: _i18nLang==='ko'?'문어':'Octopus', emoji: '🐙', price: 400, rarity: 'rare', weight: 4 },
+            { id: 8, name: _i18nLang==='ko'?'오징어':'Squid', emoji: '🦑', price: 350, rarity: 'rare', weight: 5 },
+            { id: 9, name: _i18nLang==='ko'?'돌고래':'Dolphin', emoji: '🐬', price: 800, rarity: 'epic', weight: 2 },
+            { id: 10, name: _i18nLang==='ko'?'고래':'Whale', emoji: '🐋', price: 1500, rarity: 'epic', weight: 1 },
+            { id: 11, name: _i18nLang==='ko'?'상어':'Shark', emoji: '🦈', price: 2000, rarity: 'legendary', weight: 0.5 },
+            { id: 12, name: _i18nLang==='ko'?'범고래':'Orca', emoji: '🐳', price: 3000, rarity: 'legendary', weight: 0.3 },
         ];
 
         const ROD_DATA = [
-            { id: 1, name: '나무 낚싯대', desc: '기본 낚싯대', price: 0, catchBonus: 1, speedBonus: 1 },
-            { id: 2, name: '대나무 낚싯대', desc: '속도 10% 증가', price: 500, catchBonus: 1, speedBonus: 1.1 },
-            { id: 3, name: '카본 낚싯대', desc: '희귀 확률 20% 증가', price: 1500, catchBonus: 1.2, speedBonus: 1.15 },
-            { id: 4, name: '티타늄 낚싯대', desc: '희귀 확률 50% 증가', price: 4000, catchBonus: 1.5, speedBonus: 1.2 },
-            { id: 5, name: '황금 낚싯대', desc: '희귀 확률 100% 증가', price: 10000, catchBonus: 2, speedBonus: 1.3 },
-            { id: 6, name: '전설의 낚싯대', desc: '전설 물고기 확률 UP!', price: 30000, catchBonus: 3, speedBonus: 1.5 },
+            { id: 1, name: _i18nLang==='ko'?'나무 낚싯대':'Wooden Rod', desc: _i18nLang==='ko'?'기본 낚싯대':'Basic rod', price: 0, catchBonus: 1, speedBonus: 1 },
+            { id: 2, name: _i18nLang==='ko'?'대나무 낚싯대':'Bamboo Rod', desc: _i18nLang==='ko'?'속도 10% 증가':'Speed +10%', price: 500, catchBonus: 1, speedBonus: 1.1 },
+            { id: 3, name: _i18nLang==='ko'?'카본 낚싯대':'Carbon Rod', desc: _i18nLang==='ko'?'희귀 확률 20% 증가':'Rare chance +20%', price: 1500, catchBonus: 1.2, speedBonus: 1.15 },
+            { id: 4, name: _i18nLang==='ko'?'티타늄 낚싯대':'Titanium Rod', desc: _i18nLang==='ko'?'희귀 확률 50% 증가':'Rare chance +50%', price: 4000, catchBonus: 1.5, speedBonus: 1.2 },
+            { id: 5, name: _i18nLang==='ko'?'황금 낚싯대':'Golden Rod', desc: _i18nLang==='ko'?'희귀 확률 100% 증가':'Rare chance +100%', price: 10000, catchBonus: 2, speedBonus: 1.3 },
+            { id: 6, name: _i18nLang==='ko'?'전설의 낚싯대':'Legendary Rod', desc: _i18nLang==='ko'?'전설 물고기 확률 UP!':'Legendary fish chance UP!', price: 30000, catchBonus: 3, speedBonus: 1.5 },
         ];
 
         const RARITY_NAMES = {
-            common: '일반',
-            uncommon: '고급',
-            rare: '희귀',
-            epic: '영웅',
-            legendary: '전설'
+            common: _i18nLang==='ko'?'일반':'Common',
+            uncommon: _i18nLang==='ko'?'고급':'Uncommon',
+            rare: _i18nLang==='ko'?'희귀':'Rare',
+            epic: _i18nLang==='ko'?'영웅':'Epic',
+            legendary: _i18nLang==='ko'?'전설':'Legendary'
         };
 
         // ==================== 게임 상태 ====================

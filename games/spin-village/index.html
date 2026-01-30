@@ -337,7 +337,7 @@
     </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/games/tg-sdk-wrapper.js?v=1769732782"></script>
+    <script src="/games/tg-sdk-wrapper.js?v=1769733061"></script>
 <script src="../i18n.js"></script>
 </head>
 <body>
@@ -362,7 +362,7 @@
     </div>
     
     <div class="village-container">
-        <div class="village-name" id="village-name">🏘️ 평화로운 마을</div>
+        <div class="village-name" id="village-name" id="i18nVillage">🏘️ Peaceful Village</div>
         <div class="village-progress">
             마을 완성도: <span id="completion">0</span>/9
         </div>
@@ -379,19 +379,19 @@
             <div class="slot-reel" id="reel3">🪙</div>
         </div>
         <button class="spin-button" id="spin-btn" onclick="spin()">
-            🎰 스핀! (10 🪙)
+            <span id="i18nSpin">🎰 Spin! (10 🪙)</span>
         </button>
     </div>
     
     <div class="result-popup" id="result-popup">
         <div class="result-icon" id="result-icon">🪙</div>
-        <div class="result-text" id="result-text">+500 코인!</div>
-        <div class="result-detail" id="result-detail">럭키!</div>
+        <div class="result-text" id="result-text" id="result-text">+500 coins!</div>
+        <div class="result-detail" id="result-detail" id="result-detail">Lucky!</div>
     </div>
     
     <div class="attack-overlay" id="attack-overlay">
         <div class="attack-target" id="attack-target">🏠</div>
-        <div id="attack-text" style="font-size: 24px; margin-top: 20px;">공격 중!</div>
+        <div id="attack-text" style="font-size: 24px; margin-top: 20px;" id="attack-text">Attacking!</div>
     </div>
     
     <div class="notification" id="notification"></div>
@@ -405,21 +405,21 @@
             shields: 0,
             spins: 0,
             buildings: [
-                { name: '집', icon: '🏠', level: 0, maxLevel: 5, baseCost: 100 },
-                { name: '밭', icon: '🌾', level: 0, maxLevel: 5, baseCost: 150 },
-                { name: '우물', icon: '⛲', level: 0, maxLevel: 5, baseCost: 200 },
-                { name: '대장간', icon: '⚒️', level: 0, maxLevel: 5, baseCost: 250 },
-                { name: '창고', icon: '🏪', level: 0, maxLevel: 5, baseCost: 300 },
-                { name: '탑', icon: '🗼', level: 0, maxLevel: 5, baseCost: 400 },
-                { name: '성벽', icon: '🏰', level: 0, maxLevel: 5, baseCost: 500 },
-                { name: '시장', icon: '🎪', level: 0, maxLevel: 5, baseCost: 600 },
-                { name: '신전', icon: '⛩️', level: 0, maxLevel: 5, baseCost: 800 }
+                { name: _i18nLang==='ko'?'집':'House', icon: '🏠', level: 0, maxLevel: 5, baseCost: 100 },
+                { name: _i18nLang==='ko'?'밭':'Farm', icon: '🌾', level: 0, maxLevel: 5, baseCost: 150 },
+                { name: _i18nLang==='ko'?'우물':'Well', icon: '⛲', level: 0, maxLevel: 5, baseCost: 200 },
+                { name: _i18nLang==='ko'?'대장간':'Forge', icon: '⚒️', level: 0, maxLevel: 5, baseCost: 250 },
+                { name: _i18nLang==='ko'?'창고':'Warehouse', icon: '🏪', level: 0, maxLevel: 5, baseCost: 300 },
+                { name: _i18nLang==='ko'?'탑':'Tower', icon: '🗼', level: 0, maxLevel: 5, baseCost: 400 },
+                { name: _i18nLang==='ko'?'성벽':'Castle Wall', icon: '🏰', level: 0, maxLevel: 5, baseCost: 500 },
+                { name: _i18nLang==='ko'?'시장':'Market', icon: '🎪', level: 0, maxLevel: 5, baseCost: 600 },
+                { name: _i18nLang==='ko'?'신전':'Shrine', icon: '⛩️', level: 0, maxLevel: 5, baseCost: 800 }
             ],
             villageNames: [
-                '🏘️ 평화로운 마을', '🌲 숲속 마을', '🏔️ 산골 마을',
-                '🌊 해변 마을', '🏜️ 사막 오아시스', '❄️ 눈꽃 마을',
-                '🌸 벚꽃 마을', '🌙 달빛 마을', '☀️ 태양의 도시',
-                '🌈 무지개 왕국'
+                _i18nLang==='ko'?'🏘️ 평화로운 마을':'🏘️ Peaceful Village', _i18nLang==='ko'?'🌲 숲속 마을':'🌲 Forest Village', _i18nLang==='ko'?'🏔️ 산골 마을':'🏔️ Mountain Village',
+                _i18nLang==='ko'?'🌊 해변 마을':'🌊 Beach Village', _i18nLang==='ko'?'🏜️ 사막 오아시스':'🏜️ Desert Oasis', _i18nLang==='ko'?'❄️ 눈꽃 마을':'❄️ Snow Village',
+                _i18nLang==='ko'?'🌸 벚꽃 마을':'🌸 Cherry Village', _i18nLang==='ko'?'🌙 달빛 마을':'🌙 Moonlight Village', _i18nLang==='ko'?'☀️ 태양의 도시':'☀️ Sun City',
+                _i18nLang==='ko'?'🌈 무지개 왕국':'🌈 Rainbow Kingdom'
             ]
         };
         
@@ -725,6 +725,14 @@
 
     <!-- Telegram Mini App Init -->
     <script>
+    const T = GameI18n({
+      spin:{en:'🎰 Spin! (10 🪙)',ko:'🎰 스핀! (10 🪙)'}
+    });
+    (function(){var s=function(){
+      var sp=document.getElementById('i18nSpin');if(sp)sp.textContent=T('spin');
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
     (function() {
         if (typeof TG !== "undefined" && TG.isTelegram()) {
             // 뒤로가기 → 런처

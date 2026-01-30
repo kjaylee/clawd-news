@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Fruit Merge Drop - 과일 합체 드롭</title>
+<title>Fruit Merge Drop</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body{width:100%;height:100%;overflow:hidden;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
@@ -15,23 +15,26 @@ canvas{display:block;border-radius:8px}
 <body>
 <canvas id="c"></canvas>
 <script>
+    const T = GameI18n({});
+
+
 'use strict';
 const canvas=document.getElementById('c');
 const ctx=canvas.getContext('2d');
 
 // ─── Constants ───
 const FRUITS=[
-  {emoji:'🍒',name:'체리',r:15,score:1,color:'#e74c3c'},
-  {emoji:'🍇',name:'포도',r:20,score:3,color:'#8e44ad'},
-  {emoji:'🍊',name:'귤',r:25,score:6,color:'#e67e22'},
-  {emoji:'🍋',name:'레몬',r:30,score:10,color:'#f1c40f'},
-  {emoji:'🍎',name:'사과',r:36,score:15,color:'#c0392b'},
-  {emoji:'🍐',name:'배',r:42,score:21,color:'#27ae60'},
-  {emoji:'🍑',name:'복숭아',r:48,score:28,color:'#fd79a8'},
-  {emoji:'🍍',name:'파인애플',r:55,score:36,color:'#fdcb6e'},
-  {emoji:'🍈',name:'멜론',r:62,score:45,color:'#00b894'},
-  {emoji:'🍉',name:'수박',r:70,score:55,color:'#d63031'},
-  {emoji:'👑',name:'골든',r:78,score:100,color:'#ffd700'}
+  {emoji:'🍒',name:_i18nLang==='ko'?'체리':'Cherry',r:15,score:1,color:'#e74c3c'},
+  {emoji:'🍇',name:_i18nLang==='ko'?'포도':'Grape',r:20,score:3,color:'#8e44ad'},
+  {emoji:'🍊',name:_i18nLang==='ko'?'귤':'Orange',r:25,score:6,color:'#e67e22'},
+  {emoji:'🍋',name:_i18nLang==='ko'?'레몬':'Lemon',r:30,score:10,color:'#f1c40f'},
+  {emoji:'🍎',name:_i18nLang==='ko'?'사과':'Apple',r:36,score:15,color:'#c0392b'},
+  {emoji:'🍐',name:_i18nLang==='ko'?'배':'Pear',r:42,score:21,color:'#27ae60'},
+  {emoji:'🍑',name:_i18nLang==='ko'?'복숭아':'Peach',r:48,score:28,color:'#fd79a8'},
+  {emoji:'🍍',name:_i18nLang==='ko'?'파인애플':'Pineapple',r:55,score:36,color:'#fdcb6e'},
+  {emoji:'🍈',name:_i18nLang==='ko'?'멜론':'Melon',r:62,score:45,color:'#00b894'},
+  {emoji:'🍉',name:_i18nLang==='ko'?'수박':'Watermelon',r:70,score:55,color:'#d63031'},
+  {emoji:'👑',name:_i18nLang==='ko'?'골든':'Golden',r:78,score:100,color:'#ffd700'}
 ];
 const GRAVITY=0.4;
 const DAMPING=0.98;
@@ -630,7 +633,7 @@ function drawTitle(){
   // Subtitle
   ctx.font='16px sans-serif';
   ctx.fillStyle='rgba(255,255,255,0.7)';
-  ctx.fillText('같은 과일을 합쳐 더 큰 과일을 만드세요!',W/2,H/2-20);
+  ctx.fillText(_i18nLang==='ko'?'같은 과일을 합쳐 더 큰 과일을 만드세요!':'Merge same fruits to make bigger ones!',W/2,H/2-20);
   // Fruit parade
   const emojis=['🍒','🍇','🍊','🍋','🍎','🍐','🍑','🍍','🍈','🍉','👑'];
   const totalW=emojis.length*30;
@@ -645,13 +648,13 @@ function drawTitle(){
   ctx.globalAlpha=alpha;
   ctx.fillStyle='#fff';
   ctx.font='18px sans-serif';
-  ctx.fillText('탭하여 시작',W/2,H/2+90);
+  ctx.fillText(_i18nLang==='ko'?'탭하여 시작':'Tap to Start',W/2,H/2+90);
   ctx.globalAlpha=1;
   // High score
   if(highScore>0){
     ctx.fillStyle='rgba(255,255,255,0.5)';
     ctx.font='14px sans-serif';
-    ctx.fillText(`🏆 최고 점수: ${highScore}`,W/2,H/2+125);
+    ctx.fillText(`🏆 ${_i18nLang==='ko'?'최고 점수':'High Score'}: ${highScore}`,W/2,H/2+125);
   }
   // Credits
   ctx.fillStyle='rgba(255,255,255,0.3)';
@@ -671,7 +674,7 @@ function drawGameOver(){
   // Score
   ctx.fillStyle='#fff';
   ctx.font='20px sans-serif';
-  ctx.fillText('점수',W/2,H/2-40);
+  ctx.fillText(_i18nLang==='ko'?'점수':'Score',W/2,H/2-40);
   ctx.font='bold 40px sans-serif';
   ctx.fillStyle='#ffd700';
   ctx.fillText(`${score}`,W/2,H/2);
@@ -684,7 +687,7 @@ function drawGameOver(){
   // Best
   ctx.fillStyle='rgba(255,255,255,0.6)';
   ctx.font='14px sans-serif';
-  ctx.fillText(`최고 점수: ${highScore}`,W/2,H/2+55);
+  ctx.fillText(`${_i18nLang==='ko'?'최고 점수':'High Score'}: ${highScore}`,W/2,H/2+55);
   // Restart button
   const btnX=W/2-70,btnY=H/2+75,btnW=140,btnH=44;
   const grad=ctx.createLinearGradient(btnX,btnY,btnX+btnW,btnY+btnH);

@@ -19,7 +19,7 @@ canvas{display:block;margin:0 auto;}
 </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/games/tg-sdk-wrapper.js?v=1769732782"></script>
+    <script src="/games/tg-sdk-wrapper.js?v=1769733061"></script>
 <script src="../i18n.js"></script>
 </head>
 <body>
@@ -85,26 +85,26 @@ function generateLevel(num){
     const goalType=Math.floor(r()*3);
     if(num<=10){
         // Tutorial: score goal
-        goal={type:'score',target:300+num*100,desc:`${300+num*100}점 달성`};
+        goal={type:'score',target:300+num*100,desc:_i18nLang==='ko'?`${300+num*100}점 달성`:`Score ${300+num*100}`};
     } else if(num<=30){
         if(goalType===0){
             const color=Math.floor(r()*GEM_TYPES);
             const count=10+Math.floor(r()*10);
-            goal={type:'clearColor',color,target:count,desc:`${GEM_NAMES[color]} ${count}개 제거`};
+            goal={type:'clearColor',color,target:count,desc:_i18nLang==='ko'?`${GEM_NAMES[color]} ${count}개 제거`:`Clear ${count} ${GEM_NAMES[color]}`};
         } else if(goalType===1){
-            goal={type:'crystals',target:2+Math.floor(num/10),desc:`크리스탈 ${2+Math.floor(num/10)}개 생성`};
+            goal={type:'crystals',target:2+Math.floor(num/10),desc:_i18nLang==='ko'?`크리스탈 ${2+Math.floor(num/10)}개 생성`:`Create ${2+Math.floor(num/10)} crystals`};
         } else {
-            goal={type:'score',target:500+num*80,desc:`${500+num*80}점 달성`};
+            goal={type:'score',target:500+num*80,desc:_i18nLang==='ko'?`${500+num*80}점 달성`:`Score ${500+num*80}`};
         }
     } else {
         if(goalType===0){
             const color=Math.floor(r()*GEM_TYPES);
             const count=15+Math.floor(r()*15);
-            goal={type:'clearColor',color,target:count,desc:`${GEM_NAMES[color]} ${count}개 제거`};
+            goal={type:'clearColor',color,target:count,desc:_i18nLang==='ko'?`${GEM_NAMES[color]} ${count}개 제거`:`Clear ${count} ${GEM_NAMES[color]}`};
         } else if(goalType===1){
-            goal={type:'crystals',target:3+Math.floor(num/15),desc:`크리스탈 ${3+Math.floor(num/15)}개 생성`};
+            goal={type:'crystals',target:3+Math.floor(num/15),desc:_i18nLang==='ko'?`크리스탈 ${3+Math.floor(num/15)}개 생성`:`Create ${3+Math.floor(num/15)} crystals`};
         } else {
-            goal={type:'score',target:800+num*100,desc:`${800+num*100}점 달성`};
+            goal={type:'score',target:800+num*100,desc:_i18nLang==='ko'?`${800+num*100}점 달성`:`Score ${800+num*100}`};
         }
     }
     // Star thresholds
@@ -294,7 +294,7 @@ function processMatches(callback){
                 particles.push({x:px,y:py,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,
                     life:1,color:GEM_COLORS[cellType],size:3+Math.random()*4,type:'spark'});
             }
-            addFloatingText(px,py,cellTier===1?'💥 행/열 클리어!':cellTier===2?'💥 범위 폭발!':'💥 전체 제거!','#fff',1.2);
+            addFloatingText(px,py,cellTier===1?_i18nLang==='ko'?'💥 행/열 클리어!':'💥 Row/Col Clear!':cellTier===2?_i18nLang==='ko'?'💥 범위 폭발!':'💥 Area Blast!':_i18nLang==='ko'?'💥 전체 제거!':'💥 Clear All!','#fff',1.2);
         }
         
         // Determine crystal creation
@@ -639,7 +639,7 @@ function startLevel(num){
 function startEndless(){
     currentLevel=0;
     movesLeft=9999;
-    levelGoal={type:'endless',desc:'최고 점수 도전!'};
+    levelGoal={type:'endless',desc:_i18nLang==='ko'?'최고 점수 도전!':'Beat your high score!'};
     score=0;combo=0;maxCombo=0;totalMoves=0;
     levelComplete=false;levelFailed=false;
     goalProgress={};crystalsCreated=0;
@@ -998,7 +998,7 @@ function drawHUD(time){
         }
         if(levelComplete){
             X.fillStyle='#44ff88';X.font='bold 12px sans-serif';
-            X.fillText('✓ 달성!',pbx+pbw+10,pby+10);
+            X.fillText(_i18nLang==='ko'?'✓ 달성!':'✓ Done!',pbx+pbw+10,pby+10);
         }
         
         // Moves
@@ -1006,7 +1006,7 @@ function drawHUD(time){
         X.textAlign='right';
         X.fillText(movesLeft,W-15,30);
         X.font='12px sans-serif';X.fillStyle='#aaa';
-        X.fillText('남은 이동',W-15,48);
+        X.fillText(_i18nLang==='ko'?'남은 이동':'Moves Left',W-15,48);
         
         // Score
         X.font='bold 18px sans-serif';X.fillStyle='#ffdd44';
@@ -1029,10 +1029,10 @@ function drawHUD(time){
         X.fillRect(0,0,W,70);
         
         X.font='bold 16px sans-serif';X.fillStyle='#bb44ff';X.textAlign='left';
-        X.fillText('♾ 무한 모드',15,25);
+        X.fillText(_i18nLang==='ko'?'♾ 무한 모드':'♾ Endless Mode',15,25);
         
         X.font='10px sans-serif';X.fillStyle='#888';
-        X.fillText('최고: '+endlessHighScore.toLocaleString(),15,45);
+        X.fillText(_i18nLang==='ko'?'최고: ':'Best: '+endlessHighScore.toLocaleString(),15,45);
         
         X.font='bold 22px sans-serif';X.fillStyle='#ffdd44';X.textAlign='center';
         X.fillText(score.toLocaleString(),W/2,35);
@@ -1041,7 +1041,7 @@ function drawHUD(time){
         
         // Back button
         X.font='14px sans-serif';X.fillStyle='#aaa';X.textAlign='right';
-        X.fillText('← 나가기',W-15,30);
+        X.fillText(_i18nLang==='ko'?'← 나가기':'← Exit',W-15,30);
     }
 }
 
@@ -1123,7 +1123,7 @@ function drawMenu(time){
     X.shadowBlur=0;
     
     X.font='14px sans-serif';X.fillStyle='#888';
-    X.fillText('Match-3 + Merge 하이브리드 퍼즐',W/2,H*0.2+70);
+    X.fillText(_i18nLang==='ko'?'Match-3 + Merge 하이브리드 퍼즐':'Match-3 + Merge Hybrid Puzzle',W/2,H*0.2+70);
     
     X.restore();
     
@@ -1133,12 +1133,12 @@ function drawMenu(time){
     
     // Level Mode
     const by1=H*0.45;
-    drawButton(btnX,by1,btnW,btnH,'🗺  레벨 모드','#667eea','#764ba2');
+    drawButton(btnX,by1,btnW,btnH,_i18nLang==='ko'?'🗺  레벨 모드':'🗺  Level Mode','#667eea','#764ba2');
     menuButtons.push({x:btnX,y:by1,w:btnW,h:btnH,action:()=>{state=ST_LEVEL_MAP;}});
     
     // Endless Mode
     const by2=H*0.45+70;
-    drawButton(btnX,by2,btnW,btnH,'♾  무한 모드','#4ECDC4','#44aa88');
+    drawButton(btnX,by2,btnW,btnH,_i18nLang==='ko'?'♾  무한 모드':'♾  Endless Mode','#4ECDC4','#44aa88');
     menuButtons.push({x:btnX,y:by2,w:btnW,h:btnH,action:startEndless});
     
     // High score
@@ -1439,6 +1439,9 @@ requestAnimationFrame(frame);
 
     <!-- Telegram Mini App Init -->
     <script>
+    const T = GameI18n({});
+
+
     (function() {
         if (typeof TG !== "undefined" && TG.isTelegram()) {
             TG.onBack(() => {

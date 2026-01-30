@@ -4,7 +4,7 @@
     <script data-goatcounter="https://jaygames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🎲 럭키 다이스 마스터</title>
+    <title>🎲 Lucky Dice Master</title>
     <style>
         * {
             margin: 0;
@@ -31,6 +31,9 @@
 <body>
     <canvas id="gameCanvas"></canvas>
     <script>
+    const T = GameI18n({});
+
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -70,19 +73,19 @@
             animFrame: 0,
             scoreCard: {},
             categories: [
-                { id: 'ones', name: '1️⃣ 원스', desc: '1의 합계' },
-                { id: 'twos', name: '2️⃣ 투스', desc: '2의 합계' },
-                { id: 'threes', name: '3️⃣ 쓰리스', desc: '3의 합계' },
-                { id: 'fours', name: '4️⃣ 포스', desc: '4의 합계' },
-                { id: 'fives', name: '5️⃣ 파이브스', desc: '5의 합계' },
-                { id: 'sixes', name: '6️⃣ 식스', desc: '6의 합계' },
-                { id: 'threeKind', name: '🎯 트리플', desc: '같은 눈 3개+' },
-                { id: 'fourKind', name: '🎯 포카드', desc: '같은 눈 4개+' },
-                { id: 'fullHouse', name: '🏠 풀하우스', desc: '3+2 조합' },
-                { id: 'smallStr', name: '📈 스몰 스트레이트', desc: '연속 4개' },
-                { id: 'largeStr', name: '📈 라지 스트레이트', desc: '연속 5개' },
-                { id: 'yahtzee', name: '🌟 야찌!', desc: '모두 같은 눈' },
-                { id: 'chance', name: '🎰 찬스', desc: '모든 눈 합계' }
+                { id: 'ones', name: _i18nLang==='ko'?'1️⃣ 원스':'1️⃣ Ones', desc: _i18nLang==='ko'?'1의 합계':'Sum of 1s' },
+                { id: 'twos', name: _i18nLang==='ko'?'2️⃣ 투스':'2️⃣ Twos', desc: _i18nLang==='ko'?'2의 합계':'Sum of 2s' },
+                { id: 'threes', name: _i18nLang==='ko'?'3️⃣ 쓰리스':'3️⃣ Threes', desc: _i18nLang==='ko'?'3의 합계':'Sum of 3s' },
+                { id: 'fours', name: _i18nLang==='ko'?'4️⃣ 포스':'4️⃣ Fours', desc: _i18nLang==='ko'?'4의 합계':'Sum of 4s' },
+                { id: 'fives', name: _i18nLang==='ko'?'5️⃣ 파이브스':'5️⃣ Fives', desc: _i18nLang==='ko'?'5의 합계':'Sum of 5s' },
+                { id: 'sixes', name: _i18nLang==='ko'?'6️⃣ 식스':'6️⃣ Sixes', desc: _i18nLang==='ko'?'6의 합계':'Sum of 6s' },
+                { id: 'threeKind', name: _i18nLang==='ko'?'🎯 트리플':'🎯 Three of a Kind', desc: _i18nLang==='ko'?'같은 눈 3개+':'3+ of same' },
+                { id: 'fourKind', name: _i18nLang==='ko'?'🎯 포카드':'🎯 Four of a Kind', desc: _i18nLang==='ko'?'같은 눈 4개+':'4+ of same' },
+                { id: 'fullHouse', name: _i18nLang==='ko'?'🏠 풀하우스':'🏠 Full House', desc: _i18nLang==='ko'?'3+2 조합':'3+2 combo' },
+                { id: 'smallStr', name: _i18nLang==='ko'?'📈 스몰 스트레이트':'📈 Small Straight', desc: _i18nLang==='ko'?'연속 4개':'4 in a row' },
+                { id: 'largeStr', name: _i18nLang==='ko'?'📈 라지 스트레이트':'📈 Large Straight', desc: _i18nLang==='ko'?'연속 5개':'5 in a row' },
+                { id: 'yahtzee', name: _i18nLang==='ko'?'🌟 야찌!':'🌟 Yahtzee!', desc: _i18nLang==='ko'?'모두 같은 눈':'All same' },
+                { id: 'chance', name: _i18nLang==='ko'?'🎰 찬스':'🎰 Chance', desc: _i18nLang==='ko'?'모든 눈 합계':'Sum of all' }
             ],
             scrollOffset: 0,
             gameOver: false,
@@ -276,21 +279,21 @@
             ctx.fillStyle = '#ffd700';
             ctx.font = 'bold 24px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText('🎲 럭키 다이스 마스터', canvas.width/2, 30);
+            ctx.fillText('🎲 Lucky Dice Master', canvas.width/2, 30);
             
             // Score & Round
             ctx.fillStyle = '#fff';
             ctx.font = '16px sans-serif';
             ctx.textAlign = 'left';
-            ctx.fillText(`라운드: ${game.round}/${game.maxRounds}`, 20, 60);
+            ctx.fillText(`${_i18nLang==='ko'?'라운드':'Round'}: ${game.round}/${game.maxRounds}`, 20, 60);
             ctx.textAlign = 'right';
-            ctx.fillText(`점수: ${game.totalScore}`, canvas.width - 20, 60);
+            ctx.fillText(`${_i18nLang==='ko'?'점수':'Score'}: ${game.totalScore}`, canvas.width - 20, 60);
             
             // High Score
             ctx.fillStyle = '#ffd700';
             ctx.font = '12px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(`🏆 최고: ${game.highScore}`, canvas.width/2, 60);
+            ctx.fillText(`🏆 ${_i18nLang==='ko'?'최고':'Best'}: ${game.highScore}`, canvas.width/2, 60);
             
             // Dice area
             const diceY = 100;
@@ -315,13 +318,13 @@
             ctx.fillStyle = '#fff';
             ctx.font = '14px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(`남은 굴림: ${'🎲'.repeat(game.rollsLeft)}${'⬜'.repeat(3-game.rollsLeft)}`, 
+            ctx.fillText(`${_i18nLang==='ko'?'남은 굴림':'Rolls left'}: ${'🎲'.repeat(game.rollsLeft)}${'⬜'.repeat(3-game.rollsLeft)}`, 
                 canvas.width/2, diceY + diceSize + 40);
             
             // Roll button
             const btnY = diceY + diceSize + 55;
             drawButton(canvas.width/2 - 80, btnY, 160, 45, 
-                game.rollsLeft === 3 ? '🎲 굴리기!' : `🎲 다시 굴리기 (${game.rollsLeft})`,
+                game.rollsLeft === 3 ? (_i18nLang==='ko'?'🎲 굴리기!':'🎲 Roll!') : (_i18nLang==='ko'?`🎲 다시 굴리기 (${game.rollsLeft})`:`🎲 Re-roll (${game.rollsLeft})`),
                 game.rollsLeft > 0 && !game.rolling && !game.gameOver);
             
             // Score categories

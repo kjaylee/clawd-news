@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Zen Tile Match - 젠 타일 매치</title>
+    <title>Zen Tile Match</title>
     <style>
         * {
             margin: 0;
@@ -420,20 +420,20 @@
     
     <div id="startScreen" class="game-container start-screen">
         <h1>🍃 Zen Tile Match</h1>
-        <p class="subtitle">같은 타일 3개를 찾아 매칭하세요</p>
+        <p class="subtitle" id="i18nSub">Find and match 3 identical tiles</p>
         <div class="emoji-display">🎋🌸🍵</div>
         
         <div class="level-select" id="levelSelect"></div>
         
         <button class="btn" style="background: linear-gradient(135deg, #66bb6a, #43a047); color: white; width: 200px; justify-content: center;" onclick="startGame()">
-            ▶️ 시작하기
+            <span id="i18nStart">▶️ Start</span>
         </button>
     </div>
     
     <div id="gameScreen" style="display: none;">
         <div class="header">
-            <div class="level-info">레벨 <span id="levelNum">1</span></div>
-            <div class="score-info">점수: <span id="score">0</span></div>
+            <div class="level-info" id="i18nLv">Level <span id="levelNum">1</span></div>
+            <div class="score-info" id="i18nSc">Score: <span id="score">0</span></div>
             <div class="stars" id="starsDisplay">☆☆☆</div>
         </div>
         
@@ -455,9 +455,9 @@
             </div>
             
             <div class="controls">
-                <button class="btn btn-undo" id="undoBtn" onclick="undoMove()">↩️ 되돌리기</button>
-                <button class="btn btn-hint" id="hintBtn" onclick="showHint()">💡 힌트</button>
-                <button class="btn btn-shuffle" id="shuffleBtn" onclick="shuffleBoard()">🔀 섞기</button>
+                <button class="btn btn-undo" id="undoBtn" onclick="undoMove()">↩️ Undo</button>
+                <button class="btn btn-hint" id="hintBtn" onclick="showHint()">💡 Hint</button>
+                <button class="btn btn-shuffle" id="shuffleBtn" onclick="shuffleBoard()">🔀 Shuffle</button>
             </div>
         </div>
     </div>
@@ -465,35 +465,51 @@
     <!-- Win Modal -->
     <div class="modal" id="winModal">
         <div class="modal-content">
-            <h2>🎉 레벨 클리어!</h2>
+            <h2 id="i18nClear">🎉 Level Clear!</h2>
             <div class="stars-display" id="winStars">⭐⭐⭐</div>
-            <p>점수: <span id="winScore">0</span></p>
-            <button class="btn" onclick="nextLevel()">다음 레벨 ➡️</button>
-            <button class="btn btn-secondary" onclick="showStartScreen()">레벨 선택</button>
+            <p id="i18nWS">Score: <span id="winScore">0</span></p>
+            <button class="btn" onclick="nextLevel()" id="i18nNext">Next Level ➡️</button>
+            <button class="btn btn-secondary" onclick="showStartScreen()" id="i18nLS">Level Select</button>
         </div>
     </div>
     
     <!-- Lose Modal -->
     <div class="modal" id="loseModal">
         <div class="modal-content">
-            <h2>😢 시간 초과!</h2>
-            <p>다시 도전해보세요</p>
-            <button class="btn" onclick="restartLevel()">🔄 다시 시도</button>
-            <button class="btn btn-secondary" onclick="showStartScreen()">레벨 선택</button>
+            <h2 id="i18nTO">😢 Time's Up!</h2>
+            <p id="i18nTry">Try again!</p>
+            <button class="btn" onclick="restartLevel()" id="i18nRetry">🔄 Try Again</button>
+            <button class="btn btn-secondary" onclick="showStartScreen()" id="i18nLS">Level Select</button>
         </div>
     </div>
     
     <!-- Game Over Modal (selection bar full) -->
     <div class="modal" id="gameOverModal">
         <div class="modal-content">
-            <h2>💫 게임 오버</h2>
-            <p>선택 바가 가득 찼어요!</p>
-            <button class="btn" onclick="restartLevel()">🔄 다시 시도</button>
-            <button class="btn btn-secondary" onclick="showStartScreen()">레벨 선택</button>
+            <h2 id="i18nGO">💫 Game Over</h2>
+            <p id="i18nFull">Selection bar is full!</p>
+            <button class="btn" onclick="restartLevel()" id="i18nRetry">🔄 Try Again</button>
+            <button class="btn btn-secondary" onclick="showStartScreen()" id="i18nLS">Level Select</button>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      sub:{en:'Find and match 3 identical tiles',ko:'같은 타일 3개를 찾아 매칭하세요'},
+      start:{en:'▶️ Start',ko:'▶️ 시작하기'}, clear:{en:'🎉 Level Clear!',ko:'🎉 레벨 클리어!'},
+      next:{en:'Next Level ➡️',ko:'다음 레벨 ➡️'}, ls:{en:'Level Select',ko:'레벨 선택'},
+      to:{en:"😢 Time's Up!",ko:'😢 시간 초과!'}, tryAgain:{en:'Try again!',ko:'다시 도전해보세요'},
+      retry:{en:'🔄 Try Again',ko:'🔄 다시 시도'}, go:{en:'💫 Game Over',ko:'💫 게임 오버'},
+      full:{en:'Selection bar is full!',ko:'선택 바가 가득 찼어요!'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nStart:'start',i18nClear:'clear',i18nNext:'next',i18nTO:'to',i18nTry:'tryAgain',i18nGO:'go',i18nFull:'full'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+      document.querySelectorAll('[id^="i18nLS"]').forEach(function(e){e.textContent=T('ls');});
+      document.querySelectorAll('[id^="i18nRetry"]').forEach(function(e){e.textContent=T('retry');});
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         // Game state
         let currentLevel = 1;
         let score = 0;

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>마이크로 팩토리 | Micro Factory</title>
+  <title>Micro Factory</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -202,14 +202,14 @@
 <body>
   <!-- Tutorial -->
   <div class="tutorial" id="tutorial">
-    <h2>🏭 마이크로 팩토리</h2>
-    <p>미니멀 공장 자동화 시뮬레이터!</p>
-    <p>⛏️ <strong>채굴기</strong>를 광석 위에 배치<br>
-       ➡️ <strong>컨베이어</strong>로 자원 이동<br>
-       🔥 <strong>제련소</strong>로 광석을 주괴로<br>
-       💰 <strong>판매소</strong>에서 골드 획득!</p>
-    <p style="color:#ffd700;">자동화 라인을 최적화하세요!</p>
-    <button onclick="startGame()">▶ 게임 시작</button>
+    <h2>🏭 Micro Factory</h2>
+    <p id="i18nSub">Minimal factory automation simulator!</p>
+    <p id="i18nH1">⛏️ Place <strong>Miners</strong> on ore<br>
+       ➡️ Move resources with <strong>Conveyors</strong><br>
+       🔥 <strong>Smelters</strong> turn ore into ingots<br>
+       💰 <strong>Sellers</strong> earn you gold!</p>
+    <p style="color:#ffd700;" id="i18nTip">Optimize your automation line!</p>
+    <button onclick="startGame()" id="i18nStart">▶ Start Game</button>
   </div>
   
   <!-- Header -->
@@ -269,6 +269,17 @@
   <div class="info-panel" id="infoPanel"></div>
 
   <script>
+    const T = GameI18n({
+      sub:{en:'Minimal factory automation simulator!',ko:'미니멀 공장 자동화 시뮬레이터!'},
+      tip:{en:'Optimize your automation line!',ko:'자동화 라인을 최적화하세요!'},
+      start:{en:'▶ Start Game',ko:'▶ 게임 시작'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nTip:'tip',i18nStart:'start'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
     // ============== AUDIO ENGINE ==============
     // Sound effects using Web Audio API
     // Credits: Procedurally generated sounds
@@ -347,8 +358,8 @@
       GRID_ROWS: 7,
       CELL_SIZE: 50,
       ITEMS: {
-        ironOre: { color: '#8a8a8a', name: '철광석', value: 1 },
-        copperOre: { color: '#cd7f32', name: '구리광석', value: 1 },
+        ironOre: { color: '#8a8a8a', name: _i18nLang==='ko'?'철광석':'Iron Ore', value: 1 },
+        copperOre: { color: '#cd7f32', name: _i18nLang==='ko'?'구리광석':'Copper Ore', value: 1 },
         ironIngot: { color: '#c0c0c0', name: '철주괴', value: 5 },
         copperIngot: { color: '#b87333', name: '구리주괴', value: 5 },
         gear: { color: '#606080', name: '톱니바퀴', value: 15 },

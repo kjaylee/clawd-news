@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>폴리곤 던전 서바이버 | Polygon Dungeon Survivor</title>
-    <meta name="description" content="POLYGON 스타일 로우폴리 던전에서 살아남는 뱀서라이크 로그라이크">
+    <title>Polygon Dungeon Survivor</title>
+    <meta name="description" content="Survive in a low-poly dungeon - vampire survivors style roguelike">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -189,7 +189,7 @@
                 <div id="timeDisplay">00:00</div>
             </div>
             <div>
-                <div id="killDisplay">처치: 0</div>
+                <div id="killDisplay" id="i18nKill">Kills: 0</div>
                 <div id="goldDisplay">💰 0</div>
             </div>
         </div>
@@ -197,26 +197,37 @@
         <div id="xpBar"><div id="xpFill"></div></div>
         <div id="hpBar"><div id="hpFill"></div></div>
         <div id="levelUpModal">
-            <h2>⚔️ 레벨 업!</h2>
+            <h2 id="i18nLvUp">⚔️ Level Up!</h2>
             <div id="upgradeOptions"></div>
         </div>
         <div id="startScreen">
-            <h1>🏰 폴리곤 던전 서바이버</h1>
-            <p style="color:#888">무한히 밀려오는 적들을 처치하고 생존하라!</p>
-            <button class="start-btn" onclick="startGame()">게임 시작</button>
-            <p style="color:#666;font-size:12px">이동: WASD / 방향키 / 터치</p>
+            <h1>🏰 Polygon Dungeon Survivor</h1>
+            <p style="color:#888" id="i18nSub">Slay endless enemies and survive!</p>
+            <button class="start-btn" onclick="startGame()" id="i18nStart">Start Game</button>
+            <p style="color:#666;font-size:12px" id="i18nCtrl">Move: WASD / Arrow keys / Touch</p>
         </div>
         <div id="gameOverScreen" style="display:none">
-            <h1>💀 게임 오버</h1>
+            <h1>💀 Game Over</h1>
             <div class="stats">
-                <p id="finalTime">생존 시간: 00:00</p>
-                <p id="finalKills">처치 수: 0</p>
-                <p id="finalLevel">도달 레벨: 1</p>
+                <p id="finalTime" id="i18nTime">Survival: 00:00</p>
+                <p id="finalKills" id="i18nKills">Kills: 0</p>
+                <p id="finalLevel" id="i18nFLv">Level: 1</p>
             </div>
-            <button class="start-btn" onclick="startGame()">다시 시작</button>
+            <button class="start-btn" onclick="startGame()" id="i18nRestart">Restart</button>
         </div>
     </div>
     <script>
+    const T = GameI18n({
+      sub:{en:'Slay endless enemies and survive!',ko:'무한히 밀려오는 적들을 처치하고 생존하라!'},
+      start:{en:'Start Game',ko:'게임 시작'}, ctrl:{en:'Move: WASD / Arrow keys / Touch',ko:'이동: WASD / 방향키 / 터치'},
+      restart:{en:'Restart',ko:'다시 시작'}, lvUp:{en:'⚔️ Level Up!',ko:'⚔️ 레벨 업!'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nStart:'start',i18nCtrl:'ctrl',i18nRestart:'restart',i18nLvUp:'lvUp'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
     
@@ -253,21 +264,21 @@
     
     // Weapon types
     const WEAPONS = {
-        sword: { name: '검', icon: '⚔️', damage: 25, cooldown: 800, range: 60, type: 'melee' },
-        bow: { name: '활', icon: '🏹', damage: 15, cooldown: 500, range: 200, type: 'ranged', speed: 8 },
-        magic: { name: '마법', icon: '✨', damage: 20, cooldown: 1200, range: 120, type: 'aoe', radius: 80 },
-        orb: { name: '오브', icon: '🔮', damage: 10, cooldown: 300, range: 150, type: 'orbit' },
-        lightning: { name: '번개', icon: '⚡', damage: 35, cooldown: 1500, range: 180, type: 'chain' }
+        sword: { name: _i18nLang==='ko'?'검':'Sword', icon: '⚔️', damage: 25, cooldown: 800, range: 60, type: 'melee' },
+        bow: { name: _i18nLang==='ko'?'활':'Bow', icon: '🏹', damage: 15, cooldown: 500, range: 200, type: 'ranged', speed: 8 },
+        magic: { name: _i18nLang==='ko'?'마법':'Magic', icon: '✨', damage: 20, cooldown: 1200, range: 120, type: 'aoe', radius: 80 },
+        orb: { name: _i18nLang==='ko'?'오브':'Orb', icon: '🔮', damage: 10, cooldown: 300, range: 150, type: 'orbit' },
+        lightning: { name: _i18nLang==='ko'?'번개':'Lightning', icon: '⚡', damage: 35, cooldown: 1500, range: 180, type: 'chain' }
     };
     
     // Upgrades
     const UPGRADES = [
-        { id: 'sword', name: '검 강화', desc: '근접 검 획득/강화', weapon: 'sword' },
-        { id: 'bow', name: '활 강화', desc: '원거리 화살 획득/강화', weapon: 'bow' },
-        { id: 'magic', name: '마법 강화', desc: '범위 마법 획득/강화', weapon: 'magic' },
-        { id: 'orb', name: '오브 강화', desc: '회전 오브 획득/강화', weapon: 'orb' },
-        { id: 'lightning', name: '번개 강화', desc: '연쇄 번개 획득/강화', weapon: 'lightning' },
-        { id: 'speed', name: '이동 속도', desc: '이동 속도 +15%', stat: 'speed', value: 0.15 },
+        { id: 'sword', name: _i18nLang==='ko'?'검 강화':'Sword Upgrade', desc: _i18nLang==='ko'?'근접 검 획득/강화':'Get/upgrade melee sword', weapon: 'sword' },
+        { id: 'bow', name: _i18nLang==='ko'?'활 강화':'Bow Upgrade', desc: _i18nLang==='ko'?'원거리 화살 획득/강화':'Get/upgrade ranged arrows', weapon: 'bow' },
+        { id: 'magic', name: _i18nLang==='ko'?'마법 강화':'Magic Upgrade', desc: _i18nLang==='ko'?'범위 마법 획득/강화':'Get/upgrade AoE magic', weapon: 'magic' },
+        { id: 'orb', name: _i18nLang==='ko'?'오브 강화':'Orb Upgrade', desc: _i18nLang==='ko'?'회전 오브 획득/강화':'Get/upgrade orbiting orb', weapon: 'orb' },
+        { id: 'lightning', name: _i18nLang==='ko'?'번개 강화':'Lightning Upgrade', desc: _i18nLang==='ko'?'연쇄 번개 획득/강화':'Get/upgrade chain lightning', weapon: 'lightning' },
+        { id: 'speed', name: _i18nLang==='ko'?'이동 속도':'Move Speed', desc: _i18nLang==='ko'?'이동 속도 +15%':'Move speed +15%', stat: 'speed', value: 0.15 },
         { id: 'maxHp', name: '체력 증가', desc: '최대 체력 +20', stat: 'maxHp', value: 20 },
         { id: 'regen', name: '재생력', desc: '초당 HP 회복 +0.5', stat: 'regen', value: 0.5 },
         { id: 'magnet', name: '자석', desc: '아이템 수집 범위 +20', stat: 'magnet', value: 20 },

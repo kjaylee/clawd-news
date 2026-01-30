@@ -4,7 +4,7 @@
     <script data-goatcounter="https://jaygames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>⛳ 싱글탭 골프</title>
+    <title>⛳ Single Tap Golf</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -83,35 +83,45 @@
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="ui">
-            <div>🏌️ 스트로크: <span id="strokes">0</span></div>
-            <div>📊 총 타수: <span id="totalStrokes">0</span></div>
+            <div id="i18nStr">🏌️ Strokes: <span id="strokes">0</span></div>
+            <div id="i18nTotal">📊 Total: <span id="totalStrokes">0</span></div>
         </div>
         <div id="holeInfo">
-            <div>홀 <span id="holeNum">1</span>/9</div>
+            <div id="i18nHole">Hole <span id="holeNum">1</span>/9</div>
             <div>Par <span id="par">3</span></div>
         </div>
         <div id="message"></div>
         <div id="startScreen">
-            <h1>⛳ 싱글탭 골프</h1>
-            <p style="margin-bottom: 20px; opacity: 0.8;">9홀 미니 골프</p>
-            <button onclick="startGame()">게임 시작</button>
+            <h1>⛳ Single Tap Golf</h1>
+            <p style="margin-bottom: 20px; opacity: 0.8;" id="i18nSub">9-Hole Mini Golf</p>
+            <button onclick="startGame()" id="i18nStart">Start Game</button>
             <div class="guide">
-                🎯 화면 터치 → 공 반대 방향으로 발사<br>
-                ⏱️ 롱터치로 파워 게이지 조절<br>
-                💪 원하는 파워에서 손 떼기!
+                <span id="i18nHow">🎯 Touch screen → Ball fires opposite direction<br>
+                ⏱️ Long press to adjust power<br>
+                💪 Release at desired power!</span>
             </div>
         </div>
         <div id="endScreen">
-            <h1>🏆 라운드 완료!</h1>
+            <h1 id="i18nDone">🏆 Round Complete!</h1>
             <div style="margin: 20px 0; font-size: 1.3em;">
-                <div>총 타수: <span id="finalStrokes">0</span></div>
+                <div id="i18nFT">Total Strokes: <span id="finalStrokes">0</span></div>
                 <div id="scoreText"></div>
             </div>
-            <button onclick="startGame()">다시 플레이</button>
+            <button onclick="startGame()" id="i18nReplay">Play Again</button>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      sub:{en:'9-Hole Mini Golf',ko:'9홀 미니 골프'}, start:{en:'Start Game',ko:'게임 시작'},
+      done:{en:'🏆 Round Complete!',ko:'🏆 라운드 완료!'}, replay:{en:'Play Again',ko:'다시 플레이'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nStart:'start',i18nDone:'done',i18nReplay:'replay'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -308,7 +318,7 @@
                 
                 if (ball.x > ox && ball.x < ox + ow && ball.y > oy && ball.y < oy + oh) {
                     if (obs.type === 'water') {
-                        showMessage('💦 워터!');
+                        showMessage(_i18nLang==='ko'?'💦 워터!':'💦 Water!');
                         ball.x = hole.ballStart.x * canvas.width;
                         ball.y = hole.ballStart.y * canvas.height;
                         ball.vx = 0;
@@ -370,11 +380,11 @@
             const diff = game.strokes - hole.par;
             
             let msg = '';
-            if (game.strokes === 1) msg = '🎉 홀인원!!!';
-            else if (diff <= -2) msg = '🦅 이글!';
-            else if (diff === -1) msg = '🐦 버디!';
-            else if (diff === 0) msg = '👍 파!';
-            else if (diff === 1) msg = '😅 보기';
+            if (game.strokes === 1) msg = _i18nLang==='ko'?'🎉 홀인원!!!':'🎉 Hole-in-One!!!';
+            else if (diff <= -2) msg = _i18nLang==='ko'?'🦅 이글!':'🦅 Eagle!';
+            else if (diff === -1) msg = _i18nLang==='ko'?'🐦 버디!':'🐦 Birdie!';
+            else if (diff === 0) msg = _i18nLang==='ko'?'👍 파!':'👍 Par!';
+            else if (diff === 1) msg = _i18nLang==='ko'?'😅 보기':'😅 Bogey';
             else msg = '😓 +' + diff;
             
             showMessage(msg);
@@ -407,9 +417,9 @@
             const diff = game.totalStrokes - totalPar;
             
             let scoreText = '';
-            if (diff < 0) scoreText = `🏆 ${Math.abs(diff)} 언더파!`;
-            else if (diff === 0) scoreText = '👍 이븐파!';
-            else scoreText = `📊 ${diff} 오버파`;
+            if (diff < 0) scoreText = `🏆 ${Math.abs(diff)} ${_i18nLang==='ko'?'언더파':'Under Par'}!`;
+            else if (diff === 0) scoreText = _i18nLang==='ko'?'👍 이븐파!':'👍 Even Par!';
+            else scoreText = `📊 ${diff} ${_i18nLang==='ko'?'오버파':'Over Par'}`;
             
             document.getElementById('finalStrokes').textContent = game.totalStrokes;
             document.getElementById('scoreText').textContent = scoreText;

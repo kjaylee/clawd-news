@@ -249,28 +249,28 @@
     </div>
     
     <div id="altitude">🏔️ 0m</div>
-    <div class="phase-indicator" id="phase">☀️ 낮</div>
+    <div class="phase-indicator" id="phase" id="i18nPhase">☀️ Day</div>
     
     <div id="powerups" class="hidden">
-      <button class="powerup-btn" id="pwMagnet" title="자석 - 자동 정렬">🧲<span class="powerup-count">3</span></button>
-      <button class="powerup-btn" id="pwSlow" title="슬로우 - 속도 감소">⏱️<span class="powerup-count">3</span></button>
-      <button class="powerup-btn" id="pwDouble" title="2배 점수">✨<span class="powerup-count">3</span></button>
+      <button class="powerup-btn" id="pwMagnet" title="Magnet - Auto align">🧲<span class="powerup-count">3</span></button>
+      <button class="powerup-btn" id="pwSlow" title="Slow - Speed down">⏱️<span class="powerup-count">3</span></button>
+      <button class="powerup-btn" id="pwDouble" title="Double score">✨<span class="powerup-count">3</span></button>
     </div>
     
     <div id="perfectText">PERFECT!</div>
     
     <div id="menu">
       <h1>🏗️ <span>Infinite Stack</span></h1>
-      <p>하늘 끝까지 쌓아 올라가세요!<br>완벽한 타이밍에 탭하면 콤보 보너스!</p>
+      <p id="i18nDesc">Stack to the sky!<br>Tap with perfect timing for combo bonus!</p>
       <button class="btn btn-play" onclick="startGame()">▶ PLAY</button>
-      <p style="margin-top:15px">🏆 최고 기록: <span id="menuBest">0</span></p>
+      <p style="margin-top:15px" id="i18nBest">🏆 Best: <span id="menuBest">0</span></p>
       <div class="how-to-play">
-        <h3>🎮 조작법</h3>
+        <h3 id="i18nHow">🎮 Controls</h3>
         <ul>
-          <li><strong>탭/클릭</strong> - 블록 배치</li>
-          <li><strong>Perfect</strong> - 콤보 누적, 블록 확장</li>
-          <li>높이 올라갈수록 속도 증가!</li>
-          <li>배경이 낮→저녁→밤→우주로 변해요</li>
+          <li>Tap/Click - Place block</li>
+          <li>Perfect - Combo, block expand</li>
+          <li>Speed increases with height!</li>
+          <li>Background changes: Day→Sunset→Night→Space</li>
         </ul>
       </div>
     </div>
@@ -278,12 +278,12 @@
     <div id="gameover" class="hidden">
       <h1>GAME OVER</h1>
       <div id="finalScore">0</div>
-      <div id="finalHeight">최고 높이: 0m</div>
+      <div id="finalHeight" id="i18nFH">Best Height: 0m</div>
       <div id="bestScore">Best: 0</div>
       <div id="newBest" class="hidden">🎉 NEW RECORD!</div>
       <div class="stats-row">
         <div class="stat">
-          <div class="stat-label">최대 콤보</div>
+          <div class="stat-label" id="i18nMC">Max Combo</div>
           <div class="stat-value" id="maxCombo">0</div>
         </div>
         <div class="stat">
@@ -296,6 +296,16 @@
   </div>
 
   <script>
+    const T = GameI18n({
+      desc:{en:'Stack to the sky!<br>Tap with perfect timing for combo bonus!',ko:'하늘 끝까지 쌓아 올라가세요!<br>완벽한 타이밍에 탭하면 콤보 보너스!'},
+      mc:{en:'Max Combo',ko:'최대 콤보'}
+    });
+    (function(){var s=function(){
+      document.getElementById('i18nDesc').innerHTML=T('desc');
+      document.getElementById('i18nMC').textContent=T('mc');
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
     
@@ -330,10 +340,10 @@
         comboRequired: 3,
       },
       phases: [
-        { name: '☀️ 낮', minHeight: 0, colors: ['#87CEEB', '#E0F6FF'], buildingColor: '#2d3436' },
-        { name: '🌅 저녁', minHeight: 30, colors: ['#ff7e5f', '#feb47b'], buildingColor: '#1a1a2e' },
-        { name: '🌙 밤', minHeight: 60, colors: ['#0f0c29', '#302b63', '#24243e'], buildingColor: '#0a0a15' },
-        { name: '🚀 우주', minHeight: 100, colors: ['#000000', '#0a0a20', '#1a0a30'], buildingColor: '#05050a' },
+        { name: _i18nLang==='ko'?'☀️ 낮':'☀️ Day', minHeight: 0, colors: ['#87CEEB', '#E0F6FF'], buildingColor: '#2d3436' },
+        { name: _i18nLang==='ko'?'🌅 저녁':'🌅 Sunset', minHeight: 30, colors: ['#ff7e5f', '#feb47b'], buildingColor: '#1a1a2e' },
+        { name: _i18nLang==='ko'?'🌙 밤':'🌙 Night', minHeight: 60, colors: ['#0f0c29', '#302b63', '#24243e'], buildingColor: '#0a0a15' },
+        { name: _i18nLang==='ko'?'🚀 우주':'🚀 Space', minHeight: 100, colors: ['#000000', '#0a0a20', '#1a0a30'], buildingColor: '#05050a' },
       ]
     };
 
@@ -635,7 +645,7 @@
       }
       
       document.getElementById('finalScore').textContent = score;
-      document.getElementById('finalHeight').textContent = `최고 높이: ${(tower.length - 1) * 3}m`;
+      document.getElementById('finalHeight').textContent = `${_i18nLang==='ko'?'최고 높이':'Best Height'}: ${(tower.length - 1) * 3}m`;
       document.getElementById('bestScore').textContent = `Best: ${bestScore}`;
       document.getElementById('newBest').classList.toggle('hidden', !isNewBest);
       document.getElementById('maxCombo').textContent = maxCombo;

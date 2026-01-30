@@ -4,7 +4,7 @@
     <script data-goatcounter="https://jaygames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🗼 머지 몬스터 타워</title>
+    <title>🗼 Merge Monster Tower</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -86,37 +86,47 @@
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         <div id="ui">
-            <div>🏆 점수: <span id="score">0</span></div>
-            <div>⭐ 최고 Lv: <span id="maxLevel">1</span></div>
+            <div id="i18nSc">🏆 Score: <span id="score">0</span></div>
+            <div id="i18nLv">⭐ Best Lv: <span id="maxLevel">1</span></div>
         </div>
         <div id="nextMonster">
-            다음<br>
+            Next<br>
             <span id="nextEmoji" style="font-size: 2em;">🟢</span>
         </div>
         <div id="startScreen">
-            <h1>🗼 머지 몬스터 타워</h1>
+            <h1>🗼 Merge Monster Tower</h1>
             <div class="monster-preview">
                 <span>🟢</span><span>🔵</span><span>🟣</span><span>🟠</span><span>🔴</span><span>⭐</span><span>👑</span>
             </div>
-            <p style="opacity: 0.8;">같은 몬스터를 합쳐서 진화시켜라!</p>
-            <button onclick="startGame()">게임 시작</button>
+            <p style="opacity: 0.8;" id="i18nSub">Merge same monsters to evolve them!</p>
+            <button onclick="startGame()" id="i18nStart">Start Game</button>
             <div class="guide">
-                터치/클릭으로 몬스터 드롭<br>
-                같은 레벨끼리 합치면 진화!<br>
-                화면 위로 넘치면 게임오버
+                <span id="i18nHow">Touch/click to drop monsters<br>
+                Same level merges = Evolution!<br>
+                Overflow = Game Over</span>
             </div>
         </div>
         <div id="gameOverScreen">
-            <h1>💀 게임 오버</h1>
+            <h1>💀 Game Over</h1>
             <div style="margin: 20px 0;">
-                <div>최종 점수: <span id="finalScore">0</span></div>
-                <div>최고 레벨: <span id="finalLevel">1</span></div>
+                <div id="i18nFS">Final Score: <span id="finalScore">0</span></div>
+                <div id="i18nFL">Best Level: <span id="finalLevel">1</span></div>
             </div>
-            <button onclick="startGame()">다시 하기</button>
+            <button onclick="startGame()" id="i18nRetry">Retry</button>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      sub:{en:'Merge same monsters to evolve them!',ko:'같은 몬스터를 합쳐서 진화시켜라!'},
+      start:{en:'Start Game',ko:'게임 시작'}, retry:{en:'Retry',ko:'다시 하기'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nStart:'start',i18nRetry:'retry'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
 

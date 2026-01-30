@@ -4,7 +4,7 @@
     <script data-goatcounter="https://jaygames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>🐾 AI 펫 시뮬레이터</title>
+    <title>🐾 AI Pet Simulator</title>
     <style>
         * {
             margin: 0;
@@ -346,7 +346,7 @@
 <body>
     <div class="game-container">
         <div class="header">
-            <h1>🐾 AI 펫 시뮬레이터</h1>
+            <h1>🐾 AI Pet Simulator</h1>
             <div class="level-info">
                 <span class="level-badge">Lv. <span id="level">1</span></span>
                 <div class="exp-bar">
@@ -359,7 +359,7 @@
         <div class="pet-area" id="petArea">
             <div class="pet-display">
                 <span class="pet-emoji" id="petEmoji">🐱</span>
-                <div class="pet-name" id="petName">냥이</div>
+                <div class="pet-name" id="petName" id="i18nPetName">Kitty</div>
             </div>
             <div class="mood-bubble" id="moodBubble">😊</div>
             <div class="sleeping-overlay" id="sleepingOverlay">
@@ -371,28 +371,28 @@
         <div class="stats-container">
             <div class="stat-item">
                 <div class="stat-icon">🍖</div>
-                <div class="stat-name">배고픔</div>
+                <div class="stat-name" id="i18nStat1">Hunger</div>
                 <div class="stat-bar">
                     <div class="stat-fill hunger" id="hungerBar" style="width: 80%"></div>
                 </div>
             </div>
             <div class="stat-item">
                 <div class="stat-icon">💖</div>
-                <div class="stat-name">행복도</div>
+                <div class="stat-name" id="i18nStat2">Happiness</div>
                 <div class="stat-bar">
                     <div class="stat-fill happiness" id="happinessBar" style="width: 80%"></div>
                 </div>
             </div>
             <div class="stat-item">
                 <div class="stat-icon">⚡</div>
-                <div class="stat-name">에너지</div>
+                <div class="stat-name" id="i18nStat3">Energy</div>
                 <div class="stat-bar">
                     <div class="stat-fill energy" id="energyBar" style="width: 80%"></div>
                 </div>
             </div>
             <div class="stat-item">
                 <div class="stat-icon">✨</div>
-                <div class="stat-name">청결도</div>
+                <div class="stat-name" id="i18nStat4">Cleanliness</div>
                 <div class="stat-bar">
                     <div class="stat-fill cleanliness" id="cleanlinessBar" style="width: 80%"></div>
                 </div>
@@ -402,34 +402,50 @@
         <div class="buttons-container">
             <button class="action-btn btn-feed" id="feedBtn" onclick="feed()">
                 <span class="btn-icon">🍖</span>
-                <span>먹이주기</span>
+                <span id="i18nA1">Feed</span>
             </button>
             <button class="action-btn btn-play" id="playBtn" onclick="play()">
                 <span class="btn-icon">🎾</span>
-                <span>놀아주기</span>
+                <span id="i18nA2">Play</span>
             </button>
             <button class="action-btn btn-sleep" id="sleepBtn" onclick="sleep()">
                 <span class="btn-icon">😴</span>
-                <span>재우기</span>
+                <span id="i18nA3">Sleep</span>
             </button>
             <button class="action-btn btn-clean" id="cleanBtn" onclick="clean()">
                 <span class="btn-icon">🛁</span>
-                <span>씻기기</span>
+                <span id="i18nA4">Bathe</span>
             </button>
         </div>
         
         <div class="message-area" id="messageArea">
-            냥이가 당신을 반갑게 맞이해요! 🐱
+            <span id="i18nWelcome">Kitty greets you warmly! 🐱</span>
         </div>
     </div>
     
     <div class="death-screen" id="deathScreen" style="display: none;">
-        <h2>😢 펫이 떠났어요...</h2>
-        <p>펫의 상태를 잘 관리해주세요</p>
-        <button class="restart-btn" onclick="restartGame()">다시 시작하기</button>
+        <h2 id="i18nLeft">😢 Your pet left...</h2>
+        <p id="i18nCare">Take good care of your pet!</p>
+        <button class="restart-btn" onclick="restartGame()" id="i18nRestart">Start Over</button>
     </div>
 
     <script>
+    const T = GameI18n({
+      petName:{en:'Kitty',ko:'냥이'}, stat1:{en:'Hunger',ko:'배고픔'}, stat2:{en:'Happiness',ko:'행복도'},
+      stat3:{en:'Energy',ko:'에너지'}, stat4:{en:'Cleanliness',ko:'청결도'},
+      a1:{en:'Feed',ko:'먹이주기'}, a2:{en:'Play',ko:'놀아주기'}, a3:{en:'Sleep',ko:'재우기'}, a4:{en:'Bathe',ko:'씻기기'},
+      welcome:{en:'Kitty greets you warmly! 🐱',ko:'냥이가 당신을 반갑게 맞이해요! 🐱'},
+      left:{en:'😢 Your pet left...',ko:'😢 펫이 떠났어요...'}, care:{en:'Take good care of your pet!',ko:'펫의 상태를 잘 관리해주세요'},
+      restart:{en:'Start Over',ko:'다시 시작하기'}
+    });
+    (function(){var s=function(){
+      var ids={i18nPetName:'petName',i18nStat1:'stat1',i18nStat2:'stat2',i18nStat3:'stat3',i18nStat4:'stat4',
+        i18nA1:'a1',i18nA2:'a2',i18nA3:'a3',i18nA4:'a4',i18nLeft:'left',i18nCare:'care',i18nRestart:'restart'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+      var w=document.getElementById('i18nWelcome');if(w)w.textContent=T('welcome');
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         // 게임 상태
         const gameState = {
             hunger: 80,
@@ -442,13 +458,13 @@
             isSleeping: false,
             isAlive: true,
             petType: '🐱',
-            petName: '냥이'
+            petName: _i18nLang==='ko'?'냥이':'Kitty'
         };
         
         // 펫 종류 (레벨에 따라 진화)
         const petEvolutions = [
-            { emoji: '🐱', name: '냥이' },
-            { emoji: '🐈', name: '고양이' },
+            { emoji: '🐱', name: _i18nLang==='ko'?'냥이':'Kitty' },
+            { emoji: '🐈', name: _i18nLang==='ko'?'고양이':'Cat' },
             { emoji: '🦁', name: '사자냥이' },
             { emoji: '🐯', name: '호랭이' },
             { emoji: '🦄', name: '유니콘' }

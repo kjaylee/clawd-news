@@ -4,10 +4,10 @@
     <script data-goatcounter="https://jaygames.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>🟢 슬라임 서바이버</title>
+    <title>🟢 Slime Survivor</title>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="/games/tg-sdk-wrapper.js?v=1769732782"></script>
+    <script src="/games/tg-sdk-wrapper.js?v=1769733061"></script>
     <!--
         🎨 에셋 출처 (Asset Credits):
         - 모든 그래픽: Custom Pixel Art Sprites (CC0 스타일)
@@ -196,37 +196,47 @@
         <canvas id="gameCanvas"></canvas>
         <div id="ui">
             <div>⏱️ <span id="time">0:00</span></div>
-            <div>💀 처치: <span id="kills">0</span></div>
+            <div id="i18nKills">💀 Kills: <span id="kills">0</span></div>
             <div>⭐ Lv.<span id="level">1</span></div>
             <div id="xpBar"><div id="xpFill"></div></div>
         </div>
         <div id="startScreen">
-            <h1>🟢 슬라임 서바이버</h1>
-            <p style="margin-bottom: 30px; opacity: 0.8;">픽셀 아트 에디션</p>
-            <button onclick="startGame()">게임 시작</button>
+            <h1>🟢 Slime Survivor</h1>
+            <p style="margin-bottom: 30px; opacity: 0.8;" id="i18nSub">Pixel Art Edition</p>
+            <button onclick="startGame()" id="i18nStart">Start Game</button>
             <div class="controls">
-                🖱️ 마우스/터치로 이동<br>
-                ⚔️ 자동 공격!
+                <span id="i18nHow">🖱️ Move with mouse/touch<br>
+                ⚔️ Auto attack!</span>
             </div>
         </div>
         <div id="gameOverScreen">
-            <h1>💀 게임 오버</h1>
+            <h1>💀 Game Over</h1>
             <div class="stats">
-                <div>생존 시간: <span id="finalTime">0:00</span></div>
-                <div>처치 수: <span id="finalKills">0</span></div>
-                <div>도달 레벨: <span id="finalLevel">1</span></div>
+                <div id="i18nFT">Survival: <span id="finalTime">0:00</span></div>
+                <div id="i18nFK">Kills: <span id="finalKills">0</span></div>
+                <div id="i18nFL">Level: <span id="finalLevel">1</span></div>
             </div>
-            <button onclick="restartGame()">🔄 다시 하기</button>
-            <button onclick="shareSlimeScore()" style="background:linear-gradient(135deg,#27ae60,#2ecc71);margin-top:8px;">📢 점수 공유</button>
-            <button onclick="goToLauncher()" style="background:rgba(255,255,255,0.15);margin-top:8px;">🏠 게임 목록</button>
+            <button onclick="restartGame()" id="i18nRetry">🔄 Retry</button>
+            <button onclick="shareSlimeScore()" style="background:linear-gradient(135deg,#27ae60,#2ecc71);margin-top:8px;">📢 Share Score</button>
+            <button onclick="goToLauncher()" style="background:rgba(255,255,255,0.15);margin-top:8px;">🏠 Game List</button>
         </div>
         <div id="upgradeScreen">
-            <h2 style="margin-bottom: 20px; color: #00ff88;">⬆️ 레벨 업!</h2>
+            <h2 style="margin-bottom: 20px; color: #00ff88;" id="i18nLvUp">⬆️ Level Up!</h2>
             <div class="upgrade-options" id="upgradeOptions"></div>
         </div>
     </div>
 
     <script>
+    const T = GameI18n({
+      sub:{en:'Pixel Art Edition',ko:'픽셀 아트 에디션'}, start:{en:'Start Game',ko:'게임 시작'},
+      retry:{en:'🔄 Retry',ko:'🔄 다시 하기'}, lvUp:{en:'⬆️ Level Up!',ko:'⬆️ 레벨 업!'}
+    });
+    (function(){var s=function(){
+      var ids={i18nSub:'sub',i18nStart:'start',i18nRetry:'retry',i18nLvUp:'lvUp'};
+      for(var id in ids){var e=document.getElementById(id);if(e)e.textContent=T(ids[id]);}
+    };if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',s);else s();})();
+
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
@@ -546,14 +556,14 @@
 
         // 업그레이드 옵션들
         const upgradeOptions = [
-            { icon: '⚔️', name: '공격력', desc: '+5 데미지', apply: () => weapons.main.damage += 5 },
-            { icon: '🔥', name: '공속', desc: '-50ms 쿨타임', apply: () => weapons.main.fireRate = Math.max(100, weapons.main.fireRate - 50) },
-            { icon: '👟', name: '이동속도', desc: '+0.5 속도', apply: () => player.speed += 0.5 },
-            { icon: '❤️', name: '체력', desc: '+25 최대체력', apply: () => { player.maxHp += 25; player.hp = Math.min(player.hp + 25, player.maxHp); }},
-            { icon: '🔮', name: '관통', desc: '+1 관통', apply: () => weapons.main.piercing += 1 },
-            { icon: '🌀', name: '오비탈', desc: '궤도 무기', apply: () => weapons.orbitals.count = Math.min(8, weapons.orbitals.count + 1) },
-            { icon: '📍', name: '궤도 반경', desc: '+15 반경', apply: () => weapons.orbitals.radius += 15 },
-            { icon: '💫', name: '오비탈 속도', desc: '+50% 회전속도', apply: () => weapons.orbitals.speed *= 1.5 },
+            { icon: '⚔️', name: _i18nLang==='ko'?'공격력':'Attack', desc: _i18nLang==='ko'?'+5 데미지':'+5 damage', apply: () => weapons.main.damage += 5 },
+            { icon: '🔥', name: _i18nLang==='ko'?'공속':'Attack Speed', desc: _i18nLang==='ko'?'-50ms 쿨타임':'-50ms cooldown', apply: () => weapons.main.fireRate = Math.max(100, weapons.main.fireRate - 50) },
+            { icon: '👟', name: _i18nLang==='ko'?'이동속도':'Move Speed', desc: _i18nLang==='ko'?'+0.5 속도':'+0.5 speed', apply: () => player.speed += 0.5 },
+            { icon: '❤️', name: _i18nLang==='ko'?'체력':'Health', desc: _i18nLang==='ko'?'+25 최대체력':'+25 max HP', apply: () => { player.maxHp += 25; player.hp = Math.min(player.hp + 25, player.maxHp); }},
+            { icon: '🔮', name: _i18nLang==='ko'?'관통':'Piercing', desc: _i18nLang==='ko'?'+1 관통':'+1 pierce', apply: () => weapons.main.piercing += 1 },
+            { icon: '🌀', name: _i18nLang==='ko'?'오비탈':'Orbital', desc: _i18nLang==='ko'?'궤도 무기':'Orbiting weapon', apply: () => weapons.orbitals.count = Math.min(8, weapons.orbitals.count + 1) },
+            { icon: '📍', name: _i18nLang==='ko'?'궤도 반경':'Orbit Radius', desc: _i18nLang==='ko'?'+15 반경':'+15 radius', apply: () => weapons.orbitals.radius += 15 },
+            { icon: '💫', name: _i18nLang==='ko'?'오비탈 속도':'Orbital Speed', desc: _i18nLang==='ko'?'+50% 회전속도':'+50% spin speed', apply: () => weapons.orbitals.speed *= 1.5 },
         ];
 
         // 배열들
