@@ -220,3 +220,14 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 - 양보다 질
 
 Add whatever helps you do your job. This is your cheat sheet.
+
+---
+
+## 🎮 Godot Engine (MiniPC)
+- **버전:** 4.6 stable
+- **경로:** `/home/spritz/godot4` (심볼릭 링크)
+- **Export Templates:** 4.6.stable (Web, Linux, Android, iOS 등)
+- **커스텀 부트 스플래시:** `/home/spritz/godot-demo/boot_splash.png` (East Sea Games 로고)
+- **빌드:** `godot4 --headless --path <project> --export-release "Web"`
+- **파일 전송:** MiniPC→맥스튜디오는 HTTP 서버(9877) + curl 사용
+- **주의:** MiniPC에서 GitHub push 불가 (인증 없음), 맥 스튜디오에서 pull & push
