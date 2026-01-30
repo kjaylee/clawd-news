@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Block Fit Zen 🧩</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#FDF6E3;color:#5D4037;overflow:hidden;height:100vh;display:flex;flex-direction:column;align-items:center;user-select:none}
+#app{width:100%;max-width:420px;height:100vh;display:flex;flex-direction:column;position:relative}
+
+/* Header */
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:linear-gradient(135deg,#8B6914,#A07855);color:#FFF}
+.header .score-area{text-align:center}
+.header .score-label{font-size:11px;opacity:.7}
+.header .score-value{font-size:22px;font-weight:700}
+.header .combo{font-size:13px;color:#FFD54F;font-weight:700;min-height:18px}
+.header .best{font-size:11px;opacity:.7}
+.header .btn{background:rgba(255,255,255,.15);border:none;color:#FFF;padding:6px 10px;border-radius:8px;font-size:14px;cursor:pointer}
+
+/* Grid */
+.grid-container{flex:1;display:flex;align-items:center;justify-content:center;padding:8px}
+#grid{display:grid;grid-template-columns:repeat(10,1fr);gap:2px;background:#D2B48C;padding:3px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);aspect-ratio:1;width:min(calc(100vw - 16px),400px);height:min(calc(100vw - 16px),400px)}
+.cell{background:#F5E6D3;border-radius:3px;transition:background .15s,transform .15s;position:relative}
+.cell.filled{transform:scale(.95)}
+.cell.highlight{background:rgba(139,105,20,.25);border:1px solid rgba(139,105,20,.4)}
+.cell.invalid{background:rgba(255,0,0,.15)}
+.cell.clearing{animation:clearPulse .4s ease-out}
+
+/* Block colors */
+.cell.c1{background:#D4A574;box-shadow:inset 0 -2px 0 #B08968}
+.cell.c2{background:#C49A6C;box-shadow:inset 0 -2px 0 #A07855}
+.cell.c3{background:#B08968;box-shadow:inset 0 -2px 0 #8B6914}
+.cell.c4{background:#A07855;box-shadow:inset 0 -2px 0 #6B4226}
+.cell.c5{background:#8B6914;box-shadow:inset 0 -2px 0 #5D4037}
+.cell.c6{background:#6B4226;box-shadow:inset 0 -2px 0 #3E2723}
+
+@keyframes clearPulse{
+  0%{transform:scale(1);opacity:1}
+  50%{transform:scale(1.15);opacity:.5}
+  100%{transform:scale(0);opacity:0}
+}
+
+/* Pieces area */
+.pieces-area{padding:12px 8px 24px;display:flex;justify-content:space-around;align-items:center;min-height:120px;gap:8px}
+.piece-slot{display:flex;align-items:center;justify-content:center;min-width:80px;min-height:80px;cursor:grab;transition:transform .2s,opacity .2s}
+.piece-slot.used{opacity:.2;pointer-events:none}
+.piece-slot.dragging{opacity:.5;transform:scale(.8)}
+.piece-slot:active{cursor:grabbing}
+.piece-grid{display:grid;gap:1px}
+.piece-cell{width:14px;height:14px;border-radius:2px}
+.piece-cell.filled{box-shadow:inset 0 -1px 0 rgba(0,0,0,.2)}
+.piece-cell.empty{background:transparent}
+
+/* Drag ghost */
+#drag-ghost{position:fixed;pointer-events:none;z-index:100;display:none}
+#drag-ghost .piece-grid{gap:2px}
+#drag-ghost .piece-cell{width:calc(min(calc(100vw - 16px),400px)/10 - 2px);height:calc(min(calc(100vw - 16px),400px)/10 - 2px);border-radius:3px}
+
+/* Score popup */
+.score-popup{position:absolute;pointer-events:none;font-size:20px;font-weight:700;color:#8B6914;animation:popUp .8s ease-out forwards;z-index:50}
+@keyframes popUp{
+  0%{transform:translateY(0) scale(.5);opacity:1}
+  100%{transform:translateY(-50px) scale(1.2);opacity:0}
+}
+
+/* Modals */
+.modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal{background:#FDF6E3;border-radius:16px;padding:24px;width:min(85vw,340px);text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.modal h2{font-size:24px;margin-bottom:8px;color:#5D4037}
+.modal .big-score{font-size:48px;font-weight:700;color:#8B6914;margin:12px 0}
+.modal .stats{font-size:14px;color:#8D6E63;margin:8px 0}
+.modal .new-best{color:#FF6B6B;font-weight:700;font-size:16px;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.modal-btn{display:block;width:100%;padding:14px;margin:8px 0;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:transform .15s}
+.modal-btn:active{transform:scale(.95)}
+.modal-btn.primary{background:linear-gradient(135deg,#8B6914,#A07855);color:#FFF}
+.modal-btn.secondary{background:#E8D5B7;color:#5D4037}
+
+/* Menu */
+.menu{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;padding:24px}
+.menu h1{font-size:36px;color:#5D4037}
+.menu .subtitle{font-size:14px;color:#8D6E63;margin-top:-8px}
+.menu-btn{width:200px;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;transition:transform .15s}
+.menu-btn:active{transform:scale(.95)}
+.menu-btn.play{background:linear-gradient(135deg,#8B6914,#A07855);color:#FFF;font-size:18px}
+.menu-btn.secondary{background:#E8D5B7;color:#5D4037}
+.menu .stats-mini{font-size:13px;color:#8D6E63;margin-top:8px}
+
+/* Particles */
+.particle{position:absolute;pointer-events:none;border-radius:50%;z-index:60}
+
+/* Lang toggle */
+.lang-toggle{position:absolute;top:8px;right:8px;background:rgba(255,255,255,.15);border:none;color:#FFF;padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer;z-index:10}
+
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- Menu Screen -->
+  <div id="menu-screen" class="menu">
+    <h1>🧩 Block Fit Zen</h1>
+    <div class="subtitle" data-i18n="subtitle">우드 블록 퍼즐</div>
+    <div class="stats-mini">⭐ <span data-i18n="best">최고</span>: <span id="menu-best">0</span></div>
+    <button class="menu-btn play" onclick="startGame('classic')" data-i18n="play">▶ 클래식</button>
+    <button class="menu-btn secondary" onclick="startGame('time')" data-i18n="timeAttack">⏱ 타임어택</button>
+    <button class="menu-btn secondary" onclick="showStats()" data-i18n="statsBtn">📊 통계</button>
+    <div class="stats-mini">🔥 <span data-i18n="streak">연속</span>: <span id="menu-streak">0</span><span data-i18n="days">일</span></div>
+  </div>
+
+  <!-- Game Screen -->
+  <div id="game-screen" class="hidden">
+    <div class="header">
+      <button class="btn" onclick="backToMenu()">◀</button>
+      <div class="score-area">
+        <div class="score-label" data-i18n="score">점수</div>
+        <div class="score-value" id="score-display">0</div>
+        <div class="combo" id="combo-display"></div>
+      </div>
+      <div style="text-align:right">
+        <div class="best">⭐ <span id="best-display">0</span></div>
+        <div id="timer-display" class="hidden" style="font-size:16px;font-weight:700;color:#FFD54F"></div>
+      </div>
+    </div>
+    <div class="grid-container">
+      <div id="grid"></div>
+    </div>
+    <div class="pieces-area" id="pieces-area"></div>
+  </div>
+
+  <!-- Drag ghost -->
+  <div id="drag-ghost"></div>
+</div>
+
+<script>
+// ===== I18N =====
+const LANG = {ko:{subtitle:'우드 블록 퍼즐',best:'최고',play:'▶ 클래식',timeAttack:'⏱ 타임어택',statsBtn:'📊 통계',streak:'연속',days:'일',score:'점수',gameOver:'게임 오버',newBest:'🎉 신기록!',lines:'줄 클리어',comboBest:'최고 콤보',playAgain:'다시 하기',menu:'메뉴',totalGames:'총 게임',avgScore:'평균 점수',totalLines:'총 줄 클리어',bestCombo:'최고 콤보',close:'닫기',timeUp:'⏱ 시간 종료!',timeLeft:'남은 시간'},en:{subtitle:'Wood Block Puzzle',best:'Best',play:'▶ Classic',timeAttack:'⏱ Time Attack',statsBtn:'📊 Stats',streak:'Streak',days:' days',score:'Score',gameOver:'Game Over',newBest:'🎉 New Record!',lines:'Lines',comboBest:'Best Combo',playAgain:'Play Again',menu:'Menu',totalGames:'Total Games',avgScore:'Avg Score',totalLines:'Total Lines',bestCombo:'Best Combo',close:'Close',timeUp:'⏱ Time\'s Up!',timeLeft:'Time Left'}};
+let lang='ko';
+function t(k){return LANG[lang][k]||k}
+function updateI18n(){document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(LANG[lang][k])el.textContent=LANG[lang][k]})}
+function toggleLang(){lang=lang==='ko'?'en':'ko';updateI18n();save()}
+
+// ===== CONSTANTS =====
+const GS=10;
+const COLORS=['','#D4A574','#C49A6C','#B08968','#A07855','#8B6914','#6B4226'];
+const PIECES=[
+  {s:[[1]],c:1},{s:[[1,1]],c:2},{s:[[1],[1]],c:2},
+  {s:[[1,1,1]],c:3},{s:[[1],[1],[1]],c:3},{s:[[1,1],[1,0]],c:3},{s:[[1,1],[0,1]],c:3},{s:[[0,1],[1,1]],c:3},{s:[[1,0],[1,1]],c:3},
+  {s:[[1,1,1,1]],c:4},{s:[[1],[1],[1],[1]],c:4},{s:[[1,1],[1,1]],c:4},
+  {s:[[1,1,0],[0,1,1]],c:4},{s:[[0,1,1],[1,1,0]],c:4},
+  {s:[[1,1,1],[1,0,0]],c:4},{s:[[1,1,1],[0,0,1]],c:4},{s:[[1,1,1],[0,1,0]],c:4},
+  {s:[[1,0],[1,0],[1,1]],c:4},{s:[[0,1],[0,1],[1,1]],c:4},{s:[[1,0],[1,1],[0,1]],c:4},
+  {s:[[1,1,1,1,1]],c:5},{s:[[1],[1],[1],[1],[1]],c:5},
+  {s:[[1,1,1],[1,0,0],[1,0,0]],c:5},{s:[[1,1,1],[0,0,1],[0,0,1]],c:5},
+  {s:[[1,1],[1,0],[1,0],[1,0]],c:5},{s:[[1,1],[0,1],[0,1],[0,1]],c:5},
+  {s:[[1,1,1],[1,1,1],[1,1,1]],c:6}
+];
+const WEIGHTS=[40,45,15]; // small(1-3), medium(4), large(5+)
+const LINE_SCORES=[0,10,30,60,100,150,210,280,360,450,550];
+
+// ===== STATE =====
+let grid=[], score=0, combo=0, highScore=0, pieces=[], mode='classic';
+let stats={gamesPlayed:0,totalScore:0,totalLines:0,bestCombo:0,lastPlayDate:'',streak:0};
+let dragging=null, dragSlot=-1, ghostX=0, ghostY=0, gridRect=null, cellSize=0;
+let timerInterval=null, timeLeft=120;
+let particles=[];
+
+// ===== INIT =====
+function init(){
+  load();
+  document.getElementById('menu-best').textContent=highScore.toLocaleString();
+  document.getElementById('menu-streak').textContent=stats.streak;
+  updateI18n();
+  buildGrid();
+}
+
+function buildGrid(){
+  const g=document.getElementById('grid');
+  g.innerHTML='';
+  for(let y=0;y<GS;y++)for(let x=0;x<GS;x++){
+    const cell=document.createElement('div');
+    cell.className='cell';
+    cell.dataset.x=x;cell.dataset.y=y;
+    g.appendChild(cell);
+  }
+}
+
+function startGame(m){
+  mode=m;
+  grid=Array.from({length:GS},()=>Array(GS).fill(0));
+  score=0;combo=0;
+  pieces=[null,null,null];
+  spawnPieces();
+  document.getElementById('menu-screen').classList.add('hidden');
+  document.getElementById('game-screen').classList.remove('hidden');
+  document.getElementById('score-display').textContent='0';
+  document.getElementById('best-display').textContent=highScore.toLocaleString();
+  document.getElementById('combo-display').textContent='';
+  
+  if(mode==='time'){
+    timeLeft=120;
+    document.getElementById('timer-display').classList.remove('hidden');
+    updateTimer();
+    timerInterval=setInterval(()=>{
+      timeLeft--;
+      updateTimer();
+      if(timeLeft<=0){clearInterval(timerInterval);gameOver()}
+    },1000);
+  }else{
+    document.getElementById('timer-display').classList.add('hidden');
+    if(timerInterval)clearInterval(timerInterval);
+  }
+  
+  renderGrid();
+  renderPieces();
+}
+
+function updateTimer(){
+  const m=Math.floor(timeLeft/60),s=timeLeft%60;
+  document.getElementById('timer-display').textContent=`${m}:${s.toString().padStart(2,'0')}`;
+  if(timeLeft<=10)document.getElementById('timer-display').style.color='#FF6B6B';
+  else document.getElementById('timer-display').style.color='#FFD54F';
+}
+
+function backToMenu(){
+  if(timerInterval)clearInterval(timerInterval);
+  document.getElementById('game-screen').classList.add('hidden');
+  document.getElementById('menu-screen').classList.remove('hidden');
+  document.getElementById('menu-best').textContent=highScore.toLocaleString();
+  document.getElementById('menu-streak').textContent=stats.streak;
+}
+
+// ===== PIECES =====
+function pickPiece(){
+  const r=Math.random()*100;
+  let pool;
+  if(r<WEIGHTS[0])pool=PIECES.filter(p=>p.s.flat().filter(v=>v).length<=3);
+  else if(r<WEIGHTS[0]+WEIGHTS[1])pool=PIECES.filter(p=>p.s.flat().filter(v=>v).length===4);
+  else pool=PIECES.filter(p=>p.s.flat().filter(v=>v).length>=5);
+  return{...pool[Math.floor(Math.random()*pool.length)]};
+}
+
+function spawnPieces(){
+  for(let i=0;i<3;i++)pieces[i]=pickPiece();
+}
+
+function renderPieces(){
+  const area=document.getElementById('pieces-area');
+  area.innerHTML='';
+  pieces.forEach((p,i)=>{
+    const slot=document.createElement('div');
+    slot.className='piece-slot'+(p?'':' used');
+    slot.dataset.idx=i;
+    if(p){
+      const pg=document.createElement('div');
+      pg.className='piece-grid';
+      const cols=p.s[0].length;
+      pg.style.gridTemplateColumns=`repeat(${cols},14px)`;
+      for(let y=0;y<p.s.length;y++)for(let x=0;x<cols;x++){
+        const c=document.createElement('div');
+        c.className='piece-cell '+(p.s[y][x]?'filled c'+p.c:'empty');
+        pg.appendChild(c);
+      }
+      slot.appendChild(pg);
+      
+      // Touch/mouse handlers
+      slot.addEventListener('mousedown',e=>startDrag(e,i));
+      slot.addEventListener('touchstart',e=>startDrag(e,i),{passive:false});
+    }
+    area.appendChild(slot);
+  });
+}
+
+// ===== DRAG =====
+function startDrag(e,idx){
+  e.preventDefault();
+  if(!pieces[idx])return;
+  dragging=pieces[idx];
+  dragSlot=idx;
+  
+  const ghost=document.getElementById('drag-ghost');
+  ghost.innerHTML='';
+  ghost.style.display='block';
+  
+  const gridEl=document.getElementById('grid');
+  gridRect=gridEl.getBoundingClientRect();
+  cellSize=gridRect.width/GS;
+  
+  const pg=document.createElement('div');
+  pg.className='piece-grid';
+  const cols=dragging.s[0].length;
+  const sz=cellSize-2;
+  pg.style.gridTemplateColumns=`repeat(${cols},${sz}px)`;
+  pg.style.gap='2px';
+  for(let y=0;y<dragging.s.length;y++)for(let x=0;x<cols;x++){
+    const c=document.createElement('div');
+    c.className='piece-cell';
+    c.style.width=sz+'px';c.style.height=sz+'px';
+    if(dragging.s[y][x]){c.classList.add('filled','c'+dragging.c);c.style.borderRadius='3px'}
+    else c.classList.add('empty');
+    pg.appendChild(c);
+  }
+  ghost.appendChild(pg);
+  
+  const pt=e.touches?e.touches[0]:e;
+  moveGhost(pt.clientX,pt.clientY);
+  
+  document.querySelectorAll('.piece-slot')[idx].classList.add('dragging');
+  
+  document.addEventListener('mousemove',onDragMove);
+  document.addEventListener('mouseup',onDragEnd);
+  document.addEventListener('touchmove',onDragMove,{passive:false});
+  document.addEventListener('touchend',onDragEnd);
+}
+
+function onDragMove(e){
+  e.preventDefault();
+  const pt=e.touches?e.touches[0]:e;
+  moveGhost(pt.clientX,pt.clientY);
+  updateHighlight(pt.clientX,pt.clientY);
+}
+
+function moveGhost(cx,cy){
+  const ghost=document.getElementById('drag-ghost');
+  const w=dragging.s[0].length*cellSize;
+  const h=dragging.s.length*cellSize;
+  ghost.style.left=(cx-w/2)+'px';
+  ghost.style.top=(cy-h-30)+'px'; // offset up from finger
+}
+
+function getGridPos(cx,cy){
+  if(!gridRect)return null;
+  const w=dragging.s[0].length*cellSize;
+  const h=dragging.s.length*cellSize;
+  const gx=cx-w/2;
+  const gy=cy-h-30;
+  const col=Math.round((gx-gridRect.left)/cellSize);
+  const row=Math.round((gy-gridRect.top)/cellSize);
+  return{col,row};
+}
+
+function updateHighlight(cx,cy){
+  clearHighlight();
+  const pos=getGridPos(cx,cy);
+  if(!pos)return;
+  const valid=canPlace(dragging,pos.col,pos.row);
+  for(let y=0;y<dragging.s.length;y++)for(let x=0;x<dragging.s[y].length;x++){
+    if(!dragging.s[y][x])continue;
+    const gx=pos.col+x,gy=pos.row+y;
+    if(gx>=0&&gx<GS&&gy>=0&&gy<GS){
+      const cell=document.querySelector(`.cell[data-x="${gx}"][data-y="${gy}"]`);
+      if(cell)cell.classList.add(valid?'highlight':'invalid');
+    }
+  }
+}
+
+function clearHighlight(){
+  document.querySelectorAll('.cell.highlight,.cell.invalid').forEach(c=>{c.classList.remove('highlight','invalid')});
+}
+
+function onDragEnd(e){
+  const pt=e.changedTouches?e.changedTouches[0]:e;
+  const pos=getGridPos(pt.clientX,pt.clientY);
+  
+  if(pos&&canPlace(dragging,pos.col,pos.row)){
+    placePiece(dragging,pos.col,pos.row);
+    pieces[dragSlot]=null;
+    
+    // Score for placement
+    const blockCount=dragging.s.flat().filter(v=>v).length;
+    score+=blockCount;
+    
+    // Check lines
+    const cleared=checkAndClearLines();
+    if(cleared>0){
+      combo++;
+      const lineScore=LINE_SCORES[Math.min(cleared,LINE_SCORES.length-1)];
+      const comboMult=1+(combo-1)*0.5;
+      const pts=Math.floor(lineScore*comboMult);
+      score+=pts;
+      showScorePopup(pts,combo);
+      if(combo>stats.bestCombo){stats.bestCombo=combo;save()}
+      if(mode==='time'){timeLeft+=cleared*5;updateTimer()}
+    }else{
+      combo=0;
+    }
+    
+    document.getElementById('score-display').textContent=score.toLocaleString();
+    document.getElementById('combo-display').textContent=combo>1?`x${combo} 🔥`:'';
+    
+    if(score>highScore){
+      highScore=score;
+      document.getElementById('best-display').textContent=highScore.toLocaleString();
+    }
+    
+    // Check if all 3 used
+    if(pieces.every(p=>p===null))spawnPieces();
+    
+    renderGrid();
+    renderPieces();
+    
+    // Check game over
+    if(checkGameOver())setTimeout(()=>gameOver(),300);
+  }
+  
+  // Cleanup
+  clearHighlight();
+  document.getElementById('drag-ghost').style.display='none';
+  document.querySelectorAll('.piece-slot.dragging').forEach(s=>s.classList.remove('dragging'));
+  dragging=null;
+  document.removeEventListener('mousemove',onDragMove);
+  document.removeEventListener('mouseup',onDragEnd);
+  document.removeEventListener('touchmove',onDragMove);
+  document.removeEventListener('touchend',onDragEnd);
+}
+
+// ===== GRID LOGIC =====
+function canPlace(piece,col,row){
+  for(let y=0;y<piece.s.length;y++)for(let x=0;x<piece.s[y].length;x++){
+    if(!piece.s[y][x])continue;
+    const gx=col+x,gy=row+y;
+    if(gx<0||gx>=GS||gy<0||gy>=GS)return false;
+    if(grid[gy][gx]!==0)return false;
+  }
+  return true;
+}
+
+function placePiece(piece,col,row){
+  for(let y=0;y<piece.s.length;y++)for(let x=0;x<piece.s[y].length;x++){
+    if(piece.s[y][x])grid[row+y][col+x]=piece.c;
+  }
+}
+
+function checkAndClearLines(){
+  const rowsClear=[],colsClear=[];
+  for(let y=0;y<GS;y++)if(grid[y].every(c=>c!==0))rowsClear.push(y);
+  for(let x=0;x<GS;x++){let full=true;for(let y=0;y<GS;y++)if(grid[y][x]===0){full=false;break}if(full)colsClear.push(x)}
+  
+  if(rowsClear.length===0&&colsClear.length===0)return 0;
+  
+  // Animate clearing
+  const cells=new Set();
+  rowsClear.forEach(y=>{for(let x=0;x<GS;x++)cells.add(`${x},${y}`)});
+  colsClear.forEach(x=>{for(let y=0;y<GS;y++)cells.add(`${x},${y}`)});
+  
+  cells.forEach(key=>{
+    const[x,y]=key.split(',').map(Number);
+    const cell=document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+    if(cell){
+      cell.classList.add('clearing');
+      spawnParticles(cell);
+    }
+  });
+  
+  // Clear after animation
+  setTimeout(()=>{
+    rowsClear.forEach(y=>grid[y].fill(0));
+    colsClear.forEach(x=>{for(let y=0;y<GS;y++)grid[y][x]=0});
+    renderGrid();
+  },350);
+  
+  const total=rowsClear.length+colsClear.length;
+  stats.totalLines+=total;
+  return total;
+}
+
+function checkGameOver(){
+  return pieces.every(p=>{
+    if(!p)return true;
+    for(let y=0;y<GS;y++)for(let x=0;x<GS;x++)if(canPlace(p,x,y))return false;
+    return true;
+  });
+}
+
+function renderGrid(){
+  for(let y=0;y<GS;y++)for(let x=0;x<GS;x++){
+    const cell=document.querySelector(`.cell[data-x="${x}"][data-y="${y}"]`);
+    if(!cell)continue;
+    cell.className='cell';
+    if(grid[y][x]>0)cell.classList.add('filled','c'+grid[y][x]);
+  }
+}
+
+// ===== EFFECTS =====
+function showScorePopup(pts,cmb){
+  const popup=document.createElement('div');
+  popup.className='score-popup';
+  popup.textContent=`+${pts}${cmb>1?' x'+cmb:''}`;
+  popup.style.left='50%';popup.style.top='40%';
+  popup.style.transform='translateX(-50%)';
+  document.getElementById('game-screen').appendChild(popup);
+  setTimeout(()=>popup.remove(),800);
+}
+
+function spawnParticles(cell){
+  const rect=cell.getBoundingClientRect();
+  const colors=['#D4A574','#C49A6C','#B08968','#A07855','#8B6914'];
+  for(let i=0;i<4;i++){
+    const p=document.createElement('div');
+    p.className='particle';
+    const sz=4+Math.random()*4;
+    p.style.width=sz+'px';p.style.height=sz+'px';
+    p.style.background=colors[Math.floor(Math.random()*colors.length)];
+    p.style.left=rect.left+rect.width/2+'px';
+    p.style.top=rect.top+rect.height/2+'px';
+    document.body.appendChild(p);
+    
+    const angle=Math.random()*Math.PI*2;
+    const speed=30+Math.random()*50;
+    const dx=Math.cos(angle)*speed;
+    const dy=Math.sin(angle)*speed;
+    let opacity=1;
+    const startX=parseFloat(p.style.left),startY=parseFloat(p.style.top);
+    let frame=0;
+    const animate=()=>{
+      frame++;
+      opacity-=0.04;
+      p.style.left=startX+dx*(frame/20)+'px';
+      p.style.top=startY+dy*(frame/20)+frame*0.5+'px';
+      p.style.opacity=opacity;
+      if(opacity>0)requestAnimationFrame(animate);
+      else p.remove();
+    };
+    requestAnimationFrame(animate);
+  }
+}
+
+// ===== GAME OVER =====
+function gameOver(){
+  if(timerInterval)clearInterval(timerInterval);
+  
+  const isNew=score>highScore;
+  if(isNew)highScore=score;
+  
+  stats.gamesPlayed++;
+  stats.totalScore+=score;
+  
+  // Streak
+  const today=new Date().toISOString().slice(0,10);
+  if(stats.lastPlayDate){
+    const last=new Date(stats.lastPlayDate);
+    const diff=Math.floor((new Date(today)-last)/(86400000));
+    if(diff===1)stats.streak++;
+    else if(diff>1)stats.streak=1;
+  }else stats.streak=1;
+  stats.lastPlayDate=today;
+  
+  save();
+  
+  // Show modal
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML=`
+    <div class="modal">
+      <h2>${mode==='time'?t('timeUp'):t('gameOver')}</h2>
+      ${isNew?`<div class="new-best">${t('newBest')}</div>`:''}
+      <div class="big-score">${score.toLocaleString()}</div>
+      <div class="stats">${t('lines')}: ${stats.totalLines} | ${t('comboBest')}: ${stats.bestCombo}</div>
+      <button class="modal-btn primary" onclick="this.closest('.modal-overlay').remove();startGame('${mode}')">${t('playAgain')}</button>
+      <button class="modal-btn secondary" onclick="this.closest('.modal-overlay').remove();backToMenu()">${t('menu')}</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+// ===== STATS MODAL =====
+function showStats(){
+  const avg=stats.gamesPlayed>0?Math.floor(stats.totalScore/stats.gamesPlayed):0;
+  const overlay=document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML=`
+    <div class="modal">
+      <h2>📊</h2>
+      <div class="stats" style="font-size:16px;line-height:2">
+        ${t('totalGames')}: ${stats.gamesPlayed}<br>
+        ⭐ ${t('best')}: ${highScore.toLocaleString()}<br>
+        ${t('avgScore')}: ${avg.toLocaleString()}<br>
+        ${t('totalLines')}: ${stats.totalLines}<br>
+        ${t('bestCombo')}: ${stats.bestCombo}<br>
+        🔥 ${t('streak')}: ${stats.streak}${t('days')}
+      </div>
+      <button class="modal-btn primary" onclick="this.closest('.modal-overlay').remove()">${t('close')}</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+// ===== SAVE/LOAD =====
+function save(){
+  localStorage.setItem('bfz_hs',highScore);
+  localStorage.setItem('bfz_stats',JSON.stringify(stats));
+  localStorage.setItem('bfz_lang',lang);
+}
+function load(){
+  highScore=parseInt(localStorage.getItem('bfz_hs'))||0;
+  const s=localStorage.getItem('bfz_stats');
+  if(s)stats={...stats,...JSON.parse(s)};
+  lang=localStorage.getItem('bfz_lang')||'ko';
+}
+
+// ===== START =====
+init();
+</script>
+</body>
+</html>
