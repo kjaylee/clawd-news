@@ -65,6 +65,7 @@ h2{color:#fff;font-size:1.5rem}
     <div style="display:flex;gap:15px;flex-wrap:wrap;justify-content:center">
       <button class="btn" id="nextBtn">▶ NEXT STAGE</button>
       <button class="btn btn-secondary" id="retryBtn">🔄 RETRY</button>
+      <button class="btn btn-secondary" id="menuBtn" style="opacity:0.7">🏠 MENU</button>
     </div>
   </div>
 </div>
@@ -494,6 +495,15 @@ document.getElementById('nextBtn').addEventListener('click', () => {
 });
 document.getElementById('retryBtn').addEventListener('click', () => {
   startGame();
+});
+document.getElementById('menuBtn').addEventListener('click', () => {
+  state.phase = 'menu';
+  resultScreen.classList.remove('show');
+  menuScreen.classList.add('show');
+  ui.classList.add('active');
+  hud.style.display = 'none';
+  document.getElementById('stageDisplay').textContent = `STAGE ${state.stage}`;
+  document.getElementById('menuStage').textContent = `STAGE ${state.stage} · BPM ${state.bpm}`;
 });
 
 function startGame() {

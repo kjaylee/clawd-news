@@ -655,7 +655,7 @@
             <span id="i18nPerf">⭐ Perfect Clear! Bonus x2</span>
         </div>
         <button class="btn btn-primary" id="nextLevelBtn" id="i18nNext">Next Level →</button>
-        <button class="btn btn-secondary" id="winFactoryBtn" id="i18nFact2">🏭 Factory</button>
+        <button class="btn btn-secondary" id="winFactoryBtn" data-i18n="i18nFact2">🏭 Factory</button>
     </div>
     
     <!-- Factory Screen -->
@@ -705,9 +705,9 @@
             upgradeBaseCost: 50,
             upgradeCostMultiplier: 1.8,
             
-            lockedScrewStartLevel: 31,
-            rustyStartLevel: 45,
-            chainStartLevel: 61,
+            lockedScrewStartLevel: 2,
+            rustyStartLevel: 6,
+            chainStartLevel: 12,
             
             startHints: 3,
             startUndos: 3
@@ -830,16 +830,20 @@
                         state: 'normal' // normal, locked, rusty, chained
                     };
                     
-                    // Special screws
-                    if (level >= BALANCE.lockedScrewStartLevel && Math.random() < 0.15) {
+                    // Special screws — progressive difficulty
+                    const lockChance = level < 5 ? 0.25 : level < 15 ? 0.3 : 0.35;
+                    const rustyChance = level < 10 ? 0.15 : level < 25 ? 0.2 : 0.25;
+                    const chainChance = level < 20 ? 0.12 : level < 40 ? 0.18 : 0.22;
+                    
+                    if (level >= BALANCE.chainStartLevel && Math.random() < chainChance) {
+                        screw.state = 'chained';
+                        screw.chainId = Math.floor(Math.random() * Math.min(3, Math.ceil(level / 10)));
+                    } else if (level >= BALANCE.rustyStartLevel && Math.random() < rustyChance) {
+                        screw.state = 'rusty';
+                        screw.rustyTaps = level >= 30 ? 3 : 2;
+                    } else if (level >= BALANCE.lockedScrewStartLevel && Math.random() < lockChance) {
                         screw.state = 'locked';
                         screw.lockDependency = null; // Will be set later
-                    } else if (level >= BALANCE.rustyStartLevel && Math.random() < 0.1) {
-                        screw.state = 'rusty';
-                        screw.rustyTaps = 2;
-                    } else if (level >= BALANCE.chainStartLevel && Math.random() < 0.1) {
-                        screw.state = 'chained';
-                        screw.chainId = Math.floor(Math.random() * 3);
                     }
                     
                     screws.push(screw);
