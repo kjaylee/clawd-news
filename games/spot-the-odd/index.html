@@ -1,0 +1,1210 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>👁️ Spot the Odd</title>
+<script src="../tg-sdk-wrapper.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+--bg:#0a0a1a;--card:#12122a;--border:#1e1e3a;--text:#e0e0e0;--muted:#888;
+--accent:#667eea;--accent2:#764ba2;--cyan:#00e5ff;--pink:#ff6b9d;--gold:#ffd700;
+--green:#4ade80;--red:#ff4444;--orange:#f59e0b;
+--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
+--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);
+}
+html,body{width:100%;height:100%;overflow:hidden}
+body{
+font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;
+background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;
+user-select:none;-webkit-user-select:none;position:relative;
+padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);
+padding-left:var(--safe-left);padding-right:var(--safe-right);
+touch-action:manipulation;
+}
+body::before{
+content:'';position:fixed;inset:0;
+background:radial-gradient(ellipse at 50% 0%,rgba(102,126,234,0.04) 0%,transparent 60%),
+radial-gradient(ellipse at 80% 100%,rgba(118,75,162,0.03) 0%,transparent 50%);
+pointer-events:none;z-index:0;
+}
+
+.screen{display:none;width:100%;max-width:500px;flex-direction:column;align-items:center;
+padding:16px 20px;position:relative;z-index:1;overflow-y:auto;flex:1}
+.screen.active{display:flex}
+
+/* ── Menu Screen ── */
+.menu-title{
+font-size:2.4rem;font-weight:900;margin:30px 0 4px;letter-spacing:1px;
+background:linear-gradient(135deg,var(--cyan),var(--accent),var(--pink));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+animation:titleGlow 4s ease-in-out infinite;
+}
+@keyframes titleGlow{
+0%,100%{filter:brightness(1)}
+50%{filter:brightness(1.3)}
+}
+.menu-sub{color:var(--muted);font-size:0.9rem;margin-bottom:28px;text-align:center}
+.menu-eye{font-size:4rem;margin-top:20px;animation:eyePulse 3s ease-in-out infinite}
+@keyframes eyePulse{
+0%,100%{transform:scale(1)}
+50%{transform:scale(1.1)}
+}
+.stats-row{
+display:flex;gap:20px;margin:16px 0 28px;
+}
+.stat-box{
+background:var(--card);border:1px solid var(--border);border-radius:12px;
+padding:12px 20px;text-align:center;min-width:100px;
+}
+.stat-label{font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.stat-value{font-size:1.4rem;font-weight:800;color:var(--gold);margin-top:2px}
+.stat-value.level{color:var(--cyan)}
+
+.menu-btn{
+width:100%;max-width:300px;padding:16px 20px;margin:7px 0;
+border:none;border-radius:14px;font-size:1.05rem;font-weight:700;
+cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;
+}
+.menu-btn:active{transform:scale(0.96)}
+.btn-play{
+background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+box-shadow:0 4px 20px rgba(102,126,234,0.3);
+}
+.btn-play:hover{box-shadow:0 6px 30px rgba(102,126,234,0.5)}
+.btn-daily{
+background:var(--card);color:var(--cyan);border:1px solid var(--border);
+}
+.btn-daily:hover{border-color:var(--cyan)}
+.btn-daily.completed{opacity:0.5;pointer-events:none}
+.daily-sub{font-size:0.75rem;color:var(--muted);margin-top:4px}
+
+.how-to{
+margin-top:24px;background:var(--card);border:1px solid var(--border);border-radius:14px;
+padding:16px 20px;width:100%;max-width:300px;
+}
+.how-to h3{font-size:0.85rem;color:var(--accent);margin-bottom:8px}
+.how-to p{font-size:0.78rem;color:var(--muted);line-height:1.6}
+
+/* ── Game Screen ── */
+#gameScreen{padding:10px 12px;justify-content:flex-start}
+.game-top{
+width:100%;display:flex;align-items:center;justify-content:space-between;
+padding:6px 4px;margin-bottom:4px;
+}
+.game-top .back-btn{
+background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;padding:6px 10px;
+}
+.game-top .level-label{font-size:0.9rem;font-weight:600;color:var(--text)}
+.game-top .score-label{font-size:0.9rem;font-weight:700;color:var(--gold)}
+
+.timer-wrap{
+width:100%;height:6px;background:#1a1a2e;border-radius:3px;margin:4px 0 2px;overflow:hidden;
+position:relative;
+}
+.timer-bar{
+height:100%;border-radius:3px;transition:width .1s linear;
+background:linear-gradient(90deg,var(--cyan),var(--accent));
+}
+.timer-bar.warning{background:linear-gradient(90deg,var(--orange),var(--red))}
+.timer-bar.critical{background:var(--red);animation:timerPulse .5s infinite}
+@keyframes timerPulse{0%,100%{opacity:1}50%{opacity:0.5}}
+
+.timer-text{
+font-size:0.85rem;font-weight:700;color:var(--cyan);margin:2px 0 6px;text-align:center;
+}
+.timer-text.warning{color:var(--orange)}
+.timer-text.critical{color:var(--red)}
+
+.combo-display{
+position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+pointer-events:none;z-index:100;
+font-size:3rem;font-weight:900;opacity:0;
+text-shadow:0 0 30px currentColor;
+}
+.combo-display.show{animation:comboPopup .7s ease-out forwards}
+@keyframes comboPopup{
+0%{opacity:0;transform:translate(-50%,-50%) scale(0.5)}
+30%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}
+70%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+100%{opacity:0;transform:translate(-50%,-60%) scale(0.8)}
+}
+
+.score-popup{
+position:fixed;pointer-events:none;z-index:99;
+font-size:1.2rem;font-weight:800;color:var(--gold);opacity:0;
+text-shadow:0 0 10px rgba(255,215,0,0.5);
+}
+.score-popup.show{animation:scoreFly .8s ease-out forwards}
+@keyframes scoreFly{
+0%{opacity:0;transform:translateY(0)}
+20%{opacity:1}
+100%{opacity:0;transform:translateY(-60px)}
+}
+
+.penalty-popup{
+position:fixed;pointer-events:none;z-index:99;
+font-size:1.3rem;font-weight:800;color:var(--red);opacity:0;
+}
+.penalty-popup.show{animation:penaltyShake .6s ease-out forwards}
+@keyframes penaltyShake{
+0%{opacity:0;transform:translateY(0)}
+10%{opacity:1;transform:translateX(-5px)}
+20%{transform:translateX(5px)}
+30%{transform:translateX(-3px)}
+40%{transform:translateX(3px)}
+50%{opacity:1;transform:translateX(0)}
+100%{opacity:0;transform:translateY(-30px)}
+}
+
+/* Grid */
+.grid-container{
+display:flex;align-items:center;justify-content:center;flex:1;
+width:100%;padding:4px 0;
+}
+.grid{
+display:grid;gap:4px;
+width:min(85vw, 420px);
+}
+.cell{
+aspect-ratio:1;border:2px solid var(--border);border-radius:10px;
+background:var(--card);cursor:pointer;
+display:flex;align-items:center;justify-content:center;
+transition:all .15s;position:relative;overflow:hidden;
+}
+.cell:active{transform:scale(0.92)}
+.cell .cell-content{
+display:flex;align-items:center;justify-content:center;
+width:100%;height:100%;transition:all .15s;
+line-height:1;
+}
+.cell.correct{
+border-color:var(--green)!important;
+background:rgba(74,222,128,0.15)!important;
+animation:cellCorrect .4s ease;
+}
+@keyframes cellCorrect{
+0%{transform:scale(1)}
+50%{transform:scale(1.1)}
+100%{transform:scale(1)}
+}
+.cell.wrong{
+border-color:var(--red)!important;
+background:rgba(255,68,68,0.15)!important;
+animation:cellWrong .4s ease;
+}
+@keyframes cellWrong{
+0%{transform:translateX(0)}
+20%{transform:translateX(-6px)}
+40%{transform:translateX(6px)}
+60%{transform:translateX(-4px)}
+80%{transform:translateX(4px)}
+100%{transform:translateX(0)}
+}
+.cell.reveal{
+border-color:var(--gold)!important;
+background:rgba(255,215,0,0.15)!important;
+animation:cellReveal .6s ease;
+}
+@keyframes cellReveal{
+0%{transform:scale(1)}
+50%{transform:scale(1.15);box-shadow:0 0 20px rgba(255,215,0,0.4)}
+100%{transform:scale(1)}
+}
+.cell.locked{pointer-events:none;opacity:0.6}
+
+/* Shape cells */
+.cell-shape{
+border-radius:2px;
+}
+
+/* Lives */
+.lives-row{
+display:flex;align-items:center;justify-content:center;gap:6px;
+margin:8px 0 4px;font-size:1.4rem;
+}
+.life{transition:all .3s}
+.life.lost{filter:grayscale(1);opacity:0.3;transform:scale(0.8)}
+.life.breaking{animation:heartBreak .5s ease}
+@keyframes heartBreak{
+0%{transform:scale(1);filter:none}
+50%{transform:scale(1.3);filter:brightness(1.5)}
+100%{transform:scale(0.8);filter:grayscale(1);opacity:0.3}
+}
+
+/* ── Result Screen ── */
+.result-icon{font-size:4rem;margin:30px 0 10px;animation:resultBounce 1s ease}
+@keyframes resultBounce{
+0%{transform:scale(0);opacity:0}
+50%{transform:scale(1.2)}
+100%{transform:scale(1);opacity:1}
+}
+.result-title{
+font-size:1.8rem;font-weight:900;margin-bottom:6px;
+background:linear-gradient(135deg,var(--gold),var(--orange));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.result-sub{color:var(--muted);font-size:0.9rem;margin-bottom:24px}
+.result-score{
+font-size:3rem;font-weight:900;color:var(--gold);margin:10px 0 4px;
+text-shadow:0 0 20px rgba(255,215,0,0.3);
+}
+.result-best{font-size:0.85rem;color:var(--muted);margin-bottom:20px}
+.result-best .new-record{color:var(--pink);font-weight:700}
+.result-stats{
+display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:300px;margin-bottom:28px;
+}
+.result-stat{
+background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;
+}
+.result-stat .rs-label{font-size:0.7rem;color:var(--muted);text-transform:uppercase}
+.result-stat .rs-value{font-size:1.2rem;font-weight:700;margin-top:2px}
+.result-stat .rs-value.gold{color:var(--gold)}
+.result-stat .rs-value.cyan{color:var(--cyan)}
+
+/* Grid enter animation */
+.grid.entering .cell{opacity:0;transform:scale(0.5)}
+.grid.entering .cell{animation:cellEnter .3s ease forwards}
+@keyframes cellEnter{to{opacity:1;transform:scale(1)}}
+
+/* Feedback overlay */
+.feedback-overlay{
+position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+pointer-events:none;z-index:200;opacity:0;
+}
+.feedback-overlay.show{animation:feedbackFlash .3s ease}
+@keyframes feedbackFlash{
+0%{opacity:0}30%{opacity:1}100%{opacity:0}
+}
+.feedback-overlay.green{background:rgba(74,222,128,0.08)}
+.feedback-overlay.red{background:rgba(255,68,68,0.08)}
+
+/* Responsive */
+@media(max-height:600px){
+.menu-eye{font-size:3rem;margin-top:10px}
+.menu-title{font-size:1.8rem;margin:15px 0 2px}
+.stats-row{margin:10px 0 16px}
+.how-to{margin-top:12px}
+}
+@media(min-width:500px){
+.grid{width:420px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ MENU ═══ -->
+<div id="menuScreen" class="screen active">
+  <div class="menu-eye">👁️</div>
+  <h1 class="menu-title">SPOT THE ODD</h1>
+  <p class="menu-sub">다른 하나를 찾아라!</p>
+  <div class="stats-row">
+    <div class="stat-box">
+      <div class="stat-label">Best Score</div>
+      <div class="stat-value" id="menuBestScore">0</div>
+    </div>
+    <div class="stat-box">
+      <div class="stat-label">Best Level</div>
+      <div class="stat-value level" id="menuBestLevel">0</div>
+    </div>
+  </div>
+  <button class="menu-btn btn-play" onclick="startGame('endless')">▶ PLAY</button>
+  <button class="menu-btn btn-daily" id="dailyBtn" onclick="startGame('daily')">
+    📅 Daily Challenge
+  </button>
+  <div class="daily-sub" id="dailySub"></div>
+  <div class="how-to">
+    <h3>🎯 How to Play</h3>
+    <p>격자 안에서 하나만 다른 것을 찾아 탭하세요!<br>
+    빠를수록 높은 점수, 연속 정답으로 콤보 보너스!<br>
+    오답 시 -2초 페널티, 시간 초과 시 라이프 손실.</p>
+  </div>
+</div>
+
+<!-- ═══ GAME ═══ -->
+<div id="gameScreen" class="screen">
+  <div class="game-top">
+    <button class="back-btn" onclick="backToMenu()">←</button>
+    <span class="level-label" id="levelLabel">Lv.1</span>
+    <span class="score-label" id="scoreLabel">0</span>
+  </div>
+  <div class="timer-wrap">
+    <div class="timer-bar" id="timerBar"></div>
+  </div>
+  <div class="timer-text" id="timerText">10.0s</div>
+  <div class="grid-container">
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="lives-row" id="livesRow"></div>
+</div>
+
+<!-- ═══ RESULT ═══ -->
+<div id="resultScreen" class="screen">
+  <div class="result-icon" id="resultIcon">🏆</div>
+  <h2 class="result-title" id="resultTitle">Game Over</h2>
+  <p class="result-sub" id="resultSub">잘했어요!</p>
+  <div class="result-score" id="resultScore">0</div>
+  <div class="result-best" id="resultBest"></div>
+  <div class="result-stats">
+    <div class="result-stat">
+      <div class="rs-label">Level</div>
+      <div class="rs-value cyan" id="rsLevel">0</div>
+    </div>
+    <div class="result-stat">
+      <div class="rs-label">Best Combo</div>
+      <div class="rs-value gold" id="rsCombo">0</div>
+    </div>
+    <div class="result-stat">
+      <div class="rs-label">Correct</div>
+      <div class="rs-value" id="rsCorrect">0</div>
+    </div>
+    <div class="result-stat">
+      <div class="rs-label">Wrong</div>
+      <div class="rs-value" id="rsWrong">0</div>
+    </div>
+  </div>
+  <button class="menu-btn btn-play" onclick="startGame(lastMode)">🔄 Play Again</button>
+  <button class="menu-btn btn-daily" onclick="backToMenu()" style="margin-top:4px">🏠 Menu</button>
+</div>
+
+<!-- Overlays -->
+<div class="combo-display" id="comboDisplay"></div>
+<div class="feedback-overlay" id="feedbackOverlay"></div>
+
+<script>
+// ═══════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════
+const INITIAL_LIVES = 3;
+const COMBO_MAX = 5;
+const WRONG_PENALTY = 2; // seconds
+const DAILY_ROUNDS = 15;
+
+const LEVEL_PARAMS = [
+  { maxLv:5,   grid:4, time:10, diff:'easy',   traps:0 },
+  { maxLv:15,  grid:5, time:8,  diff:'medium', traps:0 },
+  { maxLv:30,  grid:5, time:7,  diff:'medium', traps:0 },
+  { maxLv:50,  grid:6, time:6,  diff:'hard',   traps:1 },
+  { maxLv:70,  grid:7, time:5,  diff:'expert', traps:1 },
+  { maxLv:999, grid:8, time:4,  diff:'expert', traps:2 },
+];
+
+// Emoji categories
+const EMOJI_CATS = [
+  ['😀','😎','🥳','😡','🤔','😱','🤗','😴','🥸','🤠'],
+  ['🐱','🐶','🐼','🐸','🦊','🐰','🐻','🦁','🐨','🐯'],
+  ['🍎','🍊','🍋','🍇','🍉','🍓','🍌','🍑','🥝','🍒'],
+  ['⭐','❤️','💎','🔶','💜','🔵','🟢','🟡','🧡','💙'],
+  ['🌸','🌻','🌹','🌺','🌷','🌼','🍀','🌵','🌿','🍂'],
+  ['🎈','🎲','🎯','🎮','🎸','🎪','🎭','🎬','🎤','🎧'],
+  ['🚗','✈️','🚀','⛵','🚌','🏎️','🚁','🛸','🚂','🛶'],
+  ['⚽','🏀','🏈','⚾','🎾','🏐','🏓','🥊','⛳','🎳'],
+];
+
+// Similar emoji pairs (for harder levels)
+const SIMILAR_PAIRS = [
+  ['😀','😃'],['😊','🙂'],['😄','😁'],['😎','🤓'],['🥳','🤩'],
+  ['🐱','😺'],['🐶','🐕'],['🐻','🧸'],['🦊','🐺'],['🐸','🐢'],
+  ['🍎','🍏'],['🍊','🍑'],['🍋','🍐'],['🍇','🫐'],['🍓','🍒'],
+  ['⭐','🌟'],['❤️','♥️'],['💎','💠'],['🔶','🔷'],['🟡','🟠'],
+  ['🌸','🌺'],['🌻','🌼'],['🌹','🥀'],['🍀','☘️'],['🌿','🍃'],
+];
+
+// Shape definitions
+const SHAPES = [
+  { name:'circle', clip:'none', radius:'50%' },
+  { name:'square', clip:'none', radius:'6px' },
+  { name:'triangle', clip:'polygon(50% 8%, 8% 92%, 92% 92%)', radius:'0' },
+  { name:'diamond', clip:'polygon(50% 5%, 95% 50%, 50% 95%, 5% 50%)', radius:'0' },
+  { name:'star', clip:'polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)', radius:'0' },
+  { name:'hexagon', clip:'polygon(25% 5%,75% 5%,100% 50%,75% 95%,25% 95%,0% 50%)', radius:'0' },
+  { name:'cross', clip:'polygon(35% 0%,65% 0%,65% 35%,100% 35%,100% 65%,65% 65%,65% 100%,35% 100%,35% 65%,0% 65%,0% 35%,35% 35%)', radius:'0' },
+];
+
+const SHAPE_COLORS = [
+  '#FF6B6B','#4ECDC4','#FFE66D','#95E1D3','#F38181',
+  '#AA96DA','#667eea','#ff6b9d','#00d4ff','#4ade80',
+  '#f59e0b','#8b5cf6','#ec4899','#06b6d4','#84cc16',
+];
+
+// ═══════════════════════════════════════
+// SEEDED RNG
+// ═══════════════════════════════════════
+function mulberry32(a) {
+  return function() {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function hashStr(s) {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = ((h << 5) - h) + s.charCodeAt(i); h |= 0;
+  }
+  return h;
+}
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+let state = {};
+let lastMode = 'endless';
+let timerRAF = null;
+
+function resetState(mode) {
+  const isDaily = mode === 'daily';
+  const seed = isDaily ? hashStr('spot-odd-' + todayStr()) : Date.now();
+  state = {
+    mode,
+    level: 1,
+    score: 0,
+    lives: INITIAL_LIVES,
+    combo: 0,
+    bestCombo: 0,
+    correctCount: 0,
+    wrongCount: 0,
+    rng: mulberry32(seed),
+    timeLeft: 0,
+    timeMax: 0,
+    puzzle: null,
+    locked: false,
+    dailyRound: 0,
+    dailyMaxRounds: DAILY_ROUNDS,
+    timerStart: 0,
+    timerDuration: 0,
+    paused: false,
+  };
+}
+
+// ═══════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════
+const STORAGE_KEY = 'spot_the_odd_v1';
+function loadStorage() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch(e) { return {}; }
+}
+function saveStorage(data) {
+  const cur = loadStorage();
+  Object.assign(cur, data);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(cur));
+}
+
+// ═══════════════════════════════════════
+// LEVEL PARAMETERS
+// ═══════════════════════════════════════
+function getLevelParams(level) {
+  for (const p of LEVEL_PARAMS) {
+    if (level <= p.maxLv) return { grid: p.grid, time: p.time, diff: p.diff, traps: p.traps };
+  }
+  return LEVEL_PARAMS[LEVEL_PARAMS.length - 1];
+}
+
+// ═══════════════════════════════════════
+// PUZZLE GENERATION
+// ═══════════════════════════════════════
+function rngPick(arr) { return arr[Math.floor(state.rng() * arr.length)]; }
+function rngInt(min, max) { return Math.floor(state.rng() * (max - min + 1)) + min; }
+function rngFloat(min, max) { return min + state.rng() * (max - min); }
+function rngShuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(state.rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function generatePuzzle(level) {
+  const params = getLevelParams(level);
+  const gridSize = params.grid;
+  const totalCells = gridSize * gridSize;
+  const timeLimit = params.time;
+
+  // Decide puzzle mode: emoji or shape
+  const useShape = state.rng() < (level > 20 ? 0.35 : level > 10 ? 0.2 : 0.1);
+
+  let cells = [];
+  let oddIndex;
+  let puzzleType;
+
+  if (useShape) {
+    const result = generateShapePuzzle(params, totalCells);
+    cells = result.cells;
+    oddIndex = result.oddIndex;
+    puzzleType = result.type;
+  } else {
+    const result = generateEmojiPuzzle(params, totalCells, level);
+    cells = result.cells;
+    oddIndex = result.oddIndex;
+    puzzleType = result.type;
+  }
+
+  return { gridSize, timeLimit, cells, oddIndex, puzzleType };
+}
+
+function generateEmojiPuzzle(params, total, level) {
+  const diff = params.diff;
+  let baseEmoji, oddStyle = {}, baseStyle = {};
+  let oddEmoji;
+  let cells = [];
+  let type = '';
+
+  // Pick variation type based on difficulty
+  if (diff === 'easy') {
+    type = 'diff_emoji';
+    // Clearly different emoji
+    const catIdx1 = Math.floor(state.rng() * EMOJI_CATS.length);
+    let catIdx2 = catIdx1;
+    while (catIdx2 === catIdx1) catIdx2 = Math.floor(state.rng() * EMOJI_CATS.length);
+    baseEmoji = rngPick(EMOJI_CATS[catIdx1]);
+    oddEmoji = rngPick(EMOJI_CATS[catIdx2]);
+  } else if (diff === 'medium') {
+    const roll = state.rng();
+    if (roll < 0.3) {
+      type = 'similar_emoji';
+      const pair = rngPick(SIMILAR_PAIRS);
+      baseEmoji = pair[0];
+      oddEmoji = pair[1];
+    } else if (roll < 0.55) {
+      type = 'rotated';
+      baseEmoji = rngPick(rngPick(EMOJI_CATS));
+      oddEmoji = baseEmoji;
+      const angle = rngPick([15, 20, 25, 30, 45, -15, -20, -25, -30, -45]);
+      oddStyle.transform = `rotate(${angle}deg)`;
+    } else if (roll < 0.8) {
+      type = 'scaled';
+      baseEmoji = rngPick(rngPick(EMOJI_CATS));
+      oddEmoji = baseEmoji;
+      const scale = rngPick([0.75, 0.8, 1.2, 1.25]);
+      oddStyle.transform = `scale(${scale})`;
+    } else {
+      type = 'flipped';
+      baseEmoji = rngPick(rngPick(EMOJI_CATS));
+      oddEmoji = baseEmoji;
+      oddStyle.transform = 'scaleX(-1)';
+    }
+  } else if (diff === 'hard') {
+    const roll = state.rng();
+    if (roll < 0.25) {
+      type = 'similar_emoji';
+      const pair = rngPick(SIMILAR_PAIRS);
+      baseEmoji = pair[0];
+      oddEmoji = pair[1];
+    } else if (roll < 0.5) {
+      type = 'hue_shift';
+      baseEmoji = rngPick(rngPick(EMOJI_CATS));
+      oddEmoji = baseEmoji;
+      const hue = rngPick([20, 25, 30, 35, -20, -25, -30, -35]);
+      oddStyle.filter = `hue-rotate(${hue}deg)`;
+    } else if (roll < 0.75) {
+      type = 'brightness';
+      baseEmoji = rngPick(rngPick(EMOJI_CATS));
+      oddEmoji = baseEmoji;
+      const bright = rngPick([0.7, 0.75, 1.25, 1.3]);
+      oddStyle.filter = `brightness(${bright})`;
+    } else {
+      type = 'rotated_subtle';
+      baseEmoji = rngPick(rngPick(EMOJI_CATS));
+      oddEmoji = baseEmoji;
+      const angle = rngPick([10, 12, 15, -10, -12, -15]);
+      oddStyle.transform = `rotate(${angle}deg)`;
+    }
+  } else { // expert
+    const roll = state.rng();
+    if (roll < 0.35) {
+      type = 'hue_subtle';
+      baseEmoji = rngPick(rngPick(EMOJI_CATS));
+      oddEmoji = baseEmoji;
+      const hue = rngPick([12, 15, 18, -12, -15, -18]);
+      oddStyle.filter = `hue-rotate(${hue}deg)`;
+    } else if (roll < 0.6) {
+      type = 'combined';
+      baseEmoji = rngPick(rngPick(EMOJI_CATS));
+      oddEmoji = baseEmoji;
+      const angle = rngPick([8, 10, -8, -10]);
+      const scale = rngPick([0.88, 0.9, 1.1, 1.12]);
+      oddStyle.transform = `rotate(${angle}deg) scale(${scale})`;
+    } else {
+      type = 'similar_emoji';
+      const pair = rngPick(SIMILAR_PAIRS);
+      baseEmoji = pair[0];
+      oddEmoji = pair[1];
+    }
+  }
+
+  // Place odd item
+  const oddIndex = Math.floor(state.rng() * total);
+
+  // Generate decoys
+  let decoyIndices = [];
+  if (params.traps > 0) {
+    const decoyStyles = generateDecoyStyles(diff, params.traps, oddStyle);
+    while (decoyIndices.length < params.traps) {
+      const idx = Math.floor(state.rng() * total);
+      if (idx !== oddIndex && !decoyIndices.includes(idx)) decoyIndices.push(idx);
+    }
+    for (let i = 0; i < total; i++) {
+      const decoyIdx = decoyIndices.indexOf(i);
+      if (i === oddIndex) {
+        cells.push({ emoji: oddEmoji, style: oddStyle, isOdd: true, isDecoy: false });
+      } else if (decoyIdx >= 0) {
+        cells.push({ emoji: baseEmoji, style: decoyStyles[decoyIdx], isOdd: false, isDecoy: true });
+      } else {
+        cells.push({ emoji: baseEmoji, style: baseStyle, isOdd: false, isDecoy: false });
+      }
+    }
+  } else {
+    for (let i = 0; i < total; i++) {
+      if (i === oddIndex) {
+        cells.push({ emoji: oddEmoji, style: oddStyle, isOdd: true, isDecoy: false });
+      } else {
+        cells.push({ emoji: baseEmoji, style: baseStyle, isOdd: false, isDecoy: false });
+      }
+    }
+  }
+
+  return { cells, oddIndex, type: 'emoji_' + type };
+}
+
+function generateDecoyStyles(diff, count, oddStyle) {
+  const styles = [];
+  for (let i = 0; i < count; i++) {
+    const s = {};
+    // Decoys are very subtle - much less noticeable than the real odd
+    const roll = state.rng();
+    if (roll < 0.4) {
+      s.opacity = rngPick(['0.92', '0.94', '0.96']);
+    } else if (roll < 0.7) {
+      const angle = rngPick([3, 4, 5, -3, -4, -5]);
+      s.transform = `rotate(${angle}deg)`;
+    } else {
+      s.filter = `brightness(${rngPick([0.92, 0.94, 1.06, 1.08])})`;
+    }
+    styles.push(s);
+  }
+  return styles;
+}
+
+function generateShapePuzzle(params, total) {
+  const diff = params.diff;
+  const shapeIdx = Math.floor(state.rng() * SHAPES.length);
+  const shape = SHAPES[shapeIdx];
+  const colorIdx = Math.floor(state.rng() * SHAPE_COLORS.length);
+  const baseColor = SHAPE_COLORS[colorIdx];
+
+  let oddColor = baseColor;
+  let oddShapeIdx = shapeIdx;
+  let oddTransform = '';
+  let type = '';
+
+  if (diff === 'easy') {
+    type = 'shape_diff';
+    // Different color (clearly)
+    let newColorIdx = colorIdx;
+    while (newColorIdx === colorIdx) newColorIdx = Math.floor(state.rng() * SHAPE_COLORS.length);
+    oddColor = SHAPE_COLORS[newColorIdx];
+  } else if (diff === 'medium') {
+    const roll = state.rng();
+    if (roll < 0.4) {
+      type = 'shape_shade';
+      oddColor = shiftColor(baseColor, rngInt(20, 40));
+    } else if (roll < 0.7) {
+      type = 'shape_rotate';
+      oddTransform = `rotate(${rngPick([15, 20, 25, 30, -15, -20, -25])}deg)`;
+    } else {
+      type = 'shape_size';
+      oddTransform = `scale(${rngPick([0.75, 0.8, 1.2, 1.25])})`;
+    }
+  } else if (diff === 'hard') {
+    const roll = state.rng();
+    if (roll < 0.5) {
+      type = 'shape_shade_subtle';
+      oddColor = shiftColor(baseColor, rngInt(10, 20));
+    } else {
+      type = 'shape_rotate_subtle';
+      oddTransform = `rotate(${rngPick([8, 10, 12, -8, -10, -12])}deg)`;
+    }
+  } else {
+    type = 'shape_expert';
+    oddColor = shiftColor(baseColor, rngInt(8, 15));
+    oddTransform = `rotate(${rngPick([5, 7, -5, -7])}deg)`;
+  }
+
+  const oddIndex = Math.floor(state.rng() * total);
+  const cells = [];
+
+  // Decoys for shape puzzles
+  let decoyIndices = [];
+  if (params.traps > 0) {
+    while (decoyIndices.length < params.traps) {
+      const idx = Math.floor(state.rng() * total);
+      if (idx !== oddIndex && !decoyIndices.includes(idx)) decoyIndices.push(idx);
+    }
+  }
+
+  for (let i = 0; i < total; i++) {
+    const isOdd = i === oddIndex;
+    const isDecoy = decoyIndices.includes(i);
+    const c = isOdd ? oddColor : baseColor;
+    const t = isOdd ? oddTransform : '';
+
+    let decoyTransform = '';
+    let decoyColor = baseColor;
+    if (isDecoy) {
+      // Very subtle decoy
+      decoyColor = shiftColor(baseColor, rngInt(3, 6));
+      decoyTransform = `rotate(${rngPick([2, 3, -2, -3])}deg)`;
+    }
+
+    cells.push({
+      shape: SHAPES[shapeIdx],
+      color: isDecoy ? decoyColor : c,
+      shapeTransform: isDecoy ? decoyTransform : t,
+      isOdd,
+      isDecoy,
+    });
+  }
+
+  return { cells, oddIndex, type };
+}
+
+function shiftColor(hex, amount) {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const dir = state.rng() < 0.5 ? 1 : -1;
+  const nr = Math.max(0, Math.min(255, r + dir * amount));
+  const ng = Math.max(0, Math.min(255, g + (dir * amount * 0.7) | 0));
+  const nb = Math.max(0, Math.min(255, b - dir * (amount * 0.5) | 0));
+  return `#${nr.toString(16).padStart(2,'0')}${ng.toString(16).padStart(2,'0')}${nb.toString(16).padStart(2,'0')}`;
+}
+
+// ═══════════════════════════════════════
+// RENDERING
+// ═══════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function renderMenu() {
+  const data = loadStorage();
+  document.getElementById('menuBestScore').textContent = (data.bestScore || 0).toLocaleString();
+  document.getElementById('menuBestLevel').textContent = data.bestLevel || 0;
+
+  const dailyKey = 'daily_' + todayStr();
+  const btn = document.getElementById('dailyBtn');
+  const sub = document.getElementById('dailySub');
+  if (data[dailyKey]) {
+    btn.classList.add('completed');
+    btn.textContent = '✅ Daily Complete';
+    sub.textContent = `Today's Score: ${data[dailyKey].toLocaleString()}`;
+  } else {
+    btn.classList.remove('completed');
+    btn.textContent = '📅 Daily Challenge';
+    sub.textContent = `${DAILY_ROUNDS} rounds · Date seed`;
+  }
+  showScreen('menuScreen');
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  const puzzle = state.puzzle;
+  if (!puzzle) return;
+
+  grid.style.gridTemplateColumns = `repeat(${puzzle.gridSize}, 1fr)`;
+  grid.innerHTML = '';
+
+  const cellSize = Math.min(85 * window.innerWidth / 100, 420) / puzzle.gridSize;
+  const fontSize = Math.max(14, Math.min(cellSize * 0.6, 36));
+
+  puzzle.cells.forEach((cell, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'cell';
+    btn.dataset.index = i;
+    btn.style.animationDelay = `${(i % puzzle.gridSize) * 0.02 + Math.floor(i / puzzle.gridSize) * 0.02}s`;
+
+    if (cell.emoji !== undefined) {
+      // Emoji cell
+      const span = document.createElement('span');
+      span.className = 'cell-content';
+      span.textContent = cell.emoji;
+      span.style.fontSize = fontSize + 'px';
+      if (cell.style) {
+        Object.entries(cell.style).forEach(([k, v]) => span.style[k] = v);
+      }
+      btn.appendChild(span);
+    } else if (cell.shape) {
+      // Shape cell
+      const div = document.createElement('div');
+      div.className = 'cell-content';
+      const shapeDiv = document.createElement('div');
+      shapeDiv.className = 'cell-shape';
+      const shapeSize = Math.max(16, cellSize * 0.5);
+      shapeDiv.style.width = shapeSize + 'px';
+      shapeDiv.style.height = shapeSize + 'px';
+      shapeDiv.style.backgroundColor = cell.color;
+      if (cell.shape.clip !== 'none') {
+        shapeDiv.style.clipPath = cell.shape.clip;
+      }
+      shapeDiv.style.borderRadius = cell.shape.radius;
+      if (cell.shapeTransform) {
+        shapeDiv.style.transform = cell.shapeTransform;
+      }
+      div.appendChild(shapeDiv);
+      btn.appendChild(div);
+    }
+
+    btn.addEventListener('click', () => handleCellTap(i));
+    grid.appendChild(btn);
+  });
+
+  // Entrance animation
+  grid.classList.add('entering');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => grid.classList.remove('entering'));
+  });
+}
+
+function renderLives() {
+  const row = document.getElementById('livesRow');
+  row.innerHTML = '';
+  for (let i = 0; i < INITIAL_LIVES; i++) {
+    const span = document.createElement('span');
+    span.className = 'life' + (i >= state.lives ? ' lost' : '');
+    span.textContent = '❤️';
+    span.id = `life${i}`;
+    row.appendChild(span);
+  }
+}
+
+function updateHUD() {
+  document.getElementById('levelLabel').textContent =
+    state.mode === 'daily' ? `Daily ${state.dailyRound}/${state.dailyMaxRounds}` : `Lv.${state.level}`;
+  document.getElementById('scoreLabel').textContent = state.score.toLocaleString();
+}
+
+// ═══════════════════════════════════════
+// TIMER
+// ═══════════════════════════════════════
+function startTimer() {
+  state.timerStart = performance.now();
+  state.timerDuration = state.timeLeft * 1000;
+  state.paused = false;
+  if (timerRAF) cancelAnimationFrame(timerRAF);
+  tickTimer();
+}
+
+function tickTimer() {
+  if (state.paused || state.locked) return;
+
+  const elapsed = performance.now() - state.timerStart;
+  const remaining = Math.max(0, state.timerDuration - elapsed) / 1000;
+  state.timeLeft = remaining;
+
+  const pct = (remaining / state.timeMax) * 100;
+  const bar = document.getElementById('timerBar');
+  const text = document.getElementById('timerText');
+
+  bar.style.width = pct + '%';
+  text.textContent = remaining.toFixed(1) + 's';
+
+  // Warning states
+  bar.classList.remove('warning', 'critical');
+  text.classList.remove('warning', 'critical');
+  if (remaining <= 2) {
+    bar.classList.add('critical');
+    text.classList.add('critical');
+  } else if (remaining <= 4) {
+    bar.classList.add('warning');
+    text.classList.add('warning');
+  }
+
+  if (remaining <= 0) {
+    handleTimeout();
+    return;
+  }
+
+  timerRAF = requestAnimationFrame(tickTimer);
+}
+
+function pauseTimer() {
+  state.paused = true;
+  if (timerRAF) cancelAnimationFrame(timerRAF);
+  // Save remaining time
+  const elapsed = performance.now() - state.timerStart;
+  state.timeLeft = Math.max(0, state.timerDuration - elapsed) / 1000;
+}
+
+function applyPenalty(seconds) {
+  // Apply penalty to running timer
+  const elapsed = performance.now() - state.timerStart;
+  const remaining = Math.max(0, state.timerDuration - elapsed);
+  state.timerDuration = elapsed + Math.max(0, remaining - seconds * 1000);
+}
+
+// ═══════════════════════════════════════
+// GAME LOGIC
+// ═══════════════════════════════════════
+function startGame(mode) {
+  lastMode = mode;
+  resetState(mode);
+
+  // Check daily already completed
+  if (mode === 'daily') {
+    const data = loadStorage();
+    const dailyKey = 'daily_' + todayStr();
+    if (data[dailyKey]) {
+      renderMenu();
+      return;
+    }
+  }
+
+  showScreen('gameScreen');
+  renderLives();
+  nextPuzzle();
+}
+
+function nextPuzzle() {
+  // Daily mode check
+  if (state.mode === 'daily' && state.dailyRound >= state.dailyMaxRounds) {
+    endGame();
+    return;
+  }
+
+  if (state.mode === 'daily') state.dailyRound++;
+
+  state.locked = false;
+  state.puzzle = generatePuzzle(state.level);
+  state.timeLeft = state.puzzle.timeLimit;
+  state.timeMax = state.puzzle.timeLimit;
+
+  renderGrid();
+  updateHUD();
+  startTimer();
+}
+
+function handleCellTap(index) {
+  if (state.locked) return;
+  const puzzle = state.puzzle;
+  const cell = puzzle.cells[index];
+  const cellEl = document.getElementById('grid').children[index];
+
+  if (cell.isOdd) {
+    // CORRECT!
+    state.locked = true;
+    pauseTimer();
+
+    state.combo++;
+    if (state.combo > state.bestCombo) state.bestCombo = state.combo;
+    state.correctCount++;
+
+    const multiplier = Math.min(state.combo, COMBO_MAX);
+    const timeBonus = Math.round(state.timeLeft * 10);
+    const roundScore = (100 + timeBonus) * multiplier;
+    state.score += roundScore;
+
+    // Visual feedback
+    cellEl.classList.add('correct');
+    showFeedback('green');
+    showScorePopup(cellEl, roundScore);
+
+    if (multiplier >= 2) {
+      showCombo(multiplier);
+    }
+
+    // Advance
+    setTimeout(() => {
+      state.level++;
+      nextPuzzle();
+    }, 600);
+
+  } else {
+    // WRONG
+    state.combo = 0;
+    state.wrongCount++;
+    cellEl.classList.add('wrong');
+    cellEl.classList.add('locked');
+    showFeedback('red');
+    showPenaltyPopup(cellEl);
+
+    // Time penalty
+    applyPenalty(WRONG_PENALTY);
+
+    setTimeout(() => {
+      cellEl.classList.remove('wrong');
+    }, 400);
+  }
+}
+
+function handleTimeout() {
+  state.locked = true;
+  state.combo = 0;
+  state.lives--;
+
+  // Show the correct answer
+  const puzzle = state.puzzle;
+  const grid = document.getElementById('grid');
+  const correctCell = grid.children[puzzle.oddIndex];
+  correctCell.classList.add('reveal');
+
+  // Heart break animation
+  const lifeIdx = state.lives;
+  const lifeEl = document.getElementById(`life${lifeIdx}`);
+  if (lifeEl) lifeEl.classList.add('breaking');
+
+  showFeedback('red');
+
+  setTimeout(() => {
+    if (lifeEl) {
+      lifeEl.classList.remove('breaking');
+      lifeEl.classList.add('lost');
+    }
+
+    if (state.lives <= 0) {
+      endGame();
+    } else {
+      // In daily mode, still advance level
+      if (state.mode === 'daily') {
+        // Don't advance level in daily, continue with same difficulty
+      } else {
+        state.level++;
+      }
+      nextPuzzle();
+    }
+  }, 1000);
+}
+
+function endGame() {
+  pauseTimer();
+  const data = loadStorage();
+  let newRecord = false;
+
+  if (state.mode === 'daily') {
+    const dailyKey = 'daily_' + todayStr();
+    saveStorage({ [dailyKey]: state.score });
+    document.getElementById('resultIcon').textContent = '📅';
+    document.getElementById('resultTitle').textContent = 'Daily Complete!';
+    document.getElementById('resultSub').textContent = todayStr();
+  } else {
+    if (state.score > (data.bestScore || 0)) {
+      saveStorage({ bestScore: state.score });
+      newRecord = true;
+    }
+    if (state.level > (data.bestLevel || 0)) {
+      saveStorage({ bestLevel: state.level });
+    }
+    document.getElementById('resultIcon').textContent = state.level > 20 ? '🏆' : state.level > 10 ? '🎯' : '👁️';
+    document.getElementById('resultTitle').textContent = 'Game Over';
+    document.getElementById('resultSub').textContent =
+      state.level > 50 ? '놀라운 관찰력!' :
+      state.level > 30 ? '대단한 눈썰미!' :
+      state.level > 15 ? '좋은 실력이에요!' :
+      state.level > 5 ? '잘했어요!' : '다시 도전해보세요!';
+  }
+
+  document.getElementById('resultScore').textContent = state.score.toLocaleString();
+
+  const bestData = loadStorage();
+  if (newRecord) {
+    document.getElementById('resultBest').innerHTML = '<span class="new-record">🎉 NEW RECORD!</span>';
+  } else {
+    document.getElementById('resultBest').textContent = `Best: ${(bestData.bestScore || 0).toLocaleString()}`;
+  }
+
+  document.getElementById('rsLevel').textContent = state.level;
+  document.getElementById('rsCombo').textContent = '×' + state.bestCombo;
+  document.getElementById('rsCorrect').textContent = state.correctCount;
+  document.getElementById('rsWrong').textContent = state.wrongCount;
+
+  showScreen('resultScreen');
+}
+
+function backToMenu() {
+  pauseTimer();
+  renderMenu();
+}
+
+// ═══════════════════════════════════════
+// UI EFFECTS
+// ═══════════════════════════════════════
+function showCombo(multiplier) {
+  const el = document.getElementById('comboDisplay');
+  el.textContent = `×${multiplier}!`;
+  el.style.color = multiplier >= 4 ? 'var(--gold)' : multiplier >= 3 ? 'var(--pink)' : 'var(--cyan)';
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 700);
+}
+
+function showScorePopup(cellEl, score) {
+  const popup = document.createElement('div');
+  popup.className = 'score-popup';
+  popup.textContent = '+' + score.toLocaleString();
+  const rect = cellEl.getBoundingClientRect();
+  popup.style.left = rect.left + rect.width / 2 - 30 + 'px';
+  popup.style.top = rect.top - 10 + 'px';
+  document.body.appendChild(popup);
+  requestAnimationFrame(() => popup.classList.add('show'));
+  setTimeout(() => popup.remove(), 800);
+}
+
+function showPenaltyPopup(cellEl) {
+  const popup = document.createElement('div');
+  popup.className = 'penalty-popup';
+  popup.textContent = `-${WRONG_PENALTY}s`;
+  const rect = cellEl.getBoundingClientRect();
+  popup.style.left = rect.left + rect.width / 2 - 15 + 'px';
+  popup.style.top = rect.top - 10 + 'px';
+  document.body.appendChild(popup);
+  requestAnimationFrame(() => popup.classList.add('show'));
+  setTimeout(() => popup.remove(), 600);
+}
+
+function showFeedback(color) {
+  const el = document.getElementById('feedbackOverlay');
+  el.className = 'feedback-overlay ' + color;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 300);
+}
+
+// ═══════════════════════════════════════
+// INITIALIZATION
+// ═══════════════════════════════════════
+renderMenu();
+
+// Telegram Mini App integration
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+  tg.expand();
+  if (tg.setHeaderColor) tg.setHeaderColor('#0a0a1a');
+  if (tg.setBackgroundColor) tg.setBackgroundColor('#0a0a1a');
+}
+
+// Prevent pull-to-refresh
+document.addEventListener('touchmove', e => {
+  if (document.getElementById('gameScreen').classList.contains('active')) {
+    e.preventDefault();
+  }
+}, { passive: false });
+
+// Handle back button
+window.addEventListener('popstate', () => {
+  if (document.getElementById('gameScreen').classList.contains('active')) {
+    backToMenu();
+  }
+});
+</script>
+</body>
+</html>
