@@ -11,8 +11,10 @@
 - 게임 개발, AI, 자동화에 관심
 
 ## 진행 중인 프로젝트 [importance: 4]
-- Clawdbot 개선 (기억 시스템)
-- 게임 포털 사이트
+- 게임 포털: 36개 게임 (SEO+PWA+TG SDK 완비)
+- 삼국지 패왕전: GDD v2.0 완성, Godot 구현 대기
+- Godot 4.6 파이프라인: MiniPC 가동 중
+- 텔레그램 Mini App: 봇+런처 준비, BotFather 토큰 대기
 - RAG 시맨틱 검색 구축 완료
 
 ## 교훈 [importance: 5]
@@ -28,5 +30,5 @@
   - `xhigh`: 복잡한 구현, 아키텍처 설계, 어려운 디버깅
 
 ---
-Last updated: 2026-01-29 22:30
-Token estimate: ~200
+Last updated: 2026-01-30 18:06
+Token estimate: ~250
