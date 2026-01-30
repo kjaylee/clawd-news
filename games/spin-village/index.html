@@ -716,8 +716,131 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
         
+        // ── AI Attack System (10-30 sec random) ──
+        let aiAttackTimer = null;
+        
+        function scheduleAIAttack() {
+            const delay = (10 + Math.random() * 20) * 1000; // 10-30 seconds
+            aiAttackTimer = setTimeout(async () => {
+                await performAIAttack();
+                scheduleAIAttack(); // schedule next
+            }, delay);
+        }
+        
+        async function performAIAttack() {
+            // Skip if all buildings level 0
+            const upgraded = gameState.buildings.filter(b => b.level > 0);
+            if (upgraded.length === 0) return;
+            
+            if (gameState.shields > 0) {
+                // Shield blocks the attack
+                gameState.shields--;
+                showNotification(_i18nLang==='ko' ? '🛡️ 방패가 적의 공격을 막았습니다!' : '🛡️ Shield blocked enemy attack!');
+                
+                // Shield flash effect
+                const shieldEls = document.querySelectorAll('.shield.active');
+                if (shieldEls.length > 0) {
+                    const last = shieldEls[shieldEls.length - 1];
+                    last.style.transition = 'opacity 0.3s, transform 0.3s';
+                    last.style.transform = 'scale(1.5)';
+                    last.style.opacity = '0';
+                    setTimeout(() => { last.style.transform = ''; last.style.opacity = ''; }, 400);
+                }
+                
+                updateUI();
+                saveGame();
+                return;
+            }
+            
+            // Pick random upgraded building to damage
+            const target = upgraded[Math.floor(Math.random() * upgraded.length)];
+            const targetIdx = gameState.buildings.indexOf(target);
+            
+            // Show attack overlay
+            const overlay = document.getElementById('attack-overlay');
+            const targetEl = document.getElementById('attack-target');
+            const attackText = document.getElementById('attack-text');
+            
+            overlay.classList.add('show');
+            targetEl.textContent = target.icon;
+            attackText.textContent = _i18nLang==='ko' ? '⚔️ 적이 마을을 공격합니다!' : '⚔️ Enemy attacks your village!';
+            
+            await sleep(800);
+            
+            targetEl.textContent = '💥';
+            target.level = Math.max(0, target.level - 1);
+            attackText.textContent = _i18nLang==='ko' 
+                ? `${target.icon} ${target.name}이(가) 파괴되었습니다!` 
+                : `${target.icon} ${target.name} was damaged!`;
+            
+            // Screen shake
+            document.body.style.animation = 'shake 0.5s ease-in-out';
+            setTimeout(() => document.body.style.animation = '', 500);
+            
+            await sleep(1200);
+            overlay.classList.remove('show');
+            
+            saveGame();
+            updateUI();
+            renderBuildings();
+        }
+        
+        // ── Enhanced Building Upgrade Visual ──
+        const _origUpgradeBuilding = upgradeBuilding;
+        upgradeBuilding = function(index) {
+            const building = gameState.buildings[index];
+            const cost = Math.floor(building.baseCost * Math.pow(1.5, building.level));
+            if (gameState.coins < cost || building.level >= building.maxLevel) return;
+            
+            _origUpgradeBuilding(index);
+            
+            // Sparkle particles on the upgraded building card
+            const cards = document.querySelectorAll('.building');
+            const card = cards[index];
+            if (!card) return;
+            
+            const rect = card.getBoundingClientRect();
+            const cx = rect.left + rect.width / 2;
+            const cy = rect.top + rect.height / 2;
+            
+            for (let i = 0; i < 12; i++) {
+                const p = document.createElement('div');
+                const angle = (Math.PI * 2 * i) / 12;
+                const dist = 30 + Math.random() * 30;
+                const size = 4 + Math.random() * 5;
+                const colors = ['#fbbf24', '#4ade80', '#60a5fa', '#f472b6', '#fff'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                p.style.cssText = `
+                    position: fixed; left: ${cx}px; top: ${cy}px;
+                    width: ${size}px; height: ${size}px;
+                    background: ${color}; border-radius: 50%;
+                    pointer-events: none; z-index: 999;
+                    transition: all 0.6s ease-out; opacity: 1;
+                `;
+                document.body.appendChild(p);
+                
+                requestAnimationFrame(() => {
+                    p.style.left = (cx + Math.cos(angle) * dist) + 'px';
+                    p.style.top = (cy + Math.sin(angle) * dist) + 'px';
+                    p.style.opacity = '0';
+                    p.style.transform = 'scale(0)';
+                });
+                
+                setTimeout(() => p.remove(), 700);
+            }
+            
+            // Flash the card
+            card.style.transition = 'background 0.1s';
+            card.style.background = 'rgba(74, 222, 128, 0.5)';
+            setTimeout(() => { card.style.background = ''; }, 300);
+        };
+        
         // Initialize
         loadGame();
+        
+        // Start AI attack timer
+        scheduleAIAttack();
         
         // Auto-save every 30 seconds
         setInterval(saveGame, 30000);

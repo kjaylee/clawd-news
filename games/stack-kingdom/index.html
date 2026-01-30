@@ -144,6 +144,7 @@
             margin-top: 30px;
         }
     </style>
+    <script src="../i18n.js"></script>
 </head>
 <body>
     <div id="gameContainer">
@@ -155,9 +156,10 @@
             
             <div id="startScreen">
                 <div class="title">🏰 Stack Kingdom</div>
-                <div class="subtitle">Build Your Tower!</div>
-                <button class="btn" id="startBtn">START</button>
-                <div class="instructions">Tap to place blocks</div>
+                <div class="subtitle" id="i18nSubtitle">Build Your Tower!</div>
+                <div class="instructions" style="margin-bottom:20px;font-size:15px;color:rgba(255,255,255,0.65);" id="i18nDesc">Stack blocks precisely to build the tallest tower. Perfect placement earns bonus points!</div>
+                <button class="btn" id="startBtn" id="i18nStart">START</button>
+                <div class="instructions" id="i18nInstr">Tap to place blocks</div>
             </div>
             
             <div id="gameOverScreen" class="hidden">
@@ -584,6 +586,28 @@
 
         // Start game loop
         gameLoop();
+
+        // i18n
+        const T = GameI18n({
+          subtitle:{en:'Build Your Tower!',ko:'탑을 쌓아라!'},
+          desc:{en:'Stack blocks precisely to build the tallest tower. Perfect placement earns bonus points!',ko:'블록을 정확하게 쌓아 가장 높은 탑을 만드세요. 완벽한 배치는 보너스 점수!'},
+          start:{en:'START',ko:'시작'},
+          instr:{en:'Tap to place blocks',ko:'탭하여 블록 배치'},
+          gameover:{en:'GAME OVER',ko:'게임 오버'},
+          retry:{en:'RETRY',ko:'다시하기'}
+        });
+        (function(){
+          var apply = function(){
+            var m = {i18nSubtitle:'subtitle',i18nDesc:'desc',i18nStart:'start',i18nInstr:'instr'};
+            for(var id in m){var e=document.getElementById(id);if(e)e.textContent=T(m[id]);}
+            var goSub = document.querySelector('#gameOverScreen .subtitle');
+            if(goSub) goSub.textContent = T('gameover');
+            if(restartBtn) restartBtn.textContent = T('retry');
+            if(startBtn) startBtn.textContent = T('start');
+          };
+          if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',apply);
+          else apply();
+        })();
     </script>
 </body>
 </html>

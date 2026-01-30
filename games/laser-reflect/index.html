@@ -114,6 +114,7 @@
     </div>
     <p class="instruction">Tap mirrors to rotate • Hit all gems with the laser</p>
 
+    <script src="../i18n.js"></script>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -132,6 +133,12 @@
         let laserPath = [];
         let isSimulating = false;
         let selectedMirror = null;
+        
+        // Animation state
+        let laserAnimating = false;
+        let laserProgress = 0;        // current draw distance (px)
+        let laserSegmentLengths = [];  // length of each path segment
+        let laserTotalLength = 0;
         
         // Level definitions
         const levels = [
@@ -402,8 +409,15 @@
                 ctx.fill();
             });
             
-            // Draw mirrors
+            // Draw mirrors (with smooth rotation interpolation)
             mirrors.forEach((m, i) => {
+                // Smooth rotate toward target angle
+                if (m.targetAngle !== undefined && Math.abs(m.angle - m.targetAngle) > 0.3) {
+                    m.angle += (m.targetAngle - m.angle) * 0.18;
+                } else if (m.targetAngle !== undefined) {
+                    m.angle = m.targetAngle;
+                }
+
                 ctx.save();
                 ctx.translate(m.x, m.y);
                 ctx.rotate(m.angle * Math.PI / 180);
@@ -422,6 +436,13 @@
                 ctx.lineWidth = 2;
                 ctx.strokeRect(-m.length/2, -4, m.length, 8);
                 
+                // Rotation flash effect
+                if (m._flashAlpha && m._flashAlpha > 0) {
+                    ctx.fillStyle = `rgba(255,255,255,${m._flashAlpha})`;
+                    ctx.fillRect(-m.length/2, -4, m.length, 8);
+                    m._flashAlpha -= 0.03;
+                }
+                
                 // Selection indicator
                 if (selectedMirror === i) {
                     ctx.strokeStyle = '#ffff00';
@@ -432,40 +453,99 @@
                 ctx.restore();
             });
             
-            // Draw laser source
+            // Draw laser source (pulsing glow)
+            const pulseR = 12 + Math.sin(Date.now() * 0.005) * 2;
             ctx.fillStyle = '#ff6b6b';
+            ctx.shadowColor = '#ff6b6b';
+            ctx.shadowBlur = 12;
             ctx.beginPath();
-            ctx.arc(laserSource.x, laserSource.y, 12, 0, Math.PI * 2);
+            ctx.arc(laserSource.x, laserSource.y, pulseR, 0, Math.PI * 2);
             ctx.fill();
+            ctx.shadowBlur = 0;
             ctx.fillStyle = '#ffff00';
             ctx.beginPath();
             ctx.arc(laserSource.x, laserSource.y, 6, 0, Math.PI * 2);
             ctx.fill();
             
-            // Draw laser path
+            // Draw laser path (progressive animation)
             if (laserPath.length > 1) {
-                ctx.strokeStyle = '#ff0000';
-                ctx.lineWidth = 3;
-                ctx.shadowColor = '#ff0000';
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.moveTo(laserPath[0].x, laserPath[0].y);
-                for (let i = 1; i < laserPath.length; i++) {
-                    ctx.lineTo(laserPath[i].x, laserPath[i].y);
-                }
-                ctx.stroke();
-                ctx.shadowBlur = 0;
+                const drawDist = laserAnimating ? laserProgress : laserTotalLength;
                 
-                // Glow effect
-                ctx.strokeStyle = 'rgba(255, 100, 100, 0.3)';
-                ctx.lineWidth = 8;
-                ctx.beginPath();
-                ctx.moveTo(laserPath[0].x, laserPath[0].y);
-                for (let i = 1; i < laserPath.length; i++) {
-                    ctx.lineTo(laserPath[i].x, laserPath[i].y);
+                // Build partial path up to drawDist
+                let remaining = drawDist;
+                const partialPath = [laserPath[0]];
+                for (let i = 1; i < laserPath.length && remaining > 0; i++) {
+                    const segLen = laserSegmentLengths[i - 1] || 0;
+                    if (remaining >= segLen) {
+                        partialPath.push(laserPath[i]);
+                        remaining -= segLen;
+                    } else {
+                        // Interpolate partial segment
+                        const t = remaining / segLen;
+                        partialPath.push({
+                            x: laserPath[i-1].x + (laserPath[i].x - laserPath[i-1].x) * t,
+                            y: laserPath[i-1].y + (laserPath[i].y - laserPath[i-1].y) * t
+                        });
+                        remaining = 0;
+                    }
                 }
-                ctx.stroke();
+                
+                if (partialPath.length > 1) {
+                    // Glow layer
+                    ctx.strokeStyle = 'rgba(255, 100, 100, 0.3)';
+                    ctx.lineWidth = 8;
+                    ctx.beginPath();
+                    ctx.moveTo(partialPath[0].x, partialPath[0].y);
+                    for (let i = 1; i < partialPath.length; i++) {
+                        ctx.lineTo(partialPath[i].x, partialPath[i].y);
+                    }
+                    ctx.stroke();
+                    
+                    // Core beam
+                    ctx.strokeStyle = '#ff0000';
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = '#ff0000';
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.moveTo(partialPath[0].x, partialPath[0].y);
+                    for (let i = 1; i < partialPath.length; i++) {
+                        ctx.lineTo(partialPath[i].x, partialPath[i].y);
+                    }
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    
+                    // Leading tip glow
+                    const tip = partialPath[partialPath.length - 1];
+                    ctx.fillStyle = '#ffaa00';
+                    ctx.shadowColor = '#ffaa00';
+                    ctx.shadowBlur = 15;
+                    ctx.beginPath();
+                    ctx.arc(tip.x, tip.y, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
             }
+        }
+        
+        // ── Game Loop (requestAnimationFrame) ──
+        function gameLoop() {
+            // Advance laser animation
+            if (laserAnimating) {
+                laserProgress += 12;  // pixels per frame
+                if (laserProgress >= laserTotalLength) {
+                    laserProgress = laserTotalLength;
+                    laserAnimating = false;
+                    // Check win after animation completes
+                    if (targets.every(t => t.hit)) {
+                        setTimeout(() => {
+                            document.getElementById('message').style.display = 'block';
+                        }, 300);
+                    }
+                }
+            }
+            
+            draw();
+            requestAnimationFrame(gameLoop);
         }
         
         function fireLaser() {
@@ -507,9 +587,10 @@
                     }
                 });
                 
-                // Check mirror collisions
+                // Check mirror collisions (use targetAngle for calculation if set)
                 mirrors.forEach((m, i) => {
-                    const mirrorAngle = m.angle * Math.PI / 180;
+                    const mAngle = (m.targetAngle !== undefined ? m.targetAngle : m.angle);
+                    const mirrorAngle = mAngle * Math.PI / 180;
                     const mx1 = m.x - Math.cos(mirrorAngle) * m.length / 2;
                     const my1 = m.y - Math.sin(mirrorAngle) * m.length / 2;
                     const mx2 = m.x + Math.cos(mirrorAngle) * m.length / 2;
@@ -525,7 +606,7 @@
                         if (dist > 1 && dist < minDist) {
                             minDist = dist;
                             hitType = 'mirror';
-                            hitData = { point: intersection, mirror: m, index: i };
+                            hitData = { point: intersection, mirror: m, index: i, mAngle: mAngle };
                         }
                     }
                 });
@@ -575,8 +656,8 @@
                     currentX = hitData.point.x;
                     currentY = hitData.point.y;
                     
-                    // Reflect angle
-                    const mirrorNormal = hitData.mirror.angle + 90;
+                    // Reflect angle (use target angle)
+                    const mirrorNormal = hitData.mAngle + 90;
                     const incidentAngle = angle;
                     const reflectedAngle = 2 * mirrorNormal - incidentAngle;
                     angle = reflectedAngle;
@@ -588,14 +669,21 @@
                 }
             }
             
-            draw();
-            
-            // Check win condition
-            if (targets.every(t => t.hit)) {
-                setTimeout(() => {
-                    document.getElementById('message').style.display = 'block';
-                }, 500);
+            // Calculate segment lengths for progressive animation
+            laserSegmentLengths = [];
+            laserTotalLength = 0;
+            for (let i = 1; i < laserPath.length; i++) {
+                const len = Math.hypot(
+                    laserPath[i].x - laserPath[i-1].x,
+                    laserPath[i].y - laserPath[i-1].y
+                );
+                laserSegmentLengths.push(len);
+                laserTotalLength += len;
             }
+            
+            // Start progressive laser animation
+            laserProgress = 0;
+            laserAnimating = true;
         }
         
         function lineIntersection(x1, y1, x2, y2, x3, y3, x4, y4) {
@@ -630,26 +718,31 @@
             loadLevel(currentLevel);
         }
         
-        // Touch/mouse handling
+        // Touch/mouse handling — smooth mirror rotation
         canvas.addEventListener('click', (e) => {
             const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
             
-            // Check if clicked on a mirror
             mirrors.forEach((m, i) => {
                 const dist = Math.hypot(x - m.x, y - m.y);
-                if (dist < 30) {
-                    m.angle = (m.angle + 15) % 360;
+                if (dist < 35) {
+                    // Set target angle for smooth animation
+                    if (m.targetAngle === undefined) m.targetAngle = m.angle;
+                    m.targetAngle = (m.targetAngle + 15) % 360;
+                    m._flashAlpha = 0.6;  // rotation flash
                     laserPath = [];
+                    laserAnimating = false;
                     targets.forEach(t => t.hit = false);
-                    draw();
                 }
             });
         });
         
-        // Initialize
+        // Initialize + start game loop
         loadLevel(0);
+        gameLoop();
     </script>
 </body>
 </html>
