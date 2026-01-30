@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>🌸 Merge Bloom Garden</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#e8f5e9;min-height:100vh;min-height:100dvh;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;transition:opacity .3s,transform .3s;overflow:hidden}
+.screen.hidden{opacity:0;pointer-events:none;transform:translateY(20px)}
+#menu-screen{justify-content:center;gap:16px;background:linear-gradient(180deg,#e8f5e9 0%,#c8e6c9 40%,#81c784 100%)}
+.menu-title{font-size:2.4em;font-weight:900;text-align:center;color:#2e7d32;text-shadow:0 2px 4px rgba(0,0,0,.1);animation:float 3s ease-in-out infinite;line-height:1.2}
+.menu-sub{font-size:1em;color:#4caf50;font-weight:600;margin-top:-8px}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.menu-stats{font-size:.95em;color:#555;font-weight:600;display:flex;gap:16px}
+.menu-btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 40px;border:none;border-radius:16px;font-size:1.15em;font-weight:700;cursor:pointer;transition:all .15s;box-shadow:0 4px 12px rgba(0,0,0,.12);width:240px}
+.menu-btn:active{transform:scale(.95)}
+.menu-btn.primary{background:linear-gradient(135deg,#66bb6a,#43a047);color:#fff}
+.menu-btn.secondary{background:#fff;color:#2e7d32}
+.stats-bar{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:12px;margin:8px 8px 4px;box-shadow:0 2px 8px rgba(0,0,0,.08);font-weight:600;font-size:.9em;color:#333;width:calc(100% - 16px);max-width:500px;z-index:10;flex-shrink:0}
+.stats-bar span{display:flex;align-items:center;gap:3px}
+.energy-bar{width:60px;height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden;display:inline-block;vertical-align:middle}
+.energy-fill{height:100%;background:linear-gradient(90deg,#ffa726,#ff9800);border-radius:4px;transition:width .3s}
+.canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;position:relative;overflow:hidden}
+canvas{display:block;touch-action:none}
+.quest-bar{display:flex;align-items:center;gap:6px;padding:6px 12px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:10px;margin:4px 8px;font-size:.82em;font-weight:600;width:calc(100% - 16px);max-width:500px;flex-shrink:0;z-index:10}
+.quest-progress{flex:1;height:6px;background:#e0e0e0;border-radius:3px;overflow:hidden}
+.quest-fill{height:100%;background:linear-gradient(90deg,#66bb6a,#43a047);border-radius:3px;transition:width .5s}
+.bottom-nav{display:flex;background:rgba(255,255,255,.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:18px 18px 0 0;width:100%;max-width:500px;box-shadow:0 -2px 10px rgba(0,0,0,.08);flex-shrink:0;z-index:10}
+.nav-btn{flex:1;padding:8px 0 6px;border:none;background:transparent;font-size:.72em;font-weight:600;color:#888;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;transition:all .15s}
+.nav-btn.active{color:#2e7d32;background:rgba(102,187,106,.12)}
+.nav-btn span{font-size:1.4em}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.visible{opacity:1;pointer-events:all}
+.panel{background:#fff;border-radius:20px;padding:22px;max-width:360px;width:92%;max-height:80vh;overflow-y:auto;box-shadow:0 10px 40px rgba(0,0,0,.2);transform:scale(.92);transition:transform .25s}
+.overlay.visible .panel{transform:scale(1)}
+.panel h2{text-align:center;margin-bottom:12px;color:#2e7d32;font-size:1.3em}
+.panel-close{display:block;margin:14px auto 0;padding:10px 28px;border:none;border-radius:12px;background:linear-gradient(135deg,#66bb6a,#43a047);color:#fff;font-size:1em;font-weight:700;cursor:pointer}
+.panel-close:active{transform:scale(.95)}
+.toast{position:fixed;top:18%;left:50%;transform:translateX(-50%) translateY(-16px);background:rgba(0,0,0,.82);color:#fff;padding:10px 22px;border-radius:20px;font-weight:700;font-size:1.05em;z-index:200;opacity:0;transition:all .3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.score-pop{position:absolute;font-weight:900;font-size:1.1em;pointer-events:none;z-index:50;animation:popUp .9s ease-out forwards;text-shadow:0 1px 3px rgba(0,0,0,.15)}
+@keyframes popUp{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(-50px) scale(1.2)}}
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;font-weight:500}
+.toggle{min-width:50px;height:28px;border-radius:14px;background:#ccc;border:none;cursor:pointer;position:relative;transition:background .3s}
+.toggle.on{background:#66bb6a}
+.toggle::after{content:'';position:absolute;width:24px;height:24px;border-radius:50%;background:#fff;top:2px;left:2px;transition:left .3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{left:24px}
+.lang-btn{padding:6px 16px;border:2px solid #66bb6a;border-radius:10px;background:#fff;color:#2e7d32;font-weight:700;cursor:pointer;font-size:.9em}
+.lang-btn:active{background:#e8f5e9}
+.quest-item{padding:10px 12px;border-radius:12px;background:#f5f5f5;margin:8px 0;transition:all .3s}
+.quest-item.complete{background:#e8f5e9;border:2px solid #66bb6a}
+.quest-desc{font-weight:600;margin-bottom:4px;font-size:.95em}
+.quest-reward{font-size:.82em;color:#888}
+.quest-prog{font-size:.82em;color:#43a047;font-weight:600;margin-top:2px}
+.claim-btn{padding:5px 14px;border:none;border-radius:8px;background:#ff9800;color:#fff;font-weight:700;cursor:pointer;font-size:.82em;margin-top:4px}
+.claim-btn:active{transform:scale(.95)}
+.garden-info{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:12px;margin:8px 8px 4px;width:calc(100% - 16px);max-width:500px;font-weight:600;font-size:.88em;flex-shrink:0;z-index:10}
+.garden-actions{display:flex;gap:8px;margin:4px 8px;flex-shrink:0;z-index:10}
+.garden-btn{padding:8px 18px;border:none;border-radius:12px;font-size:.9em;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.1)}
+.garden-btn:active{transform:scale(.95)}
+.garden-btn.plant{background:linear-gradient(135deg,#66bb6a,#43a047);color:#fff}
+.garden-btn.visit{background:#fff;color:#2e7d32;border:2px solid #66bb6a}
+.flower-pick{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}
+.flower-opt{width:56px;height:56px;border-radius:12px;border:2px solid #e0e0e0;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;font-size:1.5em;background:#fff;transition:all .15s}
+.flower-opt:active{transform:scale(.9)}
+.flower-opt .cnt{font-size:.45em;font-weight:700;color:#666}
+.flower-opt.sel{border-color:#43a047;background:#e8f5e9}
+.no-energy-msg{text-align:center;padding:15px 0;line-height:1.6}
+.no-energy-msg .big{font-size:2.5em}
+.timer-txt{color:#ff9800;font-weight:700;font-size:1.1em}
+@media(min-width:500px){.menu-title{font-size:3em}}
+</style>
+</head>
+<body>
+<div id="app">
+<!-- MENU -->
+<div id="menu-screen" class="screen">
+<div class="menu-title">🌸 Merge Bloom<br>Garden 🌸</div>
+<div class="menu-sub" id="menu-sub">꽃을 합치고 정원을 가꾸세요</div>
+<div class="menu-stats" id="menu-stats"></div>
+<button class="menu-btn primary" onclick="S.showScreen('puzzle')"><span>🌱</span><span data-i="play">플레이</span></button>
+<button class="menu-btn secondary" onclick="S.showScreen('garden')"><span>🏡</span><span data-i="garden">내 정원</span></button>
+<button class="menu-btn secondary" onclick="S.showOverlay('quest')"><span>📋</span><span data-i="quests">퀘스트</span></button>
+<button class="menu-btn secondary" onclick="S.showOverlay('settings')"><span>⚙️</span><span data-i="settings">설정</span></button>
+</div>
+<!-- PUZZLE -->
+<div id="puzzle-screen" class="screen hidden">
+<div class="stats-bar" id="puzzle-stats">
+<span id="energy-disp">⚡ 30/30</span>
+<span id="combo-disp"></span>
+<span id="score-disp">🏆 0</span>
+<span id="coin-disp">🪙 0</span>
+</div>
+<div class="canvas-wrap"><canvas id="game-canvas"></canvas></div>
+<div class="quest-bar" id="quest-bar">
+<span id="qb-icon">📋</span>
+<span id="qb-text">--</span>
+<div class="quest-progress"><div class="quest-fill" id="qb-fill"></div></div>
+<span id="qb-count">0/0</span>
+</div>
+<div class="bottom-nav">
+<button class="nav-btn" onclick="S.showScreen('menu')"><span>🏠</span><span data-i="menu">메뉴</span></button>
+<button class="nav-btn active" id="nav-puzzle"><span>🧩</span><span data-i="puzzle">퍼즐</span></button>
+<button class="nav-btn" onclick="S.showScreen('garden')"><span>🏡</span><span data-i="garden">정원</span></button>
+<button class="nav-btn" onclick="S.showOverlay('quest')"><span>📋</span><span data-i="quests">퀘스트</span></button>
+</div>
+</div>
+<!-- GARDEN -->
+<div id="garden-screen" class="screen hidden">
+<div class="garden-info" id="garden-info"></div>
+<div class="canvas-wrap"><canvas id="garden-canvas"></canvas></div>
+<div class="garden-actions" id="garden-actions">
+<button class="garden-btn plant" onclick="S.showOverlay('plant')" data-i="plantBtn">🌱 심기</button>
+<button class="garden-btn visit" onclick="S.showOverlay('visitors')" data-i="visitBtn">🦋 방문자</button>
+</div>
+<div class="bottom-nav">
+<button class="nav-btn" onclick="S.showScreen('menu')"><span>🏠</span><span data-i="menu">메뉴</span></button>
+<button class="nav-btn" onclick="S.showScreen('puzzle')"><span>🧩</span><span data-i="puzzle">퍼즐</span></button>
+<button class="nav-btn active" id="nav-garden"><span>🏡</span><span data-i="garden">정원</span></button>
+<button class="nav-btn" onclick="S.showOverlay('quest')"><span>📋</span><span data-i="quests">퀘스트</span></button>
+</div>
+</div>
+<!-- OVERLAYS -->
+<div id="quest-overlay" class="overlay" onclick="if(event.target===this)S.hideOverlay('quest')">
+<div class="panel"><h2>📋 <span data-i="quests">퀘스트</span></h2><div id="quest-list"></div>
+<button class="panel-close" onclick="S.hideOverlay('quest')" data-i="close">닫기</button></div>
+</div>
+<div id="settings-overlay" class="overlay" onclick="if(event.target===this)S.hideOverlay('settings')">
+<div class="panel"><h2>⚙️ <span data-i="settings">설정</span></h2>
+<div class="setting-row"><span>🔊 <span data-i="sound">사운드</span></span><button id="sound-toggle" class="toggle on" onclick="S.toggleSound()"></button></div>
+<div class="setting-row"><span>🌐 <span data-i="language">언어</span></span><button class="lang-btn" onclick="S.toggleLang()" id="lang-btn">한/EN</button></div>
+<div class="setting-row"><span>💾 <span data-i="reset">초기화</span></span><button class="lang-btn" onclick="if(confirm(G.t('resetConfirm')))S.resetGame()" data-i="resetBtn" style="color:#e53935;border-color:#e53935">Reset</button></div>
+<button class="panel-close" onclick="S.hideOverlay('settings')" data-i="close">닫기</button></div>
+</div>
+<div id="plant-overlay" class="overlay" onclick="if(event.target===this)S.hideOverlay('plant')">
+<div class="panel"><h2>🌱 <span data-i="selectFlower">심을 꽃 선택</span></h2>
+<div class="flower-pick" id="flower-pick"></div>
+<p style="text-align:center;font-size:.85em;color:#888;margin-top:6px" data-i="tapToPlant">정원에서 빈 칸을 탭하세요</p>
+<button class="panel-close" onclick="S.hideOverlay('plant')" data-i="close">닫기</button></div>
+</div>
+<div id="visitors-overlay" class="overlay" onclick="if(event.target===this)S.hideOverlay('visitors')">
+<div class="panel"><h2>🦋 <span data-i="visitors">방문자</span></h2>
+<div id="visitor-list"></div>
+<button class="panel-close" onclick="S.hideOverlay('visitors')" data-i="close">닫기</button></div>
+</div>
+<div id="noenergy-overlay" class="overlay" onclick="if(event.target===this)S.hideOverlay('noenergy')">
+<div class="panel"><div class="no-energy-msg"><div class="big">⚡</div><h2 data-i="noEnergy">에너지 부족!</h2>
+<p id="energy-timer" class="timer-txt"></p></div>
+<button class="panel-close" onclick="S.hideOverlay('noenergy')" data-i="wait">기다리기</button></div>
+</div>
+<div id="harvest-overlay" class="overlay" onclick="if(event.target===this)S.hideOverlay('harvest')">
+<div class="panel" style="text-align:center"><h2>🎉 <span data-i="harvested">수확 완료!</span></h2>
+<div id="harvest-info" style="font-size:1.2em;padding:12px 0"></div>
+<button class="panel-close" onclick="S.hideOverlay('harvest')" data-i="great">좋아요!</button></div>
+</div>
+<div id="levelup-overlay" class="overlay" onclick="if(event.target===this)S.hideOverlay('levelup')">
+<div class="panel" style="text-align:center"><h2>🎊 <span data-i="gardenLvUp">정원 레벨 업!</span></h2>
+<div id="levelup-info" style="font-size:1.3em;padding:16px 0"></div>
+<button class="panel-close" onclick="S.hideOverlay('levelup')" data-i="great">좋아요!</button></div>
+</div>
+<div id="toast" class="toast"></div>
+</div>
+<script>
+// ============================================================
+// SECTION 1: CONFIGURATION
+// ============================================================
+const CFG = {
+  COLS: 7, ROWS: 7,
+  MAX_LEVEL: 5,
+  INIT_FLOWER_TYPES: 3,
+  MAX_FLOWER_TYPES: 6,
+  ENERGY_MAX: 30,
+  MERGE_COST: 1,
+  REGEN_MS: 120000,
+  SPAWN_RATE: 0.7,
+  HIGH_LEVEL_SPAWN: 0.05,
+  MERGE_SCORE_MULT: 50,
+  COMBO_BONUS: 1.5,
+  COMBO_WINDOW: 2500,
+  GARDEN_COLS: 8, GARDEN_ROWS: 6,
+  GARDEN_XP_HARVEST: 50,
+  GARDEN_LEVELS: [0,100,300,600,1000,1500,2200,3000,4000,5500,7500,10000],
+  VISITOR_THRESH: [3,8,15,25,40],
+  QUESTS_ACTIVE: 3,
+  QUEST_COIN: 200, QUEST_XP: 100,
+  AUTOSAVE_MS: 15000,
+  CASCADE_DELAY: 120,
+  CELL_PAD: 3,
+};
+
+const FLOWERS = ['rose','sunflower','tulip','cherry','lavender','orchid'];
+const FLOWER_INFO = {
+  rose:      { emoji: ['🌱','🌿','🪻','🌹','🏵️'], color: '#FF69B4', colorBg: '#FFD6E8' },
+  sunflower: { emoji: ['🌱','🌿','🌼','🌻','☀️'],  color: '#E6A800', colorBg: '#FFF3C4' },
+  tulip:     { emoji: ['🌱','🌿','🪴','🌷','💐'],  color: '#E53935', colorBg: '#FFCDD2' },
+  cherry:    { emoji: ['🌱','🌿','🍃','🌸','🎀'],  color: '#EC407A', colorBg: '#F8BBD0' },
+  lavender:  { emoji: ['🌱','🌿','☘️','💜','💟'], color: '#7B1FA2', colorBg: '#E1BEE7' },
+  orchid:    { emoji: ['🌱','🌿','🍀','🪷','👑'],  color: '#00838F', colorBg: '#B2EBF2' },
+};
+
+const LEVEL_NAMES_KO = ['','씨앗','새싹','봉오리','꽃','만개'];
+const LEVEL_NAMES_EN = ['','Seed','Sprout','Bud','Flower','Bloom'];
+
+const VISITORS = [
+  { id: 'butterfly', emoji: '🦋', threshold: 3 },
+  { id: 'bee',       emoji: '🐝', threshold: 8 },
+  { id: 'bird',      emoji: '🐦', threshold: 15 },
+  { id: 'ladybug',   emoji: '🐞', threshold: 25 },
+  { id: 'hummingbird',emoji:'🐦‍⬛',threshold: 40 },
+];
+
+// ============================================================
+// SECTION 2: i18n
+// ============================================================
+const I18N = {
+  ko: {
+    play:'플레이', garden:'내 정원', quests:'퀘스트', settings:'설정',
+    menu:'메뉴', puzzle:'퍼즐', close:'닫기', sound:'사운드', language:'언어',
+    reset:'초기화', resetBtn:'리셋', resetConfirm:'정말 초기화할까요? 모든 진행이 사라집니다.',
+    plantBtn:'🌱 심기', visitBtn:'🦋 방문자', selectFlower:'심을 꽃 선택',
+    tapToPlant:'정원에서 빈 칸을 탭하세요', visitors:'방문자',
+    noEnergy:'에너지 부족!', wait:'기다리기',
+    harvested:'수확 완료!', great:'좋아요!', gardenLvUp:'정원 레벨 업!',
+    subtitle:'꽃을 합치고 정원을 가꾸세요',
+    harvestTip:'만개 꽃을 탭해서 수확!',
+    planted:'심었습니다!', questDone:'퀘스트 완료!', noFlowers:'수확한 꽃이 없습니다',
+    gardenLevel:'정원 Lv.',visitorCount:'방문자',
+    nextEnergy:'다음 에너지',
+    comboX:'콤보',
+    rose:'장미', sunflower:'해바라기', tulip:'튤립',
+    cherry:'벚꽃', lavender:'라벤더', orchid:'난초',
+    seed:'씨앗', sprout:'새싹', bud:'봉오리', flower:'꽃', bloom:'만개',
+    qPlant:'%s %d송이 심기', qHarvest:'꽃 %d송이 수확', qMerge:'%d회 병합',
+    qScore:'점수 %d 달성', qCombo:'콤보 %dx 달성',
+    reward:'보상', coins:'코인', xp:'경험치',
+    noVisitors:'아직 방문자가 없어요.\n정원에 꽃을 더 심어보세요! 🌱',
+    gardenEmpty:'정원이 비어있어요!\n퍼즐에서 꽃을 수확해서 심어보세요 🌸',
+    levelNames:['','씨앗','새싹','봉오리','꽃','만개'],
+  },
+  en: {
+    play:'Play', garden:'My Garden', quests:'Quests', settings:'Settings',
+    menu:'Menu', puzzle:'Puzzle', close:'Close', sound:'Sound', language:'Language',
+    reset:'Reset', resetBtn:'Reset', resetConfirm:'Really reset? All progress will be lost.',
+    plantBtn:'🌱 Plant', visitBtn:'🦋 Visitors', selectFlower:'Select Flower',
+    tapToPlant:'Tap empty spot in garden', visitors:'Visitors',
+    noEnergy:'Out of Energy!', wait:'Wait',
+    harvested:'Harvested!', great:'Great!', gardenLvUp:'Garden Level Up!',
+    subtitle:'Merge flowers, build your garden',
+    harvestTip:'Tap full bloom to harvest!',
+    planted:'Planted!', questDone:'Quest Complete!', noFlowers:'No harvested flowers',
+    gardenLevel:'Garden Lv.', visitorCount:'Visitors',
+    nextEnergy:'Next energy',
+    comboX:'Combo',
+    rose:'Rose', sunflower:'Sunflower', tulip:'Tulip',
+    cherry:'Cherry', lavender:'Lavender', orchid:'Orchid',
+    seed:'Seed', sprout:'Sprout', bud:'Bud', flower:'Flower', bloom:'Bloom',
+    qPlant:'Plant %d %s', qHarvest:'Harvest %d flowers', qMerge:'Merge %d times',
+    qScore:'Reach score %d', qCombo:'Reach combo %dx',
+    reward:'Reward', coins:'Coins', xp:'XP',
+    noVisitors:'No visitors yet.\nPlant more flowers! 🌱',
+    gardenEmpty:'Garden is empty!\nHarvest flowers from puzzle! 🌸',
+    levelNames:['','Seed','Sprout','Bud','Flower','Bloom'],
+  }
+};
+
+// ============================================================
+// SECTION 3: GAME STATE
+// ============================================================
+const G = {
+  lang: 'ko',
+  soundOn: true,
+  screen: 'menu',
+  board: [],          // 7×7 grid of items or null
+  energy: CFG.ENERGY_MAX,
+  energyTimer: 0,     // ms until next regen
+  lastEnergyTime: Date.now(),
+  score: 0,
+  coins: 0,
+  combo: 0,
+  lastMergeTime: 0,
+  totalMerges: 0,
+  totalHarvests: 0,
+  gardenLevel: 1,
+  gardenXP: 0,
+  gardenGrid: [],     // 8×6 of { type, planted } or null
+  gardenFlowers: {},   // inventory: { rose: 2, sunflower: 1, ... }
+  quests: [],
+  questsSeed: 1,
+  visitors: [],
+  particles: [],
+  animations: [],
+  cascading: false,
+  dragging: null,      // { item, startCol, startRow, cx, cy }
+  dragTarget: null,    // { col, row }
+  plantMode: null,     // flower type to plant
+  selectedFlower: null,
+  highScore: 0,
+  unlockedTypes: CFG.INIT_FLOWER_TYPES,
+  t(key, ...args) {
+    let s = I18N[G.lang]?.[key] || I18N.en[key] || key;
+    args.forEach((a,i) => { s = s.replace(/%[sd]/, a); });
+    return s;
+  },
+  flowerName(type) { return G.t(type); },
+};
+
+// ============================================================
+// SECTION 4: SOUND SYSTEM (Web Audio API)
+// ============================================================
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+const SFX = {
+  merge(level) {
+    if (!G.soundOn) return;
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    const base = 400 + level * 100;
+    o.frequency.setValueAtTime(base, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(base * 1.5, ctx.currentTime + 0.15);
+    g.gain.setValueAtTime(0.15, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+    o.start(); o.stop(ctx.currentTime + 0.25);
+  },
+  harvest() {
+    if (!G.soundOn) return;
+    const ctx = getAudio();
+    [523, 659, 784].forEach((f, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.08);
+      g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.08 + 0.3);
+      o.start(ctx.currentTime + i * 0.08);
+      o.stop(ctx.currentTime + i * 0.08 + 0.3);
+    });
+  },
+  levelUp() {
+    if (!G.soundOn) return;
+    const ctx = getAudio();
+    [440, 554, 659, 880].forEach((f, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'triangle';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0.1, ctx.currentTime + i * 0.1);
+      g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.4);
+      o.start(ctx.currentTime + i * 0.1);
+      o.stop(ctx.currentTime + i * 0.1 + 0.4);
+    });
+  },
+  error() {
+    if (!G.soundOn) return;
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'square';
+    o.frequency.value = 200;
+    g.gain.setValueAtTime(0.08, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+    o.start(); o.stop(ctx.currentTime + 0.15);
+  },
+  click() {
+    if (!G.soundOn) return;
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.value = 800;
+    g.gain.setValueAtTime(0.08, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.06);
+    o.start(); o.stop(ctx.currentTime + 0.06);
+  },
+  combo() {
+    if (!G.soundOn) return;
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(600, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.12);
+    g.gain.setValueAtTime(0.12, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+    o.start(); o.stop(ctx.currentTime + 0.2);
+  },
+  plant() {
+    if (!G.soundOn) return;
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine';
+    o.frequency.setValueAtTime(500, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(700, ctx.currentTime + 0.2);
+    g.gain.setValueAtTime(0.1, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    o.start(); o.stop(ctx.currentTime + 0.3);
+  },
+};
+
+// ============================================================
+// SECTION 5: BOARD LOGIC
+// ============================================================
+function makeItem(type, level) {
+  return { type, level, anim: null, scale: 1, glow: 0 };
+}
+function getCell(c, r) {
+  if (c < 0 || c >= CFG.COLS || r < 0 || r >= CFG.ROWS) return null;
+  return G.board[r]?.[c] || null;
+}
+function setCell(c, r, item) {
+  if (!G.board[r]) G.board[r] = new Array(CFG.COLS).fill(null);
+  G.board[r][c] = item;
+}
+function clearCell(c, r) { setCell(c, r, null); }
+
+function randomType() {
+  const n = Math.min(G.unlockedTypes, CFG.MAX_FLOWER_TYPES);
+  return FLOWERS[Math.floor(Math.random() * n)];
+}
+function spawnItem() {
+  if (Math.random() < CFG.HIGH_LEVEL_SPAWN) return makeItem(randomType(), 2);
+  return makeItem(randomType(), 1);
+}
+function initBoard() {
+  G.board = [];
+  for (let r = 0; r < CFG.ROWS; r++) {
+    G.board[r] = [];
+    for (let c = 0; c < CFG.COLS; c++) {
+      G.board[r][c] = spawnItem();
+    }
+  }
+}
+function initGarden() {
+  G.gardenGrid = [];
+  for (let r = 0; r < CFG.GARDEN_ROWS; r++) {
+    G.gardenGrid[r] = new Array(CFG.GARDEN_COLS).fill(null);
+  }
+}
+
+// ============================================================
+// SECTION 6: MERGE LOGIC
+// ============================================================
+function canMerge(a, b) {
+  if (!a || !b) return false;
+  return a.type === b.type && a.level === b.level && a.level < CFG.MAX_LEVEL;
+}
+
+function getNeighbors(c, r) {
+  const dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+  return dirs.map(([dc,dr]) => ({c:c+dc, r:r+dr})).filter(p =>
+    p.c >= 0 && p.c < CFG.COLS && p.r >= 0 && p.r < CFG.ROWS
+  );
+}
+
+function doMerge(fromC, fromR, toC, toR) {
+  const src = getCell(fromC, fromR);
+  const dst = getCell(toC, toR);
+  if (!canMerge(src, dst)) return false;
+  if (G.energy <= 0) {
+    S.showOverlay('noenergy');
+    SFX.error();
+    return false;
+  }
+
+  // Check 3-way merge: any neighbor of target with same type/level?
+  let threeWay = false;
+  let thirdCell = null;
+  const neighbors = getNeighbors(toC, toR);
+  for (const n of neighbors) {
+    if (n.c === fromC && n.r === fromR) continue;
+    const nb = getCell(n.c, n.r);
+    if (nb && nb.type === src.type && nb.level === src.level) {
+      threeWay = true;
+      thirdCell = n;
+      break;
+    }
+  }
+
+  const newLevel = Math.min(src.level + (threeWay ? 2 : 1), CFG.MAX_LEVEL);
+  const newItem = makeItem(src.type, newLevel);
+  newItem.scale = 0.3;
+  newItem.glow = 1;
+
+  clearCell(fromC, fromR);
+  if (thirdCell) clearCell(thirdCell.c, thirdCell.r);
+  setCell(toC, toR, newItem);
+
+  // Energy
+  G.energy = Math.max(0, G.energy - CFG.MERGE_COST);
+  if (G.energy === CFG.ENERGY_MAX - CFG.MERGE_COST && !G.regenInterval) {
+    G.lastEnergyTime = Date.now();
+  }
+
+  // Combo
+  const now = Date.now();
+  if (now - G.lastMergeTime < CFG.COMBO_WINDOW) {
+    G.combo++;
+    if (G.combo > 1) SFX.combo();
+  } else {
+    G.combo = 1;
+  }
+  G.lastMergeTime = now;
+
+  // Score
+  const base = newLevel * newLevel * CFG.MERGE_SCORE_MULT;
+  const comboMult = G.combo > 1 ? Math.pow(CFG.COMBO_BONUS, G.combo - 1) : 1;
+  const pts = Math.floor(base * comboMult * (threeWay ? 2 : 1));
+  G.score += pts;
+  if (G.score > G.highScore) G.highScore = G.score;
+  G.totalMerges++;
+
+  // Particles at merge position
+  const cx = boardX + toC * cellSize + cellSize / 2;
+  const cy = boardY + toR * cellSize + cellSize / 2;
+  spawnParticles(cx, cy, FLOWER_INFO[src.type].color, threeWay ? 18 : 10);
+  spawnScorePop(cx, cy, '+' + pts + (G.combo > 1 ? ' ×' + G.combo : ''));
+
+  SFX.merge(newLevel);
+
+  // Check unlock new flower types
+  const typesNeeded = Math.min(3 + Math.floor(G.totalMerges / 30), CFG.MAX_FLOWER_TYPES);
+  if (typesNeeded > G.unlockedTypes) {
+    G.unlockedTypes = typesNeeded;
+    showToast('🌺 ' + G.flowerName(FLOWERS[G.unlockedTypes-1]) + '!');
+  }
+
+  // Quest progress
+  updateQuestProgress('merge', 1);
+  updateQuestProgress('score', 0);
+
+  // Cascade
+  G.cascading = true;
+  setTimeout(() => processCascade(), CFG.CASCADE_DELAY);
+
+  saveGame();
+  return true;
+}
+
+// ============================================================
+// SECTION 7: CASCADE
+// ============================================================
+function processCascade() {
+  let moved = applyGravity();
+  let spawned = fillEmpty();
+  if (moved || spawned) {
+    setTimeout(() => processCascade(), CFG.CASCADE_DELAY);
+  } else {
+    G.cascading = false;
+  }
+}
+
+function applyGravity() {
+  let moved = false;
+  for (let c = 0; c < CFG.COLS; c++) {
+    for (let r = CFG.ROWS - 1; r >= 0; r--) {
+      if (getCell(c, r) === null) {
+        for (let above = r - 1; above >= 0; above--) {
+          if (getCell(c, above)) {
+            setCell(c, r, getCell(c, above));
+            clearCell(c, above);
+            moved = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+  return moved;
+}
+
+function fillEmpty() {
+  let spawned = false;
+  for (let c = 0; c < CFG.COLS; c++) {
+    for (let r = 0; r < CFG.ROWS; r++) {
+      if (getCell(c, r) === null && Math.random() < CFG.SPAWN_RATE) {
+        const item = spawnItem();
+        item.scale = 0.1;
+        setCell(c, r, item);
+        spawned = true;
+      }
+    }
+  }
+  return spawned;
+}
+
+// ============================================================
+// SECTION 8: HARVEST
+// ============================================================
+function canHarvest(item) {
+  return item && item.level === CFG.MAX_LEVEL;
+}
+
+function doHarvest(c, r) {
+  const item = getCell(c, r);
+  if (!canHarvest(item)) return;
+
+  const type = item.type;
+  const reward = { coins: 100 + G.gardenLevel * 20, xp: CFG.GARDEN_XP_HARVEST };
+
+  // Add to inventory
+  G.gardenFlowers[type] = (G.gardenFlowers[type] || 0) + 1;
+  G.coins += reward.coins;
+  G.gardenXP += reward.xp;
+  G.totalHarvests++;
+
+  // Check garden level up
+  const oldLevel = G.gardenLevel;
+  while (G.gardenLevel < CFG.GARDEN_LEVELS.length - 1 &&
+         G.gardenXP >= CFG.GARDEN_LEVELS[G.gardenLevel]) {
+    G.gardenLevel++;
+  }
+  if (G.gardenLevel > oldLevel) {
+    setTimeout(() => {
+      document.getElementById('levelup-info').textContent =
+        `${G.t('gardenLevel')}${G.gardenLevel} 🎊\n+${G.t('coins')}: ${reward.coins}`;
+      S.showOverlay('levelup');
+      SFX.levelUp();
+    }, 400);
+  }
+
+  // Particles
+  const cx = boardX + c * cellSize + cellSize / 2;
+  const cy = boardY + r * cellSize + cellSize / 2;
+  spawnPetals(cx, cy, type);
+  spawnScorePop(cx, cy, '🌸+' + reward.coins);
+
+  clearCell(c, r);
+  SFX.harvest();
+
+  // Show harvest result
+  const fi = FLOWER_INFO[type];
+  document.getElementById('harvest-info').innerHTML =
+    `${fi.emoji[4]} ${G.flowerName(type)}<br>🪙 +${reward.coins}<br>⭐ +${reward.xp} XP`;
+  S.showOverlay('harvest');
+
+  // Quest
+  updateQuestProgress('harvest', 1, type);
+
+  G.cascading = true;
+  setTimeout(() => processCascade(), CFG.CASCADE_DELAY);
+  saveGame();
+}
+
+// ============================================================
+// SECTION 9: ENERGY SYSTEM
+// ============================================================
+function updateEnergy() {
+  if (G.energy < CFG.ENERGY_MAX) {
+    const elapsed = Date.now() - G.lastEnergyTime;
+    const regen = Math.floor(elapsed / CFG.REGEN_MS);
+    if (regen > 0) {
+      G.energy = Math.min(CFG.ENERGY_MAX, G.energy + regen);
+      G.lastEnergyTime = Date.now() - (elapsed % CFG.REGEN_MS);
+    }
+    const remaining = CFG.REGEN_MS - (Date.now() - G.lastEnergyTime);
+    G.energyTimer = remaining;
+  } else {
+    G.lastEnergyTime = Date.now();
+    G.energyTimer = 0;
+  }
+}
+
+function formatTime(ms) {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(s / 60);
+  return `${m}:${String(s % 60).padStart(2, '0')}`;
+}
+
+// ============================================================
+// SECTION 10: GARDEN SYSTEM
+// ============================================================
+function getGardenCell(c, r) {
+  if (c < 0 || c >= CFG.GARDEN_COLS || r < 0 || r >= CFG.GARDEN_ROWS) return undefined;
+  return G.gardenGrid[r]?.[c] || null;
+}
+
+function plantFlower(c, r, type) {
+  if (!G.gardenGrid[r]) return false;
+  if (G.gardenGrid[r][c]) return false;
+  if (!G.gardenFlowers[type] || G.gardenFlowers[type] <= 0) return false;
+
+  G.gardenGrid[r][c] = { type, plantedAt: Date.now() };
+  G.gardenFlowers[type]--;
+  G.plantMode = null;
+  G.selectedFlower = null;
+
+  SFX.plant();
+  showToast('🌱 ' + G.t('planted'));
+
+  // Quest
+  updateQuestProgress('plant', 1, type);
+
+  // Update visitors
+  updateVisitors();
+  saveGame();
+  return true;
+}
+
+function countGardenFlowers() {
+  let count = 0;
+  for (let r = 0; r < CFG.GARDEN_ROWS; r++) {
+    for (let c = 0; c < CFG.GARDEN_COLS; c++) {
+      if (G.gardenGrid[r]?.[c]) count++;
+    }
+  }
+  return count;
+}
+
+function updateVisitors() {
+  const count = countGardenFlowers();
+  G.visitors = VISITORS.filter(v => count >= v.threshold);
+}
+
+// ============================================================
+// SECTION 11: QUEST SYSTEM
+// ============================================================
+const QUEST_TEMPLATES = [
+  { type: 'plant', gen: () => {
+    const ft = FLOWERS[Math.floor(Math.random() * G.unlockedTypes)];
+    const n = 2 + Math.floor(Math.random() * 3);
+    return { desc: (l) => l === 'ko' ? `${G.flowerName(ft)} ${n}송이 심기` : `Plant ${n} ${G.flowerName(ft)}`,
+             target: { action: 'plant', flowerType: ft, count: n },
+             progress: 0 };
+  }},
+  { type: 'harvest', gen: () => {
+    const n = 1 + Math.floor(Math.random() * 3);
+    return { desc: (l) => l === 'ko' ? `꽃 ${n}송이 수확` : `Harvest ${n} flowers`,
+             target: { action: 'harvest', count: n },
+             progress: 0 };
+  }},
+  { type: 'merge', gen: () => {
+    const n = 5 + Math.floor(Math.random() * 10);
+    return { desc: (l) => l === 'ko' ? `${n}회 병합` : `Merge ${n} times`,
+             target: { action: 'merge', count: n },
+             progress: 0 };
+  }},
+  { type: 'score', gen: () => {
+    const n = (5 + Math.floor(Math.random() * 10)) * 100;
+    return { desc: (l) => l === 'ko' ? `점수 ${n} 달성` : `Reach score ${n}`,
+             target: { action: 'score', count: n },
+             progress: 0 };
+  }},
+];
+
+function generateQuest() {
+  const tmpl = QUEST_TEMPLATES[Math.floor(Math.random() * QUEST_TEMPLATES.length)];
+  const q = tmpl.gen();
+  q.id = 'q_' + (G.questsSeed++);
+  q.claimed = false;
+  q.reward = { coins: CFG.QUEST_COIN + Math.floor(Math.random() * 100), xp: CFG.QUEST_XP };
+  return q;
+}
+
+function initQuests() {
+  while (G.quests.length < CFG.QUESTS_ACTIVE) {
+    G.quests.push(generateQuest());
+  }
+}
+
+function updateQuestProgress(action, amount, flowerType) {
+  for (const q of G.quests) {
+    if (q.claimed) continue;
+    const t = q.target;
+    if (t.action === action) {
+      if (t.flowerType && t.flowerType !== flowerType) continue;
+      if (action === 'score') {
+        q.progress = G.score;
+      } else {
+        q.progress += amount;
+      }
+    }
+  }
+}
+
+function isQuestComplete(q) {
+  return q.progress >= q.target.count;
+}
+
+function claimQuest(qId) {
+  const q = G.quests.find(x => x.id === qId);
+  if (!q || q.claimed || !isQuestComplete(q)) return;
+  q.claimed = true;
+  G.coins += q.reward.coins;
+  G.gardenXP += q.reward.xp;
+  showToast('🎉 ' + G.t('questDone') + ' +' + q.reward.coins + '🪙');
+  SFX.levelUp();
+
+  // Replace quest
+  const idx = G.quests.indexOf(q);
+  G.quests[idx] = generateQuest();
+
+  // Check garden level
+  const oldLv = G.gardenLevel;
+  while (G.gardenLevel < CFG.GARDEN_LEVELS.length - 1 &&
+         G.gardenXP >= CFG.GARDEN_LEVELS[G.gardenLevel]) {
+    G.gardenLevel++;
+  }
+  if (G.gardenLevel > oldLv) SFX.levelUp();
+
+  saveGame();
+  S.renderQuestList();
+}
+
+// ============================================================
+// SECTION 12: PARTICLES
+// ============================================================
+function spawnParticles(x, y, color, count) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 / count) * i + Math.random() * 0.5;
+    const speed = 2 + Math.random() * 3;
+    G.particles.push({
+      x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+      life: 1, decay: 0.02 + Math.random() * 0.02,
+      size: 3 + Math.random() * 4,
+      color, type: 'circle'
+    });
+  }
+}
+
+function spawnPetals(x, y, flowerType) {
+  const emojis = ['🌸', '🌺', '💮', '🏵️', '✿'];
+  for (let i = 0; i < 12; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 1.5 + Math.random() * 3;
+    G.particles.push({
+      x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed - 1,
+      life: 1, decay: 0.012 + Math.random() * 0.008,
+      emoji: emojis[Math.floor(Math.random() * emojis.length)],
+      size: 12 + Math.random() * 8,
+      type: 'emoji', rot: Math.random() * 6
+    });
+  }
+}
+
+function spawnScorePop(x, y, text) {
+  const el = document.createElement('div');
+  el.className = 'score-pop';
+  el.textContent = text;
+  // Position relative to canvas within wrapper
+  const canvas = gameCanvas;
+  const wrap = document.querySelector('#puzzle-screen .canvas-wrap');
+  if (!wrap || !canvas) return;
+  const wrapRect = wrap.getBoundingClientRect();
+  const canvasRect = canvas.getBoundingClientRect();
+  const offsetX = canvasRect.left - wrapRect.left;
+  const offsetY = canvasRect.top - wrapRect.top;
+  el.style.left = (offsetX + x) + 'px';
+  el.style.top = (offsetY + y) + 'px';
+  el.style.color = '#FF6F00';
+  wrap.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
+}
+
+function updateParticles() {
+  for (let i = G.particles.length - 1; i >= 0; i--) {
+    const p = G.particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.08;
+    p.life -= p.decay;
+    if (p.life <= 0) G.particles.splice(i, 1);
+  }
+}
+
+// ============================================================
+// SECTION 13: CANVAS RENDERING - BOARD
+// ============================================================
+let gameCanvas, gameCtx, gardenCanvas, gardenCtx;
+let cellSize = 50, boardX = 0, boardY = 0;
+let gardenCellSize = 50, gardenBoardX = 0, gardenBoardY = 0;
+const DPR = Math.min(window.devicePixelRatio || 1, 3);
+
+function setupCanvases() {
+  gameCanvas = document.getElementById('game-canvas');
+  gameCtx = gameCanvas.getContext('2d');
+  gardenCanvas = document.getElementById('garden-canvas');
+  gardenCtx = gardenCanvas.getContext('2d');
+  resizeCanvases();
+}
+
+function resizeCanvases() {
+  // Puzzle canvas
+  const puzzleWrap = document.querySelector('#puzzle-screen .canvas-wrap');
+  if (puzzleWrap) {
+    const w = Math.min(puzzleWrap.clientWidth - 16, 500);
+    const h = puzzleWrap.clientHeight - 8;
+    cellSize = Math.floor(Math.min(w / CFG.COLS, h / CFG.ROWS));
+    const bw = cellSize * CFG.COLS;
+    const bh = cellSize * CFG.ROWS;
+    gameCanvas.style.width = bw + 'px';
+    gameCanvas.style.height = bh + 'px';
+    gameCanvas.width = bw * DPR;
+    gameCanvas.height = bh * DPR;
+    gameCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    boardX = 0;
+    boardY = 0;
+  }
+
+  // Garden canvas
+  const gardenWrap = document.querySelector('#garden-screen .canvas-wrap');
+  if (gardenWrap) {
+    const w = Math.min(gardenWrap.clientWidth - 16, 500);
+    const h = gardenWrap.clientHeight - 8;
+    gardenCellSize = Math.floor(Math.min(w / CFG.GARDEN_COLS, h / CFG.GARDEN_ROWS));
+    const gw = gardenCellSize * CFG.GARDEN_COLS;
+    const gh = gardenCellSize * CFG.GARDEN_ROWS;
+    gardenCanvas.style.width = gw + 'px';
+    gardenCanvas.style.height = gh + 'px';
+    gardenCanvas.width = gw * DPR;
+    gardenCanvas.height = gh * DPR;
+    gardenCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    gardenBoardX = 0;
+    gardenBoardY = 0;
+  }
+}
+
+function drawBoard() {
+  const ctx = gameCtx;
+  const cs = cellSize;
+  const pad = CFG.CELL_PAD;
+
+  // Background
+  ctx.fillStyle = '#c8e6c9';
+  ctx.fillRect(0, 0, cs * CFG.COLS, cs * CFG.ROWS);
+
+  // Grid cells
+  for (let r = 0; r < CFG.ROWS; r++) {
+    for (let c = 0; c < CFG.COLS; c++) {
+      const x = boardX + c * cs + pad;
+      const y = boardY + r * cs + pad;
+      const w = cs - pad * 2;
+
+      // Cell background
+      ctx.fillStyle = (c + r) % 2 === 0 ? '#e8f5e9' : '#dcedc8';
+      roundRect(ctx, x, y, w, w, 8);
+      ctx.fill();
+
+      // Highlight drop target
+      if (G.dragTarget && G.dragTarget.c === c && G.dragTarget.r === r) {
+        ctx.strokeStyle = '#43a047';
+        ctx.lineWidth = 3;
+        roundRect(ctx, x, y, w, w, 8);
+        ctx.stroke();
+      }
+
+      // Item
+      const item = getCell(c, r);
+      if (item && !(G.dragging && G.dragging.startCol === c && G.dragging.startRow === r)) {
+        drawItem(ctx, item, x, y, w);
+      }
+    }
+  }
+
+  // Draw dragging item
+  if (G.dragging) {
+    const item = G.dragging.item;
+    const dx = G.dragging.cx - cs / 2;
+    const dy = G.dragging.cy - cs / 2;
+    const w = cs - pad * 2;
+    ctx.globalAlpha = 0.85;
+    drawItem(ctx, item, dx + pad, dy + pad, w);
+    ctx.globalAlpha = 1;
+  }
+
+  // Particles
+  for (const p of G.particles) {
+    if (p.type === 'circle') {
+      ctx.globalAlpha = p.life;
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    } else if (p.type === 'emoji') {
+      ctx.globalAlpha = p.life;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.font = `${p.size * p.life}px serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(p.emoji, 0, 0);
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+  }
+}
+
+function drawItem(ctx, item, x, y, w) {
+  const fi = FLOWER_INFO[item.type];
+  const scale = item.scale || 1;
+  const cx = x + w / 2;
+  const cy = y + w / 2;
+  const sw = w * scale;
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+
+  // Background circle with type color
+  const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, w * 0.45);
+  grad.addColorStop(0, fi.colorBg);
+  grad.addColorStop(1, adjustColor(fi.colorBg, -20));
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(0, 0, w * 0.42, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Border
+  ctx.strokeStyle = fi.color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, w * 0.42, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Glow for high levels or fresh merge
+  if (item.glow > 0 || item.level >= 4) {
+    const glowAmt = item.glow > 0 ? item.glow : 0.3 + Math.sin(Date.now() / 300) * 0.15;
+    ctx.shadowColor = item.level >= 5 ? '#FFD700' : fi.color;
+    ctx.shadowBlur = 12 * glowAmt;
+  }
+
+  // Emoji
+  const emoji = fi.emoji[item.level - 1];
+  const fontSize = w * (item.level >= 4 ? 0.52 : 0.42);
+  ctx.font = `${fontSize}px serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'transparent';
+  ctx.fillText(emoji, 0, -2);
+
+  // Level indicator (dots)
+  const dotY = w * 0.32;
+  const dotR = 2.5;
+  const dotGap = 7;
+  const startX = -(item.level - 1) * dotGap / 2;
+  for (let i = 0; i < item.level; i++) {
+    ctx.fillStyle = i < item.level ? fi.color : '#ccc';
+    ctx.beginPath();
+    ctx.arc(startX + i * dotGap, dotY, dotR, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Sparkle for Lv5
+  if (item.level === 5) {
+    const t = Date.now() / 500;
+    ctx.font = `${w * 0.18}px serif`;
+    const sparkles = ['✨', '⭐', '💫'];
+    for (let i = 0; i < 3; i++) {
+      const a = t + i * 2.1;
+      const sr = w * 0.35;
+      const sx = Math.cos(a) * sr;
+      const sy = Math.sin(a) * sr;
+      ctx.globalAlpha = 0.6 + Math.sin(t * 2 + i) * 0.3;
+      ctx.fillText(sparkles[i], sx, sy);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  ctx.restore();
+}
+
+function drawGarden() {
+  const ctx = gardenCtx;
+  const cs = gardenCellSize;
+  const pad = 3;
+
+  // Background
+  ctx.fillStyle = '#a5d6a7';
+  ctx.fillRect(0, 0, cs * CFG.GARDEN_COLS, cs * CFG.GARDEN_ROWS);
+
+  // Draw path pattern
+  for (let r = 0; r < CFG.GARDEN_ROWS; r++) {
+    for (let c = 0; c < CFG.GARDEN_COLS; c++) {
+      const x = gardenBoardX + c * cs + pad;
+      const y = gardenBoardY + r * cs + pad;
+      const w = cs - pad * 2;
+
+      // Grass tile
+      const isPath = (r === 0 || r === CFG.GARDEN_ROWS - 1 || c === 0 || c === CFG.GARDEN_COLS - 1);
+      ctx.fillStyle = isPath ? '#81c784' : ((c + r) % 2 === 0 ? '#c8e6c9' : '#b9deb5');
+      roundRect(ctx, x, y, w, w, 6);
+      ctx.fill();
+
+      if (isPath) {
+        // Fence/border decoration
+        ctx.font = `${cs * 0.3}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🌿', x + w / 2, y + w / 2);
+        continue;
+      }
+
+      // Highlight if in plant mode
+      if (G.plantMode && !G.gardenGrid[r]?.[c]) {
+        ctx.strokeStyle = '#43a047';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        roundRect(ctx, x, y, w, w, 6);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
+      // Planted flower
+      const planted = G.gardenGrid[r]?.[c];
+      if (planted) {
+        const fi = FLOWER_INFO[planted.type];
+        // Small ground circle
+        ctx.fillStyle = fi.colorBg;
+        ctx.beginPath();
+        ctx.arc(x + w / 2, y + w / 2, w * 0.38, 0, Math.PI * 2);
+        ctx.fill();
+
+        const emoji = fi.emoji[4]; // Full bloom in garden
+        const age = Date.now() - planted.plantedAt;
+        const growScale = Math.min(1, age / 1000);
+        ctx.save();
+        ctx.translate(x + w / 2, y + w / 2);
+        ctx.scale(growScale, growScale);
+        ctx.font = `${cs * 0.48}px serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(emoji, 0, -2);
+        ctx.restore();
+      }
+    }
+  }
+
+  // Draw visitors
+  const t = Date.now() / 2000;
+  G.visitors.forEach((v, i) => {
+    const vx = (CFG.GARDEN_COLS / 2 + Math.sin(t + i * 1.7) * (CFG.GARDEN_COLS / 2 - 1.5)) * cs;
+    const vy = (CFG.GARDEN_ROWS / 2 + Math.cos(t * 0.7 + i * 2.3) * (CFG.GARDEN_ROWS / 2 - 1.5)) * cs;
+    ctx.font = `${cs * 0.4}px serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(v.emoji, vx, vy);
+  });
+}
+
+// ============================================================
+// SECTION 14: UTILITIES
+// ============================================================
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function adjustColor(hex, amt) {
+  let r = parseInt(hex.slice(1, 3), 16) + amt;
+  let g = parseInt(hex.slice(3, 5), 16) + amt;
+  let b = parseInt(hex.slice(5, 7), 16) + amt;
+  r = Math.max(0, Math.min(255, r));
+  g = Math.max(0, Math.min(255, g));
+  b = Math.max(0, Math.min(255, b));
+  return `rgb(${r},${g},${b})`;
+}
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ============================================================
+// SECTION 15: INPUT HANDLING
+// ============================================================
+function setupInput() {
+  // Puzzle canvas
+  gameCanvas.addEventListener('touchstart', onTouchStart, { passive: false });
+  gameCanvas.addEventListener('touchmove', onTouchMove, { passive: false });
+  gameCanvas.addEventListener('touchend', onTouchEnd, { passive: false });
+  gameCanvas.addEventListener('mousedown', onMouseDown);
+  gameCanvas.addEventListener('mousemove', onMouseMove);
+  gameCanvas.addEventListener('mouseup', onMouseUp);
+  gameCanvas.addEventListener('mouseleave', onMouseUp);
+
+  // Garden canvas
+  gardenCanvas.addEventListener('touchstart', onGardenTouch, { passive: false });
+  gardenCanvas.addEventListener('click', onGardenClick);
+}
+
+function getCanvasPos(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return {
+    x: clientX - rect.left,
+    y: clientY - rect.top
+  };
+}
+
+function getCellFromPos(x, y) {
+  const c = Math.floor((x - boardX) / cellSize);
+  const r = Math.floor((y - boardY) / cellSize);
+  if (c >= 0 && c < CFG.COLS && r >= 0 && r < CFG.ROWS) return { c, r };
+  return null;
+}
+
+function getGardenCellFromPos(x, y) {
+  const c = Math.floor((x - gardenBoardX) / gardenCellSize);
+  const r = Math.floor((y - gardenBoardY) / gardenCellSize);
+  if (c >= 0 && c < CFG.GARDEN_COLS && r >= 0 && r < CFG.GARDEN_ROWS) return { c, r };
+  return null;
+}
+
+let pointerDownTime = 0;
+let pointerDownPos = null;
+
+function onPointerDown(x, y) {
+  if (G.cascading) return;
+  pointerDownTime = Date.now();
+  pointerDownPos = { x, y };
+  const cell = getCellFromPos(x, y);
+  if (!cell) return;
+  const item = getCell(cell.c, cell.r);
+  if (!item) return;
+
+  G.dragging = {
+    item: { ...item },
+    startCol: cell.c,
+    startRow: cell.r,
+    cx: x,
+    cy: y,
+    moved: false
+  };
+}
+
+function onPointerMove(x, y) {
+  if (!G.dragging) return;
+  G.dragging.cx = x;
+  G.dragging.cy = y;
+
+  const dx = x - pointerDownPos.x;
+  const dy = y - pointerDownPos.y;
+  if (Math.abs(dx) > 8 || Math.abs(dy) > 8) G.dragging.moved = true;
+
+  // Find drop target
+  const cell = getCellFromPos(x, y);
+  if (cell && (cell.c !== G.dragging.startCol || cell.r !== G.dragging.startRow)) {
+    const target = getCell(cell.c, cell.r);
+    if (target && canMerge(G.dragging.item, target)) {
+      G.dragTarget = cell;
+    } else {
+      G.dragTarget = null;
+    }
+  } else {
+    G.dragTarget = null;
+  }
+}
+
+function onPointerUp(x, y) {
+  if (!G.dragging) return;
+
+  // Tap detection (not drag) → harvest check
+  if (!G.dragging.moved && Date.now() - pointerDownTime < 300) {
+    const cell = getCellFromPos(x, y);
+    if (cell) {
+      const item = getCell(cell.c, cell.r);
+      if (canHarvest(item)) {
+        doHarvest(cell.c, cell.r);
+      }
+    }
+    G.dragging = null;
+    G.dragTarget = null;
+    return;
+  }
+
+  // Drop → merge
+  if (G.dragTarget) {
+    const ok = doMerge(G.dragging.startCol, G.dragging.startRow, G.dragTarget.c, G.dragTarget.r);
+    if (!ok) {
+      // Return to original position (implicitly by clearing drag)
+    }
+  }
+
+  G.dragging = null;
+  G.dragTarget = null;
+}
+
+// Touch events
+function onTouchStart(e) {
+  e.preventDefault();
+  const pos = getCanvasPos(e, gameCanvas);
+  onPointerDown(pos.x, pos.y);
+}
+function onTouchMove(e) {
+  e.preventDefault();
+  const pos = getCanvasPos(e, gameCanvas);
+  onPointerMove(pos.x, pos.y);
+}
+function onTouchEnd(e) {
+  e.preventDefault();
+  const pos = G.dragging ? { x: G.dragging.cx, y: G.dragging.cy } : { x: 0, y: 0 };
+  onPointerUp(pos.x, pos.y);
+}
+
+// Mouse events
+function onMouseDown(e) {
+  const pos = getCanvasPos(e, gameCanvas);
+  onPointerDown(pos.x, pos.y);
+}
+function onMouseMove(e) {
+  const pos = getCanvasPos(e, gameCanvas);
+  onPointerMove(pos.x, pos.y);
+}
+function onMouseUp(e) {
+  const pos = getCanvasPos(e, gameCanvas);
+  onPointerUp(pos.x, pos.y);
+}
+
+// Garden input
+function onGardenTouch(e) {
+  e.preventDefault();
+  const pos = getCanvasPos(e, gardenCanvas);
+  handleGardenTap(pos.x, pos.y);
+}
+function onGardenClick(e) {
+  const pos = getCanvasPos(e, gardenCanvas);
+  handleGardenTap(pos.x, pos.y);
+}
+function handleGardenTap(x, y) {
+  const cell = getGardenCellFromPos(x, y);
+  if (!cell) return;
+  // Skip border cells
+  if (cell.r === 0 || cell.r === CFG.GARDEN_ROWS - 1 || cell.c === 0 || cell.c === CFG.GARDEN_COLS - 1) return;
+
+  if (G.plantMode) {
+    plantFlower(cell.c, cell.r, G.plantMode);
+    S.hideOverlay('plant');
+  }
+}
+
+// ============================================================
+// SECTION 16: UI & SCREEN MANAGEMENT
+// ============================================================
+const S = {
+  showScreen(name) {
+    G.screen = name;
+    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+    const el = document.getElementById(name + '-screen');
+    if (el) {
+      el.classList.remove('hidden');
+      setTimeout(() => resizeCanvases(), 50);
+    }
+    SFX.click();
+  },
+
+  showOverlay(name) {
+    const el = document.getElementById(name + '-overlay');
+    if (el) {
+      el.classList.add('visible');
+      if (name === 'quest') S.renderQuestList();
+      if (name === 'plant') S.renderFlowerPicker();
+      if (name === 'visitors') S.renderVisitorList();
+      if (name === 'noenergy') S.updateEnergyTimer();
+    }
+  },
+
+  hideOverlay(name) {
+    const el = document.getElementById(name + '-overlay');
+    if (el) el.classList.remove('visible');
+    if (name === 'plant') { G.plantMode = null; G.selectedFlower = null; }
+  },
+
+  toggleSound() {
+    G.soundOn = !G.soundOn;
+    const el = document.getElementById('sound-toggle');
+    el.classList.toggle('on', G.soundOn);
+    saveGame();
+  },
+
+  toggleLang() {
+    G.lang = G.lang === 'ko' ? 'en' : 'ko';
+    document.getElementById('lang-btn').textContent = G.lang === 'ko' ? '한→EN' : 'EN→한';
+    S.updateAllText();
+    saveGame();
+  },
+
+  updateAllText() {
+    document.querySelectorAll('[data-i]').forEach(el => {
+      const key = el.getAttribute('data-i');
+      if (I18N[G.lang]?.[key]) el.textContent = I18N[G.lang][key];
+    });
+    document.getElementById('menu-sub').textContent = G.t('subtitle');
+  },
+
+  updateUI() {
+    // Menu stats
+    document.getElementById('menu-stats').innerHTML =
+      `<span>🪙 ${G.coins.toLocaleString()}</span>` +
+      `<span>⚡ ${G.energy}/${CFG.ENERGY_MAX}</span>` +
+      `<span>🏆 ${G.score.toLocaleString()}</span>`;
+
+    // Puzzle stats
+    const pct = (G.energy / CFG.ENERGY_MAX * 100).toFixed(0);
+    document.getElementById('energy-disp').innerHTML =
+      `⚡ ${G.energy}/${CFG.ENERGY_MAX} <span class="energy-bar"><span class="energy-fill" style="width:${pct}%"></span></span>`;
+    document.getElementById('score-disp').textContent = '🏆 ' + G.score.toLocaleString();
+    document.getElementById('coin-disp').textContent = '🪙 ' + G.coins.toLocaleString();
+    document.getElementById('combo-disp').textContent =
+      G.combo > 1 ? `🔥×${G.combo}` : '';
+
+    // Active quest bar
+    const aq = G.quests.find(q => !q.claimed && !isQuestComplete(q)) || G.quests[0];
+    if (aq) {
+      document.getElementById('qb-text').textContent = aq.desc(G.lang);
+      const prog = Math.min(aq.progress, aq.target.count);
+      document.getElementById('qb-fill').style.width = (prog / aq.target.count * 100) + '%';
+      document.getElementById('qb-count').textContent = `${prog}/${aq.target.count}`;
+    }
+
+    // Garden info
+    document.getElementById('garden-info').innerHTML =
+      `<span>${G.t('gardenLevel')}${G.gardenLevel}</span>` +
+      `<span>🌸 ${countGardenFlowers()}</span>` +
+      `<span>🦋 ${G.visitors.length}</span>` +
+      `<span>🪙 ${G.coins.toLocaleString()}</span>`;
+
+    // Energy timer
+    if (G.energy < CFG.ENERGY_MAX) {
+      document.getElementById('energy-timer').textContent =
+        G.t('nextEnergy') + ': ' + formatTime(G.energyTimer);
+    }
+  },
+
+  renderQuestList() {
+    const list = document.getElementById('quest-list');
+    list.innerHTML = '';
+    G.quests.forEach(q => {
+      const complete = isQuestComplete(q);
+      const div = document.createElement('div');
+      div.className = 'quest-item' + (complete && !q.claimed ? ' complete' : '');
+      const prog = Math.min(q.progress, q.target.count);
+      div.innerHTML = `
+        <div class="quest-desc">${q.desc(G.lang)}</div>
+        <div class="quest-prog">${prog}/${q.target.count}</div>
+        <div class="quest-reward">🪙 ${q.reward.coins} ⭐ ${q.reward.xp} XP</div>
+        ${complete && !q.claimed ? `<button class="claim-btn" onclick="claimQuest('${q.id}')">${G.t('great')}</button>` : ''}
+      `;
+      list.appendChild(div);
+    });
+  },
+
+  renderFlowerPicker() {
+    const pick = document.getElementById('flower-pick');
+    pick.innerHTML = '';
+    const types = FLOWERS.slice(0, G.unlockedTypes);
+    let hasAny = false;
+    types.forEach(type => {
+      const count = G.gardenFlowers[type] || 0;
+      if (count <= 0) return;
+      hasAny = true;
+      const div = document.createElement('div');
+      div.className = 'flower-opt' + (G.selectedFlower === type ? ' sel' : '');
+      div.innerHTML = `${FLOWER_INFO[type].emoji[4]}<div class="cnt">×${count}</div>`;
+      div.onclick = () => {
+        G.selectedFlower = type;
+        G.plantMode = type;
+        S.renderFlowerPicker();
+        showToast(G.t('tapToPlant'));
+      };
+      pick.appendChild(div);
+    });
+    if (!hasAny) {
+      pick.innerHTML = `<p style="color:#888;font-size:.9em;text-align:center;padding:10px">${G.t('noFlowers')}</p>`;
+    }
+  },
+
+  renderVisitorList() {
+    const list = document.getElementById('visitor-list');
+    if (G.visitors.length === 0) {
+      list.innerHTML = `<p style="text-align:center;color:#888;padding:20px;white-space:pre-line">${G.t('noVisitors')}</p>`;
+      return;
+    }
+    list.innerHTML = G.visitors.map(v =>
+      `<div class="quest-item"><span style="font-size:1.5em">${v.emoji}</span> ${G.lang === 'ko' ? {
+        butterfly:'나비',bee:'꿀벌',bird:'새',ladybug:'무당벌레',hummingbird:'벌새'
+      }[v.id] : v.id}</div>`
+    ).join('');
+  },
+
+  updateEnergyTimer() {
+    if (G.energy < CFG.ENERGY_MAX) {
+      document.getElementById('energy-timer').textContent =
+        G.t('nextEnergy') + ': ' + formatTime(G.energyTimer);
+    } else {
+      document.getElementById('energy-timer').textContent = '⚡ FULL!';
+    }
+  },
+
+  resetGame() {
+    localStorage.removeItem('mergeBloomGarden');
+    location.reload();
+  },
+};
+
+// ============================================================
+// SECTION 17: SAVE / LOAD
+// ============================================================
+function saveGame() {
+  const data = {
+    lang: G.lang,
+    soundOn: G.soundOn,
+    board: G.board,
+    energy: G.energy,
+    lastEnergyTime: G.lastEnergyTime,
+    score: G.score,
+    highScore: G.highScore,
+    coins: G.coins,
+    combo: G.combo,
+    totalMerges: G.totalMerges,
+    totalHarvests: G.totalHarvests,
+    gardenLevel: G.gardenLevel,
+    gardenXP: G.gardenXP,
+    gardenGrid: G.gardenGrid,
+    gardenFlowers: G.gardenFlowers,
+    quests: G.quests.map(q => ({
+      id: q.id, target: q.target, progress: q.progress, claimed: q.claimed,
+      reward: q.reward, _desc: q.desc ? q.desc('en') : '',
+      _descKo: q.desc ? q.desc('ko') : ''
+    })),
+    questsSeed: G.questsSeed,
+    unlockedTypes: G.unlockedTypes,
+    savedAt: Date.now(),
+  };
+  try {
+    localStorage.setItem('mergeBloomGarden', JSON.stringify(data));
+  } catch (e) { /* quota exceeded */ }
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem('mergeBloomGarden');
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+
+    G.lang = data.lang || 'ko';
+    G.soundOn = data.soundOn !== false;
+    G.board = data.board || [];
+    G.energy = data.energy ?? CFG.ENERGY_MAX;
+    G.lastEnergyTime = data.lastEnergyTime || Date.now();
+    G.score = data.score || 0;
+    G.highScore = data.highScore || 0;
+    G.coins = data.coins || 0;
+    G.totalMerges = data.totalMerges || 0;
+    G.totalHarvests = data.totalHarvests || 0;
+    G.gardenLevel = data.gardenLevel || 1;
+    G.gardenXP = data.gardenXP || 0;
+    G.gardenGrid = data.gardenGrid || [];
+    G.gardenFlowers = data.gardenFlowers || {};
+    G.questsSeed = data.questsSeed || 1;
+    G.unlockedTypes = data.unlockedTypes || CFG.INIT_FLOWER_TYPES;
+
+    // Restore quests with desc functions
+    G.quests = (data.quests || []).map(q => ({
+      ...q,
+      desc: (l) => l === 'ko' ? (q._descKo || q._desc || '???') : (q._desc || '???')
+    }));
+
+    // Validate board
+    if (!G.board.length || G.board.length !== CFG.ROWS) {
+      initBoard();
+    }
+
+    // Validate garden
+    if (!G.gardenGrid.length || G.gardenGrid.length !== CFG.GARDEN_ROWS) {
+      initGarden();
+    }
+
+    // Restore energy based on elapsed time
+    const elapsed = Date.now() - G.lastEnergyTime;
+    const regen = Math.floor(elapsed / CFG.REGEN_MS);
+    if (regen > 0) {
+      G.energy = Math.min(CFG.ENERGY_MAX, G.energy + regen);
+      G.lastEnergyTime = Date.now() - (elapsed % CFG.REGEN_MS);
+    }
+
+    return true;
+  } catch (e) {
+    console.warn('Load failed:', e);
+    return false;
+  }
+}
+
+// ============================================================
+// SECTION 18: ANIMATION UPDATES
+// ============================================================
+function updateAnimations() {
+  // Smooth item scale (for spawn/merge animations)
+  for (let r = 0; r < CFG.ROWS; r++) {
+    for (let c = 0; c < CFG.COLS; c++) {
+      const item = getCell(c, r);
+      if (item) {
+        if (item.scale < 1) item.scale = Math.min(1, item.scale + 0.06);
+        if (item.glow > 0) item.glow = Math.max(0, item.glow - 0.02);
+      }
+    }
+  }
+  // Combo decay
+  if (G.combo > 0 && Date.now() - G.lastMergeTime > CFG.COMBO_WINDOW) {
+    G.combo = 0;
+  }
+}
+
+// ============================================================
+// SECTION 19: GAME LOOP
+// ============================================================
+let lastSave = Date.now();
+let lastFrame = 0;
+
+function gameLoop(ts) {
+  const dt = ts - lastFrame;
+  lastFrame = ts;
+
+  // Update
+  updateEnergy();
+  updateParticles();
+  updateAnimations();
+
+  // Render based on current screen
+  if (G.screen === 'puzzle') {
+    drawBoard();
+  } else if (G.screen === 'garden') {
+    drawGarden();
+  }
+
+  // UI update (throttled)
+  if (Math.floor(ts / 200) !== Math.floor((ts - dt) / 200)) {
+    S.updateUI();
+  }
+
+  // Auto-save
+  if (Date.now() - lastSave > CFG.AUTOSAVE_MS) {
+    saveGame();
+    lastSave = Date.now();
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+
+// ============================================================
+// SECTION 20: INITIALIZATION
+// ============================================================
+function init() {
+  const loaded = loadGame();
+  if (!loaded) {
+    initBoard();
+    initGarden();
+  }
+  initQuests();
+  updateVisitors();
+
+  setupCanvases();
+  setupInput();
+
+  // Apply settings
+  document.getElementById('sound-toggle').classList.toggle('on', G.soundOn);
+  document.getElementById('lang-btn').textContent = G.lang === 'ko' ? '한→EN' : 'EN→한';
+  S.updateAllText();
+  S.updateUI();
+
+  // Resize handler
+  window.addEventListener('resize', () => {
+    resizeCanvases();
+  });
+
+  // Start game loop
+  requestAnimationFrame(gameLoop);
+
+  // Show menu
+  S.showScreen('menu');
+}
+
+// Start
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
