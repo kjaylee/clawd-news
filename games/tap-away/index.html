@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>🧊 Tap Away Puzzle</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: #0a0a1a;
+  color: #e0e0e0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+/* ── Screens ── */
+.screen { display: none; width: 100%; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* ── Level Select ── */
+#levelSelect { padding: 20px; }
+#levelSelect h1 {
+  font-size: 2rem; margin: 20px 0 8px;
+  background: linear-gradient(135deg, #00e5ff, #7c4dff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+#levelSelect .subtitle { color: #888; margin-bottom: 24px; font-size: 0.95rem; }
+.level-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  max-width: 400px;
+  width: 100%;
+  padding: 0 10px;
+}
+.level-btn {
+  aspect-ratio: 1;
+  border: 2px solid #2a2a4a;
+  border-radius: 12px;
+  background: #12122a;
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.2s;
+  position: relative;
+}
+.level-btn:active { transform: scale(0.93); }
+.level-btn.locked { opacity: 0.35; pointer-events: none; }
+.level-btn.cleared { border-color: #00e5ff55; background: #0a1a2a; }
+.level-btn .stars { font-size: 0.55rem; color: #ffd740; letter-spacing: 1px; }
+.level-btn .stars .empty { color: #444; }
+.section-label {
+  grid-column: 1 / -1;
+  text-align: left;
+  font-size: 0.85rem;
+  color: #7c4dff;
+  font-weight: 600;
+  margin-top: 12px;
+  padding-left: 4px;
+}
+
+/* ── Game Screen ── */
+#gameScreen { padding: 10px; }
+.game-header {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; max-width: 500px; padding: 10px 4px; margin-bottom: 8px;
+}
+.game-header .back-btn {
+  background: none; border: none; color: #aaa; font-size: 1.5rem; cursor: pointer;
+  padding: 4px 12px;
+}
+.game-header .level-info { font-size: 1rem; font-weight: 600; color: #ccc; }
+.game-header .moves-info { font-size: 0.9rem; color: #888; }
+
+.star-display { margin-bottom: 10px; font-size: 1.3rem; letter-spacing: 4px; }
+.star-display .star { color: #444; transition: color 0.3s; }
+.star-display .star.earned { color: #ffd740; }
+
+/* Board */
+.board-container {
+  position: relative;
+  width: min(90vw, 500px);
+  height: min(90vw, 500px);
+  margin: 8px 0;
+}
+.board {
+  position: relative;
+  width: 100%; height: 100%;
+  background: #111128;
+  border-radius: 16px;
+  border: 2px solid #1a1a3a;
+  overflow: visible;
+}
+.cell-bg {
+  position: absolute;
+  background: #181830;
+  border-radius: 8px;
+  border: 1px solid #1e1e3e;
+}
+.block {
+  position: absolute;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: left 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              top 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.3s ease,
+              transform 0.15s ease;
+  z-index: 2;
+  font-size: 1.6rem;
+  box-shadow: 0 0 12px rgba(0,0,0,0.3);
+}
+.block:active { transform: scale(0.92); }
+.block.removing {
+  opacity: 0;
+  transform: scale(0.5);
+  transition: left 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              top 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              opacity 0.4s ease 0.1s,
+              transform 0.4s ease 0.1s;
+}
+.block.shake {
+  animation: shake 0.4s ease;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(3px); }
+}
+.block.hint-glow {
+  animation: hintPulse 0.8s ease infinite;
+}
+@keyframes hintPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(0,0,0,0.3); }
+  50% { box-shadow: 0 0 24px rgba(255,215,64,0.7), 0 0 40px rgba(255,215,64,0.3); }
+}
+
+/* Block colors */
+.block[data-dir="up"] { background: linear-gradient(135deg, #00e5ff, #0097a7); }
+.block[data-dir="down"] { background: linear-gradient(135deg, #ff6090, #e91e63); }
+.block[data-dir="left"] { background: linear-gradient(135deg, #69f0ae, #2e7d32); }
+.block[data-dir="right"] { background: linear-gradient(135deg, #ffd740, #f57f17); }
+
+/* Arrows */
+.arrow { pointer-events: none; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
+
+/* Controls */
+.controls {
+  display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; justify-content: center;
+}
+.ctrl-btn {
+  padding: 10px 22px;
+  border-radius: 12px;
+  border: 2px solid #2a2a4a;
+  background: #12122a;
+  color: #ccc;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+.ctrl-btn:active { transform: scale(0.93); background: #1a1a3a; }
+.ctrl-btn:disabled { opacity: 0.3; pointer-events: none; }
+
+/* ── Win Modal ── */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #1a1a3a;
+  border-radius: 20px;
+  padding: 32px;
+  text-align: center;
+  max-width: 320px;
+  width: 90%;
+  border: 2px solid #2a2a5a;
+  animation: popIn 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes popIn {
+  0% { transform: scale(0.7); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+@keyframes fadeIn {
+  0% { opacity: 0; } 100% { opacity: 1; }
+}
+.modal h2 { font-size: 1.5rem; margin-bottom: 8px; color: #fff; }
+.modal .win-stars { font-size: 2.5rem; letter-spacing: 8px; margin: 16px 0; }
+.modal .win-msg { color: #aaa; margin-bottom: 20px; font-size: 0.95rem; }
+.modal-btns { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.modal-btn {
+  padding: 10px 24px;
+  border-radius: 12px;
+  border: none;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-btn:active { transform: scale(0.93); }
+.modal-btn.primary {
+  background: linear-gradient(135deg, #00e5ff, #7c4dff);
+  color: #fff;
+}
+.modal-btn.secondary {
+  background: #2a2a4a;
+  color: #ccc;
+}
+
+/* ── Particles ── */
+.particle {
+  position: fixed;
+  pointer-events: none;
+  border-radius: 50%;
+  z-index: 200;
+  animation: particleFly 0.8s ease-out forwards;
+}
+@keyframes particleFly {
+  0% { opacity: 1; transform: translate(0, 0) scale(1); }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); }
+}
+
+/* ── Tutorial Tooltip ── */
+.tutorial-tip {
+  position: absolute;
+  background: #2a2a5a;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  z-index: 50;
+  max-width: 200px;
+  text-align: center;
+  pointer-events: none;
+  animation: floatTip 2s ease-in-out infinite;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.tutorial-tip::after {
+  content: '';
+  position: absolute;
+  bottom: -8px; left: 50%; transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: #2a2a5a;
+  border-bottom: 0;
+}
+@keyframes floatTip {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+/* Responsive */
+@media (max-width: 380px) {
+  .level-grid { gap: 6px; }
+  .level-btn { font-size: 0.95rem; }
+  .block { font-size: 1.3rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- Level Select Screen -->
+<div id="levelSelect" class="screen active">
+  <h1>🧊 Tap Away</h1>
+  <p class="subtitle">화살표 블록을 올바른 순서로 제거하세요</p>
+  <div class="level-grid" id="levelGrid"></div>
+</div>
+
+<!-- Game Screen -->
+<div id="gameScreen" class="screen">
+  <div class="game-header">
+    <button class="back-btn" onclick="showLevelSelect()">←</button>
+    <span class="level-info" id="levelInfo">Level 1</span>
+    <span class="moves-info" id="movesInfo">0 / 0</span>
+  </div>
+  <div class="star-display" id="starDisplay">
+    <span class="star">★</span><span class="star">★</span><span class="star">★</span>
+  </div>
+  <div class="board-container" id="boardContainer">
+    <div class="board" id="board"></div>
+  </div>
+  <div class="controls">
+    <button class="ctrl-btn" id="undoBtn" onclick="undo()" disabled>↩ Undo</button>
+    <button class="ctrl-btn" id="hintBtn" onclick="showHint()">💡 Hint</button>
+    <button class="ctrl-btn" id="resetBtn" onclick="resetLevel()">🔄 Reset</button>
+  </div>
+</div>
+
+<!-- Win Modal -->
+<div class="modal-overlay" id="winModal">
+  <div class="modal">
+    <h2>🎉 클리어!</h2>
+    <div class="win-stars" id="winStars"></div>
+    <div class="win-msg" id="winMsg"></div>
+    <div class="modal-btns">
+      <button class="modal-btn secondary" onclick="replayLevel()">🔄 다시</button>
+      <button class="modal-btn primary" id="nextBtn" onclick="nextLevel()">다음 →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+//  TAP AWAY PUZZLE — Full Game
+// ═══════════════════════════════════════════════
+
+const DIRS = {
+  up:    { dr: -1, dc: 0, arrow: '↑' },
+  down:  { dr: 1,  dc: 0, arrow: '↓' },
+  left:  { dr: 0,  dc: -1, arrow: '←' },
+  right: { dr: 0,  dc: 1,  arrow: '→' }
+};
+const DIR_KEYS = ['up', 'down', 'left', 'right'];
+const TOTAL_LEVELS = 50;
+
+let currentLevel = 0;
+let blocks = [];
+let moveHistory = [];
+let moveCount = 0;
+let optimalMoves = 0;
+let animating = false;
+let gridSize = 5;
+let hintBlock = null;
+let saveData = loadSave();
+
+// ── Save/Load ──
+function loadSave() {
+  try { return JSON.parse(localStorage.getItem('tapaway_save')) || {}; } catch { return {}; }
+}
+function save() { localStorage.setItem('tapaway_save', JSON.stringify(saveData)); }
+function getLevelData(n) { return saveData[`l${n}`] || { cleared: false, stars: 0 }; }
+function setLevelData(n, stars) {
+  const k = `l${n}`;
+  const prev = saveData[k] || { cleared: false, stars: 0 };
+  saveData[k] = { cleared: true, stars: Math.max(prev.stars, stars) };
+  save();
+}
+
+// ── Level Generation ──
+function getGridSize(level) {
+  if (level <= 15) return 5;
+  if (level <= 35) return 6;
+  return 7;
+}
+
+function seededRandom(seed) {
+  let s = seed;
+  return function() {
+    s = (s * 1664525 + 1013904223) & 0xffffffff;
+    return (s >>> 0) / 4294967296;
+  };
+}
+
+function generateLevel(levelNum) {
+  gridSize = getGridSize(levelNum);
+  const rng = seededRandom(levelNum * 7919 + 3571);
+
+  // Tutorial levels (1-5): very simple
+  if (levelNum <= 5) return generateTutorialLevel(levelNum, rng);
+
+  // Generate by reverse: place blocks that can be removed one by one
+  const numBlocks = Math.min(gridSize * gridSize - 2, Math.floor(4 + levelNum * 0.6 + rng() * 3));
+  return generateSolvableLevel(numBlocks, rng, levelNum);
+}
+
+function generateTutorialLevel(num, rng) {
+  const layouts = [
+    // Level 1: single block pointing right on edge
+    [{ r: 2, c: 0, dir: 'right' }],
+    // Level 2: two blocks, clear order
+    [{ r: 1, c: 4, dir: 'right' }, { r: 3, c: 2, dir: 'up' }],
+    // Level 3: three blocks
+    [{ r: 0, c: 2, dir: 'down' }, { r: 4, c: 3, dir: 'right' }, { r: 2, c: 0, dir: 'right' }],
+    // Level 4: ordering matters
+    [{ r: 2, c: 1, dir: 'right' }, { r: 2, c: 3, dir: 'right' }, { r: 0, c: 2, dir: 'up' }, { r: 4, c: 4, dir: 'right' }],
+    // Level 5: five blocks
+    [{ r: 1, c: 0, dir: 'right' }, { r: 1, c: 3, dir: 'right' }, { r: 3, c: 4, dir: 'down' }, { r: 0, c: 2, dir: 'up' }, { r: 4, c: 1, dir: 'left' }]
+  ];
+  const layout = layouts[num - 1];
+  return { blocks: layout, optimal: layout.length, gridSize: 5 };
+}
+
+function generateSolvableLevel(numBlocks, rng, levelNum) {
+  // Strategy: place blocks in removal order (reverse construction)
+  // Each block must have a clear path to the edge in its direction
+  let placed = [];
+  let grid = Array.from({ length: gridSize }, () => Array(gridSize).fill(false));
+  let attempts = 0;
+  const maxAttempts = 500;
+
+  while (placed.length < numBlocks && attempts < maxAttempts) {
+    attempts++;
+    const r = Math.floor(rng() * gridSize);
+    const c = Math.floor(rng() * gridSize);
+    if (grid[r][c]) continue;
+
+    // Pick a direction that can potentially exit
+    const shuffled = [...DIR_KEYS].sort(() => rng() - 0.5);
+    let validDir = null;
+
+    for (const dir of shuffled) {
+      const { dr, dc } = DIRS[dir];
+      // Check if there's at least a path to edge
+      let cr = r + dr, cc = c + dc;
+      let clear = true;
+      while (cr >= 0 && cr < gridSize && cc >= 0 && cc < gridSize) {
+        if (grid[cr][cc]) { clear = false; break; }
+        cr += dr; cc += dc;
+      }
+      if (clear) { validDir = dir; break; }
+    }
+
+    if (validDir) {
+      placed.push({ r, c, dir: validDir });
+      grid[r][c] = true;
+    }
+  }
+
+  // Now verify solvability by simulation
+  const solution = findSolution(placed, gridSize);
+  const optimal = solution ? solution.length : placed.length;
+
+  return { blocks: placed, optimal, gridSize };
+}
+
+function findSolution(initialBlocks, gs) {
+  // BFS to find optimal solution
+  const encode = (bks) => bks.map(b => `${b.r},${b.c},${b.dir}`).sort().join('|');
+
+  const queue = [{ blocks: initialBlocks.map(b => ({...b})), moves: [] }];
+  const visited = new Set();
+  visited.add(encode(initialBlocks));
+
+  let iterations = 0;
+  const maxIter = 10000;
+
+  while (queue.length > 0 && iterations < maxIter) {
+    iterations++;
+    const state = queue.shift();
+
+    if (state.blocks.length === 0) return state.moves;
+
+    for (let i = 0; i < state.blocks.length; i++) {
+      const block = state.blocks[i];
+      if (canMove(block, state.blocks, gs)) {
+        const newBlocks = state.blocks.filter((_, idx) => idx !== i);
+        const key = encode(newBlocks);
+        if (!visited.has(key)) {
+          visited.add(key);
+          queue.push({
+            blocks: newBlocks,
+            moves: [...state.moves, { r: block.r, c: block.c }]
+          });
+        }
+      }
+    }
+  }
+
+  // If BFS couldn't find in time, try greedy
+  return greedySolve(initialBlocks, gs);
+}
+
+function greedySolve(initialBlocks, gs) {
+  let bks = initialBlocks.map(b => ({...b}));
+  let moves = [];
+  let maxIter = bks.length * 3;
+
+  while (bks.length > 0 && maxIter-- > 0) {
+    let found = false;
+    for (let i = 0; i < bks.length; i++) {
+      if (canMove(bks[i], bks, gs)) {
+        moves.push({ r: bks[i].r, c: bks[i].c });
+        bks.splice(i, 1);
+        found = true;
+        break;
+      }
+    }
+    if (!found) break;
+  }
+
+  return bks.length === 0 ? moves : null;
+}
+
+function canMove(block, allBlocks, gs) {
+  const { dr, dc } = DIRS[block.dir];
+  let r = block.r + dr;
+  let c = block.c + dc;
+
+  while (r >= 0 && r < gs && c >= 0 && c < gs) {
+    if (allBlocks.some(b => b !== block && b.r === r && b.c === c)) return false;
+    r += dr;
+    c += dc;
+  }
+  return true;
+}
+
+// ── Level Select ──
+function buildLevelGrid() {
+  const grid = document.getElementById('levelGrid');
+  grid.innerHTML = '';
+
+  const sections = [
+    { label: '📘 튜토리얼 (1-5)', start: 1, end: 5 },
+    { label: '📗 초급 (6-15)', start: 6, end: 15 },
+    { label: '📙 중급 (16-35)', start: 16, end: 35 },
+    { label: '📕 고급 (36-50)', start: 36, end: 50 }
+  ];
+
+  for (const sec of sections) {
+    const label = document.createElement('div');
+    label.className = 'section-label';
+    label.textContent = sec.label;
+    grid.appendChild(label);
+
+    for (let i = sec.start; i <= sec.end; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'level-btn';
+      const data = getLevelData(i);
+      const unlocked = i === 1 || getLevelData(i - 1).cleared;
+
+      if (!unlocked) btn.classList.add('locked');
+      if (data.cleared) btn.classList.add('cleared');
+
+      let starsHtml = '';
+      if (data.cleared) {
+        for (let s = 1; s <= 3; s++) {
+          starsHtml += s <= data.stars ? '★' : '<span class="empty">★</span>';
+        }
+      }
+
+      btn.innerHTML = `${i}${starsHtml ? `<div class="stars">${starsHtml}</div>` : ''}`;
+      btn.onclick = () => startLevel(i);
+      grid.appendChild(btn);
+    }
+  }
+}
+
+function showLevelSelect() {
+  document.getElementById('levelSelect').classList.add('active');
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('winModal').classList.remove('active');
+  buildLevelGrid();
+}
+
+// ── Game Logic ──
+function startLevel(num) {
+  currentLevel = num;
+  const levelData = generateLevel(num);
+  gridSize = levelData.gridSize;
+  blocks = levelData.blocks.map((b, i) => ({ ...b, id: i }));
+  optimalMoves = levelData.optimal;
+  moveCount = 0;
+  moveHistory = [];
+  hintBlock = null;
+  animating = false;
+
+  document.getElementById('levelSelect').classList.remove('active');
+  document.getElementById('gameScreen').classList.add('active');
+  document.getElementById('levelInfo').textContent = `Level ${num}`;
+
+  renderBoard();
+  updateUI();
+
+  // Tutorial tips for level 1
+  if (num === 1) {
+    setTimeout(() => showTutorialTip(), 500);
+  }
+}
+
+function renderBoard() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+
+  const container = document.getElementById('boardContainer');
+  const size = container.offsetWidth;
+  const cellSize = size / (gridSize + 0.5);
+  const padding = cellSize * 0.25;
+  const gap = 3;
+
+  // Background cells
+  for (let r = 0; r < gridSize; r++) {
+    for (let c = 0; c < gridSize; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell-bg';
+      cell.style.left = (padding + c * (cellSize + gap)) + 'px';
+      cell.style.top = (padding + r * (cellSize + gap)) + 'px';
+      cell.style.width = cellSize + 'px';
+      cell.style.height = cellSize + 'px';
+      board.appendChild(cell);
+    }
+  }
+
+  // Blocks
+  blocks.forEach(block => {
+    const el = document.createElement('div');
+    el.className = 'block';
+    el.dataset.id = block.id;
+    el.dataset.dir = block.dir;
+    el.style.left = (padding + block.c * (cellSize + gap)) + 'px';
+    el.style.top = (padding + block.r * (cellSize + gap)) + 'px';
+    el.style.width = cellSize + 'px';
+    el.style.height = cellSize + 'px';
+    el.innerHTML = makeArrow(block.dir, cellSize);
+    el.addEventListener('click', () => tapBlock(block.id));
+    el.addEventListener('touchend', (e) => { e.preventDefault(); tapBlock(block.id); });
+    board.appendChild(el);
+  });
+}
+
+function makeArrow(dir, size) {
+  const s = Math.floor(size * 0.45);
+  const rotations = { up: 0, right: 90, down: 180, left: 270 };
+  return `<svg class="arrow" width="${s}" height="${s}" viewBox="0 0 24 24" style="transform: rotate(${rotations[dir]}deg)">
+    <path d="M12 4l-8 12h5v4h6v-4h5z" fill="rgba(255,255,255,0.9)"/>
+  </svg>`;
+}
+
+function tapBlock(id) {
+  if (animating) return;
+
+  const block = blocks.find(b => b.id === id);
+  if (!block) return;
+
+  // Clear hint
+  clearHint();
+
+  if (canMove(block, blocks, gridSize)) {
+    animating = true;
+    moveCount++;
+    moveHistory.push({ block: { ...block }, blocksSnapshot: blocks.map(b => ({ ...b })) });
+
+    // Calculate slide-out position
+    const container = document.getElementById('boardContainer');
+    const size = container.offsetWidth;
+    const cellSize = size / (gridSize + 0.5);
+    const padding = cellSize * 0.25;
+    const gap = 3;
+    const { dr, dc } = DIRS[block.dir];
+
+    const el = document.querySelector(`.block[data-id="${id}"]`);
+    if (!el) { animating = false; return; }
+
+    // Slide to edge + beyond
+    let targetR = block.r, targetC = block.c;
+    if (dr === -1) targetR = -2;
+    else if (dr === 1) targetR = gridSize + 1;
+    if (dc === -1) targetC = -2;
+    else if (dc === 1) targetC = gridSize + 1;
+
+    el.style.left = (padding + targetC * (cellSize + gap)) + 'px';
+    el.style.top = (padding + targetR * (cellSize + gap)) + 'px';
+    el.classList.add('removing');
+
+    // Particles at last visible position
+    const rect = el.getBoundingClientRect();
+    setTimeout(() => spawnParticles(rect.left + rect.width/2, rect.top + rect.height/2, block.dir), 200);
+
+    setTimeout(() => {
+      blocks = blocks.filter(b => b.id !== id);
+      el.remove();
+      animating = false;
+      updateUI();
+
+      if (blocks.length === 0) {
+        setTimeout(() => showWin(), 300);
+      }
+    }, 450);
+  } else {
+    // Shake animation
+    const el = document.querySelector(`.block[data-id="${id}"]`);
+    if (el) {
+      el.classList.remove('shake');
+      void el.offsetWidth;
+      el.classList.add('shake');
+      el.style.boxShadow = '0 0 16px rgba(255,50,50,0.6)';
+      setTimeout(() => {
+        el.style.boxShadow = '';
+        el.classList.remove('shake');
+      }, 400);
+    }
+  }
+}
+
+function undo() {
+  if (moveHistory.length === 0 || animating) return;
+  const prev = moveHistory.pop();
+  blocks = prev.blocksSnapshot;
+  moveCount = Math.max(0, moveCount - 1);
+  clearHint();
+  renderBoard();
+  updateUI();
+}
+
+function resetLevel() {
+  if (animating) return;
+  startLevel(currentLevel);
+}
+
+function showHint() {
+  if (animating || blocks.length === 0) return;
+  clearHint();
+
+  // Find first moveable block
+  for (const block of blocks) {
+    if (canMove(block, blocks, gridSize)) {
+      hintBlock = block.id;
+      const el = document.querySelector(`.block[data-id="${block.id}"]`);
+      if (el) el.classList.add('hint-glow');
+      break;
+    }
+  }
+
+  // If no block can move, try solving from current state
+  if (hintBlock === null) {
+    const solution = findSolution(blocks, gridSize);
+    if (solution && solution.length > 0) {
+      const first = solution[0];
+      const block = blocks.find(b => b.r === first.r && b.c === first.c);
+      if (block) {
+        hintBlock = block.id;
+        const el = document.querySelector(`.block[data-id="${block.id}"]`);
+        if (el) el.classList.add('hint-glow');
+      }
+    }
+  }
+}
+
+function clearHint() {
+  if (hintBlock !== null) {
+    const el = document.querySelector(`.block[data-id="${hintBlock}"]`);
+    if (el) el.classList.remove('hint-glow');
+    hintBlock = null;
+  }
+}
+
+function updateUI() {
+  document.getElementById('movesInfo').textContent = `${moveCount} / ${optimalMoves}`;
+  document.getElementById('undoBtn').disabled = moveHistory.length === 0;
+
+  // Stars
+  const starEls = document.querySelectorAll('#starDisplay .star');
+  const stars = calcStars(moveCount, optimalMoves, blocks.length > 0);
+  starEls.forEach((el, i) => {
+    el.classList.toggle('earned', i < stars);
+  });
+}
+
+function calcStars(moves, optimal, incomplete) {
+  if (incomplete) {
+    if (moves <= optimal) return 3;
+    if (moves <= optimal + 2) return 2;
+    if (moves <= optimal + 5) return 1;
+    return 0;
+  }
+  // Completed
+  if (moves <= optimal) return 3;
+  if (moves <= optimal + 3) return 2;
+  return 1;
+}
+
+function showWin() {
+  const stars = calcStars(moveCount, optimalMoves, false);
+  setLevelData(currentLevel, stars);
+
+  document.getElementById('winStars').innerHTML =
+    Array.from({length: 3}, (_, i) =>
+      i < stars ? '⭐' : '<span style="opacity:0.2">⭐</span>'
+    ).join('');
+
+  const msgs = [
+    '', 
+    '클리어! 다음엔 더 잘 할 수 있어요 💪',
+    '잘했어요! 거의 완벽해요 ✨',
+    '퍼펙트! 최적 해를 찾았어요! 🏆'
+  ];
+  document.getElementById('winMsg').textContent = msgs[stars] || msgs[1];
+
+  document.getElementById('nextBtn').style.display =
+    currentLevel < TOTAL_LEVELS ? '' : 'none';
+
+  document.getElementById('winModal').classList.add('active');
+}
+
+function replayLevel() {
+  document.getElementById('winModal').classList.remove('active');
+  startLevel(currentLevel);
+}
+
+function nextLevel() {
+  document.getElementById('winModal').classList.remove('active');
+  if (currentLevel < TOTAL_LEVELS) {
+    startLevel(currentLevel + 1);
+  } else {
+    showLevelSelect();
+  }
+}
+
+// ── Particles ──
+function spawnParticles(x, y, dir) {
+  const colors = ['#00e5ff', '#7c4dff', '#ff6090', '#ffd740', '#69f0ae'];
+  for (let i = 0; i < 12; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 4 + Math.random() * 6;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.background = colors[Math.floor(Math.random() * colors.length)];
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 30 + Math.random() * 60;
+    p.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    p.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 800);
+  }
+}
+
+// ── Tutorial ──
+function showTutorialTip() {
+  if (currentLevel !== 1 || blocks.length === 0) return;
+  const el = document.querySelector('.block[data-id="0"]');
+  if (!el) return;
+
+  const tip = document.createElement('div');
+  tip.className = 'tutorial-tip';
+  tip.textContent = '👆 이 블록을 탭하세요!';
+  tip.id = 'tutorialTip';
+
+  const board = document.getElementById('board');
+  const rect = el.getBoundingClientRect();
+  const boardRect = board.getBoundingClientRect();
+  tip.style.left = (rect.left - boardRect.left + rect.width/2 - 80) + 'px';
+  tip.style.top = (rect.top - boardRect.top - 50) + 'px';
+  board.appendChild(tip);
+
+  setTimeout(() => { const t = document.getElementById('tutorialTip'); if (t) t.remove(); }, 5000);
+}
+
+// ── Init ──
+buildLevelGrid();
+</script>
+</body>
+</html>
