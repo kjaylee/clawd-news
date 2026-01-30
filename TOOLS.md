@@ -231,3 +231,40 @@ Add whatever helps you do your job. This is your cheat sheet.
 - **빌드:** `godot4 --headless --path <project> --export-release "Web"`
 - **파일 전송:** MiniPC→맥스튜디오는 HTTP 서버(9877) + curl 사용
 - **주의:** MiniPC에서 GitHub push 불가 (인증 없음), 맥 스튜디오에서 pull & push
+
+---
+
+## 🎮 게임 유통 플랫폼 리스트
+
+### 웹게임 (HTML5 그대로)
+| 플랫폼 | 수수료 | 특징 |
+|--------|--------|------|
+| **itch.io** | 자유 설정 (0%~) | 인디 1위, 번들 세일 |
+| **Newgrounds** | 광고 수익 분배 | 웹게임 전통 강자 |
+| **CrazyGames** | 광고 CPM | 웹게임 포털, 수익 쉐어 |
+| **Poki** | 광고 CPM | 대형 웹게임 포털 |
+| **Game Jolt** | 자유 | 인디 커뮤니티 |
+| **텔레그램 Mini App** | 0% | 현재 운영 중 |
+
+### 데스크톱 (Godot 네이티브 빌드)
+| 플랫폼 | 수수료 | 등록비 | 특징 |
+|--------|--------|--------|------|
+| **Steam** | 30% (→25%→20%) | $100/앱 | PC 표준, 최대 유저풀 |
+| **Epic Games Store** | 12% | 무료 | 낮은 수수료 |
+| **GOG** | 30% | 무료 | DRM-free, 인디 친화 |
+| **itch.io** | 자유 | 무료 | 데스크톱 다운로드도 지원 |
+
+### 모바일 (Godot Android/iOS 빌드)
+| 플랫폼 | 수수료 | 등록비 | 특징 |
+|--------|--------|--------|------|
+| **Google Play** | 15% (첫 $1M) | $25 일회 | 최대 안드로이드 마켓 |
+| **App Store** | 15% (첫 $1M) | $99/년 | iOS 독점 |
+| **Samsung Galaxy Store** | 30% | 무료 | 경쟁 적음 |
+| **Amazon Appstore** | 30% | 무료 | Fire 태블릿 |
+
+### 🏆 우선순위 전략
+1. **텔레그램 Mini App** — 이미 운영 중 (무료)
+2. **itch.io** — 웹+데스크톱 동시, 무료
+3. **Google Play + App Store** — 모바일 유저 최대
+4. **Steam** — PC 게이머, $100 투자
+5. **CrazyGames/Poki** — 웹 광고 수익
