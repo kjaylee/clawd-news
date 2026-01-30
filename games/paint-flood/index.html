@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>🎨 Paint Flood</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{--bg:#0a0a1a;--card:#14142a;--border:#1f1f3a;--text:#e0e0e0;--muted:#888;--accent:#667eea}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;align-items:center;user-select:none;overflow-x:hidden}
+.screen{display:none;width:100%;max-width:480px;flex-direction:column;align-items:center;padding:20px}
+.screen.active{display:flex}
+h1{font-size:2rem;font-weight:800;background:linear-gradient(135deg,#ff6b6b,#ffd93d,#4ecdc4,#667eea);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:30px 0 10px}
+.subtitle{color:var(--muted);font-size:.9rem;margin-bottom:30px}
+.menu-btn{width:280px;padding:16px;margin:8px 0;background:var(--card);border:1px solid var(--border);border-radius:14px;color:var(--text);font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;text-align:left;display:flex;align-items:center;gap:12px}
+.menu-btn:hover{border-color:var(--accent);transform:translateY(-2px)}
+.menu-btn .icon{font-size:1.4rem}
+.menu-btn .label{flex:1}
+.menu-btn .info{color:var(--muted);font-size:.8rem}
+.top-bar{display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 0;margin-bottom:10px}
+.top-bar .back{background:none;border:none;color:var(--muted);font-size:1.2rem;cursor:pointer;padding:8px}
+.top-bar .level-info{text-align:center}
+.top-bar .level-info .lv{font-weight:700;font-size:1.1rem}
+.top-bar .level-info .turns{color:var(--muted);font-size:.85rem}
+.star-bar{display:flex;gap:6px;align-items:center;font-size:.75rem;color:var(--muted);margin-bottom:12px}
+.star-bar span{opacity:.4}
+.star-bar span.lit{opacity:1;color:#ffd700}
+#boardCanvas{border-radius:12px;touch-action:none;max-width:100%}
+.color-buttons{display:flex;gap:10px;margin:20px 0;flex-wrap:wrap;justify-content:center}
+.color-btn{width:52px;height:52px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all .2s;position:relative}
+.color-btn:hover{transform:scale(1.1)}
+.color-btn.current{border-color:#fff;box-shadow:0 0 16px rgba(255,255,255,.4)}
+.color-btn.disabled{opacity:.3;pointer-events:none}
+.actions{display:flex;gap:12px;margin-top:10px}
+.act-btn{background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:10px 18px;cursor:pointer;font-size:.85rem;transition:all .2s;display:flex;align-items:center;gap:6px}
+.act-btn:hover{border-color:var(--accent)}
+.act-btn.disabled{opacity:.3;pointer-events:none}
+.combo-popup{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:2rem;font-weight:800;color:#ffd700;text-shadow:0 0 20px rgba(255,215,0,.6);pointer-events:none;transition:all .4s cubic-bezier(.17,.67,.35,1.5);z-index:100}
+.combo-popup.show{transform:translate(-50%,-50%) scale(1)}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+.modal.show{opacity:1;pointer-events:all}
+.modal-content{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:30px;text-align:center;max-width:320px;width:90%}
+.modal-stars{font-size:2.5rem;margin:10px 0}
+.modal-title{font-size:1.3rem;font-weight:700;margin-bottom:6px}
+.modal-sub{color:var(--muted);font-size:.9rem;margin-bottom:20px}
+.modal-actions{display:flex;flex-direction:column;gap:10px}
+.modal-btn{padding:14px;border-radius:12px;border:none;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s}
+.modal-btn.primary{background:linear-gradient(135deg,var(--accent),#764ba2);color:#fff}
+.modal-btn.secondary{background:var(--bg);border:1px solid var(--border);color:var(--text)}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;margin:20px 0}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.stat-val{font-size:1.6rem;font-weight:800;color:var(--accent)}
+.stat-label{color:var(--muted);font-size:.8rem;margin-top:4px}
+.toggle-row{display:flex;justify-content:space-between;align-items:center;width:100%;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:12px;margin:6px 0}
+.toggle{width:48px;height:26px;background:#333;border-radius:13px;position:relative;cursor:pointer;transition:background .3s}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:50%;top:2px;left:2px;transition:transform .3s}
+.toggle.on::after{transform:translateX(22px)}
+.flood-region{transition:background-color .15s ease}
+</style>
+</head>
+<body>
+
+<div class="combo-popup" id="comboPopup"></div>
+<div class="modal" id="winModal">
+  <div class="modal-content">
+    <div class="modal-stars" id="winStars"></div>
+    <div class="modal-title" id="winTitle"></div>
+    <div class="modal-sub" id="winSub"></div>
+    <div class="modal-actions">
+      <button class="modal-btn primary" id="btnNext">▶ 다음 레벨</button>
+      <button class="modal-btn secondary" id="btnRetry">🔄 재도전</button>
+      <button class="modal-btn secondary" id="btnHome">🏠 홈</button>
+    </div>
+  </div>
+</div>
+<div class="modal" id="failModal">
+  <div class="modal-content">
+    <div class="modal-stars">😢</div>
+    <div class="modal-title">턴 초과!</div>
+    <div class="modal-sub" id="failSub"></div>
+    <div class="modal-actions">
+      <button class="modal-btn primary" id="btnFailRetry">🔄 재도전</button>
+      <button class="modal-btn secondary" id="btnFailHome">🏠 홈</button>
+    </div>
+  </div>
+</div>
+
+<!-- MENU -->
+<div class="screen active" id="menuScreen">
+  <h1>🎨 Paint Flood</h1>
+  <p class="subtitle">색으로 물들여라!</p>
+  <button class="menu-btn" id="btnCampaign">
+    <span class="icon">▶</span>
+    <span class="label">캠페인</span>
+    <span class="info" id="campaignInfo">Lv.1</span>
+  </button>
+  <button class="menu-btn" id="btnDaily">
+    <span class="icon">📅</span>
+    <span class="label">데일리 챌린지</span>
+    <span class="info" id="dailyInfo"></span>
+  </button>
+  <button class="menu-btn" id="btnStats">
+    <span class="icon">🏆</span>
+    <span class="label">통계</span>
+  </button>
+  <button class="menu-btn" id="btnSettings">
+    <span class="icon">⚙️</span>
+    <span class="label">설정</span>
+  </button>
+</div>
+
+<!-- GAME -->
+<div class="screen" id="gameScreen">
+  <div class="top-bar">
+    <button class="back" id="btnGameBack">← 나가기</button>
+    <div class="level-info">
+      <div class="lv" id="gameLv"></div>
+      <div class="turns" id="gameTurns"></div>
+    </div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="star-bar" id="starBar"></div>
+  <canvas id="boardCanvas"></canvas>
+  <div class="color-buttons" id="colorButtons"></div>
+  <div class="actions">
+    <button class="act-btn" id="btnUndo">↩️ Undo <span id="undoCount">(3)</span></button>
+    <button class="act-btn" id="btnHint">💡 힌트</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="screen" id="statsScreen">
+  <div class="top-bar">
+    <button class="back" id="btnStatsBack">← 돌아가기</button>
+    <div class="level-info"><div class="lv">🏆 통계</div></div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="stats-grid" id="statsGrid"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="screen" id="settingsScreen">
+  <div class="top-bar">
+    <button class="back" id="btnSettingsBack">← 돌아가기</button>
+    <div class="level-info"><div class="lv">⚙️ 설정</div></div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="toggle-row">
+    <span>색맹 모드 (패턴 오버레이)</span>
+    <div class="toggle" id="toggleCB"></div>
+  </div>
+  <div class="toggle-row">
+    <span>English</span>
+    <div class="toggle" id="toggleLang"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// ── i18n ──
+const T={
+  ko:{campaign:'캠페인',daily:'데일리 챌린지',stats:'통계',settings:'설정',
+    turns:'턴',undo:'Undo',hint:'힌트',next:'▶ 다음 레벨',retry:'🔄 재도전',home:'🏠 홈',
+    complete:'레벨 클리어!',failed:'턴 초과!',turnsUsed:'사용 턴',optimal:'최적해',
+    gamesPlayed:'플레이 횟수',totalStars:'총 별',bestLevel:'최고 레벨',perfectCount:'⭐⭐⭐ 수',
+    back:'← 돌아가기',exit:'← 나가기',colorblind:'색맹 모드',english:'English',
+    dailyComplete:'오늘의 퍼즐 완료!',dailyTurns:'턴'},
+  en:{campaign:'Campaign',daily:'Daily Challenge',stats:'Statistics',settings:'Settings',
+    turns:'Turns',undo:'Undo',hint:'Hint',next:'▶ Next Level',retry:'🔄 Retry',home:'🏠 Home',
+    complete:'Level Complete!',failed:'Out of Turns!',turnsUsed:'Turns used',optimal:'Optimal',
+    gamesPlayed:'Games Played',totalStars:'Total Stars',bestLevel:'Best Level',perfectCount:'Perfect ⭐⭐⭐',
+    back:'← Back',exit:'← Exit',colorblind:'Colorblind Mode',english:'English',
+    dailyComplete:"Today's puzzle done!",dailyTurns:'turns'}
+};
+let lang=(navigator.language||'').startsWith('en')?'en':'ko';
+function t(k){return T[lang][k]||k}
+
+// ── Colors ──
+const PALETTES=[
+  ['#FF6B6B','#4ECDC4','#FFD93D','#95E1D3'],
+  ['#FF6B6B','#4ECDC4','#FFD93D','#95E1D3','#A78BFA'],
+  ['#FF6B6B','#4ECDC4','#FFD93D','#95E1D3','#A78BFA','#FF9FF3'],
+  ['#FF6B6B','#4ECDC4','#FFD93D','#95E1D3','#A78BFA','#FF9FF3','#54A0FF']
+];
+const CB_PATTERNS=['lines','dots','cross','diag','grid','circle','diamond'];
+
+// ── Level config ──
+function getLevelConfig(lv){
+  if(lv<=10) return {size:6,colors:4,maxTurns:Math.max(14,20-Math.floor(lv/3))};
+  if(lv<=30) return {size:6,colors:5,maxTurns:Math.max(12,18-Math.floor((lv-10)/5))};
+  if(lv<=60) return {size:8,colors:5,maxTurns:Math.max(16,22-Math.floor((lv-30)/8))};
+  if(lv<=100) return {size:8,colors:6,maxTurns:Math.max(18,25-Math.floor((lv-60)/10))};
+  if(lv<=150) return {size:10,colors:6,maxTurns:Math.max(20,28-Math.floor((lv-100)/12))};
+  return {size:14,colors:7,maxTurns:Math.max(24,35-Math.floor((lv-150)/15))};
+}
+
+// ── Seeded RNG ──
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+// ── Board generation ──
+function generateBoard(size,numColors,seed){
+  const rng=mulberry32(seed);
+  const board=[];
+  for(let r=0;r<size;r++){
+    board[r]=[];
+    for(let c=0;c<size;c++) board[r][c]=Math.floor(rng()*numColors);
+  }
+  return board;
+}
+
+// ── Flood fill logic ──
+function getFloodRegion(board,size){
+  const visited=Array.from({length:size},()=>Array(size).fill(false));
+  const color=board[0][0];
+  const region=[];
+  const queue=[[0,0]];
+  visited[0][0]=true;
+  while(queue.length){
+    const [r,c]=queue.shift();
+    region.push([r,c]);
+    for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]){
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<size&&nc>=0&&nc<size&&!visited[nr][nc]&&board[nr][nc]===color){
+        visited[nr][nc]=true;
+        queue.push([nr,nc]);
+      }
+    }
+  }
+  return region;
+}
+
+function applyFlood(board,size,newColor){
+  const oldColor=board[0][0];
+  if(oldColor===newColor) return 0;
+  const region=getFloodRegion(board,size);
+  // Change region to new color
+  for(const [r,c] of region) board[r][c]=newColor;
+  // Now expand: BFS from changed region to find new adjacent same-color cells
+  const visited=Array.from({length:size},()=>Array(size).fill(false));
+  const queue=[];
+  for(const [r,c] of region){visited[r][c]=true;queue.push([r,c])}
+  let absorbed=0;
+  while(queue.length){
+    const [r,c]=queue.shift();
+    for(const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]){
+      const nr=r+dr,nc=c+dc;
+      if(nr>=0&&nr<size&&nc>=0&&nc<size&&!visited[nr][nc]&&board[nr][nc]===newColor){
+        visited[nr][nc]=true;
+        queue.push([nr,nc]);
+        absorbed++;
+      }
+    }
+  }
+  return region.length+absorbed;
+}
+
+function checkWin(board,size){
+  const c=board[0][0];
+  for(let r=0;r<size;r++)for(let cc=0;cc<size;cc++)if(board[r][cc]!==c)return false;
+  return true;
+}
+
+// ── Simulate for optimal ──
+function greedyOptimal(boardOrig,size,numColors){
+  const board=boardOrig.map(r=>[...r]);
+  let turns=0;
+  while(!checkWin(board,size)&&turns<50){
+    let bestColor=-1,bestCount=0;
+    for(let c=0;c<numColors;c++){
+      if(c===board[0][0])continue;
+      const sim=board.map(r=>[...r]);
+      const count=applyFlood(sim,size,c);
+      if(count>bestCount){bestCount=count;bestColor=c}
+    }
+    if(bestColor===-1)break;
+    applyFlood(board,size,bestColor);
+    turns++;
+  }
+  return turns;
+}
+
+// ── State ──
+let state={};
+let canvas,ctx;
+let settings={colorblind:false,lang:'ko'};
+let save={level:1,totalStars:0,gamesPlayed:0,perfectCount:0,daily:{}};
+
+function loadSave(){
+  try{const s=localStorage.getItem('paintflood_save');if(s)save=JSON.parse(s)}catch(e){}
+  try{const s=localStorage.getItem('paintflood_settings');if(s)settings=JSON.parse(s);lang=settings.lang||lang}catch(e){}
+}
+function writeSave(){
+  try{localStorage.setItem('paintflood_save',JSON.stringify(save))}catch(e){}
+  try{localStorage.setItem('paintflood_settings',JSON.stringify(settings))}catch(e){}
+}
+
+// ── Screens ──
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showMenu(){
+  showScreen('menuScreen');
+  document.getElementById('campaignInfo').textContent='Lv.'+save.level;
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('dailyInfo').textContent=save.daily[today]?'✅':'';
+}
+
+// ── Drawing ──
+function drawBoard(){
+  if(!canvas)return;
+  const {board,size,numColors}=state;
+  const w=canvas.width, cellSize=w/size;
+  ctx.clearRect(0,0,w,w);
+  const palette=PALETTES[numColors-4]||PALETTES[3];
+  const region=getFloodRegion(board,size);
+  const regionSet=new Set(region.map(([r,c])=>r*100+c));
+
+  for(let r=0;r<size;r++){
+    for(let c=0;c<size;c++){
+      const x=c*cellSize, y=r*cellSize;
+      const color=palette[board[r][c]];
+      ctx.fillStyle=color;
+      const pad=1;
+      const rad=Math.max(2,cellSize*0.1);
+      roundRect(ctx,x+pad,y+pad,cellSize-pad*2,cellSize-pad*2,rad);
+      ctx.fill();
+
+      // Glow for flood region
+      if(regionSet.has(r*100+c)){
+        ctx.fillStyle='rgba(255,255,255,0.12)';
+        roundRect(ctx,x+pad,y+pad,cellSize-pad*2,cellSize-pad*2,rad);
+        ctx.fill();
+      }
+
+      // Colorblind patterns
+      if(settings.colorblind){
+        drawCBPattern(ctx,x+pad,y+pad,cellSize-pad*2,board[r][c]);
+      }
+    }
+  }
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+
+function drawCBPattern(ctx,x,y,size,colorIdx){
+  ctx.strokeStyle='rgba(0,0,0,0.5)';ctx.lineWidth=1.5;
+  const p=CB_PATTERNS[colorIdx%CB_PATTERNS.length];
+  const s=size;
+  ctx.save();ctx.beginPath();ctx.rect(x,y,s,s);ctx.clip();
+  if(p==='lines'){for(let i=0;i<s;i+=6){ctx.beginPath();ctx.moveTo(x,y+i);ctx.lineTo(x+s,y+i);ctx.stroke()}}
+  else if(p==='dots'){for(let i=4;i<s;i+=8)for(let j=4;j<s;j+=8){ctx.beginPath();ctx.arc(x+i,y+j,2,0,Math.PI*2);ctx.stroke()}}
+  else if(p==='cross'){for(let i=0;i<s;i+=8){ctx.beginPath();ctx.moveTo(x+i,y);ctx.lineTo(x+i,y+s);ctx.stroke();ctx.beginPath();ctx.moveTo(x,y+i);ctx.lineTo(x+s,y+i);ctx.stroke()}}
+  else if(p==='diag'){for(let i=-s;i<s*2;i+=6){ctx.beginPath();ctx.moveTo(x+i,y);ctx.lineTo(x+i+s,y+s);ctx.stroke()}}
+  else if(p==='grid'){for(let i=0;i<s;i+=10){ctx.strokeRect(x+i,y+i,Math.max(2,s-i*2),Math.max(2,s-i*2))}}
+  else if(p==='circle'){ctx.beginPath();ctx.arc(x+s/2,y+s/2,s*.35,0,Math.PI*2);ctx.stroke()}
+  else if(p==='diamond'){ctx.beginPath();ctx.moveTo(x+s/2,y+2);ctx.lineTo(x+s-2,y+s/2);ctx.lineTo(x+s/2,y+s-2);ctx.lineTo(x+2,y+s/2);ctx.closePath();ctx.stroke()}
+  ctx.restore();
+}
+
+// ── Color buttons ──
+function renderColorButtons(){
+  const {numColors,board}=state;
+  const palette=PALETTES[numColors-4]||PALETTES[3];
+  const container=document.getElementById('colorButtons');
+  container.innerHTML='';
+  const currentColor=board[0][0];
+  for(let i=0;i<numColors;i++){
+    const btn=document.createElement('div');
+    btn.className='color-btn'+(i===currentColor?' current disabled':'');
+    btn.style.background=palette[i];
+    if(settings.colorblind){
+      btn.style.backgroundImage='none';
+    }
+    btn.onclick=()=>playTurn(i);
+    container.appendChild(btn);
+  }
+}
+
+function updateUI(){
+  const {turns,maxTurns,optimal,level,isDaily}=state;
+  document.getElementById('gameLv').textContent=isDaily?'📅 Daily':'Lv.'+level;
+  document.getElementById('gameTurns').textContent=t('turns')+': '+turns+'/'+maxTurns;
+  document.getElementById('undoCount').textContent='('+state.undosLeft+')';
+  if(state.undosLeft<=0)document.getElementById('btnUndo').classList.add('disabled');
+  else document.getElementById('btnUndo').classList.remove('disabled');
+  // Star bar
+  const starBar=document.getElementById('starBar');
+  const s3=optimal, s2=optimal+2, s1=maxTurns;
+  starBar.innerHTML=`⭐⭐⭐≤${s3} ⭐⭐≤${s2} ⭐≤${s1}`;
+}
+
+// ── Game logic ──
+function startGame(level,isDaily){
+  const config=getLevelConfig(level);
+  const seed=isDaily?parseInt(new Date().toISOString().slice(0,10).replace(/-/g,'')):level*31337+7;
+  let board=generateBoard(config.size,config.colors,seed);
+  // Ensure not already solved
+  while(checkWin(board,config.size)){board=generateBoard(config.size,config.colors,seed+1)}
+  const optimal=greedyOptimal(board.map(r=>[...r]),config.size,config.colors);
+
+  state={
+    board,size:config.size,numColors:config.colors,
+    maxTurns:config.maxTurns,optimal:Math.max(1,optimal),
+    turns:0,undosLeft:3,history:[],
+    level,isDaily,seed
+  };
+
+  canvas=document.getElementById('boardCanvas');
+  const cw=Math.min(380,window.innerWidth-40);
+  canvas.width=cw;canvas.height=cw;
+  canvas.style.width=cw+'px';canvas.style.height=cw+'px';
+  ctx=canvas.getContext('2d');
+
+  showScreen('gameScreen');
+  drawBoard();renderColorButtons();updateUI();
+}
+
+function playTurn(colorIdx){
+  const {board,size,turns,maxTurns}=state;
+  if(board[0][0]===colorIdx)return;
+  if(turns>=maxTurns)return;
+
+  // Save history for undo
+  state.history.push(board.map(r=>[...r]));
+
+  const absorbed=applyFlood(board,size,colorIdx);
+  state.turns++;
+
+  // Combo popup
+  if(absorbed>=8){
+    showCombo(absorbed>=20?'🔥 MEGA!':absorbed>=12?'💥 COMBO!':'✨ NICE!');
+  }
+
+  drawBoard();renderColorButtons();updateUI();
+
+  if(checkWin(board,size)){
+    setTimeout(()=>onWin(),300);
+  }else if(state.turns>=maxTurns){
+    setTimeout(()=>onFail(),300);
+  }
+}
+
+function onWin(){
+  const {turns,optimal,maxTurns,level,isDaily}=state;
+  const stars=turns<=optimal?3:turns<=optimal+2?2:1;
+  save.gamesPlayed++;
+  save.totalStars+=stars;
+  if(stars===3)save.perfectCount++;
+
+  if(isDaily){
+    const today=new Date().toISOString().slice(0,10);
+    save.daily[today]={turns,stars};
+  }else{
+    if(level>=save.level)save.level=level+1;
+  }
+  writeSave();
+
+  document.getElementById('winStars').textContent='⭐'.repeat(stars)+'☆'.repeat(3-stars);
+  document.getElementById('winTitle').textContent=t('complete');
+  document.getElementById('winSub').textContent=t('turnsUsed')+': '+turns+' ('+t('optimal')+': '+optimal+')';
+  document.getElementById('winModal').classList.add('show');
+}
+
+function onFail(){
+  document.getElementById('failSub').textContent=t('turnsUsed')+': '+state.turns+'/'+state.maxTurns;
+  document.getElementById('failModal').classList.add('show');
+}
+
+function showCombo(text){
+  const el=document.getElementById('comboPopup');
+  el.textContent=text;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),800);
+}
+
+// ── Hint ──
+function doHint(){
+  const {board,size,numColors}=state;
+  let bestColor=-1,bestCount=0;
+  for(let c=0;c<numColors;c++){
+    if(c===board[0][0])continue;
+    const sim=board.map(r=>[...r]);
+    const count=applyFlood(sim,size,c);
+    if(count>bestCount){bestCount=count;bestColor=c}
+  }
+  if(bestColor>=0){
+    const btns=document.querySelectorAll('.color-btn');
+    if(btns[bestColor]){
+      btns[bestColor].style.boxShadow='0 0 20px #ffd700, 0 0 40px #ffd700';
+      setTimeout(()=>{btns[bestColor].style.boxShadow=''},1500);
+    }
+  }
+}
+
+// ── Undo ──
+function doUndo(){
+  if(state.undosLeft<=0||!state.history.length)return;
+  state.board=state.history.pop();
+  state.turns--;
+  state.undosLeft--;
+  drawBoard();renderColorButtons();updateUI();
+}
+
+// ── Stats ──
+function showStats(){
+  showScreen('statsScreen');
+  const grid=document.getElementById('statsGrid');
+  grid.innerHTML=`
+    <div class="stat-card"><div class="stat-val">${save.gamesPlayed}</div><div class="stat-label">${t('gamesPlayed')}</div></div>
+    <div class="stat-card"><div class="stat-val">${save.totalStars}⭐</div><div class="stat-label">${t('totalStars')}</div></div>
+    <div class="stat-card"><div class="stat-val">${save.level-1}</div><div class="stat-label">${t('bestLevel')}</div></div>
+    <div class="stat-card"><div class="stat-val">${save.perfectCount}</div><div class="stat-label">${t('perfectCount')}</div></div>
+  `;
+}
+
+// ── Settings ──
+function showSettings(){
+  showScreen('settingsScreen');
+  document.getElementById('toggleCB').classList.toggle('on',settings.colorblind);
+  document.getElementById('toggleLang').classList.toggle('on',lang==='en');
+}
+
+// ── Events ──
+document.getElementById('btnCampaign').onclick=()=>startGame(save.level,false);
+document.getElementById('btnDaily').onclick=()=>{
+  const today=new Date().toISOString().slice(0,10);
+  if(save.daily[today]){alert(t('dailyComplete'));return}
+  startGame(30,true); // Daily uses level 30 config
+};
+document.getElementById('btnStats').onclick=showStats;
+document.getElementById('btnSettings').onclick=showSettings;
+document.getElementById('btnGameBack').onclick=showMenu;
+document.getElementById('btnStatsBack').onclick=showMenu;
+document.getElementById('btnSettingsBack').onclick=showMenu;
+document.getElementById('btnUndo').onclick=doUndo;
+document.getElementById('btnHint').onclick=doHint;
+
+document.getElementById('btnNext').onclick=()=>{
+  document.getElementById('winModal').classList.remove('show');
+  startGame(state.isDaily?save.level:state.level+1,false);
+};
+document.getElementById('btnRetry').onclick=()=>{
+  document.getElementById('winModal').classList.remove('show');
+  startGame(state.level,state.isDaily);
+};
+document.getElementById('btnHome').onclick=()=>{
+  document.getElementById('winModal').classList.remove('show');
+  showMenu();
+};
+document.getElementById('btnFailRetry').onclick=()=>{
+  document.getElementById('failModal').classList.remove('show');
+  startGame(state.level,state.isDaily);
+};
+document.getElementById('btnFailHome').onclick=()=>{
+  document.getElementById('failModal').classList.remove('show');
+  showMenu();
+};
+
+document.getElementById('toggleCB').onclick=function(){
+  settings.colorblind=!settings.colorblind;
+  this.classList.toggle('on',settings.colorblind);
+  writeSave();
+  if(canvas)drawBoard();
+};
+document.getElementById('toggleLang').onclick=function(){
+  lang=lang==='ko'?'en':'ko';
+  settings.lang=lang;
+  this.classList.toggle('on',lang==='en');
+  writeSave();
+};
+
+// ── Init ──
+loadSave();
+try{if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand()}}catch(e){}
+showMenu();
+
+})();
+</script>
+</body>
+</html>
