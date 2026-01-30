@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Color Slide Jam</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#FDF6E3;overflow:hidden;touch-action:none;user-select:none;height:100vh;height:100dvh}
+#app{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;width:100%}
+.screen{display:none;flex-direction:column;align-items:center;width:100%;max-width:460px;padding:12px}
+.screen.active{display:flex}
+h1{font-size:28px;color:#2D3436;margin-bottom:4px;letter-spacing:-1px}
+.subtitle{color:#636E72;font-size:14px;margin-bottom:20px}
+.btn{padding:14px 36px;border:none;border-radius:16px;font-size:18px;font-weight:700;cursor:pointer;transition:transform .15s,box-shadow .15s;box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.btn:active{transform:scale(.95)}
+.btn-play{background:linear-gradient(135deg,#FF6B6B,#ee5a24);color:#fff;margin:8px}
+.btn-back{background:#dfe6e9;color:#2D3436;font-size:14px;padding:10px 24px;margin-top:12px}
+.stars-display{font-size:20px;color:#FECA57;margin:8px 0}
+/* Level Select */
+.level-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;width:100%;max-width:320px;margin:12px 0;max-height:55vh;overflow-y:auto;padding:4px}
+.level-btn{aspect-ratio:1;border:none;border-radius:14px;font-size:16px;font-weight:700;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform .12s;position:relative}
+.level-btn:active{transform:scale(.92)}
+.level-btn.unlocked{background:#fff;color:#2D3436;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+.level-btn.locked{background:#dfe6e9;color:#b2bec3;cursor:default}
+.level-btn.cleared{background:linear-gradient(135deg,#00b894,#00cec9);color:#fff}
+.level-btn .mini-stars{font-size:9px;margin-top:2px}
+/* Game Screen */
+.game-header{display:flex;justify-content:space-between;align-items:center;width:100%;max-width:400px;padding:4px 0;margin-bottom:6px}
+.game-header .info{font-size:14px;color:#636E72;font-weight:600}
+.game-header .level-label{font-size:18px;font-weight:700;color:#2D3436}
+.hdr-btns{display:flex;gap:6px}
+.hdr-btn{width:38px;height:38px;border:none;border-radius:12px;background:#fff;font-size:18px;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center}
+.hdr-btn:active{transform:scale(.9)}
+.hdr-btn:disabled{opacity:.35}
+#gameCanvas{border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.1);background:#fff;touch-action:none}
+.move-counter{margin-top:8px;font-size:15px;color:#636E72;font-weight:600}
+.move-counter span{color:#2D3436}
+/* Result */
+.result-box{background:#fff;border-radius:24px;padding:28px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.12);margin:12px 0}
+.result-box h2{font-size:24px;color:#2D3436;margin-bottom:4px}
+.result-stars{font-size:42px;margin:12px 0}
+.result-moves{color:#636E72;font-size:15px;margin-bottom:16px}
+.result-btns{display:flex;gap:10px;justify-content:center}
+.btn-next{background:linear-gradient(135deg,#00b894,#00cec9);color:#fff}
+.btn-retry{background:#dfe6e9;color:#2D3436}
+/* Direction arrows */
+.dir-overlay{position:fixed;top:0;left:0;width:100%;height:100%;z-index:100;display:none}
+.dir-overlay.show{display:block}
+</style>
+</head>
+<body>
+<div id="app">
+<!-- Menu -->
+<div id="menuScreen" class="screen active">
+<h1>🎨 Color Slide Jam</h1>
+<p class="subtitle">색깔 블록을 도어로 보내세요!</p>
+<div class="stars-display" id="totalStars">⭐ 0</div>
+<button class="btn btn-play" onclick="showLevelSelect()">▶ PLAY</button>
+</div>
+
+<!-- Level Select -->
+<div id="levelScreen" class="screen">
+<h1>레벨 선택</h1>
+<div class="stars-display" id="levelStars">⭐ 0</div>
+<div class="level-grid" id="levelGrid"></div>
+<button class="btn btn-back" onclick="showMenu()">← 메뉴</button>
+</div>
+
+<!-- Game -->
+<div id="gameScreen" class="screen">
+<div class="game-header">
+<span class="level-label" id="levelLabel">Lv.1</span>
+<div class="hdr-btns">
+<button class="hdr-btn" id="undoBtn" onclick="undo()" title="되돌리기">↩️</button>
+<button class="hdr-btn" onclick="restartLevel()" title="재시작">🔄</button>
+<button class="hdr-btn" onclick="showLevelSelect()" title="레벨 선택">📋</button>
+</div>
+</div>
+<canvas id="gameCanvas"></canvas>
+<div class="move-counter">이동: <span id="moveCount">0</span> / <span id="parCount">0</span></div>
+</div>
+
+<!-- Result -->
+<div id="resultScreen" class="screen">
+<div class="result-box">
+<h2>🎉 클리어!</h2>
+<div class="result-stars" id="resultStars">⭐⭐⭐</div>
+<p class="result-moves" id="resultMoves">이동: 5/8</p>
+<div class="result-btns">
+<button class="btn btn-retry" onclick="restartLevel()">🔄 다시</button>
+<button class="btn btn-next btn-play" id="nextBtn" onclick="nextLevel()">다음 ▶</button>
+</div>
+</div>
+<button class="btn btn-back" onclick="showLevelSelect()">📋 레벨 선택</button>
+</div>
+</div>
+
+<div class="dir-overlay" id="dirOverlay"></div>
+
+<script>
+// ============ CONSTANTS ============
+const COLORS = {
+  red:'#FF6B6B', teal:'#4ECDC4', blue:'#45B7D1',
+  green:'#96CEB4', yellow:'#FECA57', pink:'#FF9FF3'
+};
+const COLOR_DARK = {
+  red:'#E55050', teal:'#3BB5A5', blue:'#329ABD',
+  green:'#7DB89A', yellow:'#E5B740', pink:'#E580D8'
+};
+const WALL_COLOR = '#636E72';
+const DOOR_BORDER = 3;
+
+// ============ GAME STATE ============
+let currentLevel = 0;
+let grid = [];
+let blocks = [];
+let doors = [];
+let walls = [];
+let gridW = 0, gridH = 0;
+let moves = 0;
+let minMoves = 0;
+let parMoves = 0;
+let undoStack = [];
+let selectedBlock = null;
+let animating = false;
+let cellSize = 0;
+let canvasX = 0, canvasY = 0;
+let progress = loadProgress();
+
+// ============ LEVELS ============
+const LEVELS = [
+  // Lv1: Tutorial - 1 red block, 1 red door (right side)
+  {w:5,h:5,blocks:[{c:'red',x:1,y:2}],doors:[{c:'red',x:4,y:2,side:'right'}],walls:[],min:1,par:3},
+  // Lv2: 2 blocks same color
+  {w:5,h:5,blocks:[{c:'red',x:0,y:1},{c:'red',x:0,y:3}],doors:[{c:'red',x:4,y:1,side:'right'},{c:'red',x:4,y:3,side:'right'}],walls:[],min:2,par:4},
+  // Lv3: 2 colors
+  {w:5,h:5,blocks:[{c:'red',x:1,y:1},{c:'teal',x:3,y:3}],doors:[{c:'red',x:4,y:1,side:'right'},{c:'teal',x:0,y:3,side:'left'}],walls:[],min:2,par:4},
+  // Lv4: Order matters
+  {w:5,h:6,blocks:[{c:'red',x:2,y:1},{c:'teal',x:2,y:3}],doors:[{c:'red',x:2,y:0,side:'top'},{c:'teal',x:2,y:5,side:'bottom'}],walls:[],min:2,par:4},
+  // Lv5: 3 blocks
+  {w:6,h:5,blocks:[{c:'red',x:1,y:2},{c:'teal',x:3,y:0},{c:'red',x:4,y:2}],doors:[{c:'red',x:0,y:2,side:'left'},{c:'teal',x:3,y:4,side:'bottom'},{c:'red',x:5,y:2,side:'right'}],walls:[],min:3,par:5},
+  // Lv6: First wall
+  {w:5,h:5,blocks:[{c:'red',x:0,y:2},{c:'teal',x:4,y:2}],doors:[{c:'red',x:4,y:2,side:'right'},{c:'teal',x:0,y:2,side:'left'}],walls:[{x:2,y:2}],min:4,par:7},
+  // Lv7: Wall maze
+  {w:6,h:5,blocks:[{c:'red',x:1,y:0},{c:'teal',x:4,y:4}],doors:[{c:'red',x:5,y:0,side:'right'},{c:'teal',x:0,y:4,side:'left'}],walls:[{x:3,y:0},{x:3,y:1},{x:2,y:3},{x:2,y:4}],min:4,par:7},
+  // Lv8: 3 colors
+  {w:6,h:6,blocks:[{c:'red',x:1,y:1},{c:'teal',x:4,y:1},{c:'blue',x:2,y:4}],doors:[{c:'red',x:0,y:1,side:'left'},{c:'teal',x:5,y:1,side:'right'},{c:'blue',x:2,y:0,side:'top'}],walls:[{x:2,y:2},{x:3,y:3}],min:4,par:7},
+  // Lv9: Blocking order
+  {w:5,h:6,blocks:[{c:'red',x:2,y:1},{c:'red',x:2,y:4},{c:'teal',x:0,y:2}],doors:[{c:'red',x:4,y:1,side:'right'},{c:'red',x:4,y:4,side:'right'},{c:'teal',x:0,y:5,side:'bottom'}],walls:[{x:3,y:2},{x:3,y:3}],min:4,par:7},
+  // Lv10: Tight squeeze
+  {w:6,h:6,blocks:[{c:'red',x:0,y:0},{c:'teal',x:5,y:0},{c:'blue',x:2,y:3}],doors:[{c:'red',x:5,y:5,side:'bottom'},{c:'teal',x:0,y:5,side:'bottom'},{c:'blue',x:2,y:0,side:'top'}],walls:[{x:2,y:1},{x:3,y:1},{x:2,y:4},{x:3,y:4}],min:6,par:10},
+  // Lv11: 3-color corridor
+  {w:7,h:5,blocks:[{c:'red',x:1,y:2},{c:'teal',x:3,y:2},{c:'green',x:5,y:2}],doors:[{c:'red',x:0,y:2,side:'left'},{c:'teal',x:3,y:0,side:'top'},{c:'green',x:6,y:2,side:'right'}],walls:[{x:2,y:0},{x:2,y:1},{x:4,y:3},{x:4,y:4}],min:4,par:7},
+  // Lv12: Cross pattern
+  {w:6,h:6,blocks:[{c:'red',x:2,y:0},{c:'teal',x:0,y:2},{c:'red',x:3,y:5},{c:'teal',x:5,y:3}],doors:[{c:'red',x:2,y:5,side:'bottom'},{c:'teal',x:5,y:2,side:'right'},{c:'red',x:3,y:0,side:'top'},{c:'teal',x:0,y:3,side:'left'}],walls:[{x:2,y:2},{x:3,y:2},{x:2,y:3},{x:3,y:3}],min:4,par:8},
+  // Lv13: Zigzag walls
+  {w:7,h:5,blocks:[{c:'red',x:0,y:0},{c:'teal',x:6,y:4},{c:'blue',x:3,y:2}],doors:[{c:'red',x:6,y:0,side:'right'},{c:'teal',x:0,y:4,side:'left'},{c:'blue',x:3,y:4,side:'bottom'}],walls:[{x:2,y:1},{x:3,y:1},{x:3,y:3},{x:4,y:3}],min:5,par:9},
+  // Lv14: 4 blocks same path
+  {w:6,h:6,blocks:[{c:'red',x:1,y:1},{c:'red',x:4,y:1},{c:'teal',x:1,y:4},{c:'teal',x:4,y:4}],doors:[{c:'red',x:0,y:1,side:'left'},{c:'red',x:5,y:1,side:'right'},{c:'teal',x:0,y:4,side:'left'},{c:'teal',x:5,y:4,side:'right'}],walls:[{x:2,y:2},{x:3,y:2},{x:2,y:3},{x:3,y:3}],min:4,par:8},
+  // Lv15: Complex 3-color
+  {w:7,h:6,blocks:[{c:'red',x:1,y:0},{c:'teal',x:5,y:0},{c:'green',x:3,y:3},{c:'red',x:3,y:5}],doors:[{c:'red',x:6,y:0,side:'right'},{c:'teal',x:0,y:0,side:'left'},{c:'green',x:3,y:0,side:'top'},{c:'red',x:3,y:5,side:'bottom'}],walls:[{x:2,y:1},{x:4,y:1},{x:1,y:3},{x:5,y:3},{x:2,y:4},{x:4,y:4}],min:6,par:10},
+  // Lv16: 4 colors intro
+  {w:7,h:7,blocks:[{c:'red',x:1,y:1},{c:'teal',x:5,y:1},{c:'blue',x:1,y:5},{c:'yellow',x:5,y:5}],doors:[{c:'red',x:0,y:1,side:'left'},{c:'teal',x:6,y:1,side:'right'},{c:'blue',x:1,y:6,side:'bottom'},{c:'yellow',x:5,y:0,side:'top'}],walls:[{x:3,y:2},{x:3,y:3},{x:3,y:4},{x:2,y:3},{x:4,y:3}],min:6,par:10},
+  // Lv17: Dense walls
+  {w:7,h:6,blocks:[{c:'red',x:0,y:0},{c:'teal',x:6,y:0},{c:'blue',x:0,y:5},{c:'green',x:6,y:5}],doors:[{c:'red',x:6,y:5,side:'right'},{c:'teal',x:0,y:5,side:'left'},{c:'blue',x:6,y:0,side:'right'},{c:'green',x:0,y:0,side:'left'}],walls:[{x:2,y:1},{x:4,y:1},{x:1,y:2},{x:3,y:2},{x:5,y:2},{x:2,y:4},{x:4,y:4},{x:1,y:3},{x:5,y:3}],min:8,par:14},
+  // Lv18: 5 blocks
+  {w:7,h:7,blocks:[{c:'red',x:3,y:0},{c:'teal',x:0,y:3},{c:'blue',x:6,y:3},{c:'red',x:3,y:6},{c:'green',x:3,y:3}],doors:[{c:'red',x:0,y:0,side:'left'},{c:'teal',x:0,y:6,side:'bottom'},{c:'blue',x:6,y:0,side:'top'},{c:'red',x:6,y:6,side:'right'},{c:'green',x:3,y:0,side:'top'}],walls:[{x:1,y:1},{x:5,y:1},{x:1,y:5},{x:5,y:5},{x:2,y:3},{x:4,y:3},{x:3,y:2},{x:3,y:4}],min:8,par:14},
+  // Lv19: Spiral
+  {w:7,h:7,blocks:[{c:'red',x:0,y:0},{c:'teal',x:6,y:6},{c:'blue',x:0,y:6},{c:'yellow',x:3,y:3}],doors:[{c:'red',x:6,y:0,side:'right'},{c:'teal',x:0,y:6,side:'left'},{c:'blue',x:0,y:0,side:'top'},{c:'yellow',x:6,y:6,side:'bottom'}],walls:[{x:2,y:0},{x:4,y:0},{x:0,y:2},{x:0,y:4},{x:6,y:2},{x:6,y:4},{x:2,y:6},{x:4,y:6},{x:3,y:1},{x:1,y:3},{x:5,y:3},{x:3,y:5}],min:8,par:14},
+  // Lv20: Grand finale
+  {w:8,h:7,blocks:[{c:'red',x:1,y:1},{c:'teal',x:6,y:1},{c:'blue',x:1,y:5},{c:'green',x:6,y:5},{c:'yellow',x:3,y:3},{c:'pink',x:4,y:3}],doors:[{c:'red',x:0,y:1,side:'left'},{c:'teal',x:7,y:1,side:'right'},{c:'blue',x:1,y:6,side:'bottom'},{c:'green',x:6,y:0,side:'top'},{c:'yellow',x:0,y:3,side:'left'},{c:'pink',x:7,y:3,side:'right'}],walls:[{x:3,y:0},{x:4,y:0},{x:3,y:1},{x:4,y:1},{x:2,y:2},{x:5,y:2},{x:2,y:4},{x:5,y:4},{x:3,y:5},{x:4,y:5},{x:3,y:6},{x:4,y:6}],min:10,par:16}
+];
+
+// ============ SAVE / LOAD ============
+function loadProgress(){
+  try{return JSON.parse(localStorage.getItem('colorSlideJam'))||{levels:{}};}
+  catch(e){return{levels:{}};}
+}
+function saveProgress(){localStorage.setItem('colorSlideJam',JSON.stringify(progress));}
+function getTotalStars(){
+  let s=0;for(let k in progress.levels)s+=progress.levels[k].stars||0;return s;
+}
+
+// ============ SCREENS ============
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showMenu(){
+  document.getElementById('totalStars').textContent='⭐ '+getTotalStars();
+  showScreen('menuScreen');
+}
+function showLevelSelect(){
+  document.getElementById('levelStars').textContent='⭐ '+getTotalStars();
+  const grid=document.getElementById('levelGrid');
+  grid.innerHTML='';
+  for(let i=0;i<LEVELS.length;i++){
+    const btn=document.createElement('button');
+    btn.className='level-btn';
+    const p=progress.levels[i];
+    const unlocked=i===0||progress.levels[i-1];
+    if(p){
+      btn.classList.add('cleared');
+      btn.innerHTML=`${i+1}<span class="mini-stars">${'⭐'.repeat(p.stars||0)}${'☆'.repeat(3-(p.stars||0))}</span>`;
+      btn.onclick=()=>startLevel(i);
+    }else if(unlocked){
+      btn.classList.add('unlocked');
+      btn.textContent=i+1;
+      btn.onclick=()=>startLevel(i);
+    }else{
+      btn.classList.add('locked');
+      btn.textContent='🔒';
+    }
+    grid.appendChild(btn);
+  }
+  showScreen('levelScreen');
+}
+
+// ============ GAME INIT ============
+function startLevel(idx){
+  currentLevel=idx;
+  const lv=LEVELS[idx];
+  gridW=lv.w;gridH=lv.h;
+  minMoves=lv.min;parMoves=lv.par;
+  moves=0;undoStack=[];selectedBlock=null;animating=false;
+  
+  // Init grid
+  grid=[];
+  for(let y=0;y<gridH;y++){grid[y]=[];for(let x=0;x<gridW;x++)grid[y][x]=null;}
+  
+  // Place walls
+  walls=lv.walls.map(w=>({x:w.x,y:w.y}));
+  walls.forEach(w=>grid[w.y][w.x]='wall');
+  
+  // Place blocks
+  blocks=lv.blocks.map((b,i)=>({id:i,color:b.c,x:b.x,y:b.y,alive:true}));
+  blocks.forEach(b=>{if(b.alive)grid[b.y][b.x]=b;});
+  
+  // Place doors
+  doors=lv.doors.map((d,i)=>({id:i,color:d.c,x:d.x,y:d.y,side:d.side,open:false}));
+  
+  // Setup canvas
+  setupCanvas();
+  drawGame();
+  
+  document.getElementById('levelLabel').textContent='Lv.'+(idx+1);
+  document.getElementById('moveCount').textContent='0';
+  document.getElementById('parCount').textContent=parMoves;
+  document.getElementById('undoBtn').disabled=true;
+  showScreen('gameScreen');
+}
+function restartLevel(){startLevel(currentLevel);}
+function nextLevel(){
+  if(currentLevel<LEVELS.length-1)startLevel(currentLevel+1);
+  else showLevelSelect();
+}
+
+// ============ CANVAS ============
+const canvas=document.getElementById('gameCanvas');
+const ctx=canvas.getContext('2d');
+
+function setupCanvas(){
+  const maxW=Math.min(window.innerWidth-24,420);
+  const maxH=window.innerHeight*0.58;
+  cellSize=Math.floor(Math.min(maxW/gridW,maxH/gridH));
+  canvas.width=gridW*cellSize;
+  canvas.height=gridH*cellSize;
+  canvas.style.width=canvas.width+'px';
+  canvas.style.height=canvas.height+'px';
+  const r=canvas.getBoundingClientRect();
+  canvasX=r.left;canvasY=r.top;
+}
+
+function drawGame(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const cs=cellSize;
+  
+  // Draw grid bg
+  for(let y=0;y<gridH;y++){
+    for(let x=0;x<gridW;x++){
+      ctx.fillStyle=(x+y)%2===0?'#FAFAFA':'#F0F0F0';
+      ctx.fillRect(x*cs,y*cs,cs,cs);
+    }
+  }
+  
+  // Draw doors
+  doors.forEach(d=>{
+    if(d.open)return;
+    const dx=d.x*cs,dy=d.y*cs;
+    ctx.fillStyle=COLORS[d.color]+'40';
+    ctx.fillRect(dx,dy,cs,cs);
+    // Door border on side
+    ctx.fillStyle=COLORS[d.color];
+    const b=DOOR_BORDER+1;
+    if(d.side==='left'){ctx.fillRect(dx,dy,b,cs);}
+    else if(d.side==='right'){ctx.fillRect(dx+cs-b,dy,b,cs);}
+    else if(d.side==='top'){ctx.fillRect(dx,dy,cs,b);}
+    else if(d.side==='bottom'){ctx.fillRect(dx,dy+cs-b,cs,b);}
+    // Door icon
+    ctx.fillStyle=COLORS[d.color];
+    ctx.font=`${cs*0.45}px sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🚪',dx+cs/2,dy+cs/2);
+  });
+  
+  // Draw walls
+  walls.forEach(w=>{
+    const wx=w.x*cs,wy=w.y*cs;
+    ctx.fillStyle=WALL_COLOR;
+    roundRect(ctx,wx+2,wy+2,cs-4,cs-4,6,true);
+    ctx.fillStyle='#7f8c8d';
+    ctx.font=`${cs*0.35}px sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('🧱',wx+cs/2,wy+cs/2);
+  });
+  
+  // Draw blocks
+  blocks.forEach(b=>{
+    if(!b.alive)return;
+    const bx=b.x*cs,by=b.y*cs;
+    const pad=3;
+    // Shadow
+    ctx.fillStyle='rgba(0,0,0,0.08)';
+    roundRect(ctx,bx+pad+2,by+pad+2,cs-pad*2,cs-pad*2,10,true);
+    // Block
+    ctx.fillStyle=COLORS[b.color];
+    roundRect(ctx,bx+pad,by+pad,cs-pad*2,cs-pad*2,10,true);
+    // Highlight
+    ctx.fillStyle='rgba(255,255,255,0.3)';
+    roundRect(ctx,bx+pad+3,by+pad+3,cs-pad*2-6,(cs-pad*2)/3,8,true);
+    
+    // Selected indicator
+    if(selectedBlock===b){
+      ctx.strokeStyle='#2D3436';
+      ctx.lineWidth=3;
+      roundRect(ctx,bx+pad-1,by+pad-1,cs-pad*2+2,cs-pad*2+2,11,false,true);
+      ctx.lineWidth=1;
+    }
+  });
+}
+
+function roundRect(ctx,x,y,w,h,r,fill,stroke){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+  if(fill)ctx.fill();if(stroke)ctx.stroke();
+}
+
+// ============ INPUT ============
+function getCellFromEvent(e){
+  const rect=canvas.getBoundingClientRect();
+  const t=e.touches?e.touches[0]:e;
+  const cx=t.clientX-rect.left;
+  const cy=t.clientY-rect.top;
+  const gx=Math.floor(cx/cellSize);
+  const gy=Math.floor(cy/cellSize);
+  if(gx<0||gx>=gridW||gy<0||gy>=gridH)return null;
+  return{x:gx,y:gy};
+}
+
+canvas.addEventListener('click',e=>{
+  if(animating)return;
+  const cell=getCellFromEvent(e);
+  if(!cell)return;
+  
+  const clickedBlock=blocks.find(b=>b.alive&&b.x===cell.x&&b.y===cell.y);
+  
+  if(selectedBlock){
+    if(clickedBlock===selectedBlock){
+      selectedBlock=null;drawGame();return;
+    }
+    // Check if clicked cell is a valid direction
+    const dx=cell.x-selectedBlock.x;
+    const dy=cell.y-selectedBlock.y;
+    let dir=null;
+    if(dx!==0&&dy===0)dir=dx>0?'right':'left';
+    else if(dy!==0&&dx===0)dir=dy>0?'down':'up';
+    
+    if(dir){
+      tryMove(selectedBlock,dir);
+    }else if(clickedBlock){
+      selectedBlock=clickedBlock;drawGame();
+    }else{
+      selectedBlock=null;drawGame();
+    }
+    return;
+  }
+  
+  if(clickedBlock){
+    selectedBlock=clickedBlock;
+    drawGame();
+    drawDirectionArrows(clickedBlock);
+  }
+});
+
+// Swipe support
+let swipeStart=null;
+canvas.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const cell=getCellFromEvent(e);
+  if(!cell)return;
+  const b=blocks.find(bl=>bl.alive&&bl.x===cell.x&&bl.y===cell.y);
+  if(b){
+    swipeStart={x:e.touches[0].clientX,y:e.touches[0].clientY,block:b};
+    selectedBlock=b;drawGame();
+  }
+},{passive:false});
+
+canvas.addEventListener('touchend',e=>{
+  if(!swipeStart)return;
+  const t=e.changedTouches[0];
+  const dx=t.clientX-swipeStart.x;
+  const dy=t.clientY-swipeStart.y;
+  const dist=Math.sqrt(dx*dx+dy*dy);
+  
+  if(dist>20){
+    let dir;
+    if(Math.abs(dx)>Math.abs(dy))dir=dx>0?'right':'left';
+    else dir=dy>0?'down':'up';
+    tryMove(swipeStart.block,dir);
+  }
+  swipeStart=null;
+},{passive:false});
+
+function drawDirectionArrows(block){
+  const cs=cellSize;
+  const bx=block.x*cs;
+  const by=block.y*cs;
+  
+  ctx.fillStyle='rgba(45,52,54,0.15)';
+  ctx.font=`${cs*0.4}px sans-serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  
+  // Check each direction
+  [{dir:'up',dx:0,dy:-1,arrow:'⬆'},{dir:'down',dx:0,dy:1,arrow:'⬇'},
+   {dir:'left',dx:-1,dy:0,arrow:'⬅'},{dir:'right',dx:1,dy:0,arrow:'➡'}].forEach(d=>{
+    const nx=block.x+d.dx,ny=block.y+d.dy;
+    if(nx>=0&&nx<gridW&&ny>=0&&ny<gridH&&grid[ny][nx]===null){
+      const ax=bx+cs/2+d.dx*cs;
+      const ay=by+cs/2+d.dy*cs;
+      if(ax>=0&&ax<canvas.width&&ay>=0&&ay<canvas.height){
+        ctx.fillStyle='rgba(45,52,54,0.08)';
+        ctx.fillRect(nx*cs+4,ny*cs+4,cs-8,cs-8);
+        ctx.fillStyle='rgba(45,52,54,0.3)';
+        ctx.fillText(d.arrow,nx*cs+cs/2,ny*cs+cs/2);
+      }
+    }
+  });
+}
+
+// ============ GAME LOGIC ============
+function tryMove(block,dir){
+  if(animating||!block.alive)return;
+  
+  const dx={left:-1,right:1,up:0,down:0}[dir];
+  const dy={left:0,right:0,up:-1,down:1}[dir];
+  
+  // Check if first step is valid
+  const nx=block.x+dx;
+  const ny=block.y+dy;
+  if(nx<0||nx>=gridW||ny<0||ny>=gridH)return;
+  if(grid[ny][nx]!==null&&grid[ny][nx]!=='wall'){
+    // Another block
+    return;
+  }
+  if(grid[ny][nx]==='wall')return;
+  
+  // Save undo state
+  saveState();
+  
+  // Remove from grid
+  grid[block.y][block.x]=null;
+  
+  // Slide until hitting something
+  let cx=block.x,cy=block.y;
+  let absorbed=false;
+  
+  while(true){
+    const tx=cx+dx,ty=cy+dy;
+    
+    // Check bounds
+    if(tx<0||tx>=gridW||ty<0||ty>=gridH){
+      // Check if there's a door at edge
+      const edgeDoor=doors.find(d=>!d.open&&d.x===cx&&d.y===cy&&d.color===block.color);
+      if(edgeDoor){
+        absorbed=true;
+        block.alive=false;
+        edgeDoor.open=true;
+      }
+      break;
+    }
+    
+    // Check door at next position
+    const doorAtNext=doors.find(d=>!d.open&&d.x===tx&&d.y===ty&&d.color===block.color);
+    if(doorAtNext&&grid[ty][tx]===null){
+      // Move to door and absorb
+      cx=tx;cy=ty;
+      absorbed=true;
+      block.alive=false;
+      doorAtNext.open=true;
+      break;
+    }
+    
+    // Check wall or block
+    if(grid[ty][tx]!==null){
+      break;
+    }
+    
+    cx=tx;cy=ty;
+  }
+  
+  // If didn't move at all and not absorbed
+  if(cx===block.x&&cy===block.y&&!absorbed){
+    undoStack.pop();
+    return;
+  }
+  
+  // Animate movement
+  animating=true;
+  const startX=block.x,startY=block.y;
+  const endX=cx,endY=cy;
+  const steps=Math.max(Math.abs(endX-startX),Math.abs(endY-startY));
+  let step=0;
+  const animSpeed=Math.max(3,Math.min(8,12-steps));
+  
+  function animate(){
+    step+=0.15;
+    if(step>=1){
+      block.x=endX;block.y=endY;
+      if(block.alive)grid[endY][endX]=block;
+      moves++;
+      document.getElementById('moveCount').textContent=moves;
+      selectedBlock=null;
+      animating=false;
+      document.getElementById('undoBtn').disabled=undoStack.length===0;
+      drawGame();
+      
+      // Absorption effect
+      if(absorbed){
+        flashAbsorb(endX,endY,block.color);
+      }
+      
+      // Check win
+      if(blocks.every(b=>!b.alive)){
+        setTimeout(showResult,500);
+      }
+      return;
+    }
+    const t=easeOut(step);
+    block.x=startX+(endX-startX)*t;
+    block.y=startY+(endY-startY)*t;
+    drawGame();
+    requestAnimationFrame(animate);
+  }
+  requestAnimationFrame(animate);
+}
+
+function easeOut(t){return 1-Math.pow(1-t,3);}
+
+function flashAbsorb(x,y,color){
+  const cs=cellSize;
+  let alpha=0.6;
+  function flash(){
+    alpha-=0.05;
+    if(alpha<=0)return;
+    ctx.fillStyle=COLORS[color]+Math.floor(alpha*255).toString(16).padStart(2,'0');
+    ctx.beginPath();
+    ctx.arc(x*cs+cs/2,y*cs+cs/2,cs*alpha,0,Math.PI*2);
+    ctx.fill();
+    requestAnimationFrame(flash);
+  }
+  flash();
+}
+
+// ============ UNDO ============
+function saveState(){
+  undoStack.push({
+    blocks:blocks.map(b=>({...b})),
+    doors:doors.map(d=>({...d})),
+    grid:grid.map(r=>r.slice()),
+    moves:moves
+  });
+}
+function undo(){
+  if(undoStack.length===0||animating)return;
+  const st=undoStack.pop();
+  blocks=st.blocks;
+  doors=st.doors;
+  moves=st.moves;
+  
+  // Rebuild grid
+  grid=[];
+  for(let y=0;y<gridH;y++){grid[y]=[];for(let x=0;x<gridW;x++)grid[y][x]=null;}
+  walls.forEach(w=>grid[w.y][w.x]='wall');
+  blocks.forEach(b=>{if(b.alive)grid[b.y][b.x]=b;});
+  
+  selectedBlock=null;
+  document.getElementById('moveCount').textContent=moves;
+  document.getElementById('undoBtn').disabled=undoStack.length===0;
+  drawGame();
+}
+
+// ============ RESULT ============
+function showResult(){
+  let stars=1;
+  if(moves<=parMoves)stars=2;
+  if(moves<=minMoves)stars=3;
+  
+  // Save progress
+  const prev=progress.levels[currentLevel];
+  if(!prev||stars>(prev.stars||0)){
+    progress.levels[currentLevel]={stars:stars,moves:moves};
+  }
+  saveProgress();
+  
+  document.getElementById('resultStars').textContent='⭐'.repeat(stars)+'☆'.repeat(3-stars);
+  document.getElementById('resultMoves').textContent=`이동: ${moves} / 최소: ${minMoves}`;
+  document.getElementById('nextBtn').style.display=currentLevel<LEVELS.length-1?'':'none';
+  showScreen('resultScreen');
+}
+
+// ============ RESIZE ============
+window.addEventListener('resize',()=>{
+  if(document.getElementById('gameScreen').classList.contains('active')){
+    setupCanvas();drawGame();
+  }
+});
+
+// ============ KEYBOARD ============
+document.addEventListener('keydown',e=>{
+  if(!selectedBlock||animating)return;
+  const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right',
+    w:'up',s:'down',a:'left',d:'right'};
+  if(map[e.key]){e.preventDefault();tryMove(selectedBlock,map[e.key]);}
+  if(e.key==='z'&&(e.ctrlKey||e.metaKey)){e.preventDefault();undo();}
+  if(e.key==='Escape'){selectedBlock=null;drawGame();}
+});
+
+// ============ INIT ============
+showMenu();
+</script>
+</body>
+</html>
