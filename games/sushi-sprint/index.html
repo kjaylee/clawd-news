@@ -253,6 +253,66 @@ animation:floatUp 1.2s ease-out forwards;
 .float-text.combo{color:#ff6b6b;font-size:28px}
 .float-text.perfect{color:#69f0ae;font-size:24px}
 
+/* ═══ JUICE PARTICLES ═══ */
+.bg-particle{
+position:absolute;pointer-events:none;z-index:1;opacity:.5;
+animation:bgDrift linear forwards;
+}
+@keyframes bgDrift{
+0%{transform:translateY(0) rotate(0deg);opacity:.5}
+80%{opacity:.3}
+100%{transform:translateY(calc(100vh + 30px)) rotate(360deg);opacity:0}
+}
+.serve-particle{
+position:absolute;z-index:210;pointer-events:none;font-size:16px;
+animation:serveBurst .8s ease-out forwards;
+}
+@keyframes serveBurst{
+0%{opacity:1;transform:translate(0,0) scale(1) rotate(0deg)}
+100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0) rotate(var(--rot))}
+}
+.screen-shake{animation:screenShake .4s ease-out}
+@keyframes screenShake{
+0%,100%{transform:translate(0,0)}
+10%{transform:translate(-4px,-2px)}
+20%{transform:translate(6px,2px)}
+30%{transform:translate(-6px,-4px)}
+40%{transform:translate(4px,4px)}
+50%{transform:translate(-2px,-2px)}
+60%{transform:translate(2px,0)}
+}
+.emoji-pop{
+position:absolute;z-index:210;pointer-events:none;font-size:28px;
+animation:emojiPop 1s ease-out forwards;
+}
+@keyframes emojiPop{
+0%{opacity:0;transform:scale(0) translateY(0)}
+20%{opacity:1;transform:scale(1.3) translateY(-10px)}
+50%{opacity:1;transform:scale(1) translateY(-30px)}
+100%{opacity:0;transform:scale(.5) translateY(-60px)}
+}
+.wave-flash{
+position:absolute;inset:0;z-index:95;pointer-events:none;
+background:radial-gradient(circle,rgba(255,215,0,.25),transparent 70%);
+animation:waveFlash .8s ease-out forwards;
+}
+@keyframes waveFlash{
+0%{opacity:1;transform:scale(.5)}
+100%{opacity:0;transform:scale(2)}
+}
+.combo-big{
+position:absolute;z-index:220;pointer-events:none;
+font-size:36px;font-weight:900;
+text-shadow:0 2px 8px rgba(0,0,0,.5);
+animation:comboBig 1.2s ease-out forwards;
+}
+@keyframes comboBig{
+0%{opacity:0;transform:translate(-50%,-50%) scale(0) rotate(-10deg)}
+30%{opacity:1;transform:translate(-50%,-50%) scale(1.3) rotate(5deg)}
+60%{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(0deg)}
+100%{opacity:0;transform:translate(-50%,-50%) scale(.7) translateY(-30px)}
+}
+
 /* ═══ GAME OVER ═══ */
 #gameover-screen{background:rgba(0,0,0,.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .go-card{
@@ -983,7 +1043,7 @@ function servePlate() {
     if (window.TG) TG.haptic('notification', 'error');
     plateEl.classList.add('wrong');
     setTimeout(() => plateEl.classList.remove('wrong'), 400);
-    // Show hint: flash mismatch
+    screenShake();
     return;
   }
 
@@ -1027,17 +1087,23 @@ function servePlate() {
     const x = rect.left - wrapRect.left + rect.width / 2;
     const y = rect.top - wrapRect.top;
     spawnFloat(x, y, `+${coins} 💰`, 'coin');
+    spawnServeParticles(x, y);
     
-    if (speedBonus > 1) spawnFloat(x + 30, y + 20, 'FAST!', 'perfect');
+    // Customer satisfaction emoji
+    const satEmojis = ['😍','🥳','🤤','💖','🎉','✨'];
+    spawnEmojiPop(x + (Math.random()-.5)*40, y - 20, satEmojis[Math.floor(Math.random()*satEmojis.length)]);
+    
+    if (speedBonus > 1) spawnFloat(x + 30, y + 20, 'FAST! ⚡', 'perfect');
     
     if (state.combo >= 2) {
       Audio.combo(state.combo);
-      spawnFloat(x - 20, y - 10, `COMBO x${state.combo}!`, 'combo');
+      spawnFloat(x - 20, y - 10, `🔥 COMBO x${state.combo}!`, 'combo');
       
-      // Japanese phrases for high combos
-      if (state.combo === 3) spawnFloat(x, y - 30, 'すごい!', 'perfect');
-      if (state.combo === 5) spawnFloat(x, y - 30, 'やった!', 'combo');
-      if (state.combo >= 7) spawnFloat(x, y - 30, '神業!', 'combo');
+      // Enhanced Japanese combo text
+      if (state.combo === 3) spawnComboBig('すごい!', '#ff6b6b');
+      else if (state.combo === 5) spawnComboBig('やった!', '#ffab40');
+      else if (state.combo === 7) spawnComboBig('神業!', '#ffd700');
+      else if (state.combo >= 10) spawnComboBig('伝説! 🐉', '#e040fb');
     }
   }
 
@@ -1062,6 +1128,85 @@ function spawnFloat(x, y, text, cls) {
   el.style.top = y + 'px';
   wrapper.appendChild(el);
   setTimeout(() => el.remove(), 1200);
+}
+
+// ═══ JUICE EFFECTS ═══
+const BG_EMOJIS = ['🌸','🌸','🌸','🍃','🎋','🍙','🌺'];
+let bgParticleTimer = null;
+function startBgParticles() {
+  stopBgParticles();
+  const spawn = () => {
+    if (!state.gameRunning || state.paused) return;
+    const el = document.createElement('div');
+    el.className = 'bg-particle';
+    el.textContent = BG_EMOJIS[Math.floor(Math.random() * BG_EMOJIS.length)];
+    el.style.left = Math.random() * 100 + '%';
+    el.style.top = '-24px';
+    el.style.fontSize = (10 + Math.random() * 14) + 'px';
+    el.style.animationDuration = (7 + Math.random() * 9) + 's';
+    wrapper.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  };
+  bgParticleTimer = setInterval(spawn, 1400);
+  spawn();
+}
+function stopBgParticles() {
+  clearInterval(bgParticleTimer);
+  wrapper.querySelectorAll('.bg-particle').forEach(e => e.remove());
+}
+
+function spawnServeParticles(x, y) {
+  const emojis = ['⭐','✨','💛','🌟','❤️','💫'];
+  for (let i = 0; i < 8; i++) {
+    const el = document.createElement('div');
+    el.className = 'serve-particle';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    const angle = (Math.PI * 2 / 8) * i + (Math.random() - .5) * .5;
+    const dist = 35 + Math.random() * 55;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    el.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    el.style.setProperty('--rot', Math.floor(Math.random() * 360) + 'deg');
+    el.style.animationDelay = (i * 25) + 'ms';
+    wrapper.appendChild(el);
+    setTimeout(() => el.remove(), 900);
+  }
+}
+
+function screenShake() {
+  wrapper.classList.remove('screen-shake');
+  void wrapper.offsetWidth;
+  wrapper.classList.add('screen-shake');
+  wrapper.addEventListener('animationend', () => wrapper.classList.remove('screen-shake'), { once: true });
+}
+
+function spawnEmojiPop(x, y, emoji) {
+  const el = document.createElement('div');
+  el.className = 'emoji-pop';
+  el.textContent = emoji;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  wrapper.appendChild(el);
+  setTimeout(() => el.remove(), 1100);
+}
+
+function spawnComboBig(text, color) {
+  const el = document.createElement('div');
+  el.className = 'combo-big';
+  el.textContent = text;
+  el.style.color = color;
+  el.style.left = '50%';
+  el.style.top = '45%';
+  wrapper.appendChild(el);
+  setTimeout(() => el.remove(), 1300);
+}
+
+function waveFlash() {
+  const el = document.createElement('div');
+  el.className = 'wave-flash';
+  wrapper.appendChild(el);
+  setTimeout(() => el.remove(), 900);
 }
 
 function arraysMatch(a, b) {
@@ -1110,6 +1255,7 @@ function gameLoop(ts) {
     if (cust.patience <= 0) {
       cust.state = 'angry';
       Audio.angry();
+      screenShake();
       if (window.TG) TG.haptic('notification', 'error');
       state.lives--;
       state.combo = 0;
@@ -1156,6 +1302,7 @@ function startWave() {
   
   const banner = $('wave-banner');
   banner.classList.add('show');
+  if (state.wave > 1) waveFlash();
   Audio.startBGM();
   if (state.wave > 1) Audio.levelUp();
   Audio.wave();
@@ -1259,6 +1406,7 @@ function startGame() {
   state.lastTick = 0;
 
   showScreen('game');
+  startBgParticles();
   updateHUD();
   renderPlate();
 
@@ -1287,6 +1435,7 @@ function gameOver() {
   state.gameRunning = false;
   clearInterval(state.spawnTimer);
   cancelAnimationFrame(state.animFrame);
+  stopBgParticles();
   Audio.gameOver();
   if (window.TG) TG.haptic('notification', 'error');
 
@@ -1330,7 +1479,7 @@ $('btn-shop-back').addEventListener('click', () => { Audio.tap(); updateTitle();
 $('btn-reset').addEventListener('click', clearPlate);
 $('btn-serve').addEventListener('click', servePlate);
 $('btn-resume').addEventListener('click', togglePause);
-$('btn-quit').addEventListener('click', () => { state.gameRunning = false; clearInterval(state.spawnTimer); cancelAnimationFrame(state.animFrame); Audio.stopBGM(); updateTitle(); showScreen('title'); });
+$('btn-quit').addEventListener('click', () => { state.gameRunning = false; clearInterval(state.spawnTimer); cancelAnimationFrame(state.animFrame); Audio.stopBGM(); stopBgParticles(); updateTitle(); showScreen('title'); });
 $('btn-retry').addEventListener('click', () => { Audio.tap(); startGame(); });
 $('btn-go-home').addEventListener('click', () => { Audio.tap(); updateTitle(); showScreen('title'); });
 $('mute-btn').addEventListener('click', () => { const m = Audio.toggleMute(); $('mute-btn').textContent = m ? '🔇' : '🔊'; });
