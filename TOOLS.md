@@ -151,4 +151,72 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 
 ---
 
+---
+
+## 🧰 현재 능력 총정리
+
+### 🔧 내장 도구
+| 도구 | 용도 |
+|------|------|
+| `exec` | 맥 스튜디오 쉘 명령 실행 |
+| `nodes.run` | MiniPC/맥북 원격 명령 실행 |
+| `browser` | 웹 브라우저 자동화 (MiniPC만!) |
+| `web_search` | Brave API 웹 검색 |
+| `web_fetch` | URL 콘텐츠 추출 (마크다운) |
+| `message` | 텔레그램 메시지/반응/폴 전송 |
+| `cron` | 크론잡 관리 (리마인더, 자동화) |
+| `sessions_spawn` | 서브에이전트 스폰 (병렬 작업) |
+| `tts` | 텍스트→음성 변환 |
+| `image` | 이미지 분석 (비전) |
+| `canvas` | Canvas UI 렌더링 |
+| `memory_search` | 시맨틱 메모리 검색 |
+| `gateway` | Clawdbot 설정/재시작 |
+
+### 📡 노드 (원격 머신)
+| 노드 | 역할 | 주요 능력 |
+|------|------|-----------|
+| **맥 스튜디오** (로컬) | 메인 작업, 코딩 | exec, git, node, python3 |
+| **MiniPC** (Linux) | 브라우저 자동화, 영상 제작 | Playwright, Remotion, ffmpeg, Gemini |
+| **맥북 Pro** (M3) | 이미지 생성 | MLX Z-Image-Turbo, node, python3 |
+
+### 🎨 콘텐츠 생성
+- **이미지:** 맥북 MLX Z-Image-Turbo (로컬, 무료)
+- **이미지(AI):** MiniPC Gemini (주인님 계정, 무료)
+- **영상:** MiniPC Remotion (React 기반 영상 프로그래밍)
+- **TTS:** tts 도구 (음성 생성)
+- **블로그:** Jekyll → eastsea.monster (자동 배포)
+
+### 🎮 게임 개발
+- HTML5 단일 파일 게임 제작
+- 텔레그램 Mini App SDK 통합
+- 게임 QA: MiniPC Playwright headless 테스트
+- 게임 포트폴리오: eastsea.monster/games/
+
+### 📊 데이터/검색
+- RAG 시맨틱 검색 (LanceDB, 로컬)
+- Brave Search API (웹 검색)
+- web_fetch (웹 스크래핑)
+
+### 💬 커뮤니케이션
+- 텔레그램 (메인 채널)
+- 크론잡 자동 보고
+- 서브에이전트 병렬 작업
+
+### 🔄 자동화
+- 크론잡 6개 (뉴스, 증시, 게임개발, 자율사이클, 일기, 로그정리)
+- 하트비트 주기적 체크
+- Git 자동 커밋/푸시
+
+### 📦 스킬 (skills/)
+- ralph-loop: AI 자율 구현 방법론
+- game-marketing: 게임 마케팅 플레이북 (구축 중)
+- + ClawdHub 외부 스킬 다수
+
+### ⚡ 습득한 교훈
+- 새 플랫폼 → 조사 먼저, 코딩은 그 다음
+- 맥 스튜디오 → 주인님 사용 중 방해 금지
+- 서브에이전트 보고 → 대화 중 끼어들기 금지
+- 게임 QA → 코드 리뷰만으론 부족, 실제 플레이 필수
+- 양보다 질
+
 Add whatever helps you do your job. This is your cheat sheet.
