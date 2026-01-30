@@ -78,8 +78,8 @@ canvas{display:block;border-radius:8px;image-rendering:pixelated}
 
 // === CONFIG ===
 const GRID = 20;
-const INIT_SPEED = 150;
-const MIN_SPEED = 55;
+const INIT_SPEED = 200;
+const MIN_SPEED = 65;
 const SPEED_DEC = 2;
 const COMBO_TIMEOUT = 3000;
 const GHOST_DURATION = 5000;
@@ -105,6 +105,8 @@ let foodBob = 0;
 let deathTime = 0;
 let maxCombo = 0;
 let foodEaten = 0;
+let gameStartTime = 0; // grace period tracking
+let ignoreNextTouch = false; // prevent start-tap direction change
 
 // === DOM ===
 const container = document.getElementById('gameContainer');
@@ -160,7 +162,7 @@ function setupInput(){
   // Touch swipe
   canvas.addEventListener('touchstart', e => {
     if(state === 'dead' && Date.now() - deathTime > 500){ showMenu(); return; }
-    if(state === 'menu'){ startGame(); return; }
+    if(state === 'menu'){ ignoreNextTouch = true; startGame(); e.preventDefault(); return; }
     const t = e.touches[0];
     touchStartX = t.clientX;
     touchStartY = t.clientY;
@@ -170,6 +172,7 @@ function setupInput(){
   canvas.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
 
   canvas.addEventListener('touchend', e => {
+    if(ignoreNextTouch){ ignoreNextTouch = false; e.preventDefault(); return; }
     if(state !== 'play') return;
     const t = e.changedTouches[0];
     const dx = t.clientX - touchStartX;
@@ -206,7 +209,8 @@ function startGame(){
   combo = 0;
   comboTimer = 0;
   speed = INIT_SPEED;
-  lastMove = 0;
+  gameStartTime = performance.now();
+  lastMove = performance.now() + 600; // 600ms grace period before first move
   particles = [];
   powerUp = null;
   maxCombo = 0;
@@ -235,9 +239,10 @@ function showMenu(){
         <div class="stat"><div class="stat-val">${snake.length}</div><div class="stat-lbl">길이</div></div>
         <div class="stat"><div class="stat-val">×${maxCombo}</div><div class="stat-lbl">최대콤보</div></div>
       </div>
-      <button class="btn" onclick="document.getElementById('startBtn').click()">🔄 다시 하기</button>
+      <button class="btn" id="retryBtn">🔄 다시 하기</button>
       <button class="btn btn-outline" onclick="window.location.href='../'">🏠 게임 목록</button>
     `;
+    document.getElementById('retryBtn').addEventListener('click', startGame);
   } else {
     overlay.innerHTML = `
       <h1>🐍 Neon Snake</h1>
@@ -307,6 +312,9 @@ function addParticles(x, y, color, count){
 }
 
 function moveSnake(now){
+  // Grace period: don't move until lastMove time is reached
+  if(now < lastMove) return;
+  
   const effectiveSpeed = (powerUp && powerUp.type === 'speed' && now < powerUp.endTime) 
     ? speed * SPEED_BOOST_FACTOR : speed;
   
