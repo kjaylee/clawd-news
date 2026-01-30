@@ -29,7 +29,7 @@
 - [x] 광고 SDK 연동 (AdMob 테스트 ID) ✅
 - [ ] **대기 중:** 앱스토어/플레이스토어 출시 (주인님 개발자 계정)
 - [ ] ASO 최적화
-- [x] 게임 포트폴리오 45개 (Power 2048 추가, 2026-01-30 10:30) ✅
+- [x] 게임 포트폴리오 33개 (QA + 중복/저퀄 제거 후, 2026-01-30 15:30) ✅
 
 ### Phase 2: 앱 수익화 (2-3개월)
 - [x] 카메라 앱 프리미엄 기능 기획 ✅ (2026-01-29)
@@ -88,8 +88,8 @@
 - [x] Git push 완료 ✅
 - [ ] **진행 중:** safe area 수정 (주인님 직접 작업 중)
 - [ ] BotFather 토큰 설정 → 봇 라이브 배포
-- [x] 나머지 39개 게임 TG SDK 일괄 적용 (2026-01-30 10:30) ✅
-  - 전체 45게임 TG Mini App SDK 호환 완료
+- [x] 전체 게임 TG SDK 일괄 적용 (2026-01-30 10:30) ✅
+  - 전체 33게임 TG Mini App SDK 호환 완료 (QA 후 정리)
   - 쉘 스크립트 자동화 (서브에이전트 비용 0)
 - [ ] Stars 결제 실서비스 테스트
 - [ ] 바이럴 메카닉 (초대 보상, 공유)
@@ -150,11 +150,14 @@
 - **Mini App Phase 1 MVP 완성** (기획→구현→배포 6시간)
   - TG SDK 래퍼 + 런처 + 봇 서버 + TOP 5 게임 변환
   - @eastsea_games_bot + https://eastsea.monster/games/tg-launcher/
-- Neon Snake 신규 구현 (43번째 게임)
-- 슬라임 3종 QA 버그 수정 완료
-- 게임 국제화(i18n) 진행 중
-- **남은 블록:** BotFather 토큰, safe area 수정 (주인님 직접 진행 중)
-- 기존 블록 5개 유지 (Gumroad, Vercel, 앱스토어 등)
+- 게임 QA + 중복/저퀄 제거 (45→33개, 주인님 직접 핸즈온)
+  - 중복: color-sort/ball-sort, rhythm-runner/rhythm-pulse, stack-kingdom/infinite-stack-climb
+  - 저퀄/의미불명: screw-sort-factory, merge-rush, merge-tower, slide-block-match, match-3d-zen, zen-tile-match 등
+  - 네온 스네이크 즉사 버그 수정
+- SEO 완비 (OG 이미지 33개 + sitemap + meta)
+- PWA 설정 완료 (manifest + SW + 아이콘)
+- 마케팅 콘텐츠 6종 준비 완료 (Reddit/HN/DevTo/Twitter/TG/IH)
+- **블록 5개 유지:** BotFather, Gumroad, Vercel, 앱스토어, Etsy
 
 ---
 
