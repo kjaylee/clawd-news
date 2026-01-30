@@ -143,6 +143,18 @@ Reactions are lightweight social signals. Humans use them constantly — they sa
 - 스킬 위치: `skills/ralph-loop/SKILL.md`
 - specs/ → IMPLEMENTATION_PLAN.md → 서브에이전트로 1태스크씩 → 테스트 → 반복
 
+## 🚨 새 플랫폼 착수 원칙 (필수)
+
+**새로운 플랫폼/기술/SDK 작업 시 반드시 조사 먼저:**
+1. **공식 문서 조사** — 해당 플랫폼의 공식 매뉴얼, API 문서 정독
+2. **주의사항/제한사항 파악** — 알려진 버그, 호환성 이슈, 플랫폼 특이사항
+3. **성공/실패 사례 조사** — 커뮤니티, GitHub Issues, Stack Overflow
+4. **조사 결과 정리** — specs/ 또는 memory/에 기록
+5. **그 후 착수** — 조사 없이 코딩 시작 금지
+
+> 교훈: 텔레그램 Mini App에서 `env(safe-area-inset-*)` CSS가 WebView에서 작동 안 하는 것을
+> 사전 조사 없이 코딩하다 발견함. 조사 먼저 했으면 첫 배포부터 올바르게 구현 가능했음.
+
 ## Tools
 
 Skills provide your tools. When you need one, check its `SKILL.md`. Keep local notes (camera names, SSH details, voice preferences) in `TOOLS.md`.
