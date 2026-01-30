@@ -112,5 +112,49 @@
 4. **숏폼 바이럴**: 인플루언서 15초 영상이 UA 채널로 부상
 5. **LTV 중심 전환**: CPI 최적화 → LTV+리텐션 최적화로 패러다임 전환
 
+## 📊 2025 최종 다운로드 순위 (Business of Apps, 2026-01-28)
+
+### 글로벌 TOP 15
+| 순위 | 게임 | 다운로드(M) |
+|------|------|------------|
+| 1 | **Block Blast** | 303 |
+| 2 | Roblox | 262 |
+| 3 | Free Fire | 247 |
+| 4 | Pizza Ready | 154 |
+| 5 | Ludo King | 138 |
+| 6 | Vita Mahjong | 119 |
+| 7 | Hole.io | 111 |
+| 8 | My Talking Tom 2 | 106 |
+| 9 | 8 Ball Pool | 102 |
+| 10 | Snake Clash | 100 |
+| 11 | EA Sports FC Mobile | 100 |
+| 12 | Candy Crush Saga | 98 |
+| 13 | PUBG Mobile | 93 |
+| 14 | FPS Strike Ops | 93 |
+| 15 | Mobile Legends | 90 |
+
+### iOS TOP 5
+1. Block Blast (89M) — 2년 연속 1위
+2. Roblox (63M)
+3. Township (39M)
+4. Clash Royale (37M)
+5. Subway Surfers (36M)
+
+### Google Play TOP 5
+1. Free Fire (218M)
+2. Block Blast (213M)
+3. Roblox (199M)
+4. Subway Surfers (159M)
+5. Pizza Ready (130M)
+
+### 💡 포트폴리오 갭 분석
+- ✅ Block Blast 클론 (block-bounce) — 이미 보유
+- ✅ Hole.io 클론 (hole-swallow) — 이미 보유
+- ❌ **Mahjong 류** — Vita Mahjong 119M DL, 미보유
+- ❌ **2048 류** — 인플루언서 숏폼 바이럴 핵심, 미보유 → **024-power-2048 신규 기획**
+- ❌ **Pool/당구 류** — 8 Ball Pool 102M DL, 미보유
+- ❌ **Cooking/레스토랑** — Pizza Ready 154M DL, 미보유
+- ❌ **보드게임** — Ludo King 138M DL (인도 1위), 미보유
+
 ---
-*Source: Udonis, Gamigion, PocketGamer, Antier Solutions, Blockchain Ads, Airbridge/SensorTower, Singular, Bigabid*
+*Source: Udonis, Gamigion, PocketGamer, Antier Solutions, Blockchain Ads, Airbridge/SensorTower, Singular, Bigabid, Business of Apps*
