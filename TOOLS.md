@@ -62,6 +62,13 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 - 메인 세션에서 직접 MiniPC 작업 수행 ❌
 - 서브에이전트 스폰 후 위임 ✅
 
+## 🚨 브라우저 사용 원칙 (필수)
+- **맥 스튜디오(clawd 프로필) 브라우저 사용 금지** — 주인님이 사용하는 컴퓨터
+- **브라우저 테스트/자동화 → MiniPC browser.proxy만 사용**
+  - `browser` tool: `target="node"`, `node="MiniPC"`
+  - 또는 `nodes.run` (node="MiniPC")으로 실행
+- 서브에이전트에게도 반드시 이 원칙 전달할 것
+
 ---
 
 ## MacBook Pro (노드)
