@@ -6,6 +6,12 @@
     <title>🎮 Jay's Game Arcade — 40 Games</title>
     <meta name="description" content="HTML5 캐주얼 게임 포털 — 40개 게임을 브라우저에서 바로 플레이!">
     <link rel="canonical" href="https://eastsea.monster/games/">
+    <link rel="manifest" href="/games/manifest.json">
+    <link rel="apple-touch-icon" href="/games/icons/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Game Arcade">
+    <meta name="theme-color" content="#667eea">
 
     <!-- Open Graph -->
     <meta property="og:title" content="🎮 Jay's Game Arcade — 40 Free HTML5 Games">
@@ -548,6 +554,47 @@ const NEW_DAYS = 7; // 7일 이내 = 신규
 
     initRender();
 })();
+</script>
+
+<!-- PWA: Service Worker + Install Prompt -->
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/games/sw.js')
+    .then(r => console.log('SW registered:', r.scope))
+    .catch(e => console.warn('SW failed:', e));
+}
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const banner = document.createElement('div');
+  banner.id = 'pwa-install';
+  banner.innerHTML = `
+    <div style="position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#667eea,#764ba2);
+    color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;z-index:9999;
+    font-family:-apple-system,sans-serif;box-shadow:0 -4px 20px rgba(0,0,0,0.3);">
+      <div>
+        <strong>📱 Install Game Arcade</strong><br>
+        <span style="font-size:0.85rem;opacity:0.9;">Play 40+ games offline — no app store needed!</span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button id="pwa-dismiss" style="background:transparent;border:1px solid rgba(255,255,255,0.4);
+        color:#fff;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.9rem;">Later</button>
+        <button id="pwa-install-btn" style="background:#fff;color:#667eea;border:none;padding:8px 20px;
+        border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;">Install</button>
+      </div>
+    </div>`;
+  document.body.appendChild(banner);
+  document.getElementById('pwa-install-btn').onclick = async () => {
+    banner.remove();
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log('PWA install:', outcome);
+    deferredPrompt = null;
+  };
+  document.getElementById('pwa-dismiss').onclick = () => banner.remove();
+});
 </script>
 
 </body>
