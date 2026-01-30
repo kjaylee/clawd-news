@@ -222,7 +222,7 @@ function setupInput(){
 function startGame(){
   const mid = Math.floor(GRID/2);
   snake = [];
-  for(let i=3;i>=0;i--) snake.push({x:mid-i, y:mid});
+  for(let i=0;i<4;i++) snake.push({x:mid-i, y:mid});
   dir = {x:1, y:0};
   nextDir = {x:1, y:0};
   score = 0;
