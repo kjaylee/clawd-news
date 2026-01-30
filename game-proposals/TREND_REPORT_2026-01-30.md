@@ -116,4 +116,29 @@
 - **금일 구현:** sushi-sprint, traffic-escape, conveyor-sort, gem-cascade(진행중)
 
 ---
-*Last updated: 2026-01-30 18:00 KST*
+
+## 📊 오후 7시 업데이트
+
+### 시장 최신 동향
+29. **Block Blast 독주 지속** — 퍼즐 다운로드 1위, Candy Crush Saga의 3배 이상 (BusinessOfApps 2026)
+30. **Tap Away 메카닉 급부상** — "Tap Block Away 3D", "Block Away" 등 다수 플레이스토어 상위. 탭하여 순서대로 블록 제거하는 로직 퍼즐. Parking Jam과 유사한 "순서 추론" 쾌감
+31. **Pizza Ready 하이퍼캐주얼 2연패** — Arcade + 하이퍼캐주얼 양쪽 #1 (2025-2026)
+32. **프리미엄 모바일 여전** — Dead Cells, Stardew Valley, Slay the Spire가 2026에도 Reddit 추천 1위권
+33. **캐주얼 다운로드 4% 성장** — 2025 전세계 모바일 게임 59.2M DL (YoY +4%)
+34. **No-Lives 시스템** — Royal Match 사례: 하트/라이프 없이 무한 플레이 → 10.2 세션/일 달성
+
+### 새 기획서 추가
+35. **032-tap-away-puzzle** — Tap Away 3D 트렌드 기반 2D 로직 퍼즐. 화살표 방향 블록을 올바른 순서로 탭하여 제거. HTML5 경량 버전으로 차별화. 200레벨, 별 시스템, 일일 퍼즐.
+
+### 구현 진행
+36. **028-word-chain-blast** — 서브에이전트 구현 착수 (19:00). Block Blast + 워드 게임 융합. 6×6 글자 그리드, 스와이프 단어 연결, Trie 사전 3000+단어.
+
+### 포트폴리오 현황
+- **활성 게임:** 39개 (games/ 디렉토리, 유틸 제외)
+- **제거됨:** 9개 (_removed/)
+- **미구현 기획서:** 3개 (028 구현중, 031, 032)
+- **총 기획서:** 32개 (001-032)
+- **금일 구현:** sushi-sprint, traffic-escape, conveyor-sort, gem-cascade, word-chain-blast(진행중)
+
+---
+*Last updated: 2026-01-30 19:00 KST*
