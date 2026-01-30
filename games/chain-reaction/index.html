@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>⚛️ Chain Reaction Lab</title>
+<script src="../tg-sdk-wrapper.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+--bg:#0a0a1a;--card:#12122a;--border:#1e1e3a;--text:#e0e0e0;--muted:#888;
+--accent:#667eea;--accent2:#764ba2;--cyan:#00e5ff;--pink:#ff6b9d;--gold:#ffd700;
+--green:#4ade80;--red:#ff4444;--orange:#f59e0b;
+--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px);
+--safe-left:env(safe-area-inset-left,0px);--safe-right:env(safe-area-inset-right,0px);
+--p1:#00e5ff;--p2:#ff6b9d;
+}
+html,body{width:100%;height:100%;overflow:hidden}
+body{
+font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;
+background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;
+user-select:none;-webkit-user-select:none;position:relative;
+padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);
+padding-left:var(--safe-left);padding-right:var(--safe-right);
+touch-action:manipulation;
+}
+body::before{
+content:'';position:fixed;inset:0;
+background:radial-gradient(ellipse at 50% 0%,rgba(102,126,234,0.04) 0%,transparent 60%),
+radial-gradient(ellipse at 80% 100%,rgba(118,75,162,0.03) 0%,transparent 50%);
+pointer-events:none;z-index:0;
+}
+.screen{display:none;width:100%;max-width:500px;flex-direction:column;align-items:center;
+padding:16px 20px;position:relative;z-index:1;overflow-y:auto;flex:1}
+.screen.active{display:flex}
+
+.menu-title{
+font-size:2.2rem;font-weight:900;margin:24px 0 4px;letter-spacing:1px;
+background:linear-gradient(135deg,var(--cyan),var(--accent),var(--pink));
+-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.menu-icon{font-size:4rem;margin-top:16px;animation:pulse 3s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.menu-sub{color:var(--muted);font-size:0.85rem;margin:8px 0 24px;text-align:center}
+
+.btn{
+background:linear-gradient(135deg,var(--accent),var(--accent2));
+border:none;color:#fff;padding:14px 32px;border-radius:14px;font-size:1.05rem;
+font-weight:700;cursor:pointer;width:100%;max-width:280px;margin:6px 0;
+transition:transform .15s,box-shadow .15s;
+}
+.btn:active{transform:scale(0.96)}
+.btn.secondary{background:var(--card);border:1px solid var(--border)}
+
+.stats-box{
+background:var(--card);border:1px solid var(--border);border-radius:14px;
+padding:16px;width:100%;max-width:320px;margin:12px 0;
+}
+.stats-row{display:flex;justify-content:space-between;padding:6px 0;font-size:0.9rem}
+.stats-row span:first-child{color:var(--muted)}
+.stats-row span:last-child{font-weight:700}
+
+/* Game Screen */
+.game-header{
+display:flex;justify-content:space-between;align-items:center;width:100%;
+padding:8px 0;margin-bottom:8px;
+}
+.turn-indicator{
+font-size:1rem;font-weight:700;padding:6px 16px;border-radius:20px;
+transition:all .3s;
+}
+.turn-p1{background:rgba(0,229,255,0.15);color:var(--p1);border:1px solid rgba(0,229,255,0.3)}
+.turn-p2{background:rgba(255,107,157,0.15);color:var(--p2);border:1px solid rgba(255,107,157,0.3)}
+
+.board-container{
+position:relative;display:flex;justify-content:center;align-items:center;
+margin:4px 0;
+}
+.board{
+display:grid;
+grid-template-columns:repeat(6,1fr);
+gap:3px;
+background:var(--card);
+border:2px solid var(--border);
+border-radius:12px;
+padding:6px;
+position:relative;
+}
+.cell{
+aspect-ratio:1;border-radius:8px;background:rgba(255,255,255,0.03);
+border:1px solid rgba(255,255,255,0.06);
+display:flex;align-items:center;justify-content:center;
+cursor:pointer;position:relative;overflow:hidden;
+transition:background .2s,transform .15s,border-color .2s;
+}
+.cell:active{transform:scale(0.92)}
+.cell.hover-ok{border-color:rgba(255,255,255,0.2)}
+.cell.p1{border-color:rgba(0,229,255,0.4);background:rgba(0,229,255,0.06)}
+.cell.p2{border-color:rgba(255,107,157,0.4);background:rgba(255,107,157,0.06)}
+
+.atoms{
+display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+width:100%;height:100%;gap:2px;padding:3px;
+}
+.atom{
+width:10px;height:10px;border-radius:50%;
+transition:all .2s;animation:atomBob 1.5s ease-in-out infinite;
+}
+.atom.p1{background:var(--p1);box-shadow:0 0 6px var(--p1)}
+.atom.p2{background:var(--p2);box-shadow:0 0 6px var(--p2)}
+@keyframes atomBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+
+.cell.exploding{animation:explode .35s ease-out}
+@keyframes explode{
+0%{transform:scale(1);background:rgba(255,255,255,0.05)}
+30%{transform:scale(1.15);background:rgba(255,255,255,0.3)}
+100%{transform:scale(1);background:rgba(255,255,255,0.05)}
+}
+
+.chain-counter{
+position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+font-size:2.5rem;font-weight:900;opacity:0;pointer-events:none;z-index:10;
+text-shadow:0 0 20px currentColor;
+transition:opacity .3s;
+}
+.chain-counter.show{opacity:1;animation:chainPop .6s ease-out}
+@keyframes chainPop{
+0%{transform:translate(-50%,-50%) scale(0.5);opacity:0}
+50%{transform:translate(-50%,-50%) scale(1.3);opacity:1}
+100%{transform:translate(-50%,-50%) scale(1);opacity:0.8}
+}
+
+/* Particles */
+.particle{
+position:absolute;width:6px;height:6px;border-radius:50%;
+pointer-events:none;z-index:20;
+}
+
+/* Score bar */
+.score-bar{
+display:flex;width:100%;height:6px;border-radius:3px;overflow:hidden;margin:8px 0;
+background:var(--card);
+}
+.score-bar .p1-bar{background:var(--p1);transition:width .5s}
+.score-bar .p2-bar{background:var(--p2);transition:width .5s}
+
+.score-info{
+display:flex;justify-content:space-between;width:100%;font-size:0.85rem;margin-bottom:4px;
+}
+.score-info .p1-info{color:var(--p1)}
+.score-info .p2-info{color:var(--p2)}
+
+.game-footer{display:flex;gap:8px;margin-top:8px;width:100%}
+.game-footer .btn{padding:10px;font-size:0.85rem}
+
+/* Result */
+.result-icon{font-size:5rem;margin:20px 0 8px}
+.result-title{font-size:1.8rem;font-weight:900;margin-bottom:4px}
+.result-sub{color:var(--muted);font-size:0.9rem;margin-bottom:20px;text-align:center}
+
+/* Difficulty */
+.diff-btns{display:flex;gap:8px;width:100%;max-width:320px;margin:8px 0}
+.diff-btn{
+flex:1;padding:12px 8px;border-radius:12px;border:1px solid var(--border);
+background:var(--card);color:var(--text);font-size:0.85rem;font-weight:600;
+cursor:pointer;text-align:center;transition:all .2s;
+}
+.diff-btn.selected{border-color:var(--accent);background:rgba(102,126,234,0.15);color:var(--accent)}
+.diff-btn:active{transform:scale(0.96)}
+
+.board-size-label{color:var(--muted);font-size:0.8rem;margin-top:12px}
+
+/* shake */
+.shake{animation:shake .3s}
+@keyframes shake{
+0%,100%{transform:translateX(0)}
+25%{transform:translateX(-4px)}
+75%{transform:translateX(4px)}
+}
+
+@media(max-height:640px){
+.menu-icon{font-size:3rem;margin-top:8px}
+.menu-title{font-size:1.8rem;margin-top:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- Menu -->
+<div id="menuScreen" class="screen active">
+<div class="menu-icon">⚛️</div>
+<div class="menu-title">CHAIN REACTION</div>
+<div class="menu-sub">원자를 배치하고 연쇄 폭발을 일으켜라!<br>임계 질량 도달 시 폭발 — 상대를 전멸시키면 승리</div>
+
+<div style="color:var(--muted);font-size:0.75rem;margin-bottom:4px">보드 크기</div>
+<div class="diff-btns">
+<div class="diff-btn" data-size="5" onclick="selectSize(5)">5×5</div>
+<div class="diff-btn selected" data-size="6" onclick="selectSize(6)">6×6</div>
+<div class="diff-btn" data-size="7" onclick="selectSize(7)">7×7</div>
+<div class="diff-btn" data-size="8" onclick="selectSize(8)">8×8</div>
+</div>
+
+<div style="color:var(--muted);font-size:0.75rem;margin:8px 0 4px">AI 난이도</div>
+<div class="diff-btns">
+<div class="diff-btn" data-diff="easy" onclick="selectDiff('easy')">🟢 쉬움</div>
+<div class="diff-btn selected" data-diff="medium" onclick="selectDiff('medium')">🟡 보통</div>
+<div class="diff-btn" data-diff="hard" onclick="selectDiff('hard')">🔴 어려움</div>
+</div>
+
+<button class="btn" onclick="startGame()" style="margin-top:16px">🧪 게임 시작</button>
+<button class="btn secondary" onclick="showStats()">🏆 통계</button>
+<button class="btn secondary" onclick="showHelp()">❓ 규칙</button>
+</div>
+
+<!-- Game -->
+<div id="gameScreen" class="screen">
+<div class="game-header">
+<div id="turnIndicator" class="turn-indicator turn-p1">🔵 Player 1</div>
+<div id="turnCount" style="color:var(--muted);font-size:0.85rem">턴 1</div>
+</div>
+<div class="score-info">
+<span class="p1-info" id="p1Count">🔵 0</span>
+<span class="p2-info" id="p2Count">🔴 0</span>
+</div>
+<div class="score-bar">
+<div class="p1-bar" id="p1Bar" style="width:50%"></div>
+<div class="p2-bar" id="p2Bar" style="width:50%"></div>
+</div>
+<div class="board-container" id="boardContainer">
+<div class="board" id="board"></div>
+<div class="chain-counter" id="chainCounter">×3</div>
+</div>
+<div class="game-footer">
+<button class="btn secondary" onclick="backToMenu()" style="flex:1">🏠 메뉴</button>
+</div>
+</div>
+
+<!-- Result -->
+<div id="resultScreen" class="screen">
+<div class="result-icon" id="resultIcon">🎉</div>
+<div class="result-title" id="resultTitle">승리!</div>
+<div class="result-sub" id="resultSub">연쇄 반응으로 상대를 전멸시켰습니다</div>
+<div class="stats-box" id="resultStats"></div>
+<button class="btn" onclick="startGame()" style="margin-top:16px">🔄 다시 하기</button>
+<button class="btn secondary" onclick="backToMenu()">🏠 메뉴</button>
+</div>
+
+<!-- Stats -->
+<div id="statsScreen" class="screen">
+<div style="font-size:1.4rem;font-weight:800;margin:20px 0 16px">🏆 통계</div>
+<div class="stats-box" id="statsBox"></div>
+<button class="btn secondary" onclick="backToMenu()" style="margin-top:16px">🏠 메뉴</button>
+</div>
+
+<!-- Help -->
+<div id="helpScreen" class="screen">
+<div style="font-size:1.4rem;font-weight:800;margin:20px 0 12px">❓ 규칙</div>
+<div class="stats-box" style="font-size:0.85rem;line-height:1.6">
+<p><b>⚛️ 원자 배치</b><br>자기 차례에 빈 셀 또는 자기 색 셀을 클릭하여 원자 +1</p>
+<br>
+<p><b>💥 임계 질량</b><br>
+모서리 셀: 원자 2개 → 폭발<br>
+변 셀: 원자 3개 → 폭발<br>
+내부 셀: 원자 4개 → 폭발</p>
+<br>
+<p><b>🔗 연쇄 반응</b><br>폭발 시 상하좌우로 원자 1개씩 확산.<br>확산된 원자가 또 임계 질량 도달 시 다시 폭발!</p>
+<br>
+<p><b>🏆 승리 조건</b><br>첫 턴 이후, 상대 원자를 모두 전멸시키면 승리!</p>
+<br>
+<p><b>🎯 팁</b><br>
+- 모서리/변은 적은 원자로 폭발 → 방어가 어려움<br>
+- 상대 원자 옆에 배치하면 폭발 시 점령 가능<br>
+- 대규모 연쇄를 노려보세요!</p>
+</div>
+<button class="btn secondary" onclick="backToMenu()" style="margin-top:16px">🏠 돌아가기</button>
+</div>
+
+<script>
+// ═══ State ═══
+let boardSize = 6;
+let aiDifficulty = 'medium';
+let board = [];      // board[r][c] = { atoms: 0, owner: 0 }  (owner: 1=p1, 2=p2)
+let currentPlayer = 1;
+let turnNumber = 0;
+let isAnimating = false;
+let gameOver = false;
+let maxChain = 0;
+let totalMoves = 0;
+let gameChains = [];
+
+const STATS_KEY = 'chain_reaction_stats';
+
+// ═══ Init ═══
+function init() {
+  if (window.Telegram && Telegram.WebApp) Telegram.WebApp.ready();
+  loadStats();
+  showScreen('menuScreen');
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function selectSize(s) {
+  boardSize = s;
+  document.querySelectorAll('[data-size]').forEach(b => b.classList.toggle('selected', +b.dataset.size === s));
+}
+function selectDiff(d) {
+  aiDifficulty = d;
+  document.querySelectorAll('[data-diff]').forEach(b => b.classList.toggle('selected', b.dataset.diff === d));
+}
+
+// ═══ Game Start ═══
+function startGame() {
+  board = [];
+  for (let r = 0; r < boardSize; r++) {
+    board[r] = [];
+    for (let c = 0; c < boardSize; c++) {
+      board[r][c] = { atoms: 0, owner: 0 };
+    }
+  }
+  currentPlayer = 1;
+  turnNumber = 0;
+  gameOver = false;
+  isAnimating = false;
+  maxChain = 0;
+  totalMoves = 0;
+  gameChains = [];
+  renderBoard();
+  updateUI();
+  showScreen('gameScreen');
+}
+
+function getCriticalMass(r, c) {
+  const corner = (r === 0 || r === boardSize - 1) && (c === 0 || c === boardSize - 1);
+  const edge = r === 0 || r === boardSize - 1 || c === 0 || c === boardSize - 1;
+  if (corner) return 2;
+  if (edge) return 3;
+  return 4;
+}
+
+// ═══ Render ═══
+function renderBoard() {
+  const el = document.getElementById('board');
+  el.style.gridTemplateColumns = `repeat(${boardSize}, 1fr)`;
+  const vw = Math.min(window.innerWidth - 52, 460);
+  const cellSize = Math.floor((vw - (boardSize - 1) * 3 - 12) / boardSize);
+  el.style.width = (cellSize * boardSize + (boardSize - 1) * 3 + 12) + 'px';
+  el.innerHTML = '';
+  for (let r = 0; r < boardSize; r++) {
+    for (let c = 0; c < boardSize; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.style.width = cellSize + 'px';
+      cell.style.height = cellSize + 'px';
+      cell.addEventListener('click', () => onCellClick(r, c));
+      cell.addEventListener('touchend', (e) => { e.preventDefault(); });
+      el.appendChild(cell);
+      updateCell(r, c, cell);
+    }
+  }
+}
+
+function updateCell(r, c, cellEl) {
+  if (!cellEl) cellEl = getCellEl(r, c);
+  if (!cellEl) return;
+  const data = board[r][c];
+  cellEl.className = 'cell' + (data.owner === 1 ? ' p1' : data.owner === 2 ? ' p2' : '');
+  const crit = getCriticalMass(r, c);
+  let inner = '<div class="atoms">';
+  for (let i = 0; i < data.atoms; i++) {
+    const cls = data.owner === 1 ? 'p1' : 'p2';
+    const delay = (i * 0.2).toFixed(1);
+    inner += `<div class="atom ${cls}" style="animation-delay:${delay}s"></div>`;
+  }
+  inner += '</div>';
+  // show critical mass hint
+  if (data.atoms > 0 && data.atoms === crit - 1) {
+    inner += `<div style="position:absolute;bottom:1px;right:3px;font-size:0.5rem;color:rgba(255,255,255,0.3)">!</div>`;
+  }
+  cellEl.innerHTML = inner;
+}
+
+function getCellEl(r, c) {
+  return document.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+}
+
+function updateUI() {
+  const ti = document.getElementById('turnIndicator');
+  if (currentPlayer === 1) {
+    ti.className = 'turn-indicator turn-p1';
+    ti.textContent = '🔵 당신의 차례';
+  } else {
+    ti.className = 'turn-indicator turn-p2';
+    ti.textContent = '🔴 AI 차례';
+  }
+  document.getElementById('turnCount').textContent = `턴 ${turnNumber + 1}`;
+
+  // Count atoms
+  let p1 = 0, p2 = 0;
+  for (let r = 0; r < boardSize; r++)
+    for (let c = 0; c < boardSize; c++) {
+      if (board[r][c].owner === 1) p1 += board[r][c].atoms;
+      if (board[r][c].owner === 2) p2 += board[r][c].atoms;
+    }
+  document.getElementById('p1Count').textContent = `🔵 ${p1}`;
+  document.getElementById('p2Count').textContent = `🔴 ${p2}`;
+  const total = p1 + p2 || 1;
+  document.getElementById('p1Bar').style.width = ((p1 / total) * 100) + '%';
+  document.getElementById('p2Bar').style.width = ((p2 / total) * 100) + '%';
+}
+
+// ═══ Cell Click ═══
+function onCellClick(r, c) {
+  if (isAnimating || gameOver || currentPlayer !== 1) return;
+  if (!canPlace(r, c, 1)) {
+    const el = getCellEl(r, c);
+    if (el) { el.classList.add('shake'); setTimeout(() => el.classList.remove('shake'), 300); }
+    return;
+  }
+  doMove(r, c, 1);
+}
+
+function canPlace(r, c, player) {
+  return board[r][c].owner === 0 || board[r][c].owner === player;
+}
+
+async function doMove(r, c, player) {
+  isAnimating = true;
+  totalMoves++;
+  board[r][c].atoms++;
+  board[r][c].owner = player;
+  updateCell(r, c);
+  updateUI();
+
+  // Check for explosions
+  let chainCount = 0;
+  let toExplode = findExplodable();
+  while (toExplode.length > 0) {
+    chainCount++;
+    if (chainCount > maxChain) maxChain = chainCount;
+    if (chainCount >= 2) showChainCounter(chainCount);
+    await processExplosions(toExplode, player);
+    updateUI();
+    // Check win after each chain
+    if (turnNumber >= 1 && checkWin()) {
+      isAnimating = false;
+      return;
+    }
+    toExplode = findExplodable();
+  }
+  gameChains.push(chainCount);
+  hideChainCounter();
+
+  turnNumber++;
+  // Check win
+  if (turnNumber >= 2 && checkWin()) {
+    isAnimating = false;
+    return;
+  }
+
+  // Switch turn
+  currentPlayer = currentPlayer === 1 ? 2 : 1;
+  updateUI();
+  isAnimating = false;
+
+  // AI turn
+  if (currentPlayer === 2 && !gameOver) {
+    setTimeout(() => aiMove(), 400);
+  }
+}
+
+function findExplodable() {
+  const result = [];
+  for (let r = 0; r < boardSize; r++)
+    for (let c = 0; c < boardSize; c++)
+      if (board[r][c].atoms >= getCriticalMass(r, c))
+        result.push([r, c]);
+  return result;
+}
+
+async function processExplosions(cells, originPlayer) {
+  // Visual explosion
+  for (const [r, c] of cells) {
+    const el = getCellEl(r, c);
+    if (el) el.classList.add('exploding');
+    spawnParticles(r, c, board[r][c].owner);
+  }
+  await sleep(200);
+
+  // Process explosions
+  const owner = originPlayer;
+  for (const [r, c] of cells) {
+    const cell = board[r][c];
+    const crit = getCriticalMass(r, c);
+    cell.atoms -= crit;
+    if (cell.atoms <= 0) { cell.atoms = 0; cell.owner = 0; }
+
+    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize) {
+        board[nr][nc].atoms++;
+        board[nr][nc].owner = owner;
+      }
+    }
+  }
+
+  // Update visuals
+  for (let r = 0; r < boardSize; r++)
+    for (let c = 0; c < boardSize; c++)
+      updateCell(r, c);
+
+  await sleep(150);
+
+  // Remove exploding class
+  for (const [r, c] of cells) {
+    const el = getCellEl(r, c);
+    if (el) el.classList.remove('exploding');
+  }
+}
+
+// ═══ Particles ═══
+function spawnParticles(r, c, owner) {
+  const cellEl = getCellEl(r, c);
+  if (!cellEl) return;
+  const rect = cellEl.getBoundingClientRect();
+  const container = document.getElementById('boardContainer');
+  const contRect = container.getBoundingClientRect();
+  const cx = rect.left - contRect.left + rect.width / 2;
+  const cy = rect.top - contRect.top + rect.height / 2;
+  const color = owner === 1 ? 'var(--p1)' : 'var(--p2)';
+
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    p.style.background = color;
+    p.style.boxShadow = `0 0 4px ${color}`;
+    p.style.left = cx + 'px';
+    p.style.top = cy + 'px';
+    container.appendChild(p);
+    const angle = (Math.PI * 2 / 8) * i + Math.random() * 0.5;
+    const dist = 20 + Math.random() * 30;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    p.animate([
+      { transform: 'translate(-50%,-50%) scale(1)', opacity: 1 },
+      { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(0)`, opacity: 0 }
+    ], { duration: 400, easing: 'ease-out' });
+    setTimeout(() => p.remove(), 400);
+  }
+}
+
+function showChainCounter(n) {
+  const el = document.getElementById('chainCounter');
+  el.textContent = `×${n}!`;
+  el.style.color = n >= 5 ? 'var(--gold)' : n >= 3 ? 'var(--orange)' : 'var(--cyan)';
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+function hideChainCounter() {
+  document.getElementById('chainCounter').classList.remove('show');
+}
+
+// ═══ Win Check ═══
+function checkWin() {
+  let p1Cells = 0, p2Cells = 0;
+  for (let r = 0; r < boardSize; r++)
+    for (let c = 0; c < boardSize; c++) {
+      if (board[r][c].owner === 1) p1Cells++;
+      if (board[r][c].owner === 2) p2Cells++;
+    }
+  if (turnNumber >= 2) {
+    if (p2Cells === 0 && p1Cells > 0) { endGame(1); return true; }
+    if (p1Cells === 0 && p2Cells > 0) { endGame(2); return true; }
+  }
+  return false;
+}
+
+function endGame(winner) {
+  gameOver = true;
+  const isWin = winner === 1;
+  document.getElementById('resultIcon').textContent = isWin ? '🎉' : '😞';
+  document.getElementById('resultTitle').textContent = isWin ? '승리!' : '패배...';
+  document.getElementById('resultTitle').style.color = isWin ? 'var(--green)' : 'var(--red)';
+  document.getElementById('resultSub').textContent = isWin
+    ? `${turnNumber}턴 만에 상대를 전멸시켰습니다!`
+    : `AI에게 전멸당했습니다...`;
+
+  const avgChain = gameChains.length ? (gameChains.reduce((a, b) => a + b, 0) / gameChains.length).toFixed(1) : 0;
+  document.getElementById('resultStats').innerHTML = `
+    <div class="stats-row"><span>턴 수</span><span>${turnNumber}</span></div>
+    <div class="stats-row"><span>최대 연쇄</span><span>×${maxChain}</span></div>
+    <div class="stats-row"><span>평균 연쇄</span><span>×${avgChain}</span></div>
+    <div class="stats-row"><span>보드 크기</span><span>${boardSize}×${boardSize}</span></div>
+    <div class="stats-row"><span>AI 난이도</span><span>${{easy:'쉬움',medium:'보통',hard:'어려움'}[aiDifficulty]}</span></div>
+  `;
+
+  // Save stats
+  const stats = loadStats();
+  stats.totalGames++;
+  if (isWin) stats.wins++;
+  else stats.losses++;
+  if (maxChain > stats.bestChain) stats.bestChain = maxChain;
+  if (isWin && (stats.bestTurns === 0 || turnNumber < stats.bestTurns)) stats.bestTurns = turnNumber;
+  stats.totalChains += gameChains.reduce((a, b) => a + b, 0);
+  saveStats(stats);
+
+  setTimeout(() => showScreen('resultScreen'), 600);
+}
+
+// ═══ AI ═══
+function aiMove() {
+  if (gameOver || currentPlayer !== 2) return;
+
+  let move;
+  if (aiDifficulty === 'easy') {
+    move = aiRandom();
+  } else if (aiDifficulty === 'medium') {
+    move = aiGreedy();
+  } else {
+    move = aiHard();
+  }
+
+  if (move) {
+    doMove(move[0], move[1], 2);
+  }
+}
+
+function aiRandom() {
+  const valid = [];
+  for (let r = 0; r < boardSize; r++)
+    for (let c = 0; c < boardSize; c++)
+      if (canPlace(r, c, 2)) valid.push([r, c]);
+  return valid.length ? valid[Math.floor(Math.random() * valid.length)] : null;
+}
+
+function aiGreedy() {
+  const valid = [];
+  for (let r = 0; r < boardSize; r++)
+    for (let c = 0; c < boardSize; c++)
+      if (canPlace(r, c, 2)) valid.push([r, c]);
+  if (!valid.length) return null;
+
+  // Prioritize: cells about to explode, near enemy cells
+  let best = null, bestScore = -999;
+  for (const [r, c] of valid) {
+    let score = 0;
+    const crit = getCriticalMass(r, c);
+    const atoms = board[r][c].atoms;
+
+    // Almost exploding = high priority
+    if (atoms + 1 >= crit) score += 10;
+    // Near critical = good
+    else if (atoms + 1 === crit - 1) score += 5;
+
+    // Near enemy cells bonus
+    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize) {
+        if (board[nr][nc].owner === 1) {
+          score += 3;
+          // Enemy near critical = even better
+          if (board[nr][nc].atoms >= getCriticalMass(nr, nc) - 1) score += 4;
+        }
+      }
+    }
+
+    // Corners/edges are strategically valuable
+    if (crit === 2) score += 2;
+    else if (crit === 3) score += 1;
+
+    // Add some randomness
+    score += Math.random() * 2;
+
+    if (score > bestScore) { bestScore = score; best = [r, c]; }
+  }
+  return best;
+}
+
+function aiHard() {
+  // Like greedy but also checks for dangerous enemy cells
+  const valid = [];
+  for (let r = 0; r < boardSize; r++)
+    for (let c = 0; c < boardSize; c++)
+      if (canPlace(r, c, 2)) valid.push([r, c]);
+  if (!valid.length) return null;
+
+  let best = null, bestScore = -999;
+  for (const [r, c] of valid) {
+    let score = 0;
+    const crit = getCriticalMass(r, c);
+    const atoms = board[r][c].atoms;
+
+    // Will this cause explosion?
+    if (atoms + 1 >= crit) {
+      score += 15;
+      // Simulate: count how many enemy cells would be captured
+      const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      for (const [dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize) {
+          if (board[nr][nc].owner === 1) score += 8;
+          // Chain potential
+          if (board[nr][nc].atoms + 1 >= getCriticalMass(nr, nc)) score += 6;
+        }
+      }
+    }
+
+    // Build up near enemies
+    const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+    let nearEnemy = 0, nearDanger = 0;
+    for (const [dr, dc] of dirs) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < boardSize && nc >= 0 && nc < boardSize) {
+        if (board[nr][nc].owner === 1) {
+          nearEnemy++;
+          if (board[nr][nc].atoms >= getCriticalMass(nr, nc) - 1) nearDanger++;
+        }
+      }
+    }
+    score += nearEnemy * 3;
+
+    // Avoid placing next to enemy about to explode (defensive)
+    if (nearDanger > 0 && atoms + 1 < crit) score -= 5;
+
+    // Corner/edge preference
+    if (crit === 2) score += 3;
+    else if (crit === 3) score += 1;
+
+    score += Math.random() * 1.5;
+    if (score > bestScore) { bestScore = score; best = [r, c]; }
+  }
+  return best;
+}
+
+// ═══ Stats ═══
+function loadStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STATS_KEY));
+    if (s && s.totalGames !== undefined) return s;
+  } catch (e) {}
+  return { totalGames: 0, wins: 0, losses: 0, bestChain: 0, bestTurns: 0, totalChains: 0 };
+}
+function saveStats(s) { localStorage.setItem(STATS_KEY, JSON.stringify(s)); }
+
+function showStats() {
+  const s = loadStats();
+  const winRate = s.totalGames ? Math.round(s.wins / s.totalGames * 100) : 0;
+  document.getElementById('statsBox').innerHTML = `
+    <div class="stats-row"><span>총 게임</span><span>${s.totalGames}</span></div>
+    <div class="stats-row"><span>승리</span><span style="color:var(--green)">${s.wins}</span></div>
+    <div class="stats-row"><span>패배</span><span style="color:var(--red)">${s.losses}</span></div>
+    <div class="stats-row"><span>승률</span><span>${winRate}%</span></div>
+    <div class="stats-row"><span>최대 연쇄</span><span style="color:var(--gold)">×${s.bestChain}</span></div>
+    <div class="stats-row"><span>최소 턴 승리</span><span>${s.bestTurns || '-'}</span></div>
+  `;
+  showScreen('statsScreen');
+}
+
+function showHelp() { showScreen('helpScreen'); }
+function backToMenu() { showScreen('menuScreen'); }
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ═══ Responsive ═══
+window.addEventListener('resize', () => {
+  if (document.getElementById('gameScreen').classList.contains('active')) renderBoard();
+});
+
+// Init
+init();
+</script>
+</body>
+</html>
