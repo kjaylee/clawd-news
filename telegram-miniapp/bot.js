@@ -1,3 +1,6 @@
+// Force IPv4 first to avoid ETIMEDOUT on dual-stack hosts
+require('dns').setDefaultResultOrder('ipv4first');
+
 /**
  * East Sea Games — Telegram Bot
  * 
@@ -30,7 +33,10 @@ if (!BOT_TOKEN || BOT_TOKEN === 'YOUR_BOT_TOKEN_HERE') {
 
 // Polling 모드로 봇 시작 (개발용)
 // 프로덕션에서는 webhook 사용 권장
-const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+const bot = new TelegramBot(BOT_TOKEN, {
+    polling: true,
+    request: { family: 4 }   // Force IPv4 — avoids ETIMEDOUT on dual-stack hosts
+});
 
 console.log('🤖 East Sea Games Bot started (polling mode)');
 
