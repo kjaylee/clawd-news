@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Match 3D Zen 🧊</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#faf5eb;--card:#fff;--shadow:rgba(139,119,90,0.2);
+  --accent:#8fb996;--accent2:#c9a959;--text:#5a4e3c;--text2:#8b7b6b;
+  --slot-bg:rgba(143,185,150,0.12);--slot-border:rgba(143,185,150,0.3);
+}
+body{background:var(--bg);font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  touch-action:none;user-select:none;overflow:hidden;color:var(--text);
+  display:flex;flex-direction:column;height:100vh;height:100dvh}
+
+/* TOP BAR */
+.top-bar{display:flex;justify-content:space-between;align-items:center;
+  padding:10px 16px;background:rgba(255,255,255,0.7);backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(0,0,0,0.06);z-index:10;flex-shrink:0}
+.top-bar .level{font-weight:700;font-size:17px;color:var(--text)}
+.top-bar .coins{color:var(--accent2);font-size:15px;font-weight:600}
+.top-bar .back-btn{background:none;border:none;font-size:20px;cursor:pointer;padding:4px 8px}
+.action-bar{display:flex;gap:8px;padding:8px 16px;justify-content:center;flex-shrink:0}
+.action-btn{background:var(--card);border:1.5px solid rgba(0,0,0,0.08);
+  border-radius:12px;padding:8px 16px;font-size:14px;cursor:pointer;
+  box-shadow:0 2px 8px var(--shadow);transition:all .2s;display:flex;align-items:center;gap:4px}
+.action-btn:active{transform:scale(0.95);box-shadow:0 1px 4px var(--shadow)}
+.action-btn .count{font-size:12px;color:var(--accent2);font-weight:700}
+.action-btn.disabled{opacity:0.35;pointer-events:none}
+
+/* BOARD */
+.board-area{flex:1;display:flex;align-items:center;justify-content:center;
+  position:relative;overflow:hidden;padding:10px}
+.board{position:relative;transform-style:preserve-3d}
+.tile{position:absolute;width:52px;height:52px;display:flex;align-items:center;
+  justify-content:center;font-size:30px;border-radius:12px;cursor:pointer;
+  transition:transform .25s cubic-bezier(.34,1.56,.64,1),opacity .25s,box-shadow .25s;
+  background:var(--card);border:1.5px solid rgba(0,0,0,0.06);
+  box-shadow:0 2px 8px var(--shadow)}
+.tile:active{transform:scale(0.92)!important}
+.tile.blocked{opacity:0.5;cursor:default;filter:brightness(0.92)}
+.tile.blocked::after{content:'';position:absolute;inset:0;border-radius:12px;
+  background:rgba(90,78,60,0.08)}
+.tile.hint-glow{animation:hintPulse 1s ease-in-out 3;box-shadow:0 0 16px rgba(143,185,150,0.6)}
+@keyframes hintPulse{0%,100%{box-shadow:0 2px 8px var(--shadow)}50%{box-shadow:0 0 20px rgba(143,185,150,0.7)}}
+.tile.removing{animation:tileRemove .35s ease-out forwards}
+@keyframes tileRemove{to{transform:scale(0) rotate(20deg);opacity:0}}
+
+/* LAYER visual depth */
+.tile[data-layer="0"]{z-index:1;box-shadow:0 1px 4px var(--shadow)}
+.tile[data-layer="1"]{z-index:10;box-shadow:0 3px 10px var(--shadow)}
+.tile[data-layer="2"]{z-index:20;box-shadow:0 5px 16px var(--shadow)}
+
+/* SLOT BAR */
+.slot-bar{display:flex;justify-content:center;gap:6px;padding:12px 16px 20px;
+  background:rgba(255,255,255,0.85);backdrop-filter:blur(8px);
+  border-top:1px solid rgba(0,0,0,0.06);flex-shrink:0}
+.slot{width:48px;height:48px;border-radius:10px;border:2px dashed var(--slot-border);
+  background:var(--slot-bg);display:flex;align-items:center;justify-content:center;
+  font-size:26px;transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.slot.filled{border-style:solid;border-color:var(--accent);background:rgba(143,185,150,0.15);
+  animation:slotPop .3s cubic-bezier(.34,1.56,.64,1)}
+@keyframes slotPop{0%{transform:scale(0.5)}100%{transform:scale(1)}}
+.slot.match-flash{animation:matchFlash .4s ease-out;border-color:var(--accent2)}
+@keyframes matchFlash{0%{background:rgba(201,169,89,0.4);transform:scale(1.1)}100%{background:var(--slot-bg);transform:scale(1)}}
+
+/* OVERLAY */
+.overlay{position:fixed;inset:0;background:rgba(250,245,235,0.95);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:100;backdrop-filter:blur(8px);padding:20px}
+.overlay.show{display:flex}
+.overlay .title{font-size:32px;font-weight:700;margin-bottom:8px;color:var(--text)}
+.overlay .sub{font-size:18px;color:var(--accent2);margin-bottom:4px}
+.overlay .desc{font-size:14px;color:var(--text2);text-align:center;margin:12px 30px;line-height:1.6}
+.overlay .play-btn{margin-top:16px;background:linear-gradient(135deg,var(--accent),#6b9e74);
+  color:#fff;border:none;padding:14px 40px;border-radius:16px;font-size:18px;
+  font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(143,185,150,0.4);
+  transition:transform .2s}
+.overlay .play-btn:active{transform:scale(0.95)}
+.overlay .secondary-btn{margin-top:10px;background:none;border:2px solid var(--accent);
+  color:var(--accent);padding:10px 30px;border-radius:12px;font-size:15px;
+  cursor:pointer;transition:all .2s}
+.overlay .stats{display:flex;gap:24px;margin:16px 0}
+.overlay .stat{text-align:center}
+.overlay .stat .val{font-size:28px;font-weight:700;color:var(--accent2)}
+.overlay .stat .label{font-size:12px;color:var(--text2)}
+
+/* PROGRESS */
+.progress-wrap{width:80%;max-width:300px;margin:8px 0}
+.progress-bar{height:6px;background:rgba(0,0,0,0.06);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));
+  border-radius:3px;transition:width .4s ease}
+.progress-text{font-size:11px;color:var(--text2);text-align:center;margin-top:4px}
+
+/* COMBO */
+.combo-popup{position:fixed;top:40%;left:50%;transform:translate(-50%,-50%);
+  font-size:32px;font-weight:900;color:var(--accent2);pointer-events:none;
+  opacity:0;z-index:50;text-shadow:0 2px 12px rgba(201,169,89,0.3)}
+.combo-popup.show{animation:comboAnim .8s ease-out forwards}
+@keyframes comboAnim{0%{opacity:1;transform:translate(-50%,-50%) scale(0.5)}
+  40%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}
+  100%{opacity:0;transform:translate(-50%,-70%) scale(1)}}
+
+/* GAME OVER shake */
+.slot-bar.shake{animation:barShake .4s ease-in-out}
+@keyframes barShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+/* ZEN QUOTES */
+.zen-quote{position:absolute;bottom:8px;left:0;right:0;text-align:center;
+  font-size:11px;color:var(--text2);font-style:italic;opacity:0.6;pointer-events:none;padding:0 20px}
+</style>
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Match 3D Zen",
+"url":"https://eastsea.monster/games/match-3d-zen/",
+"description":"이모지 타일을 탭하여 3개씩 매칭! 2.5D 레이어 퍼즐, 50+ 레벨, 젠 테마 릴랙싱 게임.",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Puzzle","operatingSystem":"Any","inLanguage":["ko","en"],"playMode":"SinglePlayer",
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+</head>
+<body>
+
+<!-- MENU OVERLAY -->
+<div class="overlay show" id="menuOverlay">
+  <div class="title">🧊 Match 3D Zen</div>
+  <div class="sub">마음을 비우고, 타일을 맞추세요</div>
+  <div class="desc">레이어에 쌓인 이모지 타일을 탭하여<br>하단 슬롯에 모으세요.<br>같은 타일 3개가 모이면 사라집니다!</div>
+  <div class="stats" id="menuStats">
+    <div class="stat"><div class="val" id="menuLevel">1</div><div class="label">레벨</div></div>
+    <div class="stat"><div class="val" id="menuCoins">0</div><div class="label">코인</div></div>
+    <div class="stat"><div class="val" id="menuCleared">0</div><div class="label">클리어</div></div>
+  </div>
+  <button class="play-btn" id="btnPlay">▶ 플레이</button>
+  <button class="secondary-btn" id="btnReset" style="margin-top:12px;font-size:12px;opacity:0.6">진행 초기화</button>
+</div>
+
+<!-- RESULT OVERLAY -->
+<div class="overlay" id="resultOverlay">
+  <div class="title" id="resultTitle">🎉 클리어!</div>
+  <div class="sub" id="resultSub">레벨 1 완료</div>
+  <div class="stats">
+    <div class="stat"><div class="val" id="resultCoins">+10</div><div class="label">코인</div></div>
+    <div class="stat"><div class="val" id="resultMoves">0</div><div class="label">이동</div></div>
+  </div>
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">다음 레벨까지...</div>
+  </div>
+  <button class="play-btn" id="btnNext">다음 레벨 →</button>
+  <button class="secondary-btn" id="btnHome">🏠 홈</button>
+</div>
+
+<!-- GAME OVER OVERLAY -->
+<div class="overlay" id="gameoverOverlay">
+  <div class="title">😔 게임 오버</div>
+  <div class="sub">슬롯이 가득 찼어요!</div>
+  <div class="desc" id="gameoverDesc">다시 도전해보세요</div>
+  <button class="play-btn" id="btnRetry">🔄 다시 도전</button>
+  <button class="secondary-btn" id="btnHomeGO">🏠 홈</button>
+</div>
+
+<!-- GAME UI -->
+<div class="top-bar" id="topBar" style="display:none">
+  <button class="back-btn" id="btnBack">←</button>
+  <span class="level" id="lvText">LV.1</span>
+  <span class="coins" id="coinsText">🪙 0</span>
+</div>
+<div class="action-bar" id="actionBar" style="display:none">
+  <button class="action-btn" id="btnShuffle">🔀 셔플 <span class="count" id="shuffleCount">2</span></button>
+  <button class="action-btn" id="btnHint">💡 힌트 <span class="count" id="hintCount">3</span></button>
+  <button class="action-btn" id="btnUndo">↩️ 되돌리기</button>
+</div>
+<div class="board-area" id="boardArea" style="display:none">
+  <div class="board" id="board"></div>
+  <div class="zen-quote" id="zenQuote"></div>
+</div>
+<div class="slot-bar" id="slotBar" style="display:none">
+  <div class="slot" id="s0"></div>
+  <div class="slot" id="s1"></div>
+  <div class="slot" id="s2"></div>
+  <div class="slot" id="s3"></div>
+  <div class="slot" id="s4"></div>
+  <div class="slot" id="s5"></div>
+  <div class="slot" id="s6"></div>
+</div>
+<div class="combo-popup" id="comboPopup"></div>
+
+<script>
+'use strict';
+// === GAME STATE ===
+const EMOJIS_POOL = ['🍎','🍊','🍋','🍇','🍓','🫐','🥝','🍑','🥭','🌸','🌺','🪷',
+  '🍀','🌿','🎋','🪨','🌊','🔮','💎','🦋','🐚','🍵','🏮','🎐','🪻','🌻','🍒'];
+const ZEN_QUOTES = [
+  '고요한 마음이 가장 빠른 길입니다','한 번에 하나씩, 천천히',
+  '흐르는 물처럼 자연스럽게','지금 이 순간에 집중하세요',
+  '작은 것에서 큰 기쁨을 찾으세요','마음을 비우면 세상이 채워집니다',
+  '바람처럼 가볍게, 산처럼 고요하게','한 걸음 한 걸음이 길이 됩니다'
+];
+
+let state = {
+  level: 1, coins: 0, cleared: 0,
+  shuffles: 2, hints: 3,
+  tiles: [], slots: [], undoStack: [],
+  moves: 0, combo: 0, playing: false
+};
+
+// Load saved state
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem('match3d_zen_save'));
+    if (s) { state.level = s.level||1; state.coins = s.coins||0; state.cleared = s.cleared||0; }
+  } catch(e) {}
+}
+function saveState() {
+  localStorage.setItem('match3d_zen_save', JSON.stringify({
+    level: state.level, coins: state.coins, cleared: state.cleared
+  }));
+}
+
+// === LEVEL CONFIG ===
+function getLevelConfig(lv) {
+  let types, total, layers, cols, rows;
+  if (lv <= 10) { types = 6; total = 18; layers = 2; }
+  else if (lv <= 30) { types = 9; total = 27; layers = 3; }
+  else { types = 12; total = 36; layers = 3; }
+  // Grid sizing
+  const perLayer = Math.ceil(total / layers);
+  cols = Math.ceil(Math.sqrt(perLayer * 1.3));
+  rows = Math.ceil(perLayer / cols);
+  return { types, total, layers, cols, rows };
+}
+
+// === GENERATE TILES ===
+function generateTiles(config) {
+  const { types, total, layers, cols, rows } = config;
+  // Pick emoji set for this level
+  const shuffled = [...EMOJIS_POOL].sort(() => Math.random() - 0.5);
+  const emojis = shuffled.slice(0, types);
+
+  // Create tile data: each type appears 3x
+  let tileList = [];
+  for (let i = 0; i < types; i++) {
+    tileList.push(emojis[i], emojis[i], emojis[i]);
+  }
+  // Shuffle tiles
+  for (let i = tileList.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tileList[i], tileList[j]] = [tileList[j], tileList[i]];
+  }
+
+  // Distribute across layers with positions
+  const tiles = [];
+  let idx = 0;
+  const perLayer = Math.ceil(total / layers);
+
+  for (let layer = 0; layer < layers; layer++) {
+    const count = Math.min(perLayer, total - idx);
+    // Generate positions for this layer with slight offset
+    const positions = [];
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        positions.push({ row: r, col: c });
+      }
+    }
+    // Shuffle positions and pick 'count'
+    positions.sort(() => Math.random() - 0.5);
+    const picked = positions.slice(0, count);
+
+    for (const pos of picked) {
+      if (idx >= total) break;
+      tiles.push({
+        id: idx,
+        emoji: tileList[idx],
+        layer,
+        row: pos.row,
+        col: pos.col,
+        removed: false
+      });
+      idx++;
+    }
+  }
+  return tiles;
+}
+
+// === CHECK IF TILE IS BLOCKED ===
+function isTileBlocked(tile, allTiles) {
+  // A tile is blocked if any tile on a higher layer overlaps it
+  return allTiles.some(t =>
+    !t.removed && t.layer > tile.layer &&
+    Math.abs(t.row - tile.row) <= 0.6 && Math.abs(t.col - tile.col) <= 0.6
+  );
+}
+
+// === RENDER ===
+const boardEl = document.getElementById('board');
+const slotEls = [0,1,2,3,4,5,6].map(i => document.getElementById('s'+i));
+
+function renderBoard() {
+  boardEl.innerHTML = '';
+  const config = getLevelConfig(state.level);
+  const tileSize = 54;
+  const gap = 4;
+  const layerOffX = 6, layerOffY = -8;
+
+  // Center the board
+  const bw = config.cols * (tileSize + gap);
+  const bh = config.rows * (tileSize + gap);
+  boardEl.style.width = bw + 'px';
+  boardEl.style.height = bh + 'px';
+
+  // Sort tiles: lower layer first for DOM order
+  const sorted = [...state.tiles].filter(t => !t.removed).sort((a, b) => a.layer - b.layer);
+
+  for (const tile of sorted) {
+    const el = document.createElement('div');
+    el.className = 'tile';
+    el.dataset.id = tile.id;
+    el.dataset.layer = tile.layer;
+    el.textContent = tile.emoji;
+
+    const x = tile.col * (tileSize + gap) + tile.layer * layerOffX;
+    const y = tile.row * (tileSize + gap) + tile.layer * layerOffY;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    el.style.zIndex = tile.layer * 10 + tile.row;
+
+    // Layer visual depth
+    const brightness = 1 - tile.layer * 0.03;
+    const shadowSize = 2 + tile.layer * 4;
+    el.style.boxShadow = `0 ${shadowSize}px ${shadowSize*2}px var(--shadow)`;
+
+    const blocked = isTileBlocked(tile, state.tiles);
+    if (blocked) {
+      el.classList.add('blocked');
+    } else {
+      el.addEventListener('click', () => onTileTap(tile.id));
+      el.addEventListener('touchend', (e) => { e.preventDefault(); onTileTap(tile.id); });
+    }
+
+    boardEl.appendChild(el);
+  }
+}
+
+function renderSlots() {
+  for (let i = 0; i < 7; i++) {
+    const slot = slotEls[i];
+    if (i < state.slots.length) {
+      slot.textContent = state.slots[i];
+      slot.classList.add('filled');
+    } else {
+      slot.textContent = '';
+      slot.classList.remove('filled');
+    }
+  }
+}
+
+function updateUI() {
+  document.getElementById('lvText').textContent = `LV.${state.level}`;
+  document.getElementById('coinsText').textContent = `🪙 ${state.coins}`;
+  document.getElementById('shuffleCount').textContent = state.shuffles;
+  document.getElementById('hintCount').textContent = state.hints;
+  document.getElementById('menuLevel').textContent = state.level;
+  document.getElementById('menuCoins').textContent = state.coins;
+  document.getElementById('menuCleared').textContent = state.cleared;
+
+  document.getElementById('btnShuffle').classList.toggle('disabled', state.shuffles <= 0);
+  document.getElementById('btnHint').classList.toggle('disabled', state.hints <= 0);
+  document.getElementById('btnUndo').classList.toggle('disabled', state.undoStack.length === 0);
+}
+
+// === TILE TAP ===
+function onTileTap(id) {
+  if (!state.playing) return;
+  const tile = state.tiles.find(t => t.id === id);
+  if (!tile || tile.removed) return;
+  if (isTileBlocked(tile, state.tiles)) return;
+  if (state.slots.length >= 7) return;
+
+  // Remove from board
+  tile.removed = true;
+  state.moves++;
+
+  // Save undo
+  state.undoStack.push({ tileId: id, emoji: tile.emoji });
+
+  // Add to slot — insert next to same emoji if exists
+  const sameIdx = state.slots.findIndex(s => s === tile.emoji);
+  if (sameIdx >= 0) {
+    // Find the last consecutive same emoji after sameIdx
+    let insertAt = sameIdx + 1;
+    while (insertAt < state.slots.length && state.slots[insertAt] === tile.emoji) insertAt++;
+    state.slots.splice(insertAt, 0, tile.emoji);
+  } else {
+    state.slots.push(tile.emoji);
+  }
+
+  // Animate tile removal
+  const tileEl = boardEl.querySelector(`[data-id="${id}"]`);
+  if (tileEl) {
+    tileEl.classList.add('removing');
+    setTimeout(() => tileEl.remove(), 350);
+  }
+
+  renderSlots();
+  updateUI();
+
+  // Check for 3-match
+  setTimeout(() => checkMatch(), 150);
+}
+
+function checkMatch() {
+  // Count consecutive or grouped same emojis
+  const counts = {};
+  state.slots.forEach(s => { counts[s] = (counts[s]||0) + 1; });
+
+  let matched = false;
+  for (const [emoji, count] of Object.entries(counts)) {
+    if (count >= 3) {
+      matched = true;
+      // Remove 3 of this emoji from slots
+      let removed = 0;
+      state.slots = state.slots.filter(s => {
+        if (s === emoji && removed < 3) { removed++; return false; }
+        return true;
+      });
+      state.combo++;
+      showCombo(state.combo);
+
+      // Award coins
+      const coinReward = 5 + state.combo * 2;
+      state.coins += coinReward;
+
+      // Flash matching slots
+      slotEls.forEach(el => {
+        if (el.textContent === emoji) el.classList.add('match-flash');
+        setTimeout(() => el.classList.remove('match-flash'), 400);
+      });
+
+      break; // Process one match at a time
+    }
+  }
+
+  if (matched) {
+    renderSlots();
+    updateUI();
+    saveState();
+
+    // Check for more matches
+    setTimeout(() => checkMatch(), 300);
+    return;
+  }
+
+  state.combo = 0;
+
+  // Check win
+  const remaining = state.tiles.filter(t => !t.removed).length;
+  if (remaining === 0) {
+    setTimeout(() => onWin(), 400);
+    return;
+  }
+
+  // Check game over
+  if (state.slots.length >= 7) {
+    setTimeout(() => onGameOver(), 400);
+    return;
+  }
+
+  // Re-render board to update blocked states
+  renderBoard();
+}
+
+function showCombo(combo) {
+  if (combo < 2) return;
+  const el = document.getElementById('comboPopup');
+  el.textContent = combo <= 3 ? `${combo}x 콤보! 🔥` : `${combo}x 콤보!! 🌟`;
+  el.className = 'combo-popup show';
+  setTimeout(() => el.className = 'combo-popup', 800);
+}
+
+// === WIN / LOSE ===
+function onWin() {
+  state.playing = false;
+  const coinReward = 10 + state.level * 5;
+  state.coins += coinReward;
+  state.cleared++;
+  state.level++;
+  saveState();
+
+  document.getElementById('resultTitle').textContent = '🎉 클리어!';
+  document.getElementById('resultSub').textContent = `레벨 ${state.level - 1} 완료`;
+  document.getElementById('resultCoins').textContent = `+${coinReward}`;
+  document.getElementById('resultMoves').textContent = state.moves;
+
+  // Progress bar
+  const progress = ((state.level - 1) % 10) / 10 * 100;
+  document.getElementById('progressFill').style.width = progress + '%';
+  const tier = state.level <= 10 ? '초급' : state.level <= 30 ? '중급' : '고급';
+  document.getElementById('progressText').textContent = `${tier} 진행: ${Math.round(progress)}%`;
+
+  showOverlay('resultOverlay');
+}
+
+function onGameOver() {
+  state.playing = false;
+  document.getElementById('slotBar').classList.add('shake');
+  setTimeout(() => document.getElementById('slotBar').classList.remove('shake'), 400);
+
+  const quotes = ['천천히 다시 도전해보세요 🍃','모든 여정엔 쉼표가 있어요','실패도 배움의 일부입니다'];
+  document.getElementById('gameoverDesc').textContent = quotes[Math.floor(Math.random()*quotes.length)];
+  setTimeout(() => showOverlay('gameoverOverlay'), 500);
+}
+
+// === ACTIONS ===
+function shuffleTiles() {
+  if (state.shuffles <= 0 || !state.playing) return;
+  state.shuffles--;
+
+  const remaining = state.tiles.filter(t => !t.removed);
+  const emojis = remaining.map(t => t.emoji);
+  // Shuffle emojis
+  for (let i = emojis.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [emojis[i], emojis[j]] = [emojis[j], emojis[i]];
+  }
+  remaining.forEach((t, i) => t.emoji = emojis[i]);
+
+  renderBoard();
+  updateUI();
+}
+
+function showHint() {
+  if (state.hints <= 0 || !state.playing) return;
+  state.hints--;
+  updateUI();
+
+  // Find a tappable tile that has 2+ same emojis remaining
+  const remaining = state.tiles.filter(t => !t.removed);
+  const tappable = remaining.filter(t => !isTileBlocked(t, state.tiles));
+  const counts = {};
+  remaining.forEach(t => { counts[t.emoji] = (counts[t.emoji]||0) + 1; });
+
+  // Prioritize emojis that already have some in slots
+  const slotCounts = {};
+  state.slots.forEach(s => { slotCounts[s] = (slotCounts[s]||0) + 1; });
+
+  let bestTile = null;
+  let bestScore = -1;
+  for (const t of tappable) {
+    const score = (slotCounts[t.emoji]||0) * 10 + (counts[t.emoji]||0);
+    if (score > bestScore) { bestScore = score; bestTile = t; }
+  }
+
+  if (bestTile) {
+    const el = boardEl.querySelector(`[data-id="${bestTile.id}"]`);
+    if (el) el.classList.add('hint-glow');
+  }
+}
+
+function undoMove() {
+  if (state.undoStack.length === 0 || !state.playing) return;
+  const last = state.undoStack.pop();
+  const tile = state.tiles.find(t => t.id === last.tileId);
+  if (tile) {
+    tile.removed = false;
+    // Remove last occurrence of this emoji from slots
+    const idx = state.slots.lastIndexOf(last.emoji);
+    if (idx >= 0) state.slots.splice(idx, 1);
+  }
+  state.moves--;
+  renderBoard();
+  renderSlots();
+  updateUI();
+}
+
+// === SCREENS ===
+function showOverlay(id) {
+  ['menuOverlay','resultOverlay','gameoverOverlay'].forEach(oid => {
+    document.getElementById(oid).classList.toggle('show', oid === id);
+  });
+  const gaming = !id;
+  document.getElementById('topBar').style.display = gaming ? 'flex' : 'none';
+  document.getElementById('actionBar').style.display = gaming ? 'flex' : 'none';
+  document.getElementById('boardArea').style.display = gaming ? 'flex' : 'none';
+  document.getElementById('slotBar').style.display = gaming ? 'flex' : 'none';
+}
+
+function startGame() {
+  const config = getLevelConfig(state.level);
+  state.tiles = generateTiles(config);
+  state.slots = [];
+  state.undoStack = [];
+  state.moves = 0;
+  state.combo = 0;
+  state.shuffles = 2;
+  state.hints = 3;
+  state.playing = true;
+
+  showOverlay(null);
+  renderBoard();
+  renderSlots();
+  updateUI();
+
+  // Zen quote
+  document.getElementById('zenQuote').textContent =
+    ZEN_QUOTES[Math.floor(Math.random() * ZEN_QUOTES.length)];
+}
+
+// === EVENTS ===
+document.getElementById('btnPlay').addEventListener('click', startGame);
+document.getElementById('btnNext').addEventListener('click', startGame);
+document.getElementById('btnRetry').addEventListener('click', startGame);
+document.getElementById('btnBack').addEventListener('click', () => {
+  state.playing = false;
+  showOverlay('menuOverlay');
+  updateUI();
+});
+document.getElementById('btnHome').addEventListener('click', () => {
+  showOverlay('menuOverlay');
+  updateUI();
+});
+document.getElementById('btnHomeGO').addEventListener('click', () => {
+  showOverlay('menuOverlay');
+  updateUI();
+});
+document.getElementById('btnShuffle').addEventListener('click', shuffleTiles);
+document.getElementById('btnHint').addEventListener('click', showHint);
+document.getElementById('btnUndo').addEventListener('click', undoMove);
+document.getElementById('btnReset').addEventListener('click', () => {
+  if (confirm('모든 진행이 초기화됩니다. 계속하시겠습니까?')) {
+    localStorage.removeItem('match3d_zen_save');
+    state.level = 1; state.coins = 0; state.cleared = 0;
+    updateUI();
+  }
+});
+
+// === INIT ===
+loadState();
+updateUI();
+
+// Responsive board sizing
+function resizeBoard() {
+  const area = document.getElementById('boardArea');
+  if (!area || area.style.display === 'none') return;
+  const board = document.getElementById('board');
+  const aw = area.clientWidth - 20;
+  const ah = area.clientHeight - 30;
+  const bw = board.scrollWidth || 300;
+  const bh = board.scrollHeight || 300;
+  const scale = Math.min(aw / bw, ah / bh, 1.2);
+  board.style.transform = `scale(${scale})`;
+  board.style.transformOrigin = 'center center';
+}
+window.addEventListener('resize', resizeBoard);
+new MutationObserver(resizeBoard).observe(boardEl, { childList: true });
+</script>
+</body>
+</html>
