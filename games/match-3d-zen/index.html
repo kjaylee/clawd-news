@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Match 3D Zen 🧊</title>
+<meta property="og:title" content="🧊 Match 3D Zen — 3D 타일 매칭 퍼즐">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/games/match-3d-zen/">
+<meta property="og:description" content="Play Match 3D Zen - 레이어별 이모지 타일 매칭! 셔플, 힌트, 콤보 시스템. Free HTML5 game.">
+<meta property="og:image" content="https://eastsea.monster/games/match-3d-zen/og-image.png">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="/games/tg-sdk-wrapper.js?v=1769790000"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -656,5 +663,6 @@ function resizeBoard() {
 window.addEventListener('resize', resizeBoard);
 new MutationObserver(resizeBoard).observe(boardEl, { childList: true });
 </script>
+<script src="../cross-promo.js"></script>
 </body>
 </html>
