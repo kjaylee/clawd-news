@@ -1,24 +1,8 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 	<head>
 		<meta charset="utf-8">
-		<script src="coi-serviceworker.js"></script>
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
-		<title>삼국지 패왕전 - Three Kingdoms: Conqueror</title>
-		<style>
-			#jj-splash {
-				position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-				background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
-				display: flex; flex-direction: column; align-items: center; justify-content: center;
-				z-index: 9999; transition: opacity 0.5s;
-			}
-			#jj-splash h1 { color: #FFD700; font-size: 2.5em; margin: 0; font-family: sans-serif; }
-			#jj-splash h2 { color: #E94560; font-size: 1.5em; margin: 10px 0; font-family: sans-serif; }
-			#jj-splash p { color: #a0a0c0; font-size: 1em; font-family: sans-serif; }
-			#jj-splash .loader { width: 50px; height: 50px; border: 4px solid #333;
-				border-top: 4px solid #FFD700; border-radius: 50%; animation: spin 1s linear infinite; margin: 20px; }
-			@keyframes spin { to { transform: rotate(360deg); } }
-		</style>
 		<title>Three Kingdoms Conqueror</title>
 		<style>
 html, body, #canvas {
@@ -111,12 +95,6 @@ body {
 
 	</head>
 	<body>
-		<div id="jj-splash">
-			<h1>삼국지 패왕전</h1>
-			<h2>Three Kingdoms: Conqueror</h2>
-			<div class="loader"></div>
-			<p>East Sea Games (J&J Games)</p>
-		</div>
 		<canvas id="canvas">
 			Your browser does not support the canvas tag.
 		</canvas>
@@ -133,7 +111,7 @@ body {
 
 		<script src="index.js"></script>
 		<script>
-const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":77760,"index.wasm":37686550},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const GODOT_CONFIG = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":289000,"index.wasm":37686550},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const GODOT_THREADS_ENABLED = false;
 const engine = new Engine(GODOT_CONFIG);
 
@@ -233,13 +211,10 @@ const engine = new Engine(GODOT_CONFIG);
 			},
 		}).then(() => {
 			setStatusMode('hidden');
-			var splash = document.getElementById('jj-splash');
-			if (splash) { splash.style.opacity = '0'; setTimeout(function() { splash.remove(); }, 500); }
 		}, displayFailureNotice);
 	}
 }());
 		</script>
-	<script src="../cross-promo.js"></script>
-</body>
+	</body>
 </html>
 
