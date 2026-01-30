@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Word Chain Blast 🔤</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a1a;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+canvas{display:block;margin:0 auto}
+</style>
+</head>
+<body>
+<canvas id="gc"></canvas>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+'use strict';
+// ============================================================
+//  WORD CHAIN BLAST 🔤 — Swipe Words on a 6×6 Grid
+// ============================================================
+
+/* ─── Telegram Mini App ─── */
+const TG=window.Telegram&&window.Telegram.WebApp;
+if(TG){try{TG.ready();TG.expand();TG.setHeaderColor('#0a0a1a');TG.setBackgroundColor('#0a0a1a');}catch(e){}}
+
+/* ─── i18n ─── */
+const LANG=(()=>{const b=(navigator.language||'en').toLowerCase();
+if(b.startsWith('ko'))return'ko';return'en'})();
+const T={
+en:{title:'WORD CHAIN BLAST',subtitle:'Swipe to spell, blast to score!',
+classic:'♾️ CLASSIC',rush:'⏱️ RUSH',classicDesc:'No time limit — find words at your pace',rushDesc:'90 seconds — score as high as you can!',
+best:'BEST',score:'Score',combo:'Combo',time:'Time',words:'Words',hint:'HINT',hints:'Hints',
+found:'Found',longest:'Longest',pause:'PAUSE',resume:'RESUME',quit:'QUIT',
+gameOver:'GAME OVER',finalScore:'Final Score',wordsFound:'Words Found',longestWord:'Longest Word',
+bestCombo:'Best Combo',newBest:'🏆 NEW BEST!',playAgain:'▶  PLAY AGAIN',home:'🏠  HOME',
+noWord:'Not a word',tooShort:'Too short',alreadyFound:'Already found!',
+wordComplete:'NICE!',great:'GREAT!',amazing:'AMAZING!',incredible:'INCREDIBLE!!',
+hintUsed:'Hint: try this path!',noHints:'No hints left!',shuffled:'SHUFFLED!'},
+ko:{title:'워드 체인 블라스트',subtitle:'스와이프로 단어를 만들고 폭발!',
+classic:'♾️ 클래식',rush:'⏱️ 러시',classicDesc:'시간 제한 없이 여유롭게',rushDesc:'90초 안에 최고 점수 도전!',
+best:'최고',score:'점수',combo:'콤보',time:'시간',words:'단어',hint:'힌트',hints:'힌트',
+found:'발견',longest:'최장',pause:'일시정지',resume:'계속',quit:'종료',
+gameOver:'게임 오버',finalScore:'최종 점수',wordsFound:'발견 단어',longestWord:'최장 단어',
+bestCombo:'최고 콤보',newBest:'🏆 신기록!',playAgain:'▶  다시하기',home:'🏠  홈',
+noWord:'단어가 아닙니다',tooShort:'너무 짧음',alreadyFound:'이미 발견!',
+wordComplete:'좋아요!',great:'훌륭해요!',amazing:'대단해요!',incredible:'놀라워요!!',
+hintUsed:'힌트: 이 경로를 시도!',noHints:'힌트 없음!',shuffled:'셔플!'}
+};
+const t=T[LANG];
+
+/* ─── Letter Weights (English frequency) ─── */
+const LW={E:12,T:9,A:8,O:7,I:7,N:7,S:6,H:6,R:6,D:4,L:4,C:3,U:3,M:3,W:2,F:2,G:2,Y:2,P:2,B:2,V:1,K:1,J:0.5,X:0.5,Q:0.3,Z:0.3};
+const LETTERS=Object.keys(LW);
+const TOTAL_W=Object.values(LW).reduce((a,b)=>a+b,0);
+function randLetter(){let r=Math.random()*TOTAL_W,s=0;for(const l of LETTERS){s+=LW[l];if(r<=s)return l;}return'E';}
+
+/* ─── Score table ─── */
+const PTS={3:100,4:250,5:500,6:1000,7:2000,8:3500,9:5000,10:7000,11:9000,12:12000};
+function baseScore(len){return PTS[Math.min(len,12)]||PTS[12];}
+const RARE={Q:10,Z:10,X:8,J:8,K:5,V:4};
+
+/* ═══════════════════════════════════════════
+   DICTIONARY — ~3200 common English words
+   ═══════════════════════════════════════════ */
+const DICT_RAW="Austin,Friday,July,June,Monday,Sunday,abandon,abide,ability,able,abolish,about,above,abroad,absence,absent,absolute,absolve,absorb,abstain,abstract,absurdly,abuse,academy,accent,accept,access,accord,account,accurate,accuse,ace,ache,achieve,achieved,acid,acme,acquire,acre,across,act,action,activate,active,actual,actually,adapt,add,added,addition,address,adequate,adjust,admire,admit,adopt,adult,advance,advanced,advice,advise,advocate,affable,affected,affirm,afford,after,again,age,aged,agenda,agent,agile,ago,agree,ahead,aid,aide,aim,air,aisle,alarm,ale,algebra,alien,align,alike,alive,all,alley,alliance,allot,allow,alloy,ally,almost,alone,along,already,also,alter,although,always,amaze,amazing,ambition,amount,ample,analyzed,ancestor,anchor,ancient,and,angel,anger,angle,angry,animal,animals,animated,ankle,annex,announce,annual,another,answer,ant,antic,any,anybody,anything,anytime,anyway,anywhere,apart,ape,apparel,apparent,appeal,appear,appetite,applaud,apple,apply,approach,approval,approve,apt,arc,arch,arctic,are,area,arena,argue,argument,arise,ark,arm,armor,army,around,arrange,array,arrive,arrow,art,article,artist,artistic,ash,aside,ask,aspire,assemble,assert,assess,asset,assign,assist,assume,assuming,assure,ate,atlas,attach,attached,attack,attain,attempt,attend,attic,audible,audio,audit,aunt,author,auto,autumn,avenge,average,averse,aviary,avid,avoid,awake,award,aware,awe,awesome,awful,axe,axis,back,backbone,backward,bad,badge,badly,bag,bail,bait,bake,baker,balance,bald,bale,ball,balloon,ban,band,bandage,bane,bang,bank,baptize,bar,bare,bargain,bark,barn,base,bash,basic,basin,basis,bask,basket,bass,bat,batch,bath,bathroom,battery,battle,bawl,bay,beach,bead,beak,beam,bean,bear,beast,beat,beauty,because,become,becomes,becoming,bed,bedroom,bee,beef,been,beer,before,begun,behalf,behave,behavior,behind,being,belief,believe,bell,belong,belonged,below,belt,bench,bend,beneath,benefit,bent,berry,beside,besides,best,bet,better,between,beyond,bias,bid,big,bike,bill,billion,bin,bind,bird,birth,birthday,bishop,bit,bite,bitter,bizarre,black,blade,blah,blame,blanch,bland,blank,blanket,blare,blast,blaze,bleak,bled,bleed,blemish,blend,bless,blessed,blew,blind,bliss,blob,block,blog,bloke,blond,blood,bloom,blossom,blot,blouse,blow,blown,blue,bluff,blunt,blur,blurt,boar,board,boarding,boast,boat,bobcat,body,bog,boggle,bold,boldness,bolt,bomb,bond,bone,bonfire,bonnet,bonus,book,bookmark,boom,boost,boot,booth,border,bore,born,borrow,boss,botany,both,bother,bottle,bottom,bounce,bound,boundary,bout,bow,bowl,box,boy,brace,brain,branch,branches,brand,brat,brave,breach,bread,break,breakers,breath,bred,breed,breeding,breeze,brew,brick,bride,bridge,brief,bright,brim,bring,bringing,brink,brisk,broad,broil,broke,broker,bronze,brood,brook,broom,broth,brother,brothers,brought,brown,browse,browsing,bruise,brush,brute,bubble,bucket,bud,budge,budget,buffalo,buffet,bug,build,builder,building,built,bulk,bull,bulletin,bump,bun,bunch,bungler,bunker,burden,bureau,burger,burn,burner,burst,bury,bus,bush,business,busy,but,button,buy,buyer,buzz,buzzer,bypass,cab,cabin,cabinet,cable,cactus,cafe,cage,cake,calcium,calendar,calf,call,calm,cam,came,camel,camp,campaign,campus,can,cancel,candle,candy,cane,canopy,canyon,cap,capable,capacity,cape,captain,capture,captured,car,carbon,card,care,career,careful,careless,cargo,carnival,carpet,carrot,carry,cart,case,cash,cast,casual,cat,catalog,catch,cater,caught,cause,caution,cautious,cave,cedar,cell,center,central,ceramic,cereal,ceremony,certain,chain,chair,chalk,chamber,champ,chance,change,changing,channel,chant,chaos,chapter,chapters,charge,charity,charm,chart,chase,chat,cheap,cheat,check,cheek,cheer,cheese,chef,cherry,chess,chest,chicken,chief,child,children,chill,chimney,chin,chip,chips,choice,choir,choose,choosing,chop,chose,chosen,chunk,church,circle,circuit,circular,circus,cite,citizen,city,civic,civil,civilian,clad,claim,clam,clamp,clan,clang,clap,clash,clasp,class,claw,clay,clean,clear,clergy,clerk,clever,click,client,cliff,climate,climb,climbing,cling,clinic,clip,cloak,clock,clod,clog,clone,close,closet,closure,clot,cloth,clothing,cloud,clown,club,clue,cluster,coach,coaching,coal,coarse,coast,coastal,coat,cob,cobalt,cock,cod,code,coffee,coffin,cog,coil,coin,cold,collapse,collar,collect,college,colony,color,colt,column,comb,combat,combine,combined,come,comeback,comedy,comet,comfort,comic,command,comment,commerce,common,commonly,communal,company,compare,compared,compete,compiler,complete,complex,comply,compose,compound,compute,computer,conceal,concept,concern,conclude,concrete,condemn,conduct,cone,confess,confirm,conflict,confuse,congress,connect,connects,conquer,conquest,consent,consider,consist,consists,constant,consumer,contact,contain,contains,content,contest,context,continue,contour,contract,contrast,control,controls,convert,convex,convince,cook,cookbook,cookie,cool,cooperate,cop,cope,copper,copy,coral,cord,core,cork,corn,corner,correct,corridor,cost,costly,costume,cosy,cot,cotton,could,council,count,country,coup,couple,courage,course,court,cousin,cove,cover,coverage,covers,cow,cozy,crab,crack,craft,crane,crash,crate,crave,crawl,craze,crazy,creak,cream,create,creation,creative,creator,creature,credit,creek,creep,crest,crew,crib,cricket,crime,criminal,crimson,crisis,crisp,critic,critical,crop,cross,crossing,crow,crowd,crown,crud,crude,cruel,crusade,crush,cry,crying,crystal,cub,cube,cucumber,cud,cuddly,cult,cultural,culture,cumulus,cup,cur,curb,cure,curl,currency,current,curtain,curve,cushion,custom,customer,customs,cut,cute,cycle,dab,dad,daft,daily,dairy,dale,dam,damage,damaged,dame,damn,damp,dance,dancing,danger,dare,dark,darn,dart,dash,data,database,date,dawn,day,dead,deadline,deaf,deal,dealer,dealing,dean,dear,debate,debris,debt,decade,decay,december,decide,deciding,decision,deck,decline,declined,decor,decorate,decoy,decrease,decree,deed,deem,deep,deer,default,defeat,defeated,defend,defender,defense,defer,deficit,define,definite,degree,deity,delay,delete,delicate,deliver,delivery,delta,demand,demanded,demo,democrat,demolish,demon,den,denial,dense,density,dent,deny,depart,departed,deploy,deployed,deposit,depot,depth,derby,derive,describe,desert,deserve,design,designer,desire,desk,desktop,despite,destroy,detail,detailed,details,detect,detected,develop,develope,devil,devious,devote,dew,dial,dialogue,diamond,diamonds,diaper,diary,dice,did,diet,differ,dig,digest,digital,dim,dimple,din,dining,dinner,dinosaur,dip,diploma,diplomat,dire,direct,directed,director,dirt,dirty,disable,disabled,disagree,disarm,disc,discern,discover,discuss,disease,dish,disk,dislike,dismiss,disorder,dispatch,display,disposal,dispose,dispute,disrupt,dissolve,distance,distant,distinct,distort,district,disturb,diverse,divided,dizzy,dock,doctrine,document,dodge,doe,does,dog,doing,dole,doll,dolphin,dome,domestic,dominant,don,donate,donated,done,donor,doom,door,doorway,dormant,dose,dot,dote,dotting,double,doubt,doubtful,dough,dove,down,download,doze,dozens,drab,draft,drag,dragnet,dragon,drain,drake,dram,drama,dramatic,drank,drape,draw,drawer,drawing,drawl,drawn,dread,dream,dress,dressing,drew,dried,drift,drill,drink,drinking,drip,drive,driven,drone,drool,droop,drop,drove,drown,drum,drunk,dry,dryer,dryly,dual,dub,duck,dud,due,duel,duet,dug,duke,dull,dumb,dump,dun,dunce,dune,dung,dunk,duo,dupe,duplex,durable,duration,during,dusk,dust,duty,dwarf,dwell,dye,dying,dynamics,dynasty,each,eager,eagle,eaglet,ear,earl,early,earn,earnest,earnings,earth,ease,easel,easily,east,eastern,easy,eat,eating,echoes,eclipse,economic,economy,edge,edible,edit,edition,editor,educate,educated,eel,effect,effort,egg,ego,eight,eighteen,eighth,eighty,either,elder,elderly,elect,election,electric,elegant,element,elevate,elevated,eligible,elite,elm,else,email,embedded,ember,emerging,emission,emit,emphasis,empire,employ,employed,employer,empower,empty,emu,enable,enabling,enchant,enclosed,encoding,end,endless,endow,endure,enemy,energy,enfold,enforce,engage,engine,english,enhance,enjoy,enlight,enormous,enough,enquire,enrolled,ensnare,ensure,enter,entering,entire,entirely,entitle,entitled,entrance,entry,envelope,enviable,envy,epic,episode,equal,equip,equity,era,erase,eraser,erect,error,escalate,escape,escaping,escort,essay,essence,estate,estimate,eternal,evaluate,eve,even,evening,event,eventual,ever,every,everyone,evict,evidence,evident,evil,evolve,evolving,ewe,exact,exalt,exam,examine,examined,examiner,example,exceed,excel,except,exchange,excise,excite,excited,exclude,excluded,excuse,exec,execute,exempt,exercise,exert,exhale,exhibit,exile,exist,existing,exit,exodus,expand,expanded,expect,expected,expedite,expel,expense,expenses,expert,explain,explicit,explore,explored,explorer,export,exported,expose,express,extend,extended,extent,external,extinct,extra,extract,extreme,extremes,eye,eyebrow,eyebrows,fable,fabric,fabulous,face,facet,facial,facility,fact,factory,factual,fad,fade,fail,failure,faint,fair,fairly,fairy,faith,fake,falcon,fall,false,fame,familiar,families,family,famine,famous,fan,fancy,fang,far,fare,farm,farmer,fashion,fast,fat,fatal,fate,fatigue,faucet,fault,favor,fawn,fax,fear,feast,feat,feature,featured,fed,fee,feed,feedback,feel,feet,feline,fell,fellow,felt,female,feminine,fen,fence,fend,fern,ferry,fest,festival,fetch,feud,fever,few,fewer,fiber,fickle,fiction,fiddle,field,fiery,fifteen,fifth,fifty,fig,fight,figure,file,fill,filler,film,filthy,fin,final,finale,finally,find,finding,fine,finger,fingers,finish,fir,fire,firm,first,fiscal,fish,fishing,fist,fit,fitful,fitness,five,fix,fixed,fixture,flag,flak,flam,flame,flan,flank,flannel,flap,flare,flash,flask,flat,flatter,flavor,flavour,flaw,flea,fled,fleet,flesh,flew,flex,flick,flight,fling,flint,flip,flit,float,flock,flog,flood,floor,flop,flora,flour,flow,flower,flown,flue,fluent,fluffy,fluid,flush,flute,flux,fly,flying,foam,fob,focal,foci,focus,foe,fog,foggy,foil,fold,folk,follow,folly,fond,fondest,font,food,fool,foot,fop,for,forbid,force,ford,fore,foreign,forest,forever,forge,forget,fork,form,formal,format,former,formula,fort,forth,fortune,forum,forward,fossil,foster,foul,found,founder,four,fourteen,fowl,fox,fraction,fragment,frame,frank,frankest,fraud,freak,free,freedom,freeze,frenzy,frequent,fresh,friar,fridge,friend,friendly,fright,frigid,fringe,frog,from,front,frontier,frost,froze,frozen,frugal,fruit,fry,fuel,fulfill,full,fulltime,fully,fumble,fume,fun,function,fund,funeral,fungi,funk,funny,fur,furrow,further,fury,fuse,fuss,future,fuzz,gab,gadget,gag,gain,gait,gal,galaxy,gale,gall,gallery,gallon,game,gang,gap,gape,garage,garb,garden,garlic,garter,gas,gash,gasp,gate,gather,gauge,gaunt,gave,gawk,gaze,gear,gel,gem,gender,gene,generate,generous,genetics,genocide,gentle,gently,genuine,geometry,germ,gesture,get,gift,gig,giggle,gild,gill,gilt,gin,girdle,gist,give,given,glad,gland,glare,glass,glaze,gleam,glee,glen,glib,glide,glim,glimpse,glint,glob,global,globally,globe,gloom,gloomy,glory,gloss,glossy,glove,glow,glue,glum,glut,gnash,gnaw,gnu,goad,goal,goat,god,goes,going,gold,golf,gone,good,goof,gore,gorgeous,gory,gospel,got,gown,grab,grace,grade,gradient,graduate,grain,gram,grand,grant,grape,graph,graphic,graphics,grasp,grass,grate,grateful,grave,gravel,gravity,gravy,gray,grease,great,greatest,greed,green,greet,grew,grey,grid,grief,grill,grim,grin,grind,grip,gripe,grit,groan,grocery,grog,groin,groom,grope,gross,ground,group,grove,grow,growing,growl,grown,growth,grub,guard,guardian,guess,guest,guidance,guide,guilt,guilty,guise,guitar,gulch,gulf,gull,gully,gulp,gum,gun,guppy,gust,gut,guts,gutter,guy,gym,habit,hack,had,hail,hair,hale,half,halfway,hall,halo,halt,ham,hand,handbook,handle,handling,hang,hanging,happen,happened,happier,harbor,harbour,hardly,hardware,hare,harm,harmful,harmless,harp,harsh,harvest,has,hash,haste,hasty,hat,hatch,hate,haul,haunt,have,haven,hawk,hay,hazard,haze,hazy,head,headline,heal,health,healthy,heap,hear,heat,heating,heaven,heavy,hedge,heed,heel,held,hell,helm,help,helpful,hen,hence,her,herd,here,hereby,heritage,hero,heroic,heron,herself,hew,hid,hide,high,hike,hill,hilt,him,himself,hind,hint,hip,hire,his,hiss,history,hit,hive,hoard,hoax,hob,hod,hog,hoist,hold,holding,hole,holiday,hollow,holy,home,homework,hone,honest,honestly,honesty,honor,hood,hook,hoop,hop,hope,horizon,horizons,horn,horrible,horror,horse,hose,hospital,host,hostel,hostile,hot,hotel,hound,hour,house,housing,hover,how,however,howl,hub,hue,hug,huge,hulk,hull,hum,human,humble,humid,humility,humor,hump,hundred,hung,hunger,hunt,hunter,hunting,hurdle,hurl,hurry,hurt,husband,hush,hut,hybrid,hydrogen,hymn,ice,icon,icy,idea,ideal,identify,ideology,idol,ignorant,ignore,ilk,ill,illegal,illness,illusion,image,imagine,imagined,imitate,immense,immune,imp,impact,imperial,implied,imply,import,imports,impose,improve,inch,incident,incite,include,income,increase,incur,index,indexed,indicate,indirect,indoor,industry,infant,infer,inferior,infinite,inflated,info,inform,informal,informed,ingot,inherent,initial,inject,injuries,injury,ink,inmate,inn,inner,innocent,input,inquiry,insane,insect,insert,inset,inside,insist,inspect,inspired,install,instance,instant,instead,insult,insure,intake,integral,intend,intended,intense,intent,inter,interact,interest,interim,interior,internal,internet,interval,intimate,intro,invading,invalid,invasion,inverse,invest,invested,investor,invite,involve,involved,ion,ire,irk,iron,ironical,island,isle,isolate,isolated,issue,item,iterate,its,itself,ivory,ivy,jab,jack,jacket,jade,jag,jail,jam,janitor,jar,jargon,jars,javelin,jaw,jay,jazz,jeer,jerk,jersey,jest,jet,jewel,jig,job,jobs,jock,jog,jogger,join,joint,joke,joker,jolt,jostle,jot,jounce,journal,journey,jowl,joy,joyful,joyous,judge,judgment,jug,juice,juicy,jumble,jumbo,jump,jumper,jungle,junior,junk,jury,just,justice,justify,jut,kebab,keen,keep,keg,kelp,ken,kept,kernel,kettle,key,keyboard,kick,kid,kidney,kids,kill,kin,kind,kindness,king,kingdom,kinship,kiss,kit,kitchen,kite,kitten,knack,knead,knee,kneecap,kneel,knew,knife,knight,knit,knob,knock,knockout,knoll,knot,know,known,lab,label,labeling,labor,lace,lack,lacy,lad,ladder,lag,laid,lair,lake,lamb,lame,lamp,lance,land,landing,landlord,landmark,lane,language,lap,lard,large,largest,lark,laser,lash,lass,last,lasting,latch,late,lately,later,latest,latter,laud,laugh,laughter,launch,launched,laundry,lavish,law,lawn,lawyer,lay,layer,layout,lazy,lea,lead,leader,leading,leaf,leak,lean,leap,learn,learned,lease,least,leather,leave,lecture,lectures,led,ledge,left,leg,legacy,legal,legend,lemon,lend,lender,lending,length,lens,lent,leopard,less,lesson,let,letter,level,lever,liberal,liberty,library,lick,lid,lie,lied,lieu,life,lifetime,lift,light,lighter,lighting,like,likely,likewise,lilac,lily,limb,lime,limit,limited,limiting,limp,line,linen,liner,linger,link,linkage,lint,lion,lip,liquor,list,listen,lit,literal,literary,litter,little,live,lively,lizard,load,loading,loaf,loam,loan,lobe,locating,location,lock,locker,lockup,lode,loft,lofty,log,logic,logical,logo,lone,lonely,long,longing,look,loom,loop,loose,loot,lord,lore,lorry,lose,loss,lost,lot,lotus,loud,love,lovely,lover,low,loyal,lucid,luck,lucky,lug,luggage,lull,lumber,lump,lunar,lunch,lung,lunge,lure,lurk,lush,lust,luxury,mace,machine,mad,made,magnet,magnetic,maid,maiden,mail,main,mainly,maintain,major,majority,make,maker,makeup,male,malice,mall,malt,man,manage,manager,managing,mane,manifest,manner,manor,manual,manually,many,map,maple,mar,marathon,marble,march,mare,margin,marginal,marine,mark,market,marsh,marvel,mash,mask,mason,mass,massive,mast,master,mastery,mat,match,matched,mate,material,matter,matters,maturity,maw,max,maximize,may,mayor,maze,mead,meadow,meal,mean,meantime,measure,measured,meat,mechanic,medal,media,medical,medicine,medieval,medium,meek,meet,meeting,meld,melee,melody,melt,member,membrane,memo,memoir,memorial,memory,men,mend,mental,mention,mentor,menu,merchant,mercy,mere,merely,merge,merit,mesh,mess,message,met,metadata,metal,meter,method,mice,mid,middle,midnight,midst,might,mild,mile,militant,military,milk,mill,million,mime,mind,mine,mineral,mingle,minimize,minimum,minister,minor,minority,minster,mint,minus,minute,miracle,mire,mirror,mirth,miss,mission,mist,mistake,mister,mite,mitt,mix,mixture,moan,moat,mob,mobile,mobility,mock,mod,mode,model,moderate,modest,modified,modular,moisture,mold,mole,molt,molten,moment,momentum,money,monitor,monk,monkey,monopoly,month,monthly,monument,mood,moon,moor,moose,mop,mope,moral,more,morn,morning,mortal,mortgage,mosaic,moss,most,motel,moth,motion,motive,motor,mould,mount,mountain,mounted,mourn,mouse,mouth,move,movement,movie,mow,much,muck,mucus,mud,muff,mug,mule,mull,multiple,mum,mural,murderer,muse,museum,mush,mushroom,music,musical,musk,must,mutation,mute,mutual,muzzle,myself,mystery,mystic,myth,nab,nag,nail,naive,name,namely,nap,nape,narrow,nasty,nation,national,native,natural,nature,naval,navigate,navy,near,nearby,nearly,neat,neatly,neck,need,needle,negative,neighbor,neither,nephew,nerve,nervous,nest,nestle,net,network,neutral,never,new,newly,news,next,nibble,nice,niche,nick,night,nil,nimble,nine,nip,nit,nitrogen,no_one,noble,nobody,nod,node,noise,noisy,none,noodle,noon,nor,norm,normal,normally,north,nose,not,notable,notch,note,notebook,noted,nothing,notice,noticed,notion,noun,novel,november,now,nuclear,nude,nudge,numb,number,numbers,numerous,nun,nurse,nursed,nursing,nut,oak,oar,oat,oath,obey,obituary,object,objected,oblige,obsolete,obstacle,obtain,obvious,occasion,occupied,occupy,occur,ocean,odd,odds,ode,off,offend,offense,offer,offering,office,officer,official,offshore,oft,often,ohm,oil,old,olive,omen,omit,once,one,online,only,onset,onto,opal,open,opening,openness,opera,operate,opinion,opposing,opt,optimal,option,optional,oral,orb,orbit,orchid,order,ordered,ordinary,ore,organ,organic,organism,organize,oriental,origin,original,orphaned,orthodox,other,our,out,outage,outbid,outbreak,outer,outfit,outlet,outline,output,outside,oven,over,overall,overcome,overhead,overlap,overlook,oversee,overt,overtake,overtime,owe,owl,own,owner,oxide,ozone,pace,pacific,pack,package,packard,pact,pad,page,paid,pail,pain,painful,paint,painter,painting,pair,pal,pale,palm,pan,pane,panel,pang,panic,pap,paper,par,parallel,parcel,parent,parental,park,parking,parlor,parrot,part,partial,particle,partner,partners,pass,passage,passions,passive,password,past,paste,pat,patch,path,patience,patient,patrol,patron,pattern,pause,pave,paw,pawn,pay,payment,pea,peaceful,peach,peak,peal,pear,pearl,pebble,peck,peculiar,pedal,peek,peel,peer,peg,pelt,pen,penal,penalty,pencil,pend,pending,penny,pension,people,pep,pepper,per,percent,perch,perform,performs,peril,period,periodic,perk,perm,permit,persist,person,personal,persuade,pest,pet,petition,pew,phase,phone,photo,phrase,physical,piano,pick,picket,picture,pie,piece,pier,pig,pike,pile,pilgrim,pill,pillar,pillow,pilot,pin,pinch,pine,pink,pint,pipe,pipeline,pirate,pit,pity,pixel,pizza,place,plaid,plain,plan,plane,planet,plank,planning,plant,plaster,plastic,plate,plateau,platform,play,plaza,plea,plead,pleasant,pleasure,pleat,plenty,pliant,plier,plod,plot,plow,ploy,pluck,plug,plum,plumb,plumber,plume,plump,plunge,plunging,plus,plush,ply,poach,pock,pocket,pod,poet,poetry,point,pointer,pointing,poise,poison,poke,polar,pole,polish,polished,polite,politic,politics,poll,polo,pond,ponder,pony,pool,poor,poorly,pop,pope,populace,popular,porch,pore,pork,port,portable,portal,portion,portrait,pose,poser,position,positive,possible,post,poster,pot,potato,potion,potted,pouch,poultry,pound,pour,pout,poverty,pow,powder,power,powerful,praise,prank,prawn,pray,prayer,precious,predator,predict,prefer,pregnant,premier,premium,prep,prepare,prepared,presence,present,preserve,press,pressing,pressure,prestige,presume,pretty,prevent,previous,prey,price,pride,priest,primary,prime,princess,print,printer,printing,prior,priority,prism,prison,prisoner,private,privy,prize,pro,probable,probe,problem,problems,proceed,process,prod,produce,produced,producer,product,profile,profit,profound,program,progress,prohibit,project,projects,promise,promote,prompt,promptly,prone,proof,prop,propel,proper,properly,proposal,prose,prospect,prospero,protect,protein,protest,protocol,proud,prove,proven,provide,provided,provider,province,prow,proxy,prry,prune,pry,psalm,pub,public,publicly,publish,puddle,pug,pull,pulley,pulp,pulse,pump,pun,punch,punish,punished,punk,pup,pupil,puppet,purchase,pure,purge,purse,pursue,pursuing,pursuit,pus,push,put,puzzle,quack,quail,qualifed,qualify,qualm,quantity,quarry,quarter,quarters,quay,quench,query,quest,queue,quick,quickly,quiet,quill,quilting,quirk,quiz,quota,quote,rabbit,race,rack,racket,rad,radar,radical,radio,radish,raft,rag,rage,raid,rail,rain,rainbow,rake,rally,ram,ramp,ran,ranch,random,randomly,rang,range,ranger,rank,ransom,rant,rap,rapid,rapidly,rare,rascal,rash,rasp,rat,rate,rattle,rave,raven,raw,ray,raze,reach,reaching,react,reaction,read,readable,reader,readily,real,realised,realize,realm,ream,reap,rear,reason,reasoned,rebel,rebuild,recall,receive,received,recent,recently,recipe,record,recorded,recover,recruits,red,reduce,reduced,reducing,reed,reef,reel,ref,referral,referred,reflect,reform,reforms,refuge,regain,regard,regime,region,regional,register,regular,regulate,reign,rein,reject,rejected,relate,relates,relating,relation,relative,relax,relay,release,released,relevant,relfect,reliable,reliance,relief,religion,relish,rely,remain,remained,remains,remedy,remember,reminded,removal,remove,removing,rend,render,renowned,rent,rental,rep,repair,repay,repeal,repeat,replace,reply,report,reporter,republic,request,require,required,rescue,research,reserve,reshape,resident,resign,resist,resolve,resolved,resort,resource,respect,respond,response,rest,restore,restored,restrain,result,resulted,results,retailer,retain,retained,retire,retiring,retrieve,return,returned,returns,reveal,reverse,review,revision,revival,revolt,reward,rhetoric,rib,ribbon,rice,rich,rid,riddle,ride,rider,ridge,rifle,rift,rig,rigid,rigor,rile,rill,rim,rind,ring,rink,rinse,riot,rip,ripen,ripple,rise,risen,risk,risky,ritual,rival,river,road,roam,roar,roast,rob,robe,robin,robot,robust,rock,rocket,rocky,rod,rode,roe,rogue,role,roll,romantic,romp,roof,room,root,rope,rose,rosy,rot,rotate,rotation,rotten,round,rounding,route,rove,row,royal,rub,rubble,rude,rug,ruin,rule,ruler,rum,rumble,rumor,rump,run,rung,runt,runtime,runway,rural,ruse,rush,rust,rustic,rusty,rut,rye,sac,sack,sad,saddle,sadly,safari,safe,safely,safety,sag,sage,said,sail,saint,sake,salad,sale,saliva,salmon,salon,salt,same,sample,sampling,sanction,sand,sandal,sandwich,sane,sang,sank,sap,sash,sat,satisfy,sauce,saucer,save,savor,saw,say,scale,scam,scan,scandal,scar,scarce,scare,scarf,scatter,scenario,scene,scent,schedule,scheme,scholar,school,science,sciences,scope,score,scout,scrap,scratch,screen,screw,script,scroll,sea,seal,seam,sear,search,seaside,season,seasonal,seat,second,secret,sect,section,sector,secure,securing,security,seed,seeing,seek,seem,seemly,seen,segment,seize,select,selected,self,sell,semester,send,senior,sense,sensible,sent,sentence,separate,sept,sequence,sergeant,serious,sermon,serve,service,session,set,settings,settle,seven,severe,severity,sew,sewn,shade,shadow,shaft,shake,shaky,shall,shame,shape,share,shark,sharp,shave,shawl,she,shear,shed,sheen,sheep,sheer,sheet,shelf,shell,shelter,shepherd,shield,shift,shifting,shim,shin,shine,shiny,ship,shipping,shirt,shiver,shock,shooting,shop,shopping,shore,short,shortage,shortly,shot,should,shoulder,shout,shove,show,shower,shown,shriek,shrink,shrub,shrug,shuffle,shut,shutdown,shy,siblings,sick,sicken,side,sidewalk,sift,sigh,sight,sigma,sign,signal,silence,silk,sill,silly,silt,silver,similar,simmer,simple,simplify,simply,sin,since,sing,singing,single,sink,sip,sir,sis,sister,sit,site,situated,six,sixteen,size,skate,skeleton,skeptic,sketch,ski,skill,skimp,skit,skull,sky,slab,slag,slain,slam,slang,slap,slash,slat,slate,slave,slaw,sled,sleek,sleep,sleeping,sleepy,sleeve,slender,slew,slice,slicing,slid,slide,slight,slightly,slim,slippery,slit,slither,slob,slog,slop,slope,slot,slouch,slow,slowly,slug,slum,slur,sly,small,smaller,smallest,smart,smash,smashing,smell,smile,smith,smog,smoke,smoker,smooth,snack,snag,snail,snake,snap,snapshot,snare,sneak,sneeze,snip,snitch,snob,snoring,snow,snub,snug,soak,soap,soar,sob,social,society,sock,socket,sod,soda,sofa,soft,soften,software,soil,sold,soldier,sole,solely,solemn,solid,solo,solve,some,somebody,somehow,sometime,somewhat,son,song,sonic,soon,soot,soothe,sop,sore,sorry,sort,sot,soul,sound,soup,sour,source,south,southern,sow,soy,spa,space,spacious,span,spar,spare,spark,speak,speaker,speaking,spear,spec,special,specific,specimen,sped,speech,speed,spell,spend,spending,spent,sphere,spice,spider,spill,spin,spine,spirit,spit,splash,splendid,split,spoke,sponge,sponsor,spoon,sport,sporting,spot,spotted,spotting,spray,spread,spree,spring,sprout,spry,spur,spy,square,squeeeze,stab,stabbing,stable,stacking,stadium,staff,stag,stage,stain,stair,stake,stale,stalk,stall,stamp,stand,standard,standing,star,stare,stark,start,starting,startup,state,station,stations,statue,status,stave,stay,steady,steal,steam,steel,steep,steer,stem,step,stepping,stereo,stern,stew,stick,sticky,stiff,still,stimulus,sting,stint,stir,stitch,stock,stoic,stoke,stole,stolen,stomp,stone,stool,stoop,stop,stopping,storage,store,storm,story,stout,stove,straight,strain,strand,strange,stranger,strap,strategy,straw,stray,streak,stream,street,strength,stress,stressed,strict,stride,strike,striking,string,strip,stripe,strive,stroke,strong,strongly,struck,struggle,stub,stuck,stud,student,studied,studio,stuff,stump,stun,stung,stunk,stunning,stunt,sturdy,sty,style,sub,subject,subjects,submit,subtle,subtract,succeed,succeeds,success,such,sudden,suddenly,sue,suffer,suffered,sugar,suggest,suit,suitable,suite,sulk,sum,summary,summit,sump,sun,sung,sunk,sunny,sup,super,superb,superior,supper,supplied,supplier,supply,supposed,suppress,sure,surely,surf,surface,surge,surgeon,surgeons,surgical,surplus,surprise,survey,survival,survive,survived,survivor,suspect,suspense,sustain,sustains,swamp,swan,swap,swarm,sway,swear,sweat,sweep,sweeping,sweet,swell,swept,swift,swim,swimming,swing,swirl,switch,sworn,swum,symbol,symbolic,sympathy,syndrome,syrup,system,tab,table,tablet,tabs,tack,tackle,tact,tad,tag,tail,take,tale,talent,talk,tall,tame,tan,tank,tap,tape,tar,target,tart,task,taste,tax,tea,teach,teacher,team,tear,tell,temp,temple,tempo,ten,tenant,tend,tender,tense,tent,tenure,term,terminal,terrible,test,text,than,that,thatch,the,theater,theft,them,theme,then,theory,therapy,there,thereby,they,thick,thicker,thief,thigh,thin,thing,think,thinker,third,thirst,thirteen,thirty,this,thorn,thorny,thorough,those,thou,thought,thoughts,thousand,thread,three,threw,thrill,thriller,thrive,throne,through,throw,throwing,thrown,thud,thug,thumb,thunder,thy,tic,tick,ticket,tide,tidy,tie,tied,tier,tight,tighten,tile,till,tilt,timber,time,timely,timer,tin,tint,tiny,tip,tire,tired,tissue,title,toad,toast,tobacco,tock,today,toe,toil,token,told,tolerant,toll,tomb,tome,tomorrow,ton,tone,tongue,tonight,tons,too,took,tool,top,topic,topmost,tops,torch,tore,torment,torn,toss,tot,total,totally,touch,touching,tough,tour,tourist,tow,toward,towards,towel,tower,town,toxic,toy,trace,track,tracking,tractor,trade,trading,traffic,trail,train,trainer,training,trait,transfer,transit,trap,trash,travel,tray,treasure,treat,treating,treaty,tree,trek,tremor,trend,trial,tribal,tribe,trick,tried,trillion,trim,trio,trip,triple,trod,troop,trophy,tropical,trot,trouble,troubled,trout,truck,true,truly,trump,trunk,trust,truth,try,tsunami,tub,tuba,tube,tuber,tuck,tuft,tug,tulip,tumble,tumor,tuna,tune,tuner,tungsten,tunic,tunnel,turf,turkey,turn,turning,turnover,tusk,twelfth,twelve,twig,twin,two,type,typical,ugly,ultra,umbrella,uncle,unclear,under,underway,undo,unfair,unfit,unfold,uniform,union,unique,unit,unite,unity,universe,unknown,unless,unlike,unlikely,unlit,unrest,unsafe,untidy,until,unto,upbeat,update,updated,updating,upgrade,uphold,upkeep,upon,upper,upset,upturn,upwardly,urban,urge,urn,use,used,useful,user,usher,usual,utility,utmost,utter,vacant,vague,vain,vale,valid,valley,valor,valuable,value,van,vane,vanish,vanity,vapor,variable,varied,variety,various,vary,vase,vast,vat,vault,vehicles,veil,vein,vendor,vent,venture,verb,verse,version,very,vessel,vest,vet,veteran,veterans,veto,vex,via,vice,victim,vie,view,vigor,vim,vine,vinyl,viola,violence,violent,violet,viral,virginia,virtual,virtue,visa,visible,vision,visitor,visual,vivid,vivify,vocal,vodka,voice,void,volatile,volcanic,volt,volume,vote,voter,vouch,vow,vowel,vulgar,wad,wade,wafer,waffle,wag,wage,wages,wagon,wail,wait,wake,walk,wall,wallet,wand,wander,want,war,ward,warfare,warm,warmth,warn,warning,warp,wart,wary,was,wash,wasp,waste,watch,water,wave,wavy,wax,waxy,way,weak,weaken,weald,wealth,wealthy,wean,weapon,wear,weary,weather,weave,web,website,wed,wedding,wedge,weed,week,weekend,weekly,weird,welcome,weld,welfare,well,went,wept,were,west,western,wet,whack,whale,what,whatever,wheat,wheel,when,where,wherever,whether,which,while,whine,whirl,whisper,whispers,white,who,whoever,whole,wholly,whom,whose,why,wick,wicked,wide,widely,widen,widening,widget,width,wield,wife,wig,wild,wildfire,wildlife,will,willing,wilt,wily,wimp,win,wind,window,windy,wine,wing,wink,winter,wipe,wire,wireless,wis,wisdom,wise,wish,wisp,wit,witch,with,withdraw,within,without,witness,wits,wizard,woe,wok,woke,wolf,woman,womb,women,won,wonder,woo,wood,woodland,wool,word,wore,work,worker,working,workshop,world,worm,worn,worry,worse,worst,worth,worthing,worthy,would,wound,wove,wow,wrack,wrap,wrapping,wrath,wreath,wreck,wren,wrist,write,writer,writing,written,wrote,yacht,yak,yam,yank,yap,yard,yarn,yaw,yea,year,yearbook,yearly,yell,yes,yet,yew,yield,yielding,yoga,yoke,you,young,younger,your,yourself,youth,youthful,zap,zeal,zebra,zed,zen,zero,zig,zinc,zip,zipper,zodiacal,zone,zoo,zoologic,zoom";
+
+/* ─── Trie ─── */
+class Trie{
+  constructor(){this.root={c:{},e:false};}
+  insert(w){let n=this.root;for(const ch of w){if(!n.c[ch])n.c[ch]={c:{},e:false};n=n.c[ch];}n.e=true;}
+  isWord(w){let n=this.root;for(const ch of w){if(!n.c[ch])return false;n=n.c[ch];}return n.e;}
+  isPrefix(w){let n=this.root;for(const ch of w){if(!n.c[ch])return false;n=n.c[ch];}return true;}
+  // Find all valid words on grid from position
+  findWords(grid,rows,cols){
+    const found=new Set();
+    const visited=Array.from({length:rows},()=>Array(cols).fill(false));
+    const dirs=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+    const dfs=(r,c,node,path)=>{
+      if(path.length>=3&&node.e)found.add(path);
+      if(path.length>=12)return;
+      for(const[dr,dc]of dirs){
+        const nr=r+dr,nc=c+dc;
+        if(nr<0||nr>=rows||nc<0||nc>=cols||visited[nr][nc])continue;
+        const ch=grid[nr][nc].letter.toLowerCase();
+        if(!node.c[ch])continue;
+        visited[nr][nc]=true;
+        dfs(nr,nc,node.c[ch],path+ch);
+        visited[nr][nc]=false;
+      }
+    };
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+      const ch=grid[r][c].letter.toLowerCase();
+      if(!this.root.c[ch])continue;
+      visited[r][c]=true;
+      dfs(r,c,this.root.c[ch],ch);
+      visited[r][c]=false;
+    }
+    return found;
+  }
+  // Find one word with path for hint
+  findWordWithPath(grid,rows,cols,foundWords){
+    const dirs=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+    const visited=Array.from({length:rows},()=>Array(cols).fill(false));
+    let bestPath=null,bestWord='';
+    const dfs=(r,c,node,word,path)=>{
+      if(word.length>=3&&node.e&&!foundWords.has(word.toUpperCase())){
+        if(!bestPath||word.length>bestWord.length){
+          bestWord=word;bestPath=[...path];
+          if(word.length>=5)return true;
+        }
+      }
+      if(word.length>=8)return false;
+      for(const[dr,dc]of dirs){
+        const nr=r+dr,nc=c+dc;
+        if(nr<0||nr>=rows||nc<0||nc>=cols||visited[nr][nc])continue;
+        const ch=grid[nr][nc].letter.toLowerCase();
+        if(!node.c[ch])continue;
+        visited[nr][nc]=true;
+        path.push({r:nr,c:nc});
+        if(dfs(nr,nc,node.c[ch],word+ch,path))return true;
+        path.pop();
+        visited[nr][nc]=false;
+      }
+      return false;
+    };
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+      const ch=grid[r][c].letter.toLowerCase();
+      if(!this.root.c[ch])continue;
+      visited[r][c]=true;
+      if(dfs(r,c,this.root.c[ch],ch,[{r,c}])){
+        return{word:bestWord,path:bestPath};
+      }
+      visited[r][c]=false;
+    }
+    return bestPath?{word:bestWord,path:bestPath}:null;
+  }
+}
+
+const trie=new Trie();
+DICT_RAW.split(',').forEach(w=>trie.insert(w.trim()));
+
+/* ─── Balance ─── */
+const GRID=6;
+const MIN_LEN=3;
+const COMBO_TIMEOUT=6000;
+const COMBO_MULT=0.5;
+const RUSH_TIME=90;
+const HINT_START=3;
+
+/* ─── Canvas ─── */
+const cvs=document.getElementById('gc');
+const ctx=cvs.getContext('2d');
+let W,H,CELL,GX,GY,GW,GH,UI_TOP,UI_BOT;
+let dpr=Math.min(window.devicePixelRatio||1,3);
+
+function resize(){
+  W=window.innerWidth;H=window.innerHeight;
+  dpr=Math.min(window.devicePixelRatio||1,3);
+  cvs.width=W*dpr;cvs.height=H*dpr;
+  cvs.style.width=W+'px';cvs.style.height=H+'px';
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  UI_TOP=Math.min(80,H*0.11);
+  UI_BOT=Math.min(100,H*0.14);
+  const avH=H-UI_TOP-UI_BOT-20;
+  const avW=W-20;
+  CELL=Math.floor(Math.min(avW/GRID,avH/GRID));
+  CELL=Math.min(CELL,72);
+  GW=CELL*GRID;GH=CELL*GRID;
+  GX=Math.floor((W-GW)/2);
+  GY=UI_TOP+Math.floor((H-UI_TOP-UI_BOT-GH)/2);
+}
+resize();window.addEventListener('resize',resize);
+
+/* ─── Color Palette ─── */
+const CLR={
+  bg:'#0a0a1a',bg2:'#12121f',
+  tile:'#1e1e3a',tileHL:'#2a2a5a',tileSel:'#3a3acc',
+  text:'#e0e0e0',textDim:'#666',textGold:'#ffd700',
+  accent:'#667eea',accent2:'#764ba2',pink:'#ff6b9d',cyan:'#00d4ff',
+  green:'#4ade80',red:'#ef4444',orange:'#f59e0b',
+  gem:'#a78bfa',lightning:'#38bdf8',fire:'#f97316',
+  validPath:'rgba(74,222,128,0.7)',invalidPath:'rgba(239,68,68,0.6)',
+  pathLine:'rgba(102,126,234,0.8)',selGlow:'rgba(102,126,234,0.3)'
+};
+
+/* ─── State ─── */
+let phase='menu'; // menu|play|paused|result
+let mode='classic'; // classic|rush
+let grid=[];
+let score=0,bestClassic=0,bestRush=0;
+let combo=0,comboTimer=0,maxCombo=0;
+let wordsFoundList=[],wordsFoundSet=new Set();
+let longestWord='';
+let totalWordsEver=0,longestEver='';
+let hintsLeft=HINT_START;
+let hintPath=null,hintTimer=0;
+let rushTimer=RUSH_TIME;
+let shakeMag=0,bgPulse=0;
+let particles=[],popups=[],banners=[];
+let menuTime=0,resultTime=0;
+let path=[]; // current swipe path [{r,c}]
+let dragging=false;
+let lastPointer={x:0,y:0};
+let wordPreview='';
+let wordValid=false,prefixValid=false;
+let isNewBest=false;
+let animQueue=[]; // animation queue for sequential effects
+let falling=false; // tiles currently falling
+let lastTime=0;
+
+// Special tile animation
+let specialAnims=[];
+
+/* ─── Save/Load ─── */
+function loadSave(){
+  try{
+    const d=JSON.parse(localStorage.getItem('wordChainBlast')||'{}');
+    bestClassic=d.bestClassic||0;
+    bestRush=d.bestRush||0;
+    totalWordsEver=d.totalWords||0;
+    longestEver=d.longestWord||'';
+    hintsLeft=d.hints!=null?d.hints:HINT_START;
+  }catch(e){}
+}
+function save(){
+  try{localStorage.setItem('wordChainBlast',JSON.stringify({
+    bestClassic,bestRush,totalWords:totalWordsEver,longestWord:longestEver,hints:hintsLeft
+  }));}catch(e){}
+}
+loadSave();
+
+/* ─── Tile ─── */
+function makeTile(r,c,letter,special){
+  return{letter:letter||randLetter(),r,c,special:special||null,
+    y:0,targetY:0,vy:0,scale:1,alpha:1,glow:0,shake:0,
+    exploding:false,explodeT:0};
+}
+
+/* ─── Grid ─── */
+function initGrid(){
+  grid=[];
+  for(let r=0;r<GRID;r++){
+    grid[r]=[];
+    for(let c=0;c<GRID;c++){
+      grid[r][c]=makeTile(r,c);
+    }
+  }
+  // Ensure at least some words are possible
+  ensureWordsExist();
+}
+
+function ensureWordsExist(){
+  let attempts=0;
+  while(attempts<5){
+    const words=trie.findWords(grid,GRID,GRID);
+    if(words.size>=3)return;
+    // Reshuffle some tiles
+    for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
+      if(Math.random()<0.5)grid[r][c].letter=randLetter();
+    }
+    attempts++;
+  }
+}
+
+function shuffleGrid(){
+  const letters=[];
+  for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++)letters.push(grid[r][c].letter);
+  // Fisher-Yates
+  for(let i=letters.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [letters[i],letters[j]]=[letters[j],letters[i]];
+  }
+  let idx=0;
+  for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
+    grid[r][c].letter=letters[idx++];
+    grid[r][c].special=null;
+  }
+  ensureWordsExist();
+  addBanner(t.shuffled,'#38bdf8');
+}
+
+/* ─── Input ─── */
+function cellAt(x,y){
+  const col=Math.floor((x-GX)/CELL);
+  const row=Math.floor((y-GY)/CELL);
+  if(col>=0&&col<GRID&&row>=0&&row<GRID)return{r:row,c:col};
+  return null;
+}
+
+function isAdjacent(a,b){
+  return Math.abs(a.r-b.r)<=1&&Math.abs(a.c-b.c)<=1&&(a.r!==b.r||a.c!==b.c);
+}
+
+function inPath(r,c){
+  return path.some(p=>p.r===r&&p.c===c);
+}
+
+function startDrag(x,y){
+  if(phase!=='play'||falling)return;
+  const cell=cellAt(x,y);
+  if(!cell)return;
+  dragging=true;
+  path=[cell];
+  updateWordPreview();
+}
+
+function moveDrag(x,y){
+  if(!dragging||phase!=='play')return;
+  lastPointer={x,y};
+  const cell=cellAt(x,y);
+  if(!cell)return;
+  // Check if going back (undo last)
+  if(path.length>=2){
+    const prev=path[path.length-2];
+    if(prev.r===cell.r&&prev.c===cell.c){
+      path.pop();
+      updateWordPreview();
+      return;
+    }
+  }
+  // Check not already in path and adjacent to last
+  if(inPath(cell.r,cell.c))return;
+  const last=path[path.length-1];
+  if(!isAdjacent(last,cell))return;
+  path.push(cell);
+  updateWordPreview();
+}
+
+function endDrag(){
+  if(!dragging)return;
+  dragging=false;
+  if(path.length>=MIN_LEN&&wordValid){
+    completeWord();
+  }else if(path.length>0){
+    // Show feedback
+    if(path.length<MIN_LEN&&path.length>1){
+      addPopup(t.tooShort,lastPointer.x,lastPointer.y,CLR.orange);
+    }else if(path.length>=MIN_LEN&&!wordValid){
+      addPopup(t.noWord,lastPointer.x,lastPointer.y,CLR.red);
+      shakeTiles(path);
+    }
+  }
+  path=[];
+  wordPreview='';wordValid=false;prefixValid=false;
+}
+
+function updateWordPreview(){
+  wordPreview=path.map(p=>grid[p.r][p.c].letter).join('');
+  const lower=wordPreview.toLowerCase();
+  wordValid=lower.length>=MIN_LEN&&trie.isWord(lower);
+  prefixValid=trie.isPrefix(lower);
+  // Check if already found
+  if(wordValid&&wordsFoundSet.has(wordPreview)){
+    wordValid=false;
+  }
+}
+
+/* ─── Word Completion ─── */
+function completeWord(){
+  const word=wordPreview;
+  if(wordsFoundSet.has(word)){
+    addPopup(t.alreadyFound,lastPointer.x,lastPointer.y,CLR.orange);
+    return;
+  }
+  wordsFoundSet.add(word);
+  wordsFoundList.push(word);
+  totalWordsEver++;
+  if(word.length>longestWord.length)longestWord=word;
+  if(word.length>longestEver.length)longestEver=word;
+
+  // Scoring
+  let pts=baseScore(word.length);
+  // Rare letter bonus
+  for(const ch of word){if(RARE[ch])pts+=RARE[ch]*10;}
+  // Combo
+  combo++;
+  comboTimer=COMBO_TIMEOUT;
+  if(combo>maxCombo)maxCombo=combo;
+  pts=Math.floor(pts*(1+Math.max(0,combo-1)*COMBO_MULT));
+  score+=pts;
+
+  // Determine special tile
+  let specialType=null;
+  if(word.length>=7)specialType='fire';
+  else if(word.length===6)specialType='lightning';
+  else if(word.length===5)specialType='gem';
+
+  // Visual feedback
+  const cx=GX+path[Math.floor(path.length/2)].c*CELL+CELL/2;
+  const cy=GY+path[Math.floor(path.length/2)].r*CELL+CELL/2;
+  addPopup('+'+pts,cx,cy-20,CLR.textGold,1.2);
+  addPopup(word,cx,cy+15,CLR.cyan,0.85);
+
+  // Banner for long words
+  if(word.length>=7)addBanner(t.incredible,CLR.fire);
+  else if(word.length>=6)addBanner(t.amazing,CLR.lightning);
+  else if(word.length>=5)addBanner(t.great,CLR.green);
+  else if(combo>=3)addBanner('COMBO x'+combo+'!',CLR.pink);
+
+  shakeMag=word.length>=6?8:word.length>=5?5:3;
+
+  // Explode tiles
+  const tilesToRemove=[...path];
+  explodeTiles(tilesToRemove,specialType);
+}
+
+function explodeTiles(tiles,specialType){
+  falling=true;
+  // Check for special tile activation
+  let extraTiles=[];
+  for(const p of tiles){
+    const tile=grid[p.r][p.c];
+    if(tile.special==='gem'){
+      // Explode surrounding 8 tiles
+      for(let dr=-1;dr<=1;dr++)for(let dc=-1;dc<=1;dc++){
+        const nr=p.r+dr,nc=p.c+dc;
+        if(nr>=0&&nr<GRID&&nc>=0&&nc<GRID&&!tiles.some(t=>t.r===nr&&t.c===nc)&&!extraTiles.some(t=>t.r===nr&&t.c===nc)){
+          extraTiles.push({r:nr,c:nc});
+        }
+      }
+    }else if(tile.special==='lightning'){
+      // Clear entire column
+      for(let r=0;r<GRID;r++){
+        if(!tiles.some(t=>t.r===r&&t.c===p.c)&&!extraTiles.some(t=>t.r===r&&t.c===p.c)){
+          extraTiles.push({r,c:p.c});
+        }
+      }
+    }else if(tile.special==='fire'){
+      // Clear entire row
+      for(let c=0;c<GRID;c++){
+        if(!tiles.some(t=>t.r===p.r&&t.c===c)&&!extraTiles.some(t=>t.r===p.r&&t.c===c)){
+          extraTiles.push({r:p.r,c});
+        }
+      }
+    }
+  }
+  const allTiles=[...tiles,...extraTiles];
+  // Spawn particles
+  for(const p of allTiles){
+    const tx=GX+p.c*CELL+CELL/2;
+    const ty=GY+p.r*CELL+CELL/2;
+    spawnExplosion(tx,ty,grid[p.r][p.c].special);
+    grid[p.r][p.c]=null;
+  }
+
+  // Drop tiles and fill
+  setTimeout(()=>{
+    dropTiles(specialType,tiles);
+    falling=false;
+  },200);
+}
+
+function dropTiles(specialType,originalPath){
+  // For each column, compact non-null tiles down
+  for(let c=0;c<GRID;c++){
+    let writeRow=GRID-1;
+    for(let r=GRID-1;r>=0;r--){
+      if(grid[r][c]){
+        if(writeRow!==r){
+          grid[writeRow][c]=grid[r][c];
+          grid[writeRow][c].r=writeRow;
+          grid[writeRow][c].y=-(writeRow-r)*CELL;
+          grid[writeRow][c].targetY=0;
+          grid[r][c]=null;
+        }
+        writeRow--;
+      }
+    }
+    // Fill empty slots at top
+    for(let r=writeRow;r>=0;r--){
+      const letter=randLetter();
+      grid[r][c]=makeTile(r,c,letter);
+      grid[r][c].y=-(writeRow+1-r)*CELL-CELL;
+      grid[r][c].targetY=0;
+      grid[r][c].scale=0.5;
+    }
+  }
+
+  // Place special tile at center of original path
+  if(specialType&&originalPath&&originalPath.length>0){
+    const mid=originalPath[Math.floor(originalPath.length/2)];
+    if(grid[mid.r]&&grid[mid.r][mid.c]){
+      grid[mid.r][mid.c].special=specialType;
+      grid[mid.r][mid.c].glow=1;
+      specialAnims.push({r:mid.r,c:mid.c,t:0,type:specialType});
+    }
+  }
+
+  // Ensure words still possible after a delay
+  setTimeout(()=>{
+    const words=trie.findWords(grid,GRID,GRID);
+    const unfound=[...words].filter(w=>!wordsFoundSet.has(w.toUpperCase()));
+    if(unfound.length<2)shuffleGrid();
+  },500);
+}
+
+function shakeTiles(tiles){
+  for(const p of tiles){
+    if(grid[p.r]&&grid[p.r][p.c])grid[p.r][p.c].shake=6;
+  }
+}
+
+/* ─── Hint System ─── */
+function useHint(){
+  if(hintsLeft<=0){
+    addBanner(t.noHints,CLR.red);
+    return;
+  }
+  const result=trie.findWordWithPath(grid,GRID,GRID,wordsFoundSet);
+  if(!result){
+    shuffleGrid();
+    return;
+  }
+  hintsLeft--;
+  hintPath=result.path;
+  hintTimer=3000;
+  addBanner(t.hintUsed,CLR.cyan);
+  save();
+}
+
+/* ─── Particles ─── */
+function spawnExplosion(x,y,special){
+  const count=special?20:12;
+  const colors=special==='fire'?['#f97316','#ef4444','#fbbf24']:
+               special==='lightning'?['#38bdf8','#818cf8','#e0f2fe']:
+               special==='gem'?['#a78bfa','#c084fc','#e879f9']:
+               ['#667eea','#38bdf8','#4ade80','#fbbf24','#f472b6'];
+  for(let i=0;i<count;i++){
+    const angle=Math.random()*Math.PI*2;
+    const speed=1.5+Math.random()*4;
+    particles.push({
+      x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-1,
+      life:1,decay:0.015+Math.random()*0.015,
+      size:2+Math.random()*4,
+      color:colors[Math.floor(Math.random()*colors.length)]
+    });
+  }
+}
+
+function addPopup(text,x,y,color,scale){
+  popups.push({text,x,y,color:color||CLR.text,life:1,scale:scale||1,vy:-1.5});
+}
+
+function addBanner(text,color){
+  banners.push({text,color:color||CLR.accent,life:1,t:0});
+}
+
+/* ─── Game Flow ─── */
+function startGame(m){
+  mode=m;phase='play';
+  score=0;combo=0;comboTimer=0;maxCombo=0;
+  wordsFoundList=[];wordsFoundSet=new Set();
+  longestWord='';hintsLeft=Math.max(hintsLeft,HINT_START);
+  rushTimer=RUSH_TIME;
+  path=[];dragging=false;falling=false;
+  particles=[];popups=[];banners=[];specialAnims=[];
+  hintPath=null;hintTimer=0;
+  isNewBest=false;shakeMag=0;
+  initGrid();
+  save();
+}
+
+function endGame(){
+  phase='result';resultTime=0;
+  // Check best
+  if(mode==='classic'&&score>bestClassic){bestClassic=score;isNewBest=true;}
+  if(mode==='rush'&&score>bestRush){bestRush=score;isNewBest=true;}
+  save();
+  // Telegram haptic
+  if(TG&&TG.HapticFeedback)try{TG.HapticFeedback.notificationOccurred(isNewBest?'success':'warning');}catch(e){}
+}
+
+function togglePause(){
+  if(phase==='play')phase='paused';
+  else if(phase==='paused')phase='play';
+}
+
+/* ─── Input Events ─── */
+function getXY(e){
+  if(e.touches)return{x:e.touches[0].clientX,y:e.touches[0].clientY};
+  return{x:e.clientX,y:e.clientY};
+}
+
+cvs.addEventListener('mousedown',e=>{
+  e.preventDefault();
+  const{x,y}=getXY(e);
+  handleDown(x,y);
+});
+cvs.addEventListener('mousemove',e=>{
+  e.preventDefault();
+  const{x,y}=getXY(e);
+  handleMove(x,y);
+});
+cvs.addEventListener('mouseup',e=>{e.preventDefault();handleUp();});
+cvs.addEventListener('mouseleave',e=>{handleUp();});
+
+cvs.addEventListener('touchstart',e=>{
+  e.preventDefault();
+  const{x,y}=getXY(e);
+  handleDown(x,y);
+},{passive:false});
+cvs.addEventListener('touchmove',e=>{
+  e.preventDefault();
+  const{x,y}=getXY(e);
+  handleMove(x,y);
+},{passive:false});
+cvs.addEventListener('touchend',e=>{e.preventDefault();handleUp();},{passive:false});
+cvs.addEventListener('touchcancel',e=>{handleUp();});
+
+function handleDown(x,y){
+  lastPointer={x,y};
+  if(phase==='menu'){handleMenuClick(x,y);return;}
+  if(phase==='result'){handleResultClick(x,y);return;}
+  if(phase==='paused'){handlePauseClick(x,y);return;}
+  if(phase==='play'){
+    // Check UI buttons first
+    if(handlePlayUI(x,y))return;
+    startDrag(x,y);
+  }
+}
+function handleMove(x,y){
+  lastPointer={x,y};
+  moveDrag(x,y);
+}
+function handleUp(){endDrag();}
+
+/* ─── UI Button Helpers ─── */
+function btnHit(x,y,bx,by,bw,bh){
+  return x>=bx&&x<=bx+bw&&y>=by&&y<=by+bh;
+}
+
+function handleMenuClick(x,y){
+  const cw=Math.min(280,W*0.7);
+  const cx=W/2-cw/2;
+  const by1=H*0.45;
+  const by2=by1+70;
+  if(btnHit(x,y,cx,by1,cw,55)){startGame('classic');return;}
+  if(btnHit(x,y,cx,by2,cw,55)){startGame('rush');return;}
+}
+
+function handleResultClick(x,y){
+  if(resultTime<0.5)return;
+  const cw=Math.min(260,W*0.65);
+  const cx=W/2-cw/2;
+  const by1=H*0.7;
+  const by2=by1+55;
+  if(btnHit(x,y,cx,by1,cw,45)){startGame(mode);return;}
+  if(btnHit(x,y,cx,by2,cw,45)){phase='menu';return;}
+}
+
+function handlePauseClick(x,y){
+  const cw=Math.min(240,W*0.6);
+  const cx=W/2-cw/2;
+  const by1=H/2-10;
+  const by2=by1+55;
+  if(btnHit(x,y,cx,by1,cw,45)){phase='play';return;}
+  if(btnHit(x,y,cx,by2,cw,45)){endGame();return;}
+}
+
+function handlePlayUI(x,y){
+  // Pause button (top-left area)
+  if(btnHit(x,y,8,8,50,40)){togglePause();return true;}
+  // Hint button (bottom area)
+  const hbx=W/2-50,hby=GY+GH+10;
+  if(btnHit(x,y,hbx,hby,100,36)){useHint();return true;}
+  return false;
+}
+
+/* ─── Rendering ─── */
+function drawRoundRect(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+
+function drawTile(tile,r,c){
+  if(!tile)return;
+  const x=GX+c*CELL;
+  const y=GY+r*CELL+tile.y;
+  const pad=3;
+  const sz=CELL-pad*2;
+  const cx=x+CELL/2;
+  const cy=y+CELL/2;
+
+  ctx.save();
+  // Shake
+  let sx=0;
+  if(tile.shake>0){sx=Math.sin(tile.shake*3)*tile.shake*0.8;}
+
+  // Scale
+  const sc=tile.scale;
+  ctx.translate(cx+sx,cy);
+  ctx.scale(sc,sc);
+  ctx.translate(-cx,-sx-cy);
+
+  // Selected/hint glow
+  const sel=inPath(r,c);
+  const isHint=hintPath&&hintPath.some(h=>h.r===r&&h.c===c);
+
+  // Background
+  let bg=CLR.tile;
+  if(sel)bg=CLR.tileSel;
+  else if(isHint)bg='#1a3a1a';
+
+  // Special tile glow
+  if(tile.special){
+    const gc=tile.special==='gem'?CLR.gem:tile.special==='lightning'?CLR.lightning:CLR.fire;
+    ctx.shadowColor=gc;
+    ctx.shadowBlur=8+Math.sin(Date.now()*0.005)*4;
+  }
+
+  drawRoundRect(x+pad,y+pad,sz,sz,10);
+  ctx.fillStyle=bg;
+  ctx.fill();
+
+  // Special tile border
+  if(tile.special){
+    ctx.strokeStyle=tile.special==='gem'?CLR.gem:tile.special==='lightning'?CLR.lightning:CLR.fire;
+    ctx.lineWidth=2;
+    ctx.stroke();
+  }
+
+  ctx.shadowColor='transparent';ctx.shadowBlur=0;
+
+  // Letter
+  ctx.fillStyle=sel?'#fff':tile.special?
+    (tile.special==='gem'?CLR.gem:tile.special==='lightning'?CLR.lightning:CLR.fire):CLR.text;
+  ctx.font=`bold ${Math.floor(CELL*0.45)}px system-ui,sans-serif`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(tile.letter,cx,cy);
+
+  // Special icon
+  if(tile.special&&!sel){
+    ctx.font=`${Math.floor(CELL*0.22)}px system-ui`;
+    const icon=tile.special==='gem'?'💎':tile.special==='lightning'?'⚡':'🔥';
+    ctx.fillText(icon,cx+sz*0.3,cy-sz*0.3);
+  }
+
+  // Selection glow border
+  if(sel){
+    drawRoundRect(x+pad,y+pad,sz,sz,10);
+    ctx.strokeStyle=prefixValid?CLR.green:CLR.red;
+    ctx.lineWidth=2.5;
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawPath(){
+  if(path.length<2)return;
+  ctx.save();
+  ctx.lineWidth=4;
+  ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.strokeStyle=prefixValid?CLR.validPath:CLR.invalidPath;
+  ctx.beginPath();
+  for(let i=0;i<path.length;i++){
+    const px=GX+path[i].c*CELL+CELL/2;
+    const py=GY+path[i].r*CELL+CELL/2+(grid[path[i].r]&&grid[path[i].r][path[i].c]?grid[path[i].r][path[i].c].y:0);
+    if(i===0)ctx.moveTo(px,py);else ctx.lineTo(px,py);
+  }
+  ctx.stroke();
+
+  // Draw to current pointer if dragging
+  if(dragging&&path.length>0){
+    const last=path[path.length-1];
+    const lx=GX+last.c*CELL+CELL/2;
+    const ly=GY+last.r*CELL+CELL/2;
+    ctx.globalAlpha=0.3;
+    ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(lastPointer.x,lastPointer.y);ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+  ctx.restore();
+}
+
+function drawWordPreview(){
+  if(!wordPreview||path.length<1)return;
+  // Draw current word at top of grid
+  const y=GY-16;
+  ctx.save();
+  ctx.textAlign='center';ctx.textBaseline='bottom';
+  ctx.font=`bold ${Math.floor(CELL*0.38)}px system-ui,sans-serif`;
+
+  // Background pill
+  const tw=ctx.measureText(wordPreview).width+30;
+  drawRoundRect(W/2-tw/2,y-28,tw,32,16);
+  ctx.fillStyle=wordValid?'rgba(74,222,128,0.2)':prefixValid?'rgba(102,126,234,0.2)':'rgba(239,68,68,0.15)';
+  ctx.fill();
+  ctx.strokeStyle=wordValid?CLR.green:prefixValid?CLR.accent:CLR.red;
+  ctx.lineWidth=1.5;ctx.stroke();
+
+  ctx.fillStyle=wordValid?CLR.green:prefixValid?CLR.text:CLR.red;
+  ctx.fillText(wordPreview,W/2,y);
+
+  // Show checkmark or X
+  const icon=wordValid?'✓':(!prefixValid&&path.length>=2)?'✗':'';
+  if(icon){
+    ctx.font=`bold ${Math.floor(CELL*0.3)}px system-ui`;
+    ctx.fillText(icon,W/2+tw/2-10,y);
+  }
+  ctx.restore();
+}
+
+function drawHUD(){
+  ctx.save();
+  // Top bar
+  ctx.fillStyle='rgba(10,10,26,0.9)';
+  ctx.fillRect(0,0,W,UI_TOP);
+
+  const topY=UI_TOP/2;
+
+  // Pause button
+  ctx.fillStyle=CLR.textDim;
+  ctx.font='20px system-ui';ctx.textAlign='left';ctx.textBaseline='middle';
+  ctx.fillText('⏸',16,topY);
+
+  // Score
+  ctx.textAlign='center';
+  ctx.fillStyle=CLR.textDim;ctx.font=`11px system-ui`;
+  ctx.fillText(t.score,W/2,topY-14);
+  ctx.fillStyle=CLR.textGold;ctx.font=`bold 22px system-ui`;
+  ctx.fillText(score.toLocaleString(),W/2,topY+10);
+
+  // Combo (left of score)
+  if(combo>1){
+    ctx.fillStyle=CLR.pink;
+    ctx.font='bold 16px system-ui';ctx.textAlign='right';
+    ctx.fillText('x'+combo,W/2-70,topY+4);
+    ctx.font='10px system-ui';ctx.fillStyle=CLR.textDim;
+    ctx.fillText(t.combo,W/2-70,topY-12);
+  }
+
+  // Mode-specific: timer or words
+  ctx.textAlign='right';
+  if(mode==='rush'){
+    const sec=Math.max(0,Math.ceil(rushTimer));
+    ctx.fillStyle=sec<=10?CLR.red:CLR.text;
+    ctx.font=`bold 18px system-ui`;
+    ctx.fillText(sec+'s',W-16,topY+4);
+    ctx.font='10px system-ui';ctx.fillStyle=CLR.textDim;
+    ctx.fillText(t.time,W-16,topY-12);
+  }else{
+    ctx.fillStyle=CLR.cyan;ctx.font=`bold 16px system-ui`;
+    ctx.fillText(wordsFoundList.length+'',W-16,topY+4);
+    ctx.font='10px system-ui';ctx.fillStyle=CLR.textDim;
+    ctx.fillText(t.words,W-16,topY-12);
+  }
+
+  // Bottom bar with hint button and recent words
+  ctx.fillStyle='rgba(10,10,26,0.85)';
+  ctx.fillRect(0,H-UI_BOT,W,UI_BOT);
+
+  // Hint button
+  const hbw=100,hbh=34;
+  const hbx=W/2-hbw/2,hby=GY+GH+10;
+  drawRoundRect(hbx,hby,hbw,hbh,17);
+  ctx.fillStyle=hintsLeft>0?'rgba(102,126,234,0.2)':'rgba(50,50,50,0.3)';
+  ctx.fill();
+  ctx.strokeStyle=hintsLeft>0?CLR.accent:CLR.textDim;
+  ctx.lineWidth=1;ctx.stroke();
+  ctx.fillStyle=hintsLeft>0?CLR.accent:CLR.textDim;
+  ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('💡 '+t.hint+' ('+hintsLeft+')',W/2,hby+hbh/2);
+
+  // Recent words (below hint)
+  if(wordsFoundList.length>0){
+    const recent=wordsFoundList.slice(-5).reverse();
+    ctx.font='11px system-ui';ctx.fillStyle=CLR.textDim;ctx.textAlign='center';
+    ctx.fillText(recent.join(' · '),W/2,hby+hbh+18);
+  }
+
+  ctx.restore();
+}
+
+function drawParticles(){
+  for(const p of particles){
+    ctx.globalAlpha=p.life;
+    ctx.fillStyle=p.color;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size*p.life,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.globalAlpha=1;
+}
+
+function drawPopups(){
+  for(const p of popups){
+    ctx.save();
+    ctx.globalAlpha=p.life;
+    ctx.fillStyle=p.color;
+    ctx.font=`bold ${Math.floor(16*p.scale)}px system-ui`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(p.text,p.x,p.y);
+    ctx.restore();
+  }
+}
+
+function drawBanners(){
+  for(const b of banners){
+    if(b.life<=0)continue;
+    ctx.save();
+    const a=b.life>0.7?1:b.life/0.7;
+    ctx.globalAlpha=a;
+    const by=H*0.35;
+    ctx.fillStyle=b.color;
+    ctx.font=`bold ${Math.min(32,W*0.07)}px system-ui`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor=b.color;ctx.shadowBlur=15;
+    ctx.fillText(b.text,W/2,by);
+    ctx.restore();
+  }
+}
+
+function drawMenu(dt){
+  menuTime+=dt;
+  ctx.save();
+
+  // Background
+  ctx.fillStyle=CLR.bg;
+  ctx.fillRect(0,0,W,H);
+
+  // Animated background tiles
+  const now=Date.now()*0.001;
+  ctx.globalAlpha=0.06;
+  ctx.font='bold 24px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';
+  for(let i=0;i<20;i++){
+    const x=((i*73+now*20)%W);
+    const y=((i*97+now*15)%H);
+    ctx.fillStyle=['#667eea','#764ba2','#ff6b9d','#4ade80','#ffd700'][i%5];
+    ctx.fillText(LETTERS[i%26],x,y);
+  }
+  ctx.globalAlpha=1;
+
+  // Title
+  const titleY=H*0.18;
+  ctx.font=`bold ${Math.min(38,W*0.085)}px system-ui`;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+
+  // Gradient text effect
+  const grad=ctx.createLinearGradient(W*0.2,titleY,W*0.8,titleY);
+  grad.addColorStop(0,CLR.accent);grad.addColorStop(0.5,CLR.pink);grad.addColorStop(1,CLR.cyan);
+  ctx.fillStyle=grad;
+  ctx.fillText('🔤 '+t.title,W/2,titleY);
+
+  // Subtitle
+  ctx.font=`${Math.min(15,W*0.035)}px system-ui`;
+  ctx.fillStyle=CLR.textDim;
+  ctx.fillText(t.subtitle,W/2,titleY+35);
+
+  // Buttons
+  const bw=Math.min(280,W*0.7);
+  const bx=W/2-bw/2;
+  const by1=H*0.45;
+  const by2=by1+70;
+
+  // Classic button
+  drawRoundRect(bx,by1,bw,55,14);
+  const g1=ctx.createLinearGradient(bx,by1,bx+bw,by1+55);
+  g1.addColorStop(0,'#667eea');g1.addColorStop(1,'#764ba2');
+  ctx.fillStyle=g1;ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 18px system-ui';
+  ctx.fillText(t.classic,W/2,by1+22);
+  ctx.font='11px system-ui';ctx.fillStyle='rgba(255,255,255,0.7)';
+  ctx.fillText(t.classicDesc,W/2,by1+42);
+
+  // Rush button
+  drawRoundRect(bx,by2,bw,55,14);
+  const g2=ctx.createLinearGradient(bx,by2,bx+bw,by2+55);
+  g2.addColorStop(0,'#f97316');g2.addColorStop(1,'#ef4444');
+  ctx.fillStyle=g2;ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 18px system-ui';
+  ctx.fillText(t.rush,W/2,by2+22);
+  ctx.font='11px system-ui';ctx.fillStyle='rgba(255,255,255,0.7)';
+  ctx.fillText(t.rushDesc,W/2,by2+42);
+
+  // Stats
+  const sy=H*0.78;
+  ctx.font='12px system-ui';ctx.fillStyle=CLR.textDim;
+  ctx.fillText(`${t.best}: ${Math.max(bestClassic,bestRush).toLocaleString()}`,W/2,sy);
+  if(totalWordsEver>0){
+    ctx.fillText(`📖 ${totalWordsEver} ${t.words}  ·  ${t.longest}: ${longestEver||'-'}`,W/2,sy+20);
+  }
+
+  ctx.restore();
+}
+
+function drawPauseOverlay(){
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,0.7)';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.fillStyle=CLR.text;ctx.font='bold 28px system-ui';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('⏸ '+t.pause,W/2,H/2-60);
+
+  const bw=Math.min(240,W*0.6);
+  const bx=W/2-bw/2;
+
+  drawRoundRect(bx,H/2-10,bw,45,12);
+  ctx.fillStyle=CLR.accent;ctx.fill();
+  ctx.fillStyle='#fff';ctx.font='bold 16px system-ui';
+  ctx.fillText(t.resume,W/2,H/2+12);
+
+  drawRoundRect(bx,H/2+45,bw,45,12);
+  ctx.fillStyle='#333';ctx.fill();
+  ctx.fillStyle=CLR.red;ctx.font='bold 16px system-ui';
+  ctx.fillText(t.quit,W/2,H/2+67);
+
+  ctx.restore();
+}
+
+function drawResult(dt){
+  resultTime+=dt;
+  ctx.save();
+  ctx.fillStyle=CLR.bg;ctx.fillRect(0,0,W,H);
+
+  const cy=H*0.12;
+  ctx.textAlign='center';ctx.textBaseline='middle';
+
+  // Title
+  ctx.fillStyle=CLR.textDim;ctx.font=`bold ${Math.min(30,W*0.07)}px system-ui`;
+  ctx.fillText(t.gameOver,W/2,cy);
+
+  // New best
+  if(isNewBest){
+    ctx.fillStyle=CLR.textGold;ctx.font=`bold 18px system-ui`;
+    ctx.fillText(t.newBest,W/2,cy+35);
+  }
+
+  // Score
+  ctx.fillStyle=CLR.textGold;ctx.font=`bold ${Math.min(44,W*0.1)}px system-ui`;
+  const displayScore=Math.floor(score*Math.min(1,resultTime*2));
+  ctx.fillText(displayScore.toLocaleString(),W/2,cy+85);
+  ctx.fillStyle=CLR.textDim;ctx.font='12px system-ui';
+  ctx.fillText(t.finalScore,W/2,cy+110);
+
+  // Stats
+  const sx=H*0.38;
+  const stats=[
+    [t.wordsFound,wordsFoundList.length+''],
+    [t.longestWord,longestWord||'-'],
+    [t.bestCombo,'x'+maxCombo],
+  ];
+  ctx.font='13px system-ui';
+  for(let i=0;i<stats.length;i++){
+    const sy=sx+i*30;
+    ctx.fillStyle=CLR.textDim;ctx.textAlign='right';
+    ctx.fillText(stats[i][0],W/2-10,sy);
+    ctx.fillStyle=CLR.text;ctx.textAlign='left';ctx.font='bold 13px system-ui';
+    ctx.fillText(stats[i][1],W/2+10,sy);
+    ctx.font='13px system-ui';
+  }
+
+  // Found words list
+  if(wordsFoundList.length>0){
+    const ly=sx+stats.length*30+20;
+    ctx.textAlign='center';
+    ctx.fillStyle=CLR.textDim;ctx.font='11px system-ui';
+    const wordStr=wordsFoundList.slice(-15).join(', ');
+    ctx.fillText(wordStr,W/2,ly);
+  }
+
+  // Buttons
+  if(resultTime>0.5){
+    const bw=Math.min(260,W*0.65);
+    const bx=W/2-bw/2;
+    const by1=H*0.7;
+
+    drawRoundRect(bx,by1,bw,45,12);
+    const g1=ctx.createLinearGradient(bx,by1,bx+bw,by1+45);
+    g1.addColorStop(0,CLR.accent);g1.addColorStop(1,CLR.accent2);
+    ctx.fillStyle=g1;ctx.fill();
+    ctx.fillStyle='#fff';ctx.font='bold 15px system-ui';ctx.textAlign='center';
+    ctx.fillText(t.playAgain,W/2,by1+22);
+
+    drawRoundRect(bx,by1+55,bw,45,12);
+    ctx.fillStyle='#222';ctx.fill();
+    ctx.fillStyle=CLR.textDim;ctx.font='bold 14px system-ui';
+    ctx.fillText(t.home,W/2,by1+77);
+  }
+
+  ctx.restore();
+}
+
+/* ─── Update ─── */
+function update(dt){
+  // Particles
+  particles=particles.filter(p=>{
+    p.x+=p.vx;p.y+=p.vy;p.vy+=0.08;
+    p.life-=p.decay;
+    return p.life>0;
+  });
+
+  // Popups
+  popups=popups.filter(p=>{
+    p.y+=p.vy;p.life-=dt*1.5;
+    return p.life>0;
+  });
+
+  // Banners
+  banners=banners.filter(b=>{
+    b.t+=dt;b.life-=dt*0.6;
+    return b.life>0;
+  });
+
+  // Screen shake
+  if(shakeMag>0)shakeMag*=0.9;
+  if(shakeMag<0.1)shakeMag=0;
+
+  // Special anims
+  specialAnims=specialAnims.filter(a=>{a.t+=dt;return a.t<2;});
+
+  if(phase!=='play')return;
+
+  // Combo timer
+  if(comboTimer>0){
+    comboTimer-=dt*1000;
+    if(comboTimer<=0){combo=0;comboTimer=0;}
+  }
+
+  // Rush timer
+  if(mode==='rush'){
+    rushTimer-=dt;
+    if(rushTimer<=0){rushTimer=0;endGame();}
+  }
+
+  // Hint timer
+  if(hintTimer>0){
+    hintTimer-=dt*1000;
+    if(hintTimer<=0){hintPath=null;hintTimer=0;}
+  }
+
+  // Tile animations
+  for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
+    const tile=grid[r]&&grid[r][c];
+    if(!tile)continue;
+    // Falling
+    if(tile.y!==tile.targetY){
+      tile.y+=(tile.targetY-tile.y)*0.18;
+      if(Math.abs(tile.y-tile.targetY)<0.5)tile.y=tile.targetY;
+    }
+    // Scale
+    if(tile.scale<1){tile.scale+=(1-tile.scale)*0.12;if(tile.scale>0.99)tile.scale=1;}
+    // Glow
+    if(tile.glow>0)tile.glow*=0.97;
+    // Shake
+    if(tile.shake>0)tile.shake-=dt*15;
+    if(tile.shake<0)tile.shake=0;
+  }
+}
+
+/* ─── Main Loop ─── */
+function frame(ts){
+  const dt=Math.min((ts-lastTime)/1000,0.05);
+  lastTime=ts;
+
+  update(dt);
+
+  // Apply screen shake
+  ctx.save();
+  if(shakeMag>0){
+    ctx.translate(Math.random()*shakeMag-shakeMag/2,Math.random()*shakeMag-shakeMag/2);
+  }
+
+  if(phase==='menu'){
+    drawMenu(dt);
+  }else if(phase==='result'){
+    drawResult(dt);
+  }else{
+    // Game screen (play or paused)
+    ctx.fillStyle=CLR.bg;ctx.fillRect(0,0,W,H);
+
+    // Grid background
+    drawRoundRect(GX-4,GY-4,GW+8,GH+8,12);
+    ctx.fillStyle='rgba(18,18,31,0.5)';ctx.fill();
+
+    // Tiles
+    for(let r=0;r<GRID;r++)for(let c=0;c<GRID;c++){
+      drawTile(grid[r]&&grid[r][c],r,c);
+    }
+
+    // Path
+    drawPath();
+
+    // Word preview
+    drawWordPreview();
+
+    // Particles
+    drawParticles();
+
+    // Popups
+    drawPopups();
+
+    // HUD
+    drawHUD();
+
+    // Banners
+    drawBanners();
+
+    // Pause overlay
+    if(phase==='paused')drawPauseOverlay();
+  }
+
+  ctx.restore();
+  requestAnimationFrame(frame);
+}
+
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
