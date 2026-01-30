@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>Screw Sort Factory</title>
+    <meta property="og:title" content="Screw Sort Factory">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://eastsea.monster/games/screw-sort/">
+    <meta property="og:description" content="Sort colorful screws into matching slots! Build your factory empire. Free HTML5 puzzle game.">
+    <meta property="og:site_name" content="East Sea Games">
+    <meta name="description" content="Screw Sort Factory - Sort colorful screws and build your factory. Free browser puzzle game, no download.">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="/games/tg-sdk-wrapper.js?v=2"></script>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--tg-bg,#0d1117);color:var(--tg-text,#fff);overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+        #app{width:100vw;height:calc(var(--tg-viewport-height,100vh));display:flex;flex-direction:column;align-items:center;position:relative}
+        .screen{display:none;width:100%;max-width:500px;height:100%;flex-direction:column;align-items:center;padding:12px}
+        .screen.active{display:flex}
+
+        /* BUTTONS */
+        .btn{padding:14px 28px;border:none;border-radius:14px;font-size:1rem;font-weight:600;cursor:pointer;transition:transform .15s,opacity .15s;display:flex;align-items:center;justify-content:center;gap:6px;min-height:48px}
+        .btn:active{transform:scale(.95);opacity:.85}
+        .btn:disabled{opacity:.4;pointer-events:none}
+        .btn-primary{background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;box-shadow:0 4px 15px rgba(245,158,11,.3)}
+        .btn-secondary{background:rgba(255,255,255,.1);color:var(--tg-text,#fff);border:1px solid rgba(255,255,255,.15)}
+        .btn-accent{background:linear-gradient(135deg,#10b981,#059669);color:#fff}
+        .btn-icon{width:40px;height:40px;border:none;border-radius:10px;background:rgba(255,255,255,.1);color:var(--tg-text,#fff);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s}
+        .btn-icon:active{transform:scale(.9)}
+
+        /* MENU */
+        #screen-menu{justify-content:center;gap:12px;text-align:center}
+        .logo{font-size:64px;line-height:1;margin-bottom:4px;filter:drop-shadow(0 4px 20px rgba(245,158,11,.4));animation:logoBob 3s ease-in-out infinite}
+        @keyframes logoBob{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(5deg)}}
+        #screen-menu h1{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,#f59e0b,#ef4444);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .subtitle{color:var(--tg-hint,#888);font-size:.9rem;margin-bottom:12px}
+        .menu-buttons{display:flex;flex-direction:column;gap:10px;width:100%;max-width:260px}
+        .menu-info{display:flex;gap:20px;justify-content:center;margin-top:12px;font-size:.95rem;color:var(--tg-hint,#aaa)}
+
+        /* GAME SCREEN */
+        #screen-game{padding-top:8px;gap:0}
+        .game-header{display:flex;align-items:center;width:100%;gap:8px;padding-bottom:6px}
+        .game-info{flex:1;font-size:1rem;font-weight:700}
+        .game-stats{display:flex;gap:10px;font-size:.85rem;color:var(--tg-hint,#aaa)}
+        .game-stats span{display:flex;align-items:center;gap:2px}
+
+        /* BOARD AREA */
+        .board-container{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:0;position:relative;overflow:hidden}
+        .board{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:8px;max-width:100%}
+
+        /* SCREW */
+        .screw{position:relative;width:52px;height:52px;cursor:pointer;transition:transform .2s cubic-bezier(.34,1.56,.64,1),opacity .3s;display:flex;align-items:center;justify-content:center}
+        .screw:active{transform:scale(.9)}
+        .screw.selected{transform:scale(1.15);z-index:10}
+        .screw.locked .screw-body{opacity:.6}
+        .screw.rusty .screw-body{filter:sepia(.8) brightness(.7)}
+        .screw.chained .screw-body{opacity:.7}
+        .screw.removing{animation:screwOut .5s cubic-bezier(.55,.06,.68,.19) forwards}
+        .screw-body{width:40px;height:40px;border-radius:50%;position:relative;display:flex;align-items:center;justify-content:center;transition:transform .4s cubic-bezier(.34,1.56,.64,1);box-shadow:0 3px 10px rgba(0,0,0,.3)}
+        .screw-head{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;position:absolute}
+        .screw-slot{width:20px;height:3px;background:rgba(0,0,0,.3);border-radius:2px;position:absolute}
+        .screw-slot2{width:3px;height:20px;background:rgba(0,0,0,.3);border-radius:2px;position:absolute}
+        .screw-label{position:absolute;bottom:-2px;right:-2px;font-size:10px;font-weight:700;background:rgba(0,0,0,.6);border-radius:4px;padding:1px 3px;line-height:1;pointer-events:none}
+        .screw-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;pointer-events:none;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+        @keyframes screwOut{0%{transform:scale(1) rotate(0deg);opacity:1}100%{transform:scale(0) rotate(360deg);opacity:0}}
+        @keyframes screwSpin{0%{transform:rotate(0deg)}100%{transform:rotate(720deg)}}
+        .screw.spinning .screw-body{animation:screwSpin .5s cubic-bezier(.34,1.56,.64,1)}
+
+        /* SLOTS */
+        .slots-area{width:100%;padding:8px 0}
+        .slots-row{display:flex;justify-content:center;gap:6px;flex-wrap:wrap}
+        .slot{width:48px;height:48px;border-radius:14px;border:2px dashed rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;transition:all .3s;position:relative;background:rgba(255,255,255,.03)}
+        .slot.filled{border-style:solid;border-color:rgba(255,255,255,.1)}
+        .slot.clearing{animation:slotClear .6s ease forwards}
+        .slot-screw{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;animation:slotIn .4s cubic-bezier(.34,1.56,.64,1)}
+        .slot-head{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.15);position:absolute}
+        .slot-cross1{width:16px;height:2px;background:rgba(0,0,0,.3);border-radius:1px;position:absolute}
+        .slot-cross2{width:2px;height:16px;background:rgba(0,0,0,.3);border-radius:1px;position:absolute}
+        .slot-count{position:absolute;top:-6px;right:-6px;background:#f59e0b;color:#000;font-size:10px;font-weight:700;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center}
+        @keyframes slotIn{0%{transform:scale(0) rotate(-180deg)}100%{transform:scale(1) rotate(0deg)}}
+        @keyframes slotClear{0%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:1}100%{transform:scale(0);opacity:0}}
+
+        /* GAME CONTROLS */
+        .game-controls{display:flex;gap:6px;padding:8px 0 4px;width:100%}
+        .btn-control{flex:1;padding:10px 4px;border:none;border-radius:12px;background:rgba(255,255,255,.08);color:var(--tg-text,#fff);font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:3px;min-height:42px;transition:transform .15s,opacity .15s}
+        .btn-control:active{transform:scale(.95);opacity:.8}
+        .btn-control:disabled{opacity:.3;pointer-events:none}
+
+        /* FACTORY SCREEN */
+        #screen-factory{padding-top:12px}
+        .factory-header{display:flex;align-items:center;width:100%;gap:8px;margin-bottom:12px}
+        .factory-header h2{flex:1;font-size:1.1rem}
+        .factory-currency{display:flex;gap:12px;font-size:.9rem}
+        .factory-grid{flex:1;width:100%;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding-bottom:60px;align-content:start}
+        .factory-card{background:rgba(255,255,255,.06);border-radius:14px;padding:14px;text-align:center;border:1px solid rgba(255,255,255,.08);transition:transform .15s}
+        .factory-card:active{transform:scale(.97)}
+        .factory-card.locked{opacity:.4}
+        .factory-card .f-icon{font-size:2rem;margin-bottom:6px}
+        .factory-card .f-name{font-size:.85rem;font-weight:600;margin-bottom:4px}
+        .factory-card .f-desc{font-size:.7rem;color:var(--tg-hint,#888);margin-bottom:8px;line-height:1.3}
+        .factory-card .f-level{font-size:.75rem;color:#f59e0b;font-weight:600;margin-bottom:6px}
+        .factory-card .f-btn{padding:8px 12px;border:none;border-radius:8px;font-size:.75rem;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;transition:transform .15s}
+        .factory-card .f-btn:active{transform:scale(.95)}
+        .factory-card .f-btn:disabled{opacity:.4;pointer-events:none}
+
+        /* MISSIONS SCREEN */
+        #screen-missions{padding-top:12px}
+        .missions-list{flex:1;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-bottom:60px}
+        .mission-card{background:rgba(255,255,255,.06);border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.08)}
+        .mission-card.completed{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.08)}
+        .mission-icon{font-size:1.5rem;flex-shrink:0}
+        .mission-info{flex:1}
+        .mission-name{font-size:.85rem;font-weight:600;margin-bottom:2px}
+        .mission-desc{font-size:.7rem;color:var(--tg-hint,#888)}
+        .mission-progress{width:100%;height:4px;background:rgba(255,255,255,.1);border-radius:2px;margin-top:4px;overflow:hidden}
+        .mission-progress-bar{height:100%;background:#f59e0b;border-radius:2px;transition:width .3s}
+        .mission-reward{font-size:.8rem;font-weight:700;color:#f59e0b;flex-shrink:0}
+
+        /* SETTINGS */
+        #screen-settings{padding-top:12px}
+        .settings-list{flex:1;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-bottom:60px}
+        .setting-row{background:rgba(255,255,255,.06);border-radius:12px;padding:14px;display:flex;align-items:center;gap:10px}
+        .setting-row .s-label{flex:1;font-size:.9rem;font-weight:500}
+        .toggle{width:48px;height:28px;border-radius:14px;background:rgba(255,255,255,.15);position:relative;cursor:pointer;transition:background .3s;border:none}
+        .toggle.on{background:#10b981}
+        .toggle::after{content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .3s}
+        .toggle.on::after{transform:translateX(20px)}
+
+        /* MODAL */
+        .modal{display:none;position:fixed;inset:0;z-index:1000;align-items:center;justify-content:center}
+        .modal.show{display:flex}
+        .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+        .modal-content{position:relative;background:var(--tg-secondary-bg,#161b22);border-radius:20px;padding:28px 22px;text-align:center;min-width:280px;max-width:340px;width:85%;box-shadow:0 20px 60px rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.1);transform:scale(.9);opacity:0;transition:transform .35s cubic-bezier(.34,1.56,.64,1),opacity .25s}
+        .modal.show .modal-content{transform:scale(1);opacity:1}
+        .modal-content h2{font-size:1.5rem;margin-bottom:12px}
+        .modal-stars{font-size:2.5rem;margin-bottom:12px;letter-spacing:4px}
+        .modal-stars .star{display:inline-block;transition:transform .4s cubic-bezier(.34,1.56,.64,1);opacity:.3}
+        .modal-stars .star.earned{opacity:1;animation:starPop .5s cubic-bezier(.34,1.56,.64,1)}
+        @keyframes starPop{0%{transform:scale(0) rotate(-30deg)}60%{transform:scale(1.3) rotate(10deg)}100%{transform:scale(1) rotate(0)}}
+        .modal-stats{display:flex;justify-content:center;gap:28px;margin-bottom:10px}
+        .stat{text-align:center}
+        .stat-value{font-size:1.6rem;font-weight:800;color:#f59e0b}
+        .stat-label{font-size:.7rem;color:var(--tg-hint,#888);text-transform:uppercase;letter-spacing:1px}
+        .modal-reward{font-size:1rem;color:#ffd700;font-weight:600;margin-bottom:14px}
+        .modal-buttons{display:flex;flex-direction:column;gap:8px}
+
+        /* TOAST */
+        .toast{position:fixed;bottom:100px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(0,0,0,.85);color:#fff;padding:10px 20px;border-radius:10px;font-size:.9rem;opacity:0;transition:opacity .3s,transform .3s;z-index:2000;pointer-events:none;white-space:nowrap}
+        .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+        /* PARTICLES */
+        .particle{position:fixed;pointer-events:none;z-index:999;border-radius:50%}
+
+        /* CLEAR BURST */
+        @keyframes clearBurst{0%{transform:scale(0);opacity:1}50%{transform:scale(1.5);opacity:.8}100%{transform:scale(2);opacity:0}}
+        .clear-burst{position:absolute;border-radius:50%;animation:clearBurst .6s ease-out forwards;pointer-events:none;z-index:100}
+
+        /* TUTORIAL */
+        .tutorial-overlay{position:fixed;inset:0;z-index:900;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7)}
+        .tutorial-card{background:var(--tg-secondary-bg,#161b22);border-radius:16px;padding:24px;text-align:center;max-width:300px;width:85%}
+        .tutorial-card h3{font-size:1.2rem;margin-bottom:8px}
+        .tutorial-card p{font-size:.85rem;color:var(--tg-hint,#aaa);line-height:1.5;margin-bottom:14px}
+        .tutorial-card .tut-icon{font-size:3rem;margin-bottom:8px}
+
+        /* BOTTOM NAV */
+        .bottom-nav{display:flex;width:100%;max-width:500px;border-top:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.3);position:absolute;bottom:0;left:50%;transform:translateX(-50%)}
+        .nav-btn{flex:1;padding:8px 0 6px;border:none;background:none;color:var(--tg-hint,#888);font-size:.65rem;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;transition:color .2s}
+        .nav-btn.active{color:#f59e0b}
+        .nav-btn .nav-icon{font-size:1.2rem}
+
+        /* ACCESSIBILITY - Color blind patterns */
+        .cb-pattern{position:absolute;inset:0;border-radius:50%;opacity:.3;pointer-events:none}
+    </style>
+    <script type="application/ld+json">
+    {
+      "@context":"https://schema.org","@type":"VideoGame",
+      "name":"Screw Sort Factory",
+      "url":"https://eastsea.monster/games/screw-sort/",
+      "description":"Sort colorful screws into matching slots and build your factory! Free HTML5 puzzle game with 100+ levels.",
+      "gamePlatform":["Web Browser","Mobile Browser"],
+      "applicationCategory":"Game","genre":"Puzzle",
+      "operatingSystem":"Any","inLanguage":["ko","en"],
+      "playMode":"SinglePlayer",
+      "offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},
+      "author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}
+    }
+    </script>
+</head>
+<body>
+<div id="app">
+    <!-- MENU -->
+    <div id="screen-menu" class="screen active">
+        <div class="logo">🔩</div>
+        <h1 id="menu-title">Screw Sort Factory</h1>
+        <p class="subtitle" id="menu-sub"></p>
+        <div class="menu-buttons">
+            <button class="btn btn-primary" id="btn-play">▶ <span id="t-play"></span></button>
+            <button class="btn btn-secondary" id="btn-factory-menu">🏭 <span id="t-factory"></span></button>
+            <button class="btn btn-secondary" id="btn-missions-menu">📋 <span id="t-missions"></span></button>
+        </div>
+        <div class="menu-info">
+            <span>🔩 <span id="menu-bolts">0</span></span>
+            <span>⭐ <span id="menu-stars">0</span></span>
+            <span>📊 Lv.<span id="menu-level">1</span></span>
+        </div>
+    </div>
+
+    <!-- GAME -->
+    <div id="screen-game" class="screen">
+        <div class="game-header">
+            <button class="btn-icon" id="btn-game-back">←</button>
+            <div class="game-info">Lv.<span id="game-level">1</span></div>
+            <div class="game-stats">
+                <span>🎯<span id="game-moves">0</span></span>
+                <span>🔩<span id="game-bolts">0</span></span>
+            </div>
+        </div>
+        <div class="board-container">
+            <div class="board" id="game-board"></div>
+        </div>
+        <div class="slots-area">
+            <div class="slots-row" id="game-slots"></div>
+        </div>
+        <div class="game-controls">
+            <button class="btn-control" id="btn-undo" disabled>↩️ <span id="t-undo"></span></button>
+            <button class="btn-control" id="btn-restart">🔄 <span id="t-restart"></span></button>
+            <button class="btn-control" id="btn-hint">💡 <span id="t-hint"></span></button>
+        </div>
+    </div>
+
+    <!-- FACTORY -->
+    <div id="screen-factory" class="screen">
+        <div class="factory-header">
+            <button class="btn-icon" id="btn-factory-back">←</button>
+            <h2 id="factory-title">🏭</h2>
+            <div class="factory-currency">
+                <span>🔩 <span id="factory-bolts">0</span></span>
+            </div>
+        </div>
+        <div class="factory-grid" id="factory-grid"></div>
+    </div>
+
+    <!-- MISSIONS -->
+    <div id="screen-missions" class="screen">
+        <div class="factory-header">
+            <button class="btn-icon" id="btn-missions-back">←</button>
+            <h2 id="missions-title">📋</h2>
+        </div>
+        <div class="missions-list" id="missions-list"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div id="screen-settings" class="screen">
+        <div class="factory-header">
+            <button class="btn-icon" id="btn-settings-back">←</button>
+            <h2>⚙️ <span id="t-settings-title"></span></h2>
+        </div>
+        <div class="settings-list" id="settings-list"></div>
+    </div>
+</div>
+
+<!-- WIN MODAL -->
+<div id="modal-win" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+        <h2 id="win-title">🎉</h2>
+        <div class="modal-stars" id="win-stars"></div>
+        <div class="modal-stats">
+            <div class="stat"><div class="stat-value" id="win-moves">0</div><div class="stat-label" id="wl-moves"></div></div>
+            <div class="stat"><div class="stat-value" id="win-screws">0</div><div class="stat-label" id="wl-screws"></div></div>
+        </div>
+        <div class="modal-reward">🔩 +<span id="win-reward">10</span></div>
+        <div class="modal-buttons">
+            <button class="btn btn-primary" id="btn-next">▶ <span id="t-next"></span></button>
+            <button class="btn btn-secondary" id="btn-win-replay">🔄 <span id="t-wreplay"></span></button>
+            <button class="btn btn-secondary" id="btn-win-home">🏠 <span id="t-whome"></span></button>
+        </div>
+    </div>
+</div>
+
+<!-- FAIL MODAL -->
+<div id="modal-fail" class="modal">
+    <div class="modal-backdrop"></div>
+    <div class="modal-content">
+        <h2 id="fail-title">😵</h2>
+        <p id="fail-msg" style="color:var(--tg-hint,#aaa);margin-bottom:16px;font-size:.9rem"></p>
+        <div class="modal-buttons">
+            <button class="btn btn-primary" id="btn-fail-retry">🔄 <span id="t-retry"></span></button>
+            <button class="btn btn-secondary" id="btn-fail-home">🏠 <span id="t-fhome"></span></button>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════
+// I18N
+// ══════════════════════════════════════
+const LANG=(()=>{try{const l=window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code;if(l&&l.startsWith('ko'))return'ko'}catch(e){}return(navigator.language||'en').startsWith('ko')?'ko':'en'})();
+document.documentElement.lang=LANG;
+
+const S={
+    play:['Play','플레이'],
+    factory:['Factory','팩토리'],
+    missions:['Missions','미션'],
+    settings:['Settings','설정'],
+    subtitle:['Sort screws by color!','색상별로 나사를 정렬하세요!'],
+    undo:['Undo','되돌리기'],
+    restart:['Restart','재시작'],
+    hint:['Hint','힌트'],
+    next:['Next Level','다음 레벨'],
+    replay:['Replay','다시하기'],
+    home:['Home','홈'],
+    retry:['Retry','재시도'],
+    complete:['🎉 Level Clear!','🎉 레벨 클리어!'],
+    failed:['Slots Full!','슬롯이 가득 찼습니다!'],
+    failMsg:['Different colors filled all slots. Try again!','다른 색이 슬롯을 모두 채웠습니다. 다시 도전하세요!'],
+    moves:['Moves','이동'],
+    screws:['Screws','나사'],
+    hintUsed:['Hint: Tap the glowing screw!','힌트: 빛나는 나사를 탭하세요!'],
+    noHint:['No hints available','힌트를 사용할 수 없습니다'],
+    sound:['Sound','소리'],
+    vibration:['Vibration','진동'],
+    colorBlind:['Color Blind Mode','색맹 모드'],
+    resetData:['Reset Data','데이터 초기화'],
+    resetConfirm:['Reset all progress?','모든 진행 상황을 초기화할까요?'],
+    tutorial1:['Tap a screw to move it to a slot below','나사를 탭하면 아래 슬롯으로 이동합니다'],
+    tutorial2:['Match 3 same-color screws to clear them!','같은 색 나사 3개가 모이면 클리어!'],
+    tutorial3:['Clear all screws to win the level','모든 나사를 클리어하면 레벨 완료!'],
+    factoryTitle:['Factory','팩토리'],
+    missionsTitle:['Daily Missions','일일 미션'],
+    upgrade:['Upgrade','업그레이드'],
+    build:['Build','건설'],
+    locked:['Locked','잠김'],
+    collect:['Collect','수집'],
+    idle:['Idle Income','자동 수입'],
+    mClrN:['Clear {n} levels','레벨 {n}개 클리어'],
+    mPerfN:['Perfect clear {n} levels','완벽 클리어 {n}개'],
+    mCombo:['Get {n} combos','콤보 {n}번 달성'],
+    mScrews:['Sort {n} screws','나사 {n}개 정렬'],
+};
+const T=k=>S[k]?S[k][LANG==='ko'?1:0]:k;
+
+// ══════════════════════════════════════
+// SCREW COLORS (with CB patterns)
+// ══════════════════════════════════════
+const SCREW_COLORS=[
+    {fill:'#ef4444',name:'Red',    pattern:'●', label:'R'},
+    {fill:'#3b82f6',name:'Blue',   pattern:'■', label:'B'},
+    {fill:'#22c55e',name:'Green',  pattern:'▲', label:'G'},
+    {fill:'#eab308',name:'Yellow', pattern:'◆', label:'Y'},
+    {fill:'#a855f7',name:'Purple', pattern:'★', label:'P'},
+    {fill:'#f97316',name:'Orange', pattern:'✦', label:'O'},
+    {fill:'#ec4899',name:'Pink',   pattern:'♥', label:'K'},
+    {fill:'#06b6d4',name:'Cyan',   pattern:'◎', label:'C'},
+];
+
+// ══════════════════════════════════════
+// BALANCE
+// ══════════════════════════════════════
+const BAL={
+    baseScrews:6,
+    screwInc:0.15,
+    colorsPerTier:[2,3,4,5,6],
+    tierLevels:[1,11,31,61,81],
+    maxSlots:5,
+    slotsPerTier:[3,4,4,5,5],
+    matchCount:3,
+    boltsPerLevel:10,
+    comboMult:1.5,
+    perfectBonus:2.0,
+    lockedStart:31,
+    rustyStart:45,
+    chainStart:61,
+    hintCost:0,
+    undoMax:3,
+};
+
+// ══════════════════════════════════════
+// FACTORY BUILDINGS
+// ══════════════════════════════════════
+const BUILDINGS=[
+    {id:'collector', icon:'📦', nameK:'나사 수집소',       nameE:'Screw Collector',   descK:'볼트 보너스 +10%',         descE:'Bolt bonus +10%',        unlock:1,  baseCost:50,  mult:1.8, maxLv:5, effect:'boltBonus',  val:0.1},
+    {id:'conveyor',  icon:'🏗️',nameK:'분류 컨베이어',     nameE:'Sort Conveyor',     descK:'일일 무료 힌트 +1',        descE:'Daily free hint +1',     unlock:20, baseCost:100, mult:2.0, maxLv:3, effect:'freeHint',   val:1},
+    {id:'assembler', icon:'⚙️',nameK:'조립 라인',         nameE:'Assembly Line',     descK:'콤보 보너스 +20%',         descE:'Combo bonus +20%',       unlock:40, baseCost:200, mult:2.0, maxLv:5, effect:'comboBonus', val:0.2},
+    {id:'robotArm',  icon:'🤖', nameK:'로봇 팔',          nameE:'Robot Arm',         descK:'무료 되돌리기 +2',         descE:'Free undo +2',           unlock:60, baseCost:300, mult:2.0, maxLv:3, effect:'freeUndo',   val:2},
+    {id:'spaceDock', icon:'🚀', nameK:'우주선 독',         nameE:'Space Dock',        descK:'모든 보너스 2배',          descE:'All bonuses x2',         unlock:80, baseCost:500, mult:2.5, maxLv:3, effect:'doubleAll',  val:1},
+    {id:'idleGen',   icon:'💰', nameK:'자동 생산기',       nameE:'Auto Generator',    descK:'분당 볼트 자동 생산',      descE:'Idle bolts per minute',  unlock:10, baseCost:80,  mult:1.5, maxLv:10,effect:'idleBolts',  val:1},
+];
+
+// ══════════════════════════════════════
+// SEEDED RNG
+// ══════════════════════════════════════
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+// ══════════════════════════════════════
+// GAME STATE
+// ══════════════════════════════════════
+const state={
+    screen:'menu',
+    level:1,
+    bolts:0,
+    totalStars:0,
+    levelStars:{},
+    bestMoves:{},
+    // Current game
+    board:[],       // [{color, type:'normal'|'locked'|'rusty'|'chained', chainId, rustyHits}]
+    slots:[],       // [{color}|null]
+    slotCount:3,
+    moves:0,
+    history:[],
+    hintUsed:false,
+    combo:0,
+    totalCleared:0,
+    // Factory
+    buildings:{},   // {id: level}
+    lastIdleCollect:Date.now(),
+    // Missions
+    dailyMissions:[],
+    dailyDate:'',
+    missionProgress:{},
+    // Stats
+    totalLevelsCleared:0,
+    totalPerfect:0,
+    totalCombos:0,
+    totalScrewsSorted:0,
+    // Settings
+    sound:true,
+    vibration:true,
+    colorBlind:false,
+    tutorialDone:false,
+};
+
+// ══════════════════════════════════════
+// SAVE/LOAD
+// ══════════════════════════════════════
+const SAVE_KEY='screwsort_save';
+function saveGame(){
+    try{
+        const d={
+            level:state.level,bolts:state.bolts,totalStars:state.totalStars,
+            levelStars:state.levelStars,bestMoves:state.bestMoves,
+            buildings:state.buildings,lastIdleCollect:state.lastIdleCollect,
+            dailyMissions:state.dailyMissions,dailyDate:state.dailyDate,
+            missionProgress:state.missionProgress,
+            totalLevelsCleared:state.totalLevelsCleared,totalPerfect:state.totalPerfect,
+            totalCombos:state.totalCombos,totalScrewsSorted:state.totalScrewsSorted,
+            sound:state.sound,vibration:state.vibration,colorBlind:state.colorBlind,
+            tutorialDone:state.tutorialDone,
+        };
+        if(window.TG&&TG.isReady){TG.save(SAVE_KEY,d)}
+        else{localStorage.setItem(SAVE_KEY,JSON.stringify(d))}
+    }catch(e){console.warn('Save error:',e)}
+}
+
+function loadGame(){
+    try{
+        let d;
+        if(window.TG&&TG.isReady){d=TG.load(SAVE_KEY)}
+        else{const r=localStorage.getItem(SAVE_KEY);if(r)d=JSON.parse(r)}
+        if(d){Object.assign(state,d)}
+    }catch(e){console.warn('Load error:',e)}
+}
+
+// ══════════════════════════════════════
+// AUDIO (minimal Web Audio beeps)
+// ══════════════════════════════════════
+let audioCtx=null;
+function getAudio(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx}
+function playTone(freq,dur=.1,type='sine',vol=.15){
+    if(!state.sound)return;
+    try{
+        const ctx=getAudio();const o=ctx.createOscillator();const g=ctx.createGain();
+        o.type=type;o.frequency.value=freq;g.gain.value=vol;
+        g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+dur);
+        o.connect(g);g.connect(ctx.destination);o.start();o.stop(ctx.currentTime+dur);
+    }catch(e){}
+}
+function sfxTap(){playTone(800,.08)}
+function sfxPlace(){playTone(600,.12,'triangle')}
+function sfxClear(){playTone(1200,.15);setTimeout(()=>playTone(1500,.15),100);setTimeout(()=>playTone(1800,.2),200)}
+function sfxWin(){playTone(800,.1);setTimeout(()=>playTone(1000,.1),100);setTimeout(()=>playTone(1200,.1),200);setTimeout(()=>playTone(1600,.3),300)}
+function sfxFail(){playTone(300,.2,'sawtooth');setTimeout(()=>playTone(200,.3,'sawtooth'),150)}
+function sfxCombo(){playTone(1000,.1);setTimeout(()=>playTone(1400,.15),80)}
+
+function haptic(t='impact',s='medium'){
+    if(!state.vibration)return;
+    if(window.TG)TG.haptic(t,s);
+    else if(navigator.vibrate)navigator.vibrate(t==='impact'?[10]:[5]);
+}
+
+// ══════════════════════════════════════
+// LEVEL GENERATION
+// ══════════════════════════════════════
+function getTier(lv){
+    for(let i=BAL.tierLevels.length-1;i>=0;i--){if(lv>=BAL.tierLevels[i])return i}
+    return 0;
+}
+
+function generateLevel(lv){
+    const rng=mulberry32(lv*7919+42);
+    const tier=getTier(lv);
+    const numColors=BAL.colorsPerTier[tier];
+    const slotCount=BAL.slotsPerTier[tier];
+    const baseCount=Math.floor(BAL.baseScrews+lv*BAL.screwInc);
+    const screwsPerColor=BAL.matchCount;
+    const totalScrews=numColors*screwsPerColor;
+
+    // Create screws
+    const screws=[];
+    for(let c=0;c<numColors;c++){
+        for(let i=0;i<screwsPerColor;i++){
+            const s={color:c,type:'normal',rustyHits:0,chainId:-1};
+            // Special types
+            if(lv>=BAL.lockedStart&&rng()<.15&&screws.length>2){s.type='locked'}
+            if(lv>=BAL.rustyStart&&rng()<.12){s.type='rusty';s.rustyHits=2}
+            if(lv>=BAL.chainStart&&rng()<.1){s.type='chained';s.chainId=Math.floor(rng()*2)}
+            screws.push(s);
+        }
+    }
+
+    // Shuffle (Fisher-Yates)
+    for(let i=screws.length-1;i>0;i--){
+        const j=Math.floor(rng()*(i+1));
+        [screws[i],screws[j]]=[screws[j],screws[i]];
+    }
+
+    // Verify solvability: ensure at least matchCount per color exist
+    // (always true by construction)
+
+    return {screws,slotCount,numColors};
+}
+
+// ══════════════════════════════════════
+// SCREEN MANAGEMENT
+// ══════════════════════════════════════
+function showScreen(name){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    const el=document.getElementById('screen-'+name);
+    if(el)el.classList.add('active');
+    state.screen=name;
+}
+
+// ══════════════════════════════════════
+// RENDER BOARD
+// ══════════════════════════════════════
+function renderBoard(){
+    const board=document.getElementById('game-board');
+    board.innerHTML='';
+    
+    // Calculate screw size based on count
+    const count=state.board.length;
+    const containerW=board.parentElement.clientWidth-16;
+    const cols=count<=6?3:count<=9?3:count<=12?4:count<=16?4:5;
+    const maxW=Math.min(56,Math.floor((containerW-cols*8)/cols));
+    
+    state.board.forEach((s,i)=>{
+        if(!s)return; // cleared
+        const el=document.createElement('div');
+        el.className='screw';
+        if(s.type==='locked')el.classList.add('locked');
+        if(s.type==='rusty')el.classList.add('rusty');
+        if(s.type==='chained')el.classList.add('chained');
+        el.style.width=maxW+'px';
+        el.style.height=maxW+'px';
+        el.dataset.idx=i;
+
+        const col=SCREW_COLORS[s.color];
+        const bodySize=Math.floor(maxW*.77);
+        const headSize=Math.floor(maxW*.54);
+        const slotW=Math.floor(maxW*.38);
+
+        el.innerHTML=`
+            <div class="screw-body" style="width:${bodySize}px;height:${bodySize}px;background:${col.fill};box-shadow:0 3px 10px ${col.fill}44,inset 0 -2px 4px rgba(0,0,0,.2),inset 0 2px 4px rgba(255,255,255,.2)">
+                <div class="screw-head" style="width:${headSize}px;height:${headSize}px"></div>
+                <div class="screw-slot" style="width:${slotW}px"></div>
+                <div class="screw-slot2" style="height:${slotW}px"></div>
+                ${state.colorBlind?`<span class="screw-label" style="color:${col.fill}">${col.label}</span>`:''}
+            </div>
+            ${s.type==='locked'?'<div class="screw-overlay">🔒</div>':''}
+            ${s.type==='rusty'?`<div class="screw-overlay" style="font-size:12px">${s.rustyHits>0?'🟫':''}</div>`:''}
+            ${s.type==='chained'?'<div class="screw-overlay">⛓️</div>':''}
+        `;
+
+        el.addEventListener('click',()=>onScrewTap(i));
+        el.addEventListener('touchend',(e)=>{e.preventDefault();onScrewTap(i)});
+        board.appendChild(el);
+    });
+}
+
+function renderSlots(){
+    const container=document.getElementById('game-slots');
+    container.innerHTML='';
+    
+    for(let i=0;i<state.slotCount;i++){
+        const el=document.createElement('div');
+        el.className='slot';
+        const s=state.slots[i];
+        if(s){
+            el.classList.add('filled');
+            const col=SCREW_COLORS[s.color];
+            el.innerHTML=`
+                <div class="slot-screw" style="background:${col.fill};box-shadow:0 2px 8px ${col.fill}44,inset 0 -2px 3px rgba(0,0,0,.2),inset 0 2px 3px rgba(255,255,255,.2)">
+                    <div class="slot-head"></div>
+                    <div class="slot-cross1"></div>
+                    <div class="slot-cross2"></div>
+                    ${state.colorBlind?`<span style="position:absolute;font-size:9px;font-weight:700;color:#000">${SCREW_COLORS[s.color].label}</span>`:''}
+                </div>
+            `;
+        }
+        container.appendChild(el);
+    }
+
+    // Show match indicators
+    updateSlotCounts();
+}
+
+function updateSlotCounts(){
+    const counts={};
+    state.slots.forEach(s=>{if(s)counts[s.color]=(counts[s.color]||0)+1});
+    // Could show count badges, but we handle matching in logic
+}
+
+function updateStats(){
+    const el=n=>document.getElementById(n);
+    el('game-moves').textContent=state.moves;
+    el('game-bolts').textContent=state.bolts;
+    el('game-level').textContent=state.level;
+    el('menu-bolts').textContent=state.bolts;
+    el('menu-stars').textContent=state.totalStars;
+    el('menu-level').textContent=state.level;
+    el('factory-bolts').textContent=state.bolts;
+
+    // Undo button
+    document.getElementById('btn-undo').disabled=state.history.length===0;
+}
+
+// ══════════════════════════════════════
+// GAME LOGIC
+// ══════════════════════════════════════
+function startLevel(lv){
+    state.level=lv;
+    const gen=generateLevel(lv);
+    state.board=gen.screws;
+    state.slotCount=gen.slotCount;
+    state.slots=new Array(gen.slotCount).fill(null);
+    state.moves=0;
+    state.history=[];
+    state.hintUsed=false;
+    state.combo=0;
+    state.totalCleared=0;
+
+    showScreen('game');
+    renderBoard();
+    renderSlots();
+    updateStats();
+
+    // Tutorial for level 1
+    if(!state.tutorialDone&&lv===1){
+        showTutorial();
+    }
+}
+
+function onScrewTap(idx){
+    const screw=state.board[idx];
+    if(!screw)return;
+
+    // Handle locked screws
+    if(screw.type==='locked'){
+        // Check if any adjacent screw exists (simplified: any screw before this one needs clearing)
+        // For simplicity: locked screws can't be moved until at least one neighboring screw is gone
+        const neighbors=getNeighborIndices(idx);
+        const hasBlocker=neighbors.some(n=>state.board[n]!==null);
+        if(hasBlocker){
+            showToast('🔒 '+( LANG==='ko'?'인접 나사를 먼저 제거하세요':'Remove adjacent screws first'));
+            haptic('notification','error');
+            return;
+        }
+    }
+
+    // Handle rusty screws
+    if(screw.type==='rusty'&&screw.rustyHits>0){
+        screw.rustyHits--;
+        sfxTap();
+        haptic('impact','light');
+        if(screw.rustyHits===0){
+            screw.type='normal';
+            showToast('🟫 '+(LANG==='ko'?'녹 제거 완료!':'Rust removed!'));
+        }else{
+            showToast('🟫 '+(LANG==='ko'?`녹 제거 중... (${screw.rustyHits}번 남음)`:`Removing rust... (${screw.rustyHits} more)`));
+        }
+        renderBoard();
+        return;
+    }
+
+    // Handle chained screws
+    if(screw.type==='chained'){
+        const chainId=screw.chainId;
+        const chainedOthers=state.board.filter((s,i)=>s&&s.type==='chained'&&s.chainId===chainId&&i!==idx);
+        if(chainedOthers.length>0){
+            showToast('⛓️ '+(LANG==='ko'?'같은 체인의 나사를 모두 풀어야 합니다':'Unchain all linked screws first'));
+            haptic('notification','error');
+            return;
+        }
+    }
+
+    // Find empty slot
+    const emptyIdx=state.slots.findIndex(s=>s===null);
+    if(emptyIdx===-1){
+        // Slots full → fail
+        checkFail();
+        return;
+    }
+
+    // Save to history
+    state.history.push({
+        boardIdx:idx,
+        slotIdx:emptyIdx,
+        screw:{...screw},
+    });
+
+    // Move screw to slot
+    sfxTap();
+    haptic('impact','light');
+
+    // Animate screw out
+    const screwEl=document.querySelector(`.screw[data-idx="${idx}"]`);
+    if(screwEl){
+        screwEl.classList.add('spinning');
+        setTimeout(()=>screwEl.classList.add('removing'),100);
+    }
+
+    state.slots[emptyIdx]={color:screw.color};
+    state.board[idx]=null;
+    state.moves++;
+
+    // Unlock locked screws that were depending on this one
+    unlockAdjacentScrews(idx);
+
+    setTimeout(()=>{
+        renderBoard();
+        renderSlots();
+        updateStats();
+
+        // Check for match
+        setTimeout(()=>checkMatch(),150);
+    },300);
+}
+
+function getNeighborIndices(idx){
+    const count=state.board.length;
+    const cols=count<=6?3:count<=9?3:count<=12?4:count<=16?4:5;
+    const row=Math.floor(idx/cols);
+    const col=idx%cols;
+    const neighbors=[];
+    if(col>0)neighbors.push(idx-1);
+    if(col<cols-1&&idx+1<count)neighbors.push(idx+1);
+    if(row>0)neighbors.push(idx-cols);
+    if(idx+cols<count)neighbors.push(idx+cols);
+    return neighbors.filter(n=>n>=0&&n<count);
+}
+
+function unlockAdjacentScrews(clearedIdx){
+    const neighbors=getNeighborIndices(clearedIdx);
+    neighbors.forEach(n=>{
+        const s=state.board[n];
+        if(s&&s.type==='locked'){
+            // Check if all neighbors are gone
+            const nNeighbors=getNeighborIndices(n);
+            const allGone=nNeighbors.every(nn=>nn===clearedIdx||state.board[nn]===null);
+            // Actually, just require at least one neighbor gone
+            const anyGone=nNeighbors.some(nn=>state.board[nn]===null);
+            if(anyGone){
+                s.type='normal';
+            }
+        }
+    });
+}
+
+function checkMatch(){
+    // Count colors in slots
+    const colorCounts={};
+    const colorPositions={};
+    state.slots.forEach((s,i)=>{
+        if(s){
+            if(!colorCounts[s.color])colorCounts[s.color]=0;
+            if(!colorPositions[s.color])colorPositions[s.color]=[];
+            colorCounts[s.color]++;
+            colorPositions[s.color].push(i);
+        }
+    });
+
+    let matched=false;
+    for(const [color,count] of Object.entries(colorCounts)){
+        if(count>=BAL.matchCount){
+            matched=true;
+            const positions=colorPositions[color];
+
+            // Clear matched slots with animation
+            sfxClear();
+            haptic('notification','success');
+            state.combo++;
+            state.totalCleared+=BAL.matchCount;
+            state.totalScrewsSorted+=BAL.matchCount;
+
+            if(state.combo>1){
+                sfxCombo();
+                showToast(`🔥 Combo x${state.combo}!`);
+            }
+
+            // Animate clear
+            const slotEls=document.querySelectorAll('.slot');
+            positions.slice(0,BAL.matchCount).forEach((pos,i)=>{
+                if(slotEls[pos]){
+                    slotEls[pos].classList.add('clearing');
+                    // Spawn particles
+                    spawnParticles(slotEls[pos],SCREW_COLORS[parseInt(color)].fill);
+                }
+            });
+
+            setTimeout(()=>{
+                // Remove matched screws from slots
+                let removed=0;
+                for(let i=0;i<state.slots.length&&removed<BAL.matchCount;i++){
+                    if(state.slots[i]&&state.slots[i].color===parseInt(color)){
+                        state.slots[i]=null;
+                        removed++;
+                    }
+                }
+                // Compact slots (move nulls to end)
+                compactSlots();
+                renderSlots();
+                updateStats();
+
+                // Check win
+                if(checkWin()){
+                    setTimeout(()=>showWin(),400);
+                }else{
+                    // Check for more matches after compact
+                    setTimeout(()=>checkMatch(),200);
+                }
+            },500);
+
+            return; // Process one match at a time
+        }
+    }
+
+    if(!matched){
+        state.combo=0;
+        // Check if all slots full with no match → fail
+        const filledSlots=state.slots.filter(s=>s!==null).length;
+        if(filledSlots>=state.slotCount){
+            checkFail();
+        }
+    }
+}
+
+function compactSlots(){
+    const filled=state.slots.filter(s=>s!==null);
+    state.slots=filled.concat(new Array(state.slotCount-filled.length).fill(null));
+}
+
+function checkWin(){
+    return state.board.every(s=>s===null);
+}
+
+function checkFail(){
+    // All slots filled, no match possible
+    const colorCounts={};
+    state.slots.forEach(s=>{if(s)colorCounts[s.color]=(colorCounts[s.color]||0)+1});
+    const hasMatch=Object.values(colorCounts).some(c=>c>=BAL.matchCount);
+    if(!hasMatch&&state.slots.every(s=>s!==null)){
+        // Check if there are still screws on board
+        if(state.board.some(s=>s!==null)){
+            sfxFail();
+            haptic('notification','error');
+            showFail();
+        }
+    }
+}
+
+function showWin(){
+    sfxWin();
+    haptic('notification','success');
+
+    // Calculate stars
+    const tierInfo=getTierInfo(state.level);
+    const optimalMoves=state.board?state.totalCleared:0;
+    let stars=1;
+    if(state.moves<=Math.ceil(optimalMoves*1.2))stars=3;
+    else if(state.moves<=Math.ceil(optimalMoves*1.5))stars=2;
+    if(!state.hintUsed&&stars<3)stars=Math.min(3,stars+1);
+
+    // Calculate bolts reward
+    let reward=BAL.boltsPerLevel;
+    if(stars===3)reward=Math.floor(reward*BAL.perfectBonus);
+    if(state.combo>1)reward=Math.floor(reward*BAL.comboMult);
+
+    // Apply factory bonuses
+    const bonuses=getFactoryBonuses();
+    if(bonuses.boltBonus>0)reward=Math.floor(reward*(1+bonuses.boltBonus));
+    if(bonuses.doubleAll)reward*=2;
+
+    state.bolts+=reward;
+    if(!state.levelStars[state.level]||state.levelStars[state.level]<stars){
+        state.totalStars+=(stars-(state.levelStars[state.level]||0));
+        state.levelStars[state.level]=stars;
+    }
+    if(!state.bestMoves[state.level]||state.moves<state.bestMoves[state.level]){
+        state.bestMoves[state.level]=state.moves;
+    }
+    state.totalLevelsCleared++;
+    if(!state.hintUsed)state.totalPerfect++;
+    if(state.level>=state.level)state.level=Math.max(state.level,state.level+1);
+
+    // Update missions
+    updateMissionProgress('clear',1);
+    if(!state.hintUsed)updateMissionProgress('perfect',1);
+    if(state.combo>1)updateMissionProgress('combo',state.combo);
+    updateMissionProgress('screws',state.totalCleared);
+
+    saveGame();
+
+    // Show modal
+    const modal=document.getElementById('modal-win');
+    document.getElementById('win-title').textContent=T('complete');
+    document.getElementById('win-moves').textContent=state.moves;
+    document.getElementById('win-screws').textContent=state.totalCleared;
+    document.getElementById('win-reward').textContent=reward;
+    document.getElementById('wl-moves').textContent=T('moves');
+    document.getElementById('wl-screws').textContent=T('screws');
+
+    const starsEl=document.getElementById('win-stars');
+    starsEl.innerHTML='';
+    for(let i=0;i<3;i++){
+        const span=document.createElement('span');
+        span.className='star'+(i<stars?' earned':'');
+        span.textContent=i<stars?'⭐':'☆';
+        span.style.transitionDelay=(i*0.2)+'s';
+        starsEl.appendChild(span);
+    }
+
+    modal.classList.add('show');
+    spawnConfetti();
+}
+
+function showFail(){
+    const modal=document.getElementById('modal-fail');
+    document.getElementById('fail-title').textContent=T('failed');
+    document.getElementById('fail-msg').textContent=T('failMsg');
+    modal.classList.add('show');
+}
+
+// ══════════════════════════════════════
+// UNDO
+// ══════════════════════════════════════
+function doUndo(){
+    if(state.history.length===0)return;
+    const last=state.history.pop();
+    state.slots[last.slotIdx]=null;
+    state.board[last.boardIdx]=last.screw;
+    state.moves=Math.max(0,state.moves-1);
+    compactSlots();
+    sfxTap();
+    haptic('impact','light');
+    renderBoard();
+    renderSlots();
+    updateStats();
+}
+
+// ══════════════════════════════════════
+// HINT
+// ══════════════════════════════════════
+function doHint(){
+    state.hintUsed=true;
+    // Find the best screw to tap (one that matches existing slot color, or starts new match)
+    const slotColors={};
+    state.slots.forEach(s=>{if(s)slotColors[s.color]=(slotColors[s.color]||0)+1});
+
+    // Priority 1: complete a match (find color with count matchCount-1 in slots)
+    for(const [color,count] of Object.entries(slotColors)){
+        if(count===BAL.matchCount-1){
+            const idx=state.board.findIndex(s=>s&&s.color===parseInt(color)&&s.type==='normal');
+            if(idx!==-1){
+                highlightScrew(idx);
+                showToast(T('hintUsed'));
+                return;
+            }
+        }
+    }
+
+    // Priority 2: add to existing group
+    for(const [color,count] of Object.entries(slotColors)){
+        const idx=state.board.findIndex(s=>s&&s.color===parseInt(color)&&s.type==='normal');
+        if(idx!==-1){
+            highlightScrew(idx);
+            showToast(T('hintUsed'));
+            return;
+        }
+    }
+
+    // Priority 3: find color with most remaining on board
+    const boardColors={};
+    state.board.forEach(s=>{if(s&&s.type==='normal')boardColors[s.color]=(boardColors[s.color]||0)+1});
+    let bestColor=-1,bestCount=0;
+    for(const [c,n] of Object.entries(boardColors)){
+        if(n>bestCount){bestCount=n;bestColor=parseInt(c)}
+    }
+    if(bestColor>=0){
+        const idx=state.board.findIndex(s=>s&&s.color===bestColor&&s.type==='normal');
+        if(idx!==-1){
+            highlightScrew(idx);
+            showToast(T('hintUsed'));
+            return;
+        }
+    }
+
+    showToast(T('noHint'));
+}
+
+function highlightScrew(idx){
+    const el=document.querySelector(`.screw[data-idx="${idx}"]`);
+    if(el){
+        el.style.boxShadow='0 0 20px #ffd700, 0 0 40px #ffd700';
+        el.style.animation='pulse .5s ease-in-out 3';
+        setTimeout(()=>{el.style.boxShadow='';el.style.animation=''},1500);
+    }
+}
+
+// ══════════════════════════════════════
+// PARTICLES & CONFETTI
+// ══════════════════════════════════════
+function spawnParticles(fromEl,color){
+    const rect=fromEl.getBoundingClientRect();
+    const cx=rect.left+rect.width/2;
+    const cy=rect.top+rect.height/2;
+    for(let i=0;i<8;i++){
+        const p=document.createElement('div');
+        p.className='particle';
+        const angle=Math.random()*Math.PI*2;
+        const dist=30+Math.random()*40;
+        const size=4+Math.random()*6;
+        p.style.cssText=`left:${cx}px;top:${cy}px;width:${size}px;height:${size}px;background:${color};transition:all .6s ease-out;opacity:1;`;
+        document.body.appendChild(p);
+        requestAnimationFrame(()=>{
+            p.style.transform=`translate(${Math.cos(angle)*dist}px,${Math.sin(angle)*dist}px)`;
+            p.style.opacity='0';
+        });
+        setTimeout(()=>p.remove(),700);
+    }
+}
+
+function spawnConfetti(){
+    const colors=['#ef4444','#3b82f6','#22c55e','#eab308','#a855f7','#f97316'];
+    for(let i=0;i<30;i++){
+        setTimeout(()=>{
+            const p=document.createElement('div');
+            p.className='particle';
+            const x=Math.random()*window.innerWidth;
+            const size=6+Math.random()*8;
+            const color=colors[Math.floor(Math.random()*colors.length)];
+            p.style.cssText=`left:${x}px;top:-10px;width:${size}px;height:${size*1.5}px;background:${color};border-radius:2px;transition:all ${1+Math.random()}s ease-out;opacity:1;transform:rotate(${Math.random()*360}deg)`;
+            document.body.appendChild(p);
+            requestAnimationFrame(()=>{
+                p.style.top=window.innerHeight+'px';
+                p.style.transform=`rotate(${Math.random()*720}deg) translateX(${(Math.random()-.5)*100}px)`;
+                p.style.opacity='0';
+            });
+            setTimeout(()=>p.remove(),2000);
+        },i*50);
+    }
+}
+
+// ══════════════════════════════════════
+// FACTORY
+// ══════════════════════════════════════
+function getFactoryBonuses(){
+    const b={boltBonus:0,freeHint:0,comboBonus:0,freeUndo:0,doubleAll:false,idleBolts:0};
+    BUILDINGS.forEach(bld=>{
+        const lv=state.buildings[bld.id]||0;
+        if(lv<=0)return;
+        switch(bld.effect){
+            case'boltBonus':b.boltBonus+=bld.val*lv;break;
+            case'freeHint':b.freeHint+=bld.val*lv;break;
+            case'comboBonus':b.comboBonus+=bld.val*lv;break;
+            case'freeUndo':b.freeUndo+=bld.val*lv;break;
+            case'doubleAll':b.doubleAll=true;break;
+            case'idleBolts':b.idleBolts+=bld.val*lv;break;
+        }
+    });
+    return b;
+}
+
+function getUpgradeCost(bld,currentLv){
+    return Math.floor(bld.baseCost*Math.pow(bld.mult,currentLv));
+}
+
+function renderFactory(){
+    const grid=document.getElementById('factory-grid');
+    grid.innerHTML='';
+
+    BUILDINGS.forEach(bld=>{
+        const lv=state.buildings[bld.id]||0;
+        const isUnlocked=state.level>bld.unlock;
+        const isMaxed=lv>=bld.maxLv;
+        const cost=getUpgradeCost(bld,lv);
+        const canAfford=state.bolts>=cost;
+
+        const card=document.createElement('div');
+        card.className='factory-card'+(isUnlocked?'':' locked');
+        card.innerHTML=`
+            <div class="f-icon">${bld.icon}</div>
+            <div class="f-name">${LANG==='ko'?bld.nameK:bld.nameE}</div>
+            <div class="f-desc">${LANG==='ko'?bld.descK:bld.descE}</div>
+            ${isUnlocked?`
+                <div class="f-level">Lv.${lv}/${bld.maxLv}</div>
+                <button class="f-btn" ${(!canAfford||isMaxed)?'disabled':''}>${isMaxed?(LANG==='ko'?'최대':'MAX'):`${lv===0?T('build'):T('upgrade')} (🔩${cost})`}</button>
+            `:`
+                <div class="f-level">${T('locked')}: Lv.${bld.unlock}</div>
+            `}
+        `;
+
+        if(isUnlocked&&!isMaxed){
+            const btn=card.querySelector('.f-btn');
+            if(btn){
+                btn.addEventListener('click',()=>{
+                    if(state.bolts>=cost){
+                        state.bolts-=cost;
+                        state.buildings[bld.id]=(state.buildings[bld.id]||0)+1;
+                        sfxClear();
+                        haptic('notification','success');
+                        saveGame();
+                        renderFactory();
+                        updateStats();
+                    }
+                });
+            }
+        }
+
+        grid.appendChild(card);
+    });
+
+    // Idle income collection
+    collectIdleIncome();
+}
+
+function collectIdleIncome(){
+    const bonuses=getFactoryBonuses();
+    if(bonuses.idleBolts<=0)return;
+    const now=Date.now();
+    const elapsed=(now-state.lastIdleCollect)/60000; // minutes
+    if(elapsed>1){
+        const earned=Math.floor(elapsed*bonuses.idleBolts);
+        if(earned>0){
+            state.bolts+=earned;
+            state.lastIdleCollect=now;
+            showToast(`💰 ${T('idle')}: +${earned} 🔩`);
+            saveGame();
+            updateStats();
+        }
+    }
+}
+
+// ══════════════════════════════════════
+// DAILY MISSIONS
+// ══════════════════════════════════════
+function generateDailyMissions(){
+    const today=new Date().toISOString().slice(0,10);
+    if(state.dailyDate===today&&state.dailyMissions.length>0)return;
+
+    const rng=mulberry32(parseInt(today.replace(/-/g,''))+777);
+    const templates=[
+        {type:'clear',n:3+Math.floor(rng()*5),reward:30},
+        {type:'perfect',n:1+Math.floor(rng()*3),reward:50},
+        {type:'combo',n:2+Math.floor(rng()*4),reward:40},
+        {type:'screws',n:15+Math.floor(rng()*20),reward:35},
+    ];
+
+    // Pick 3
+    const shuffled=[...templates];
+    for(let i=shuffled.length-1;i>0;i--){
+        const j=Math.floor(rng()*(i+1));
+        [shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];
+    }
+
+    state.dailyMissions=shuffled.slice(0,3);
+    state.dailyDate=today;
+    state.missionProgress={clear:0,perfect:0,combo:0,screws:0};
+    saveGame();
+}
+
+function updateMissionProgress(type,amount){
+    state.missionProgress[type]=(state.missionProgress[type]||0)+amount;
+    saveGame();
+}
+
+function renderMissions(){
+    generateDailyMissions();
+    const list=document.getElementById('missions-list');
+    list.innerHTML='';
+
+    const icons={clear:'🎯',perfect:'✨',combo:'🔥',screws:'🔩'};
+    const nameKeys={clear:'mClrN',perfect:'mPerfN',combo:'mCombo',screws:'mScrews'};
+
+    state.dailyMissions.forEach((m,i)=>{
+        const progress=state.missionProgress[m.type]||0;
+        const done=progress>=m.n;
+        const pct=Math.min(100,Math.floor(progress/m.n*100));
+
+        const card=document.createElement('div');
+        card.className='mission-card'+(done?' completed':'');
+        card.innerHTML=`
+            <div class="mission-icon">${icons[m.type]||'📋'}</div>
+            <div class="mission-info">
+                <div class="mission-name">${T(nameKeys[m.type]).replace('{n}',m.n)}</div>
+                <div class="mission-desc">${progress}/${m.n}</div>
+                <div class="mission-progress"><div class="mission-progress-bar" style="width:${pct}%"></div></div>
+            </div>
+            <div class="mission-reward">${done?'✅':'🔩+'+m.reward}</div>
+        `;
+
+        if(done){
+            const rewardKey=`mission_${state.dailyDate}_${i}`;
+            if(!state.missionProgress[rewardKey]){
+                card.addEventListener('click',()=>{
+                    state.bolts+=m.reward;
+                    state.missionProgress[rewardKey]=true;
+                    sfxClear();
+                    haptic('notification','success');
+                    showToast(`🔩 +${m.reward}`);
+                    saveGame();
+                    renderMissions();
+                    updateStats();
+                });
+            }
+        }
+
+        list.appendChild(card);
+    });
+}
+
+// ══════════════════════════════════════
+// SETTINGS
+// ══════════════════════════════════════
+function renderSettings(){
+    const list=document.getElementById('settings-list');
+    list.innerHTML='';
+
+    const settings=[
+        {key:'sound',label:T('sound'),icon:'🔊'},
+        {key:'vibration',label:T('vibration'),icon:'📳'},
+        {key:'colorBlind',label:T('colorBlind'),icon:'👁️'},
+    ];
+
+    settings.forEach(s=>{
+        const row=document.createElement('div');
+        row.className='setting-row';
+        row.innerHTML=`
+            <span>${s.icon}</span>
+            <span class="s-label">${s.label}</span>
+            <button class="toggle ${state[s.key]?'on':''}" data-key="${s.key}"></button>
+        `;
+        const toggle=row.querySelector('.toggle');
+        toggle.addEventListener('click',()=>{
+            state[s.key]=!state[s.key];
+            toggle.classList.toggle('on',state[s.key]);
+            haptic('impact','light');
+            saveGame();
+            if(s.key==='colorBlind'&&state.screen==='game'){
+                renderBoard();
+                renderSlots();
+            }
+        });
+        list.appendChild(row);
+    });
+
+    // Reset
+    const resetRow=document.createElement('div');
+    resetRow.className='setting-row';
+    resetRow.innerHTML=`<span>🗑️</span><span class="s-label">${T('resetData')}</span>`;
+    resetRow.style.cursor='pointer';
+    resetRow.addEventListener('click',async()=>{
+        const ok=window.TG&&TG.isTelegram()?await TG.confirm(T('resetConfirm')):confirm(T('resetConfirm'));
+        if(ok){
+            localStorage.removeItem(SAVE_KEY);
+            if(window.TG)TG.remove(SAVE_KEY);
+            location.reload();
+        }
+    });
+    list.appendChild(resetRow);
+}
+
+// ══════════════════════════════════════
+// TUTORIAL
+// ══════════════════════════════════════
+function showTutorial(){
+    const steps=[
+        {icon:'👆',text:T('tutorial1')},
+        {icon:'🔩',text:T('tutorial2')},
+        {icon:'🎉',text:T('tutorial3')},
+    ];
+    let step=0;
+
+    function show(){
+        const existing=document.querySelector('.tutorial-overlay');
+        if(existing)existing.remove();
+
+        if(step>=steps.length){
+            state.tutorialDone=true;
+            saveGame();
+            return;
+        }
+
+        const overlay=document.createElement('div');
+        overlay.className='tutorial-overlay';
+        overlay.innerHTML=`
+            <div class="tutorial-card">
+                <div class="tut-icon">${steps[step].icon}</div>
+                <h3>${LANG==='ko'?'튜토리얼':'Tutorial'} (${step+1}/${steps.length})</h3>
+                <p>${steps[step].text}</p>
+                <button class="btn btn-primary" style="width:100%">${step<steps.length-1?(LANG==='ko'?'다음':'Next'):(LANG==='ko'?'시작!':'Start!')}</button>
+            </div>
+        `;
+        overlay.querySelector('.btn').addEventListener('click',()=>{
+            step++;
+            show();
+        });
+        overlay.addEventListener('click',(e)=>{
+            if(e.target===overlay){step++;show();}
+        });
+        document.body.appendChild(overlay);
+    }
+    show();
+}
+
+// ══════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════
+let toastTimer=null;
+function showToast(msg){
+    const el=document.getElementById('toast');
+    el.textContent=msg;
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+// ══════════════════════════════════════
+// TIER INFO (for star calculation)
+// ══════════════════════════════════════
+function getTierInfo(lv){
+    const tier=getTier(lv);
+    return{tier,colors:BAL.colorsPerTier[tier],slots:BAL.slotsPerTier[tier]};
+}
+
+// ══════════════════════════════════════
+// INIT & EVENT BINDING
+// ══════════════════════════════════════
+function init(){
+    loadGame();
+    generateDailyMissions();
+    collectIdleIncome();
+
+    // Apply i18n
+    const el=id=>document.getElementById(id);
+    el('menu-sub').textContent=T('subtitle');
+    el('t-play').textContent=T('play');
+    el('t-factory').textContent=T('factory');
+    el('t-missions').textContent=T('missions');
+    el('t-undo').textContent=T('undo');
+    el('t-restart').textContent=T('restart');
+    el('t-hint').textContent=T('hint');
+    el('t-next').textContent=T('next');
+    el('t-wreplay').textContent=T('replay');
+    el('t-whome').textContent=T('home');
+    el('t-retry').textContent=T('retry');
+    el('t-fhome').textContent=T('home');
+    el('t-settings-title').textContent=T('settings');
+    el('factory-title').textContent='🏭 '+T('factoryTitle');
+    el('missions-title').textContent='📋 '+T('missionsTitle');
+
+    updateStats();
+
+    // Menu buttons
+    el('btn-play').addEventListener('click',()=>startLevel(state.level));
+    el('btn-factory-menu').addEventListener('click',()=>{showScreen('factory');renderFactory()});
+    el('btn-missions-menu').addEventListener('click',()=>{showScreen('missions');renderMissions()});
+
+    // Game controls
+    el('btn-game-back').addEventListener('click',()=>{showScreen('menu');saveGame()});
+    el('btn-undo').addEventListener('click',doUndo);
+    el('btn-restart').addEventListener('click',()=>startLevel(state.level));
+    el('btn-hint').addEventListener('click',doHint);
+
+    // Factory back
+    el('btn-factory-back').addEventListener('click',()=>showScreen('menu'));
+    el('btn-missions-back').addEventListener('click',()=>showScreen('menu'));
+    el('btn-settings-back').addEventListener('click',()=>showScreen('menu'));
+
+    // Win modal
+    el('btn-next').addEventListener('click',()=>{
+        el('modal-win').classList.remove('show');
+        startLevel(state.level);
+    });
+    el('btn-win-replay').addEventListener('click',()=>{
+        el('modal-win').classList.remove('show');
+        startLevel(state.level-1>0?state.level-1:state.level);
+    });
+    el('btn-win-home').addEventListener('click',()=>{
+        el('modal-win').classList.remove('show');
+        showScreen('menu');
+    });
+
+    // Fail modal
+    el('btn-fail-retry').addEventListener('click',()=>{
+        el('modal-fail').classList.remove('show');
+        startLevel(state.level);
+    });
+    el('btn-fail-home').addEventListener('click',()=>{
+        el('modal-fail').classList.remove('show');
+        showScreen('menu');
+    });
+
+    // TG back handler
+    if(window.TG){
+        TG.onBack(()=>{
+            if(state.screen==='game'){showScreen('menu');saveGame();return true}
+            if(state.screen==='factory'||state.screen==='missions'||state.screen==='settings'){showScreen('menu');return true}
+            return false;
+        });
+    }
+
+    // Keyboard
+    document.addEventListener('keydown',(e)=>{
+        if(state.screen!=='game')return;
+        if(e.key==='z'||e.key==='Z')doUndo();
+        if(e.key==='r'||e.key==='R')startLevel(state.level);
+        if(e.key==='h'||e.key==='H')doHint();
+        if(e.key==='Escape'){showScreen('menu');saveGame()}
+    });
+
+    // Window resize
+    window.addEventListener('resize',()=>{
+        if(state.screen==='game'){renderBoard();renderSlots()}
+    });
+}
+
+// Start
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',init)}
+else{init()}
+</script>
+<script src="/games/cross-promo.js" defer></script>
+</body>
+</html>

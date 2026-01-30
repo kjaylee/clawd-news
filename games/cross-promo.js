@@ -8,6 +8,7 @@
 
   const GAMES = [
     { slug: 'ball-sort', name: 'Ball Sort', icon: '🧪', cat: 'puzzle' },
+    { slug: 'screw-sort', name: 'Screw Sort', icon: '🔩', cat: 'puzzle' },
     { slug: 'block-bounce', name: 'Block Bounce', icon: '🟦', cat: 'arcade' },
     { slug: 'brick-breaker', name: 'Brick Breaker', icon: '🧱', cat: 'arcade' },
     { slug: 'bubble-defense', name: 'Bubble Defense', icon: '🫧', cat: 'strategy' },
