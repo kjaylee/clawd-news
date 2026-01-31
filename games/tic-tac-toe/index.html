@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Tic-Tac-Toe ⭕❌</title>
+<meta name="description" content="클래식 틱택토. AI 대전(3단계 난이도) 또는 2인 대전. 미니멀 디자인, 터치 최적화.">
+<meta property="og:title" content="Tic-Tac-Toe ⭕❌ — East Sea Games">
+<meta property="og:description" content="완벽한 미니맥스 AI와 대결! 3단계 난이도, 2인 대전 모드. 텔레그램에서 무료 플레이!">
+<meta property="og:image" content="https://eastsea.monster/games/tic-tac-toe/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/tic-tac-toe/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/tic-tac-toe/">
+<link rel="manifest" href="/games/manifest.json">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"VideoGame","name":"Tic-Tac-Toe",
+  "url":"https://eastsea.monster/games/tic-tac-toe/",
+  "description":"클래식 틱택토. 완벽한 미니맥스 AI 대전 & 2인 대전. 3단계 난이도.",
+  "image":"https://eastsea.monster/games/tic-tac-toe/og.png",
+  "gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+  "genre":"Board","operatingSystem":"Any","inLanguage":["ko","en"],
+  "playMode":["SinglePlayer","MultiPlayer"],
+  "numberOfPlayers":{"@type":"QuantitativeValue","minValue":1,"maxValue":2},
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},
+  "author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}
+}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+/* ═══════════════════════════════════════ */
+/* CSS Variables & Reset                   */
+/* ═══════════════════════════════════════ */
+:root {
+  --bg: #0f0f1a;
+  --bg2: #1a1a2e;
+  --card: #222244;
+  --text: #e8e8f0;
+  --text-dim: #8888aa;
+  --accent: #6c63ff;
+  --accent-glow: rgba(108,99,255,0.3);
+  --x-color: #ff6b6b;
+  --x-glow: rgba(255,107,107,0.4);
+  --o-color: #4ecdc4;
+  --o-glow: rgba(78,205,196,0.4);
+  --win-line: #ffd93d;
+  --grid-line: rgba(255,255,255,0.08);
+  --btn-hover: rgba(255,255,255,0.06);
+  --radius: 16px;
+  --safe-top: 0px;
+  --safe-bottom: 0px;
+  --tg-bg: #0f0f1a;
+  --tg-text: #e8e8f0;
+  --tg-hint: #8888aa;
+  --tg-button: #6c63ff;
+  --tg-button-text: #ffffff;
+  --tg-secondary-bg: #1a1a2e;
+  --tg-viewport-height: 100vh;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'SF Pro Display','Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;
+  user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+
+/* ═══════════════════════════════════════ */
+/* Layout                                  */
+/* ═══════════════════════════════════════ */
+.app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column;padding:8px 16px}
+
+/* Header */
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 0;flex-shrink:0}
+.logo{font-size:20px;font-weight:800;letter-spacing:-0.5px}
+.logo .x{color:var(--x-color)}
+.logo .o{color:var(--o-color)}
+.header-btns{display:flex;gap:8px}
+.icon-btn{width:36px;height:36px;border:none;border-radius:10px;background:var(--card);color:var(--text-dim);
+  font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;-webkit-tap-highlight-color:transparent}
+.icon-btn:active{transform:scale(0.9);background:var(--accent);color:#fff}
+
+/* Score bar */
+.score-bar{display:flex;justify-content:space-between;align-items:center;padding:10px 0;flex-shrink:0}
+.score-item{text-align:center;flex:1}
+.score-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
+.score-val{font-size:28px;font-weight:800}
+.score-val.x{color:var(--x-color)}
+.score-val.o{color:var(--o-color)}
+.score-val.draw{color:var(--text-dim)}
+.score-divider{width:1px;height:36px;background:var(--grid-line)}
+.turn-indicator{font-size:13px;font-weight:600;padding:6px 14px;border-radius:20px;
+  transition:all .3s ease;white-space:nowrap}
+.turn-indicator.x-turn{background:rgba(255,107,107,0.15);color:var(--x-color)}
+.turn-indicator.o-turn{background:rgba(78,205,196,0.15);color:var(--o-color)}
+.turn-indicator.game-over{background:rgba(255,217,61,0.15);color:var(--win-line)}
+
+/* Board */
+.board-area{flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:8px 0}
+.board-container{position:relative;width:min(100%, 340px);aspect-ratio:1}
+.board-bg{position:absolute;inset:0;background:var(--card);border-radius:var(--radius);
+  box-shadow:0 8px 32px rgba(0,0,0,0.3),inset 0 1px 0 rgba(255,255,255,0.05)}
+
+/* Grid lines via SVG */
+.grid-lines{position:absolute;inset:0;z-index:1;pointer-events:none}
+.grid-lines line{stroke:var(--grid-line);stroke-width:2;stroke-linecap:round}
+
+/* Cells */
+.cells{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,1fr);
+  grid-template-rows:repeat(3,1fr);z-index:2;padding:4px;gap:0}
+.cell{display:flex;align-items:center;justify-content:center;cursor:pointer;
+  border-radius:12px;transition:background .15s;-webkit-tap-highlight-color:transparent;position:relative}
+.cell:hover:not(.taken){background:var(--btn-hover)}
+.cell:active:not(.taken){background:rgba(255,255,255,0.1)}
+.cell.taken{cursor:default}
+
+/* SVG marks */
+.cell svg{width:60%;height:60%;position:absolute}
+.mark-x line{stroke:var(--x-color);stroke-width:8;stroke-linecap:round;
+  filter:drop-shadow(0 0 8px var(--x-glow))}
+.mark-o circle{fill:none;stroke:var(--o-color);stroke-width:7;stroke-linecap:round;
+  filter:drop-shadow(0 0 8px var(--o-glow))}
+
+/* Draw animations */
+.mark-x line{stroke-dasharray:100;stroke-dashoffset:100;animation:drawLine .35s ease-out forwards}
+.mark-x line:nth-child(2){animation-delay:.1s}
+.mark-o circle{stroke-dasharray:200;stroke-dashoffset:200;animation:drawCircle .4s ease-out forwards}
+@keyframes drawLine{to{stroke-dashoffset:0}}
+@keyframes drawCircle{to{stroke-dashoffset:0}}
+
+/* Win line */
+.win-line-svg{position:absolute;inset:0;z-index:3;pointer-events:none}
+.win-line-svg line{stroke:var(--win-line);stroke-width:6;stroke-linecap:round;
+  stroke-dasharray:500;stroke-dashoffset:500;animation:drawWin .5s .15s ease-out forwards;
+  filter:drop-shadow(0 0 12px rgba(255,217,61,0.6))}
+@keyframes drawWin{to{stroke-dashoffset:0}}
+
+/* Win cell pulse */
+.cell.win-cell{animation:winPulse .6s ease-in-out .3s}
+@keyframes winPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.1)}
+}
+
+/* Bottom controls */
+.bottom{flex-shrink:0;padding:8px 0 12px}
+.mode-row{display:flex;gap:8px;margin-bottom:10px}
+.mode-btn{flex:1;padding:10px 8px;border:2px solid var(--grid-line);border-radius:12px;
+  background:transparent;color:var(--text-dim);font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .2s;-webkit-tap-highlight-color:transparent;text-align:center}
+.mode-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-glow)}
+.mode-btn:active{transform:scale(0.96)}
+.diff-row{display:flex;gap:6px;margin-bottom:10px}
+.diff-btn{flex:1;padding:8px 6px;border:1.5px solid var(--grid-line);border-radius:10px;
+  background:transparent;color:var(--text-dim);font-size:11px;font-weight:600;cursor:pointer;
+  transition:all .2s;-webkit-tap-highlight-color:transparent;text-align:center}
+.diff-btn.active{border-color:var(--accent);color:#fff;background:var(--accent)}
+.diff-btn:active{transform:scale(0.95)}
+.new-game-btn{width:100%;padding:14px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,var(--accent),#8b5cf6);color:#fff;
+  font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;
+  -webkit-tap-highlight-color:transparent;
+  box-shadow:0 4px 16px var(--accent-glow)}
+.new-game-btn:active{transform:scale(0.97);opacity:0.9}
+
+/* Result toast */
+.result-toast{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+  z-index:10;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-radius:20px;padding:20px 32px;text-align:center;pointer-events:none;
+  transition:transform .4s cubic-bezier(0.34,1.56,0.64,1),opacity .4s}
+.result-toast.show{transform:translate(-50%,-50%) scale(1);opacity:1}
+.result-toast .emoji{font-size:40px;margin-bottom:6px}
+.result-toast .msg{font-size:18px;font-weight:700;color:#fff}
+.result-toast .sub{font-size:12px;color:rgba(255,255,255,0.6);margin-top:4px}
+
+/* Overlay */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;
+  z-index:100;opacity:0;transition:opacity .3s}
+.overlay.show{display:flex;opacity:1}
+.overlay-card{background:var(--bg2);border-radius:20px;padding:28px 24px;text-align:center;
+  min-width:280px;max-width:340px;width:85%;box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  border:1px solid rgba(255,255,255,0.06);transform:scale(0.9);
+  transition:transform .3s cubic-bezier(0.34,1.56,0.64,1)}
+.overlay.show .overlay-card{transform:scale(1)}
+.overlay-title{font-size:22px;font-weight:800;margin-bottom:12px}
+.overlay-body{font-size:14px;color:var(--text-dim);margin-bottom:20px;line-height:1.5}
+.overlay-btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:15px;
+  font-weight:600;cursor:pointer;margin-bottom:8px;transition:all .15s}
+.overlay-btn:active{transform:scale(0.97)}
+.overlay-btn.primary{background:var(--accent);color:#fff}
+.overlay-btn.secondary{background:var(--card);color:var(--text)}
+
+/* Records table */
+.records{text-align:left;margin:12px 0}
+.rec-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--grid-line)}
+.rec-row:last-child{border:none}
+.rec-label{color:var(--text-dim);font-size:13px}
+.rec-val{font-weight:700;font-size:14px}
+
+/* Hidden */
+.hidden{display:none!important}
+
+/* Cross-promo spacing */
+#esp-promo~.app{padding-bottom:48px}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo"><span class="x">X</span><span class="o">O</span> <span data-i18n="title">틱택토</span></div>
+    <div class="header-btns">
+      <button class="icon-btn" id="btnLang" title="Language">🌐</button>
+      <button class="icon-btn" id="btnRecords" title="Records">📊</button>
+    </div>
+  </div>
+
+  <!-- Score bar -->
+  <div class="score-bar">
+    <div class="score-item">
+      <div class="score-label" id="labelX">X (YOU)</div>
+      <div class="score-val x" id="scoreX">0</div>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-item">
+      <div class="turn-indicator x-turn" id="turnIndicator" data-i18n="yourTurn">당신의 차례</div>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-item">
+      <div class="score-label" id="labelO">O (AI)</div>
+      <div class="score-val o" id="scoreO">0</div>
+    </div>
+  </div>
+
+  <!-- Board -->
+  <div class="board-area">
+    <div class="board-container" id="boardContainer">
+      <div class="board-bg"></div>
+      <!-- Grid lines -->
+      <svg class="grid-lines" viewBox="0 0 300 300" preserveAspectRatio="xMidYMid meet">
+        <line x1="100" y1="12" x2="100" y2="288"/>
+        <line x1="200" y1="12" x2="200" y2="288"/>
+        <line x1="12" y1="100" x2="288" y2="100"/>
+        <line x1="12" y1="200" x2="288" y2="200"/>
+      </svg>
+      <!-- Cells -->
+      <div class="cells" id="cells"></div>
+      <!-- Win line -->
+      <svg class="win-line-svg" id="winLineSvg" viewBox="0 0 300 300" preserveAspectRatio="xMidYMid meet"></svg>
+      <!-- Result toast -->
+      <div class="result-toast" id="resultToast">
+        <div class="emoji" id="resultEmoji">🎉</div>
+        <div class="msg" id="resultMsg"></div>
+        <div class="sub" id="resultSub"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom controls -->
+  <div class="bottom">
+    <div class="mode-row">
+      <button class="mode-btn active" data-mode="ai" id="modeAI">🤖 <span data-i18n="vsAI">vs AI</span></button>
+      <button class="mode-btn" data-mode="2p" id="mode2P">👥 <span data-i18n="vs2P">2인 대전</span></button>
+    </div>
+    <div class="diff-row" id="diffRow">
+      <button class="diff-btn" data-diff="1" data-i18n="easy">쉬움</button>
+      <button class="diff-btn active" data-diff="2" data-i18n="medium">보통</button>
+      <button class="diff-btn" data-diff="3" data-i18n="hard">어려움</button>
+    </div>
+    <button class="new-game-btn" id="btnNewGame" data-i18n="newGame">🔄 새 게임</button>
+  </div>
+</div>
+
+<!-- Records overlay -->
+<div class="overlay" id="recordsOverlay">
+  <div class="overlay-card">
+    <div class="overlay-title" data-i18n="records">📊 전적</div>
+    <div class="records" id="recordsBody"></div>
+    <button class="overlay-btn secondary" id="btnResetRecords" data-i18n="resetRecords">전적 초기화</button>
+    <button class="overlay-btn primary" onclick="document.getElementById('recordsOverlay').classList.remove('show')" data-i18n="close">닫기</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// TG SDK Wrapper (Inlined)
+// ═══════════════════════════════════════════════════
+(function(){
+'use strict';
+const TG={app:window.Telegram?.WebApp,user:null,isReady:false,_backHandlers:[],
+init(){if(!this.app){this.isReady=true;this._injectStandaloneCSS();return false}
+this.app.ready();this.app.expand();this.user=this.app.initDataUnsafe?.user||null;
+this._applyTheme();this._setupSafeArea();this._setupBackButton();
+this.app.onEvent('viewportChanged',({isStateStable})=>{if(isStateStable)this._updateViewport()});
+this.app.onEvent('themeChanged',()=>this._applyTheme());
+this.isReady=true;return true},
+_applyTheme(){const tp=this.app?.themeParams;if(!tp)return;const r=document.documentElement.style;
+const m={'--tg-bg':tp.bg_color,'--tg-text':tp.text_color,'--tg-hint':tp.hint_color,
+'--tg-link':tp.link_color,'--tg-button':tp.button_color,'--tg-button-text':tp.button_text_color,
+'--tg-secondary-bg':tp.secondary_bg_color,'--tg-header-bg':tp.header_bg_color};
+for(const[p,v]of Object.entries(m)){if(v)r.setProperty(p,v)}},
+_setupSafeArea(){this._applySafeAreaValues();
+if(this.app?.onEvent){this.app.onEvent('safeAreaChanged',()=>this._applySafeAreaValues());
+this.app.onEvent('contentSafeAreaChanged',()=>this._applySafeAreaValues())}
+this._updateViewport()},
+_applySafeAreaValues(){const r=document.documentElement.style;
+const sa=this.app?.safeAreaInset||{top:0,bottom:0,left:0,right:0};
+const csa=this.app?.contentSafeAreaInset||{top:0,bottom:0,left:0,right:0};
+const tt=sa.top+csa.top,tb=sa.bottom+csa.bottom;
+r.setProperty('--safe-top',`${tt}px`);r.setProperty('--safe-bottom',`${tb}px`);
+document.body.style.paddingTop=`${tt}px`;document.body.style.paddingBottom=`${tb}px`;
+document.body.style.boxSizing='border-box'},
+_updateViewport(){const vh=this.app?.viewportStableHeight||window.innerHeight;
+document.documentElement.style.setProperty('--tg-viewport-height',`${vh}px`)},
+_setupBackButton(){if(!this.app?.BackButton)return;this.app.BackButton.show();
+this.app.BackButton.onClick(()=>{for(let i=this._backHandlers.length-1;i>=0;i--){
+if(this._backHandlers[i]())return}this.app.close()})},
+_injectStandaloneCSS(){const r=document.documentElement.style;
+r.setProperty('--tg-bg','#0f0f1a');r.setProperty('--tg-text','#e8e8f0');
+r.setProperty('--tg-viewport-height',`${window.innerHeight}px`);
+r.setProperty('--safe-top','0px');r.setProperty('--safe-bottom','0px')},
+getUserId(){return this.user?.id||'anonymous'},
+getUserName(){return this.user?.first_name||'Player'},
+getLang(){return this.user?.language_code||navigator.language?.slice(0,2)||'en'},
+isTelegram(){return!!this.app},
+haptic(type='impact',style='medium'){if(!this.app?.HapticFeedback)return;try{
+switch(type){case'impact':this.app.HapticFeedback.impactOccurred(style);break;
+case'notification':this.app.HapticFeedback.notificationOccurred(style);break;
+case'selection':this.app.HapticFeedback.selectionChanged();break}}catch{}},
+save(k,v){try{localStorage.setItem(`tg_${this.getUserId()}_${k}`,JSON.stringify(v))}catch{}},
+load(k,fb=null){try{const r=localStorage.getItem(`tg_${this.getUserId()}_${k}`);return r?JSON.parse(r):fb}catch{return fb}},
+onBack(h){this._backHandlers.push(h)},
+shareScore(score,gameName,gameId){
+const text=`🎮 ${gameName} — ${score}!\n도전해보세요! 👇`;
+const url=`https://t.me/eastsea_games_bot?startapp=game_${gameId}`;
+if(this.app){this.app.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`)}},
+shareInvite(){const text='🎮 East Sea Games — 42개 무료 게임!\n지금 바로 플레이하세요 👇';
+const url='https://t.me/eastsea_games_bot';
+if(this.app){this.app.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`)}}
+};
+window.TG=TG;
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',()=>TG.init())}
+else{TG.init()}
+})();
+
+// ═══════════════════════════════════════════════════
+// Cross-Promo (Inlined)
+// ═══════════════════════════════════════════════════
+(function(){
+'use strict';
+const GAMES=[
+{slug:'ball-sort',name:'Ball Sort',icon:'🧪',cat:'puzzle'},
+{slug:'block-bounce',name:'Block Bounce',icon:'🟦',cat:'arcade'},
+{slug:'brick-breaker',name:'Brick Breaker',icon:'🧱',cat:'arcade'},
+{slug:'crystal-match',name:'Crystal Match',icon:'💎',cat:'puzzle'},
+{slug:'dice-master',name:'Dice Master',icon:'🎲',cat:'casual'},
+{slug:'gomoku',name:'Gomoku',icon:'⚫',cat:'board'},
+{slug:'mahjong-zen',name:'Mahjong Zen',icon:'🀄',cat:'puzzle'},
+{slug:'minesweeper',name:'Minesweeper',icon:'💣',cat:'board'},
+{slug:'neon-snake',name:'Neon Snake',icon:'🐍',cat:'arcade'},
+{slug:'power-2048',name:'Power 2048',icon:'🔥',cat:'puzzle'},
+{slug:'sudoku-zen',name:'Sudoku Zen',icon:'🧘',cat:'puzzle'},
+{slug:'whack-a-mole',name:'Whack-a-Mole',icon:'🔨',cat:'arcade'}
+];
+var path=window.location.pathname;var m=path.match(/\/games\/([^\/]+)/);var cur=m?m[1]:'';
+var others=GAMES.filter(g=>g.slug!==cur);
+for(var i=others.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));[others[i],others[j]]=[others[j],others[i]]}
+var picks=others.slice(0,3);if(!picks.length)return;
+var s=document.createElement('style');
+s.textContent='#esp-promo{position:fixed;bottom:0;left:0;right:0;z-index:99999;background:linear-gradient(135deg,#1a1a2e,#16213e);border-top:2px solid #e94560;padding:8px 12px;font-family:system-ui,sans-serif;display:flex;align-items:center;gap:8px;transform:translateY(100%);transition:transform .4s ease;box-shadow:0 -4px 20px rgba(0,0,0,.5)}#esp-promo.show{transform:translateY(0)}#esp-promo .esp-label{color:#e94560;font-size:11px;font-weight:700;white-space:nowrap}#esp-promo .esp-games{display:flex;gap:6px;flex:1;overflow-x:auto;-webkit-overflow-scrolling:touch}#esp-promo .esp-card{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.08);border-radius:8px;padding:6px 10px;text-decoration:none;color:#fff;font-size:12px;white-space:nowrap;transition:background .2s;flex-shrink:0;border:1px solid rgba(255,255,255,.06)}#esp-promo .esp-card:hover{background:rgba(233,69,96,.25)}#esp-promo .esp-icon{font-size:18px}#esp-promo .esp-close{color:rgba(255,255,255,.4);font-size:18px;cursor:pointer;padding:4px 6px;border:none;background:none}#esp-promo .esp-all{color:#e94560;font-size:11px;text-decoration:none;padding:4px 8px;border:1px solid rgba(233,69,96,.4);border-radius:12px}';
+document.head.appendChild(s);
+var bar=document.createElement('div');bar.id='esp-promo';
+bar.innerHTML='<span class="esp-label">🎮 TRY</span><div class="esp-games">'+
+picks.map(g=>`<a class="esp-card" href="/games/${g.slug}/"><span class="esp-icon">${g.icon}</span><span>${g.name}</span></a>`).join('')+
+'</div><a class="esp-all" href="/games/">ALL</a><button class="esp-close" onclick="this.parentElement.classList.remove(\'show\')">&times;</button>';
+document.body.appendChild(bar);
+setTimeout(()=>bar.classList.add('show'),3000);
+})();
+
+// ═══════════════════════════════════════════════════
+// i18n
+// ═══════════════════════════════════════════════════
+const I18N = {
+  ko: {
+    title: '틱택토',
+    vsAI: 'vs AI',
+    vs2P: '2인 대전',
+    easy: '쉬움',
+    medium: '보통',
+    hard: '어려움',
+    newGame: '🔄 새 게임',
+    yourTurn: '당신의 차례',
+    aiTurn: 'AI 생각 중...',
+    p1Turn: 'P1 (X) 차례',
+    p2Turn: 'P2 (O) 차례',
+    youWin: '승리! 🎉',
+    youLose: '패배 😢',
+    draw: '무승부!',
+    p1Wins: 'P1 승리! 🎉',
+    p2Wins: 'P2 승리! 🎉',
+    records: '📊 전적',
+    resetRecords: '전적 초기화',
+    close: '닫기',
+    total: '총 게임',
+    wins: '승리',
+    losses: '패배',
+    draws: '무승부',
+    winRate: '승률',
+    tapToPlay: '탭하여 시작',
+    aiWins: 'AI 승리',
+    you: '나',
+    ai: 'AI',
+    p1: 'P1',
+    p2: 'P2',
+    perfect: '완벽한 승리!',
+    goodGame: '좋은 게임!',
+    rematch: '재대결'
+  },
+  en: {
+    title: 'Tic-Tac-Toe',
+    vsAI: 'vs AI',
+    vs2P: '2 Players',
+    easy: 'Easy',
+    medium: 'Medium',
+    hard: 'Hard',
+    newGame: '🔄 New Game',
+    yourTurn: 'Your Turn',
+    aiTurn: 'AI Thinking...',
+    p1Turn: 'P1 (X) Turn',
+    p2Turn: 'P2 (O) Turn',
+    youWin: 'You Win! 🎉',
+    youLose: 'You Lose 😢',
+    draw: "It's a Draw!",
+    p1Wins: 'P1 Wins! 🎉',
+    p2Wins: 'P2 Wins! 🎉',
+    records: '📊 Records',
+    resetRecords: 'Reset Records',
+    close: 'Close',
+    total: 'Total',
+    wins: 'Wins',
+    losses: 'Losses',
+    draws: 'Draws',
+    winRate: 'Win Rate',
+    tapToPlay: 'Tap to Play',
+    aiWins: 'AI Wins',
+    you: 'You',
+    ai: 'AI',
+    p1: 'P1',
+    p2: 'P2',
+    perfect: 'Perfect Win!',
+    goodGame: 'Good Game!',
+    rematch: 'Rematch'
+  }
+};
+
+let lang = 'ko';
+function t(key) { return I18N[lang]?.[key] || I18N.en[key] || key; }
+function applyI18N() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const val = t(key);
+    if (val) el.textContent = val;
+  });
+  updateLabels();
+}
+
+// ═══════════════════════════════════════════════════
+// Game State
+// ═══════════════════════════════════════════════════
+const EMPTY = 0, X = 1, O = 2;
+const WIN_LINES = [
+  [0,1,2],[3,4,5],[6,7,8],  // rows
+  [0,3,6],[1,4,7],[2,5,8],  // cols
+  [0,4,8],[2,4,6]           // diags
+];
+
+// Cell center positions (for win line SVG, in viewBox 0-300)
+const CENTERS = [
+  [50,50],[150,50],[250,50],
+  [50,150],[150,150],[250,150],
+  [50,250],[150,250],[250,250]
+];
+
+let board = Array(9).fill(EMPTY);
+let currentPlayer = X;
+let gameOver = false;
+let mode = 'ai'; // 'ai' | '2p'
+let difficulty = 2; // 1=easy, 2=medium, 3=hard
+let scores = { x: 0, o: 0, draw: 0 };
+let moveCount = 0;
+
+// ═══════════════════════════════════════════════════
+// DOM refs
+// ═══════════════════════════════════════════════════
+const $cells = document.getElementById('cells');
+const $winLine = document.getElementById('winLineSvg');
+const $scoreX = document.getElementById('scoreX');
+const $scoreO = document.getElementById('scoreO');
+const $turnInd = document.getElementById('turnIndicator');
+const $resultToast = document.getElementById('resultToast');
+const $resultEmoji = document.getElementById('resultEmoji');
+const $resultMsg = document.getElementById('resultMsg');
+const $resultSub = document.getElementById('resultSub');
+const $labelX = document.getElementById('labelX');
+const $labelO = document.getElementById('labelO');
+const $diffRow = document.getElementById('diffRow');
+const $recordsOverlay = document.getElementById('recordsOverlay');
+const $recordsBody = document.getElementById('recordsBody');
+
+// ═══════════════════════════════════════════════════
+// Initialize
+// ═══════════════════════════════════════════════════
+function init() {
+  // Detect language
+  const tgLang = window.TG?.getLang?.() || navigator.language?.slice(0,2) || 'en';
+  lang = tgLang === 'ko' ? 'ko' : 'en';
+
+  // Load saved state
+  const saved = window.TG?.load?.('ttt-state', null);
+  if (saved) {
+    scores = saved.scores || { x: 0, o: 0, draw: 0 };
+    mode = saved.mode || 'ai';
+    difficulty = saved.difficulty || 2;
+    lang = saved.lang || lang;
+  }
+
+  // Build cells
+  buildBoard();
+  updateScores();
+  setMode(mode);
+  setDifficulty(difficulty);
+  applyI18N();
+  startNewGame();
+
+  // Event listeners
+  document.getElementById('btnNewGame').addEventListener('click', startNewGame);
+  document.getElementById('btnLang').addEventListener('click', toggleLang);
+  document.getElementById('btnRecords').addEventListener('click', showRecords);
+  document.getElementById('btnResetRecords').addEventListener('click', resetRecords);
+
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => setMode(btn.dataset.mode));
+  });
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.addEventListener('click', () => setDifficulty(parseInt(btn.dataset.diff)));
+  });
+
+  // Back button handler for overlays
+  window.TG?.onBack?.(() => {
+    if ($recordsOverlay.classList.contains('show')) {
+      $recordsOverlay.classList.remove('show');
+      return true;
+    }
+    return false;
+  });
+}
+
+function buildBoard() {
+  $cells.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.idx = i;
+    cell.addEventListener('click', () => onCellClick(i));
+    cell.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      onCellClick(i);
+    }, { passive: false });
+    $cells.appendChild(cell);
+  }
+}
+
+function saveState() {
+  window.TG?.save?.('ttt-state', { scores, mode, difficulty, lang });
+}
+
+// ═══════════════════════════════════════════════════
+// Game Logic
+// ═══════════════════════════════════════════════════
+function startNewGame() {
+  board = Array(9).fill(EMPTY);
+  currentPlayer = X;
+  gameOver = false;
+  moveCount = 0;
+
+  // Clear cells
+  $cells.querySelectorAll('.cell').forEach(cell => {
+    cell.innerHTML = '';
+    cell.classList.remove('taken', 'win-cell');
+  });
+
+  // Clear win line
+  $winLine.innerHTML = '';
+
+  // Hide toast
+  $resultToast.classList.remove('show');
+
+  updateTurnIndicator();
+  window.TG?.haptic?.('impact', 'light');
+}
+
+function onCellClick(idx) {
+  if (gameOver) return;
+  if (board[idx] !== EMPTY) return;
+  if (mode === 'ai' && currentPlayer !== X) return;
+
+  makeMove(idx, currentPlayer);
+}
+
+function makeMove(idx, player) {
+  board[idx] = player;
+  moveCount++;
+
+  // Render mark
+  const cell = $cells.children[idx];
+  cell.classList.add('taken');
+  cell.innerHTML = player === X ? createXSvg() : createOSvg();
+
+  window.TG?.haptic?.('impact', 'light');
+
+  // Check win
+  const winLine = checkWin(board, player);
+  if (winLine) {
+    endGame(player, winLine);
+    return;
+  }
+
+  // Check draw
+  if (moveCount >= 9) {
+    endGame(null, null);
+    return;
+  }
+
+  // Switch turn
+  currentPlayer = currentPlayer === X ? O : X;
+  updateTurnIndicator();
+
+  // AI move
+  if (mode === 'ai' && currentPlayer === O && !gameOver) {
+    setTimeout(() => aiMove(), 300 + Math.random() * 200);
+  }
+}
+
+function endGame(winner, winLine) {
+  gameOver = true;
+
+  if (winLine) {
+    drawWinLine(winLine);
+    winLine.forEach(i => $cells.children[i].classList.add('win-cell'));
+  }
+
+  // Update scores
+  if (winner === X) scores.x++;
+  else if (winner === O) scores.o++;
+  else scores.draw++;
+  updateScores();
+
+  // Save records
+  saveRecords(winner);
+  saveState();
+
+  // Show result
+  setTimeout(() => showResult(winner), 500);
+
+  // Haptic
+  if (winner) {
+    const isWin = mode === '2p' || winner === X;
+    window.TG?.haptic?.('notification', isWin ? 'success' : 'error');
+  } else {
+    window.TG?.haptic?.('notification', 'warning');
+  }
+}
+
+function showResult(winner) {
+  let emoji, msg, sub;
+
+  if (mode === 'ai') {
+    if (winner === X) {
+      emoji = '🎉'; msg = t('youWin'); sub = t('perfect');
+    } else if (winner === O) {
+      emoji = '😢'; msg = t('youLose'); sub = t('goodGame');
+    } else {
+      emoji = '🤝'; msg = t('draw'); sub = t('goodGame');
+    }
+  } else {
+    if (winner === X) {
+      emoji = '🎉'; msg = t('p1Wins'); sub = '';
+    } else if (winner === O) {
+      emoji = '🎉'; msg = t('p2Wins'); sub = '';
+    } else {
+      emoji = '🤝'; msg = t('draw'); sub = '';
+    }
+  }
+
+  $resultEmoji.textContent = emoji;
+  $resultMsg.textContent = msg;
+  $resultSub.textContent = sub;
+  $resultToast.classList.add('show');
+
+  $turnInd.textContent = msg;
+  $turnInd.className = 'turn-indicator game-over';
+}
+
+// ═══════════════════════════════════════════════════
+// SVG Marks
+// ═══════════════════════════════════════════════════
+function createXSvg() {
+  return `<svg class="mark-x" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+    <line x1="22" y1="22" x2="78" y2="78"/>
+    <line x1="78" y1="22" x2="22" y2="78"/>
+  </svg>`;
+}
+
+function createOSvg() {
+  return `<svg class="mark-o" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+    <circle cx="50" cy="50" r="30"/>
+  </svg>`;
+}
+
+function drawWinLine(line) {
+  const [a, , c] = [line[0], line[1], line[2]];
+  const [x1, y1] = CENTERS[a];
+  const [x2, y2] = CENTERS[c];
+  $winLine.innerHTML = `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+}
+
+// ═══════════════════════════════════════════════════
+// Win Check
+// ═══════════════════════════════════════════════════
+function checkWin(b, player) {
+  for (const line of WIN_LINES) {
+    if (line.every(i => b[i] === player)) return line;
+  }
+  return null;
+}
+
+function getWinner(b) {
+  for (const p of [X, O]) {
+    if (checkWin(b, p)) return p;
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════
+// AI — Minimax with alpha-beta pruning
+// ═══════════════════════════════════════════════════
+function aiMove() {
+  if (gameOver) return;
+
+  let move;
+  switch (difficulty) {
+    case 1: move = aiEasy(); break;
+    case 2: move = aiMedium(); break;
+    case 3: move = aiHard(); break;
+    default: move = aiMedium();
+  }
+
+  if (move !== -1) makeMove(move, O);
+}
+
+// Easy: 40% random, 60% minimax
+function aiEasy() {
+  if (Math.random() < 0.4) {
+    return randomMove();
+  }
+  return minimaxBest(board, O);
+}
+
+// Medium: 15% random, 85% minimax
+function aiMedium() {
+  if (Math.random() < 0.15) {
+    return randomMove();
+  }
+  return minimaxBest(board, O);
+}
+
+// Hard: Pure minimax (unbeatable)
+function aiHard() {
+  return minimaxBest(board, O);
+}
+
+function randomMove() {
+  const empty = board.map((v, i) => v === EMPTY ? i : -1).filter(i => i !== -1);
+  if (empty.length === 0) return -1;
+  return empty[Math.floor(Math.random() * empty.length)];
+}
+
+function minimaxBest(b, player) {
+  let bestScore = -Infinity;
+  let bestMove = -1;
+
+  for (let i = 0; i < 9; i++) {
+    if (b[i] !== EMPTY) continue;
+    b[i] = player;
+    const score = minimax(b, 0, false, -Infinity, Infinity);
+    b[i] = EMPTY;
+    if (score > bestScore) {
+      bestScore = score;
+      bestMove = i;
+    }
+  }
+  return bestMove;
+}
+
+function minimax(b, depth, isMaximizing, alpha, beta) {
+  const winner = getWinner(b);
+  if (winner === O) return 10 - depth;
+  if (winner === X) return depth - 10;
+  if (b.every(c => c !== EMPTY)) return 0;
+
+  if (isMaximizing) {
+    let best = -Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (b[i] !== EMPTY) continue;
+      b[i] = O;
+      best = Math.max(best, minimax(b, depth + 1, false, alpha, beta));
+      b[i] = EMPTY;
+      alpha = Math.max(alpha, best);
+      if (beta <= alpha) break;
+    }
+    return best;
+  } else {
+    let best = Infinity;
+    for (let i = 0; i < 9; i++) {
+      if (b[i] !== EMPTY) continue;
+      b[i] = X;
+      best = Math.min(best, minimax(b, depth + 1, true, alpha, beta));
+      b[i] = EMPTY;
+      beta = Math.min(beta, best);
+      if (beta <= alpha) break;
+    }
+    return best;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// UI Updates
+// ═══════════════════════════════════════════════════
+function updateScores() {
+  $scoreX.textContent = scores.x;
+  $scoreO.textContent = scores.o;
+}
+
+function updateTurnIndicator() {
+  if (gameOver) return;
+
+  if (mode === 'ai') {
+    if (currentPlayer === X) {
+      $turnInd.textContent = t('yourTurn');
+      $turnInd.className = 'turn-indicator x-turn';
+    } else {
+      $turnInd.textContent = t('aiTurn');
+      $turnInd.className = 'turn-indicator o-turn';
+    }
+  } else {
+    if (currentPlayer === X) {
+      $turnInd.textContent = t('p1Turn');
+      $turnInd.className = 'turn-indicator x-turn';
+    } else {
+      $turnInd.textContent = t('p2Turn');
+      $turnInd.className = 'turn-indicator o-turn';
+    }
+  }
+}
+
+function updateLabels() {
+  if (mode === 'ai') {
+    $labelX.textContent = `X (${t('you').toUpperCase()})`;
+    $labelO.textContent = `O (${t('ai').toUpperCase()})`;
+  } else {
+    $labelX.textContent = `X (${t('p1').toUpperCase()})`;
+    $labelO.textContent = `O (${t('p2').toUpperCase()})`;
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// Mode & Difficulty
+// ═══════════════════════════════════════════════════
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === m);
+  });
+  $diffRow.classList.toggle('hidden', m !== 'ai');
+  updateLabels();
+  startNewGame();
+  saveState();
+}
+
+function setDifficulty(d) {
+  difficulty = d;
+  document.querySelectorAll('.diff-btn').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.diff) === d);
+  });
+  startNewGame();
+  saveState();
+}
+
+// ═══════════════════════════════════════════════════
+// Language Toggle
+// ═══════════════════════════════════════════════════
+function toggleLang() {
+  lang = lang === 'ko' ? 'en' : 'ko';
+  applyI18N();
+  updateTurnIndicator();
+  saveState();
+  window.TG?.haptic?.('selection');
+}
+
+// ═══════════════════════════════════════════════════
+// Records
+// ═══════════════════════════════════════════════════
+function getRecords() {
+  return window.TG?.load?.('ttt-records', {
+    ai: { easy: { w: 0, l: 0, d: 0 }, medium: { w: 0, l: 0, d: 0 }, hard: { w: 0, l: 0, d: 0 } },
+    '2p': { w: 0, l: 0, d: 0 }
+  }) || {
+    ai: { easy: { w: 0, l: 0, d: 0 }, medium: { w: 0, l: 0, d: 0 }, hard: { w: 0, l: 0, d: 0 } },
+    '2p': { w: 0, l: 0, d: 0 }
+  };
+}
+
+function saveRecords(winner) {
+  const rec = getRecords();
+
+  if (mode === 'ai') {
+    const diffKey = ['', 'easy', 'medium', 'hard'][difficulty];
+    if (!rec.ai[diffKey]) rec.ai[diffKey] = { w: 0, l: 0, d: 0 };
+    if (winner === X) rec.ai[diffKey].w++;
+    else if (winner === O) rec.ai[diffKey].l++;
+    else rec.ai[diffKey].d++;
+  } else {
+    if (!rec['2p']) rec['2p'] = { w: 0, l: 0, d: 0 };
+    if (winner === X) rec['2p'].w++;
+    else if (winner === O) rec['2p'].l++;
+    else rec['2p'].d++;
+  }
+
+  window.TG?.save?.('ttt-records', rec);
+}
+
+function showRecords() {
+  const rec = getRecords();
+  const diffNames = { easy: t('easy'), medium: t('medium'), hard: t('hard') };
+
+  let html = '';
+
+  // AI records
+  for (const d of ['easy', 'medium', 'hard']) {
+    const r = rec.ai?.[d] || { w: 0, l: 0, d: 0 };
+    const total = r.w + r.l + r.d;
+    if (total === 0) continue;
+    const wr = total > 0 ? Math.round(r.w / total * 100) : 0;
+    html += `<div style="font-weight:700;margin:8px 0 4px;color:var(--accent)">🤖 AI — ${diffNames[d]}</div>`;
+    html += recRow(t('total'), total);
+    html += recRow(t('wins'), r.w);
+    html += recRow(t('losses'), r.l);
+    html += recRow(t('draws'), r.d);
+    html += recRow(t('winRate'), `${wr}%`);
+  }
+
+  // 2P records
+  const r2 = rec['2p'] || { w: 0, l: 0, d: 0 };
+  const t2 = r2.w + r2.l + r2.d;
+  if (t2 > 0) {
+    html += `<div style="font-weight:700;margin:8px 0 4px;color:var(--accent)">👥 ${t('vs2P')}</div>`;
+    html += recRow(`${t('p1')} ${t('wins')}`, r2.w);
+    html += recRow(`${t('p2')} ${t('wins')}`, r2.l);
+    html += recRow(t('draws'), r2.d);
+    html += recRow(t('total'), t2);
+  }
+
+  if (!html) {
+    html = `<div style="text-align:center;color:var(--text-dim);padding:16px">${lang === 'ko' ? '아직 기록이 없습니다' : 'No records yet'}</div>`;
+  }
+
+  $recordsBody.innerHTML = html;
+  $recordsOverlay.classList.add('show');
+  window.TG?.haptic?.('impact', 'light');
+}
+
+function recRow(label, val) {
+  return `<div class="rec-row"><span class="rec-label">${label}</span><span class="rec-val">${val}</span></div>`;
+}
+
+function resetRecords() {
+  window.TG?.save?.('ttt-records', {
+    ai: { easy: { w: 0, l: 0, d: 0 }, medium: { w: 0, l: 0, d: 0 }, hard: { w: 0, l: 0, d: 0 } },
+    '2p': { w: 0, l: 0, d: 0 }
+  });
+  scores = { x: 0, o: 0, draw: 0 };
+  updateScores();
+  saveState();
+  $recordsOverlay.classList.remove('show');
+  window.TG?.haptic?.('notification', 'success');
+}
+
+// ═══════════════════════════════════════════════════
+// Boot
+// ═══════════════════════════════════════════════════
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
