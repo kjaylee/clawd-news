@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Image Resizer — 대량 이미지 리사이즈 | East Sea Tools</title>
+<meta name="description" content="여러 이미지를 한 번에 리사이즈하세요. 드래그앤드롭으로 대량 이미지 크기 변환, 포맷 변환. 서버 업로드 없이 브라우저에서 처리.">
+<meta name="keywords" content="bulk image resizer, 이미지 리사이즈, batch resize, 대량 이미지 변환, image converter, 이미지 크기 변경">
+<link rel="canonical" href="https://eastsea.monster/services/bulk-image-resizer/">
+<meta property="og:title" content="🖼️ Bulk Image Resizer — 대량 이미지 리사이즈">
+<meta property="og:description" content="드래그앤드롭으로 여러 이미지를 한 번에 리사이즈. 서버 전송 없이 100% 브라우저 처리.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/bulk-image-resizer/">
+<meta property="og:site_name" content="East Sea Tools">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:700px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.dropzone{border:2px dashed var(--border);border-radius:var(--radius);padding:50px 20px;text-align:center;cursor:pointer;transition:all .3s;margin-bottom:20px}
+.dropzone:hover,.dropzone.dragover{border-color:var(--accent);background:rgba(102,126,234,.05)}
+.dropzone .icon{font-size:3rem;margin-bottom:12px}
+.dropzone .main-text{font-size:1rem;color:var(--text);margin-bottom:4px}
+.dropzone .sub-text{font-size:.8rem;color:var(--dim)}
+input[type=file]{display:none}
+.options{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.options h3{font-size:.9rem;color:var(--muted);margin-bottom:14px}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.field{margin-bottom:0}
+.field label{font-size:.8rem;color:var(--dim);display:block;margin-bottom:4px}
+.field input,.field select{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.9rem;outline:none}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.preset-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.preset{padding:5px 12px;border-radius:16px;background:var(--bg);border:1px solid var(--border);color:var(--dim);cursor:pointer;font-size:.75rem;transition:all .2s}
+.preset:hover,.preset.active{border-color:var(--accent);color:var(--accent)}
+.file-list{margin-bottom:20px}
+.file-item{display:flex;align-items:center;gap:12px;padding:12px;background:var(--card);border:1px solid var(--border);border-radius:10px;margin-bottom:8px}
+.file-thumb{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--bg)}
+.file-info{flex:1;min-width:0}
+.file-name{font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.file-meta{font-size:.72rem;color:var(--dim)}
+.file-status{font-size:.8rem;font-weight:600}
+.file-status.done{color:var(--green)}
+.file-status.processing{color:var(--yellow)}
+.file-status.error{color:var(--red)}
+.file-remove{background:none;border:none;color:var(--dim);cursor:pointer;font-size:1.1rem;padding:4px}
+.file-remove:hover{color:var(--red)}
+.progress-bar{width:100%;height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:20px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .3s;border-radius:2px}
+.btn-row{display:flex;gap:10px;margin-bottom:20px}
+.btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:24px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.container{padding:20px 14px 40px}.opt-grid{grid-template-columns:1fr}.btn-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<a href="/services/">← Tools</a>
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+<div class="container">
+<h1>🖼️ <span data-i18n="title">대량 이미지 리사이즈</span></h1>
+<p class="subtitle" data-i18n="subtitle">여러 이미지를 한 번에 크기 변환. 서버 전송 없이 브라우저에서 처리.</p>
+
+<div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+<div class="icon">📁</div>
+<div class="main-text" data-i18n="dropText">이미지를 여기에 드래그하거나 클릭하세요</div>
+<div class="sub-text" data-i18n="dropSub">JPG, PNG, WebP, GIF 지원 · 최대 50개</div>
+</div>
+<input type="file" id="fileInput" multiple accept="image/*" onchange="addFiles(this.files)">
+
+<div class="options">
+<h3 data-i18n="optTitle">⚙️ 리사이즈 옵션</h3>
+<div class="opt-grid">
+<div class="field">
+<label data-i18n="width">너비 (px)</label>
+<input type="number" id="resizeW" value="800" min="1" max="10000">
+</div>
+<div class="field">
+<label data-i18n="height">높이 (px)</label>
+<input type="number" id="resizeH" value="" placeholder="자동">
+</div>
+<div class="field">
+<label data-i18n="format">출력 포맷</label>
+<select id="outFormat">
+<option value="original">원본 유지</option>
+<option value="image/jpeg">JPEG</option>
+<option value="image/png">PNG</option>
+<option value="image/webp" selected>WebP</option>
+</select>
+</div>
+<div class="field">
+<label data-i18n="quality">품질</label>
+<select id="outQuality">
+<option value="1.0">최고 (100%)</option>
+<option value="0.9">높음 (90%)</option>
+<option value="0.8" selected>좋음 (80%)</option>
+<option value="0.6">보통 (60%)</option>
+<option value="0.4">낮음 (40%)</option>
+</select>
+</div>
+</div>
+<div class="preset-row">
+<span class="preset" onclick="setPreset(1920,'')">1920px</span>
+<span class="preset active" onclick="setPreset(800,'')">800px</span>
+<span class="preset" onclick="setPreset(400,'')">400px</span>
+<span class="preset" onclick="setPreset(200,'')">200px</span>
+<span class="preset" onclick="setPreset(1080,1080)">1080×1080</span>
+<span class="preset" onclick="setPreset(1200,630)">OG (1200×630)</span>
+</div>
+</div>
+
+<div class="file-list" id="fileList"></div>
+<div class="progress-bar" style="display:none" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+
+<div class="btn-row">
+<button class="btn btn-primary" id="resizeBtn" onclick="resizeAll()" disabled data-i18n="resize">리사이즈 시작</button>
+<button class="btn btn-secondary" id="downloadBtn" onclick="downloadAll()" disabled data-i18n="downloadAll">전체 다운로드</button>
+</div>
+
+<div class="ad-placeholder">Ad Space</div>
+</div>
+
+<footer>
+<a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a>
+</footer>
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={
+ko:{title:'대량 이미지 리사이즈',subtitle:'여러 이미지를 한 번에 크기 변환. 서버 전송 없이 브라우저에서 처리.',dropText:'이미지를 여기에 드래그하거나 클릭하세요',dropSub:'JPG, PNG, WebP, GIF 지원 · 최대 50개',optTitle:'⚙️ 리사이즈 옵션',width:'너비 (px)',height:'높이 (px, 빈칸=자동)',format:'출력 포맷',quality:'품질',resize:'리사이즈 시작',downloadAll:'전체 다운로드',processing:'처리중...',done:'완료',error:'오류',cleared:'목록 초기화됨'},
+en:{title:'Bulk Image Resizer',subtitle:'Resize multiple images at once. Processed entirely in your browser.',dropText:'Drag images here or click to browse',dropSub:'JPG, PNG, WebP, GIF supported · Up to 50',optTitle:'⚙️ Resize Options',width:'Width (px)',height:'Height (px, blank=auto)',format:'Output Format',quality:'Quality',resize:'Start Resize',downloadAll:'Download All',processing:'Processing...',done:'Done',error:'Error',cleared:'List cleared'}
+};
+let lang='ko',files=[],results=[];
+
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]})}
+
+const dz=document.getElementById('dropzone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');addFiles(e.dataTransfer.files)});
+
+function setPreset(w,h){
+document.getElementById('resizeW').value=w;
+document.getElementById('resizeH').value=h||'';
+document.querySelectorAll('.preset').forEach(p=>p.classList.remove('active'))}
+
+function addFiles(newFiles){
+for(const f of newFiles){
+if(!f.type.startsWith('image/')||files.length>=50)continue;
+files.push({file:f,thumb:URL.createObjectURL(f),status:'pending'})}
+renderFiles();
+document.getElementById('resizeBtn').disabled=files.length===0}
+
+function renderFiles(){
+const list=document.getElementById('fileList');
+list.innerHTML=files.map((f,i)=>{
+const sizeKB=(f.file.size/1024).toFixed(1);
+const statusCls=f.status==='done'?'done':f.status==='processing'?'processing':f.status==='error'?'error':'';
+const statusText=f.status==='done'?'✅':'';
+return`<div class="file-item"><img class="file-thumb" src="${f.thumb}" alt=""><div class="file-info"><div class="file-name">${f.file.name}</div><div class="file-meta">${sizeKB} KB${f.newSize?' → '+f.newSize:''}</div></div><span class="file-status ${statusCls}">${statusText}</span><button class="file-remove" onclick="removeFile(${i})">×</button></div>`}).join('')}
+
+function removeFile(i){URL.revokeObjectURL(files[i].thumb);files.splice(i,1);results.splice(i,1);renderFiles();document.getElementById('resizeBtn').disabled=files.length===0}
+
+async function resizeAll(){
+if(!files.length)return;
+const W=+document.getElementById('resizeW').value||800;
+const H=+document.getElementById('resizeH').value||0;
+const fmt=document.getElementById('outFormat').value;
+const q=+document.getElementById('outQuality').value;
+const pb=document.getElementById('progressBar');pb.style.display='block';
+const pf=document.getElementById('progressFill');
+results=[];
+document.getElementById('resizeBtn').disabled=true;
+
+for(let i=0;i<files.length;i++){
+files[i].status='processing';renderFiles();
+pf.style.width=((i/files.length)*100)+'%';
+try{
+const blob=await resizeOne(files[i].file,W,H,fmt,q);
+results.push(blob);
+files[i].newSize=(blob.size/1024).toFixed(1)+' KB';
+files[i].status='done'}catch(e){files[i].status='error';results.push(null)}
+renderFiles()}
+pf.style.width='100%';
+document.getElementById('resizeBtn').disabled=false;
+document.getElementById('downloadBtn').disabled=false;
+showToast(i18n[lang].done)}
+
+function resizeOne(file,W,H,fmt,q){
+return new Promise((resolve,reject)=>{
+const img=new Image();img.onload=()=>{
+let w=W,h=H;
+if(!h)h=Math.round(img.height*(W/img.width));
+if(!w)w=Math.round(img.width*(H/img.height));
+const c=document.createElement('canvas');c.width=w;c.height=h;
+const ctx=c.getContext('2d');ctx.drawImage(img,0,0,w,h);
+const outFmt=fmt==='original'?file.type:fmt;
+c.toBlob(blob=>blob?resolve(blob):reject('Failed'),outFmt,q)};
+img.onerror=reject;img.src=URL.createObjectURL(file)})}
+
+function downloadAll(){
+results.forEach((blob,i)=>{
+if(!blob)return;
+const ext=blob.type.split('/')[1]||'jpg';
+const name=files[i].file.name.replace(/\.[^.]+$/,'')+'.'+ext;
+const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();URL.revokeObjectURL(a.href)})}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+</script>
+</body>
+</html>

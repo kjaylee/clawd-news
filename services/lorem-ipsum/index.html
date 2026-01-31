@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lorem Ipsum Generator — 더미 텍스트 생성기 | East Sea Tools</title>
+<meta name="description" content="다양한 스타일의 더미 텍스트 생성기. 한국어, 영어, 히포스터, 해적 등 재미있는 스타일 지원. 웹/앱 디자인 목업에 활용하세요.">
+<meta name="keywords" content="lorem ipsum, dummy text, 더미 텍스트, 한국어 로렘 입숨, placeholder text">
+<link rel="canonical" href="https://eastsea.monster/services/lorem-ipsum/">
+<meta property="og:title" content="📝 Lorem Ipsum Generator — 더미 텍스트 생성기">
+<meta property="og:description" content="한국어/영어 더미 텍스트를 다양한 스타일로 즉시 생성하세요.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/lorem-ipsum/">
+<meta property="og:site_name" content="East Sea Tools">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:700px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.controls{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.field{flex:1;min-width:120px}
+.field label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:4px}
+.field select,.field input{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.9rem}
+.field select:focus,.field input:focus{outline:none;border-color:var(--accent)}
+.style-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.pill{padding:8px 16px;background:var(--bg);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:.82rem;transition:all .2s;color:var(--muted)}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.active{background:linear-gradient(135deg,var(--accent),var(--accent2));border-color:transparent;color:#fff;font-weight:600}
+.btn-row{display:flex;gap:10px}
+.btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text)}
+.output{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;min-height:150px;white-space:pre-wrap;line-height:1.8;font-size:.95rem}
+.output p{margin-bottom:14px}
+.output p:last-child{margin-bottom:0}
+.stats{display:flex;gap:20px;justify-content:center;margin-top:12px;font-size:.8rem;color:var(--muted)}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:20px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:480px){.btn-row{flex-direction:column}.row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="top-bar"><a href="/services/">← Tools</a><button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button></div>
+<div class="container">
+<h1>📝 <span data-i18n="title">Lorem Ipsum 생성기</span></h1>
+<p class="subtitle" data-i18n="subtitle">디자인 목업용 더미 텍스트를 생성하세요</p>
+
+<div class="controls">
+<div class="style-pills" id="stylePills"></div>
+<div class="row">
+<div class="field"><label data-i18n="unitLabel">단위</label>
+<select id="unit"><option value="paragraphs" data-i18n-opt="paragraphs">문단</option><option value="sentences">문장</option><option value="words">단어</option></select></div>
+<div class="field"><label data-i18n="countLabel">개수</label><input type="number" id="count" value="3" min="1" max="100"></div>
+</div>
+<div class="row">
+<div class="field"><label>HTML Tags</label>
+<select id="htmlTag"><option value="none">Plain Text</option><option value="p">&lt;p&gt; tags</option><option value="li">&lt;li&gt; tags</option></select></div>
+</div>
+<div class="btn-row">
+<button class="btn btn-primary" onclick="gen()" data-i18n="generate">생성하기</button>
+<button class="btn btn-secondary" onclick="copyOutput()" data-i18n="copy">복사</button>
+</div>
+</div>
+
+<div class="output" id="output"></div>
+<div class="stats" id="stats"></div>
+<div class="ad-placeholder">Ad Space</div>
+</div>
+<footer><a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a></footer>
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={ko:{title:'Lorem Ipsum 생성기',subtitle:'디자인 목업용 더미 텍스트를 생성하세요',generate:'생성하기',copy:'복사',copied:'복사 완료!',unitLabel:'단위',countLabel:'개수',words:'단어',chars:'글자',paras:'문단'},en:{title:'Lorem Ipsum Generator',subtitle:'Generate dummy text for design mockups',generate:'Generate',copy:'Copy',copied:'Copied!',unitLabel:'Unit',countLabel:'Count',words:'words',chars:'chars',paras:'paragraphs'}};
+let lang='ko';
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]});gen()}
+
+const styles={
+classic:{name:'Classic Latin',data:['Lorem ipsum dolor sit amet, consectetur adipiscing elit.','Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.','Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.','Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.','Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.','Curabitur pretium tincidunt lacus sed auctor.','Nulla facilisi morbi tempus iaculis urna id volutpat lacus.','Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.','Proin sagittis nisl rhoncus mattis rhoncus urna neque viverra justo.','Viverra accumsan in nisl nisi scelerisque eu ultrices vitae.','Amet consectetur adipiscing elit pellentesque habitant morbi tristique senectus.','Egestas sed tempus urna et pharetra pharetra massa massa ultricies.']},
+korean:{name:'한국어',data:['다람쥐 헌 쳇바퀴에 타고파 하는 마음으로 매일 새로운 도전을 합니다.','우리나라 대한민국은 사계절이 뚜렷하고 아름다운 자연환경을 가지고 있습니다.','기술의 발전은 우리의 일상을 크게 변화시키고 있으며 미래는 더욱 흥미로울 것입니다.','좋은 디자인은 보이지 않는 곳에서부터 시작됩니다. 세부사항에 신경을 기울여야 합니다.','사용자 경험을 최우선으로 생각하는 서비스가 결국 성공합니다.','커피 한 잔의 여유가 하루의 생산성을 크게 높여줄 수 있습니다.','독서는 마음의 양식이라고 합니다. 좋은 책 한 권이 인생을 바꿀 수도 있습니다.','팀워크는 개인의 능력을 넘어서는 결과를 만들어냅니다.','혁신은 기존의 방식에 의문을 품는 것에서 시작됩니다.','작은 습관의 변화가 큰 차이를 만듭니다. 매일 조금씩 발전하세요.','프로그래밍은 논리적 사고와 창의성이 만나는 예술입니다.','데이터가 없는 결정은 추측에 불과합니다. 항상 근거를 찾으세요.']},
+hipster:{name:'Hipster',data:['Artisan kombucha biodiesel thundercats, health goth man bun adaptogen chia.','Vexillologist poutine iceland wolf, celiac jean shorts bushwick skateboard selfies.','Aesthetic brunch four loko, green juice literally banjo distillery flexitarian vaporware.','Succulents coloring book normcore, sriracha gluten-free farm-to-table hella tumblr.','Cronut fixie tattooed, XOXO raclette unicorn cold-pressed slow-carb asymmetrical hammock.','Shabby chic sustainable pabst, portland gentrify semiotics listicle raw denim.','Microdosing deep v chartreuse, umami tumeric dreamcatcher viral stumptown.','Fingerstache plaid squid, selfies pitchfork banh mi street art hell of.','Shoreditch air plant pour-over, forage ennui glossier master cleanse.','Tilde cred kickstarter, affogato scenester woke chicharrones hell of portland.']},
+pirate:{name:'🏴‍☠️ Pirate',data:['Arrr matey! Shiver me timbers and hoist the Jolly Roger, we be sailin the seven seas!','Blimey! That scallywag stole me treasure chest full of golden doubloons!','Walk the plank ye landlubber! This be a ship for real pirates only!','Yo ho ho and a bottle of rum! The seas be rough but our spirits be high!','Dead men tell no tales, but this old sea dog has stories that would curl yer beard!','Avast ye scurvy dogs! There be a kraken off the starboard bow!','Batten down the hatches! A storm be brewin on the horizon!','The treasure map leads to a deserted island where X marks the spot!','No quarter given! We fight till the last cannon fires!','Sail ho! Enemy ship spotted! All hands on deck and ready the cannons!']},
+office:{name:'💼 Corporate',data:['Let\'s circle back on that synergy initiative to leverage our core competencies going forward.','We need to move the needle on our KPIs while maintaining bandwidth for strategic pivots.','Taking this offline to deep-dive into the action items from our standup meeting.','Let\'s table this discussion and schedule a touchbase to align on deliverables.','We\'re going to need more runway to achieve the low-hanging fruit in our pipeline.','Drilling down into the data reveals opportunities to optimize our conversion funnel.','The paradigm shift requires us to think outside the box and disrupt the status quo.','Our north star metric indicates strong product-market fit with room for growth hacking.','Let\'s leverage AI and machine learning to create 10x value for stakeholders.','The bottom line is we need to be more agile and iterate faster to stay competitive.']}
+};
+
+let currentStyle='classic';
+function initPills(){const c=document.getElementById('stylePills');Object.entries(styles).forEach(([k,v])=>{const p=document.createElement('div');p.className='pill'+(k===currentStyle?' active':'');p.textContent=v.name;p.onclick=()=>{document.querySelectorAll('.pill').forEach(x=>x.classList.remove('active'));p.classList.add('active');currentStyle=k;gen()};c.appendChild(p)})}
+
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)]}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+function gen(){
+const unit=document.getElementById('unit').value;const count=Math.min(100,Math.max(1,+document.getElementById('count').value));
+const tag=document.getElementById('htmlTag').value;const data=styles[currentStyle].data;const out=document.getElementById('output');
+let text='';
+if(unit==='words'){const allWords=data.join(' ').replace(/[.,!?;:]/g,'').split(/\s+/);const shuffled=[];while(shuffled.length<count){shuffled.push(...shuffle(allWords))}text=shuffled.slice(0,count).join(' ');if(text.length>0)text=text[0].toUpperCase()+text.slice(1)+'.'}
+else if(unit==='sentences'){const sents=[];while(sents.length<count){sents.push(...shuffle(data))}text=sents.slice(0,count).join(' ')}
+else{const paras=[];for(let i=0;i<count;i++){const n=3+Math.floor(Math.random()*4);const s=[];for(let j=0;j<n;j++)s.push(pick(data));paras.push(s.join(' '))}text=paras.join('\n\n')}
+if(tag==='p')text=text.split('\n\n').map(p=>`<p>${p}</p>`).join('\n');
+else if(tag==='li')text='<ul>\n'+text.split('\n\n').map(p=>`  <li>${p}</li>`).join('\n')+'\n</ul>';
+out.textContent=text;
+const words=text.split(/\s+/).filter(w=>w).length;const chars=text.length;const paras2=text.split(/\n\n+/).length;
+document.getElementById('stats').textContent=`${words} ${i18n[lang].words} · ${chars} ${i18n[lang].chars} · ${paras2} ${i18n[lang].paras}`}
+
+function copyOutput(){navigator.clipboard.writeText(document.getElementById('output').textContent);const t=document.getElementById('toast');t.textContent=i18n[lang].copied;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+
+initPills();gen();
+</script>
+</body>
+</html>

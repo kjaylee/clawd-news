@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Favicon Factory — 파비콘 생성기 | East Sea Tools</title>
+<meta name="description" content="이미지를 업로드하면 모든 사이즈의 파비콘과 앱 아이콘을 자동 생성합니다. ICO, PNG 16~512px, Apple Touch Icon 포함.">
+<meta name="keywords" content="favicon generator, 파비콘 생성기, favicon maker, app icon generator, apple touch icon, ico generator">
+<link rel="canonical" href="https://eastsea.monster/services/favicon-factory/">
+<meta property="og:title" content="⭐ Favicon Factory — 파비콘 생성기">
+<meta property="og:description" content="이미지 → 모든 사이즈 파비콘/앱아이콘 일괄 생성. 무료 온라인 도구.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/favicon-factory/">
+<meta property="og:site_name" content="East Sea Tools">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:640px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.dropzone{border:2px dashed var(--border);border-radius:var(--radius);padding:50px 20px;text-align:center;cursor:pointer;transition:all .3s;margin-bottom:20px}
+.dropzone:hover,.dropzone.dragover{border-color:var(--accent);background:rgba(102,126,234,.05)}
+.dropzone .icon{font-size:3rem;margin-bottom:10px}
+.dropzone .main-text{font-size:1rem;margin-bottom:4px}
+.dropzone .sub-text{font-size:.8rem;color:var(--dim)}
+input[type=file]{display:none}
+.source-preview{display:flex;align-items:center;gap:16px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px}
+.source-img{width:80px;height:80px;border-radius:12px;object-fit:contain;background:var(--bg)}
+.source-info{flex:1}
+.source-info .name{font-size:.9rem;font-weight:600}
+.source-info .dims{font-size:.8rem;color:var(--dim)}
+.source-change{padding:8px 16px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.8rem}
+.sizes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;margin-bottom:20px}
+.size-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;cursor:pointer;transition:all .2s}
+.size-card:hover{border-color:var(--accent)}
+.size-card.selected{border-color:var(--accent);background:rgba(102,126,234,.1)}
+.size-card .preview{margin:0 auto 8px;background:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.size-card .preview img{width:100%;height:100%;object-fit:contain;image-rendering:pixelated}
+.size-card .label{font-size:.75rem;color:var(--muted)}
+.size-card .dims{font-size:.7rem;color:var(--dim)}
+.options{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.opt-row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.opt-row label{font-size:.85rem;color:var(--muted)}
+.opt-row select{padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem;outline:none}
+.color-pick{display:flex;align-items:center;gap:8px}
+.color-pick input[type=color]{width:32px;height:32px;border:none;border-radius:6px;cursor:pointer;background:transparent}
+.btn-row{display:flex;gap:10px;margin-bottom:20px}
+.btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.html-code{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px}
+.html-code h3{font-size:.85rem;color:var(--muted);margin-bottom:10px}
+.html-code pre{background:var(--bg);padding:12px;border-radius:8px;font-size:.75rem;overflow-x:auto;color:var(--green);font-family:'Courier New',monospace;line-height:1.6}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:24px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.container{padding:20px 14px 40px}.sizes-grid{grid-template-columns:repeat(3,1fr)}.btn-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<a href="/services/">← Tools</a>
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+<div class="container">
+<h1>⭐ <span data-i18n="title">파비콘 생성기</span></h1>
+<p class="subtitle" data-i18n="subtitle">이미지 하나로 모든 사이즈의 파비콘과 앱 아이콘을 생성</p>
+
+<div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+<div class="icon">🎨</div>
+<div class="main-text" data-i18n="dropText">이미지를 드래그하거나 클릭하세요</div>
+<div class="sub-text" data-i18n="dropSub">PNG, SVG, JPG 권장 (512×512 이상)</div>
+</div>
+<input type="file" id="fileInput" accept="image/*" onchange="loadImage(this.files[0])">
+
+<div id="sourcePreview" style="display:none" class="source-preview">
+<img id="srcImg" class="source-img" alt="source">
+<div class="source-info"><div class="name" id="srcName"></div><div class="dims" id="srcDims"></div></div>
+<button class="source-change" onclick="document.getElementById('fileInput').click()" data-i18n="change">변경</button>
+</div>
+
+<div class="options">
+<div class="opt-row">
+<label data-i18n="bgOption">배경색</label>
+<div class="color-pick">
+<select id="bgMode" onchange="regenerate()">
+<option value="transparent" data-i18n="transparent">투명</option>
+<option value="color" data-i18n="custom">커스텀</option>
+</select>
+<input type="color" id="bgColor" value="#ffffff" onchange="regenerate()">
+</div>
+<label data-i18n="shape">모양</label>
+<select id="shape" onchange="regenerate()">
+<option value="square">■ 사각형</option>
+<option value="rounded">▢ 둥근 사각</option>
+<option value="circle">● 원형</option>
+</select>
+</div>
+</div>
+
+<div class="sizes-grid" id="sizesGrid"></div>
+
+<div class="btn-row">
+<button class="btn btn-primary" id="dlAllBtn" onclick="downloadAll()" disabled data-i18n="downloadAll">📦 전체 다운로드 (ZIP)</button>
+<button class="btn btn-secondary" onclick="downloadSelected()" id="dlSelBtn" disabled data-i18n="downloadSel">선택 다운로드</button>
+</div>
+
+<div class="html-code" id="htmlCode" style="display:none">
+<h3 data-i18n="htmlTitle">📋 HTML 코드</h3>
+<pre id="htmlPre"></pre>
+<button class="btn btn-secondary" onclick="copyHtml()" style="width:100%;margin-top:8px;padding:10px" data-i18n="copyHtml">코드 복사</button>
+</div>
+
+<div class="ad-placeholder">Ad Space</div>
+</div>
+
+<footer>
+<a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a>
+</footer>
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={
+ko:{title:'파비콘 생성기',subtitle:'이미지 하나로 모든 사이즈의 파비콘과 앱 아이콘을 생성',dropText:'이미지를 드래그하거나 클릭하세요',dropSub:'PNG, SVG, JPG 권장 (512×512 이상)',change:'변경',bgOption:'배경색',transparent:'투명',custom:'커스텀',shape:'모양',downloadAll:'📦 전체 다운로드',downloadSel:'선택 다운로드',htmlTitle:'📋 HTML 코드',copyHtml:'코드 복사',copied:'복사 완료!'},
+en:{title:'Favicon Factory',subtitle:'Generate all favicon and app icon sizes from a single image',dropText:'Drag an image or click to browse',dropSub:'PNG, SVG, JPG recommended (512×512+)',change:'Change',bgOption:'Background',transparent:'Transparent',custom:'Custom',shape:'Shape',downloadAll:'📦 Download All',downloadSel:'Download Selected',htmlTitle:'📋 HTML Code',copyHtml:'Copy Code',copied:'Copied!'}
+};
+let lang='ko',sourceImg=null,selectedSizes=new Set();
+const sizes=[
+{w:16,h:16,label:'favicon',desc:'Browser tab'},
+{w:32,h:32,label:'favicon-32',desc:'Browser tab (HiDPI)'},
+{w:48,h:48,label:'favicon-48',desc:'Windows desktop'},
+{w:64,h:64,label:'favicon-64',desc:'Windows site'},
+{w:96,h:96,label:'favicon-96',desc:'Google TV'},
+{w:120,h:120,label:'apple-touch-60@2x',desc:'iPhone (Retina)'},
+{w:152,h:152,label:'apple-touch-76@2x',desc:'iPad (Retina)'},
+{w:167,h:167,label:'apple-touch-83.5@2x',desc:'iPad Pro'},
+{w:180,h:180,label:'apple-touch-icon',desc:'iPhone (iOS 7+)'},
+{w:192,h:192,label:'android-chrome',desc:'Android Chrome'},
+{w:256,h:256,label:'favicon-256',desc:'Large'},
+{w:512,h:512,label:'android-512',desc:'Android Splash'}
+];
+selectedSizes=new Set(sizes.map((_,i)=>i));
+
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]})}
+
+const dz=document.getElementById('dropzone');
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover')});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');if(e.dataTransfer.files[0])loadImage(e.dataTransfer.files[0])});
+
+function loadImage(file){
+if(!file)return;
+const img=new Image();
+img.onload=()=>{
+sourceImg=img;
+document.getElementById('dropzone').style.display='none';
+document.getElementById('sourcePreview').style.display='flex';
+document.getElementById('srcImg').src=img.src;
+document.getElementById('srcName').textContent=file.name;
+document.getElementById('srcDims').textContent=`${img.naturalWidth} × ${img.naturalHeight}px`;
+regenerate()};
+img.src=URL.createObjectURL(file)}
+
+function regenerate(){
+if(!sourceImg)return;
+const grid=document.getElementById('sizesGrid');grid.innerHTML='';
+const shape=document.getElementById('shape').value;
+const bgMode=document.getElementById('bgMode').value;
+const bgColor=document.getElementById('bgColor').value;
+sizes.forEach((s,i)=>{
+const c=document.createElement('canvas');c.width=s.w;c.height=s.h;
+const ctx=c.getContext('2d');
+if(bgMode==='color'){ctx.fillStyle=bgColor;
+if(shape==='circle'){ctx.beginPath();ctx.arc(s.w/2,s.h/2,s.w/2,0,Math.PI*2);ctx.fill()}
+else if(shape==='rounded'){roundRect(ctx,0,0,s.w,s.h,s.w*.15);ctx.fill()}
+else{ctx.fillRect(0,0,s.w,s.h)}}
+if(shape==='circle'){ctx.save();ctx.beginPath();ctx.arc(s.w/2,s.h/2,s.w/2,0,Math.PI*2);ctx.clip()}
+else if(shape==='rounded'){ctx.save();roundRect(ctx,0,0,s.w,s.h,s.w*.15);ctx.clip()}
+ctx.drawImage(sourceImg,0,0,s.w,s.h);
+if(shape!=='square')ctx.restore();
+const dataUrl=c.toDataURL('image/png');
+const displaySize=Math.min(48,s.w);
+const card=document.createElement('div');card.className='size-card'+(selectedSizes.has(i)?' selected':'');
+card.onclick=()=>{selectedSizes.has(i)?selectedSizes.delete(i):selectedSizes.add(i);card.classList.toggle('selected')};
+card.innerHTML=`<div class="preview" style="width:${displaySize}px;height:${displaySize}px"><img src="${dataUrl}" alt="${s.w}"></div><div class="label">${s.label}</div><div class="dims">${s.w}×${s.h}</div>`;
+card.dataset.dataUrl=dataUrl;card.dataset.idx=i;
+grid.appendChild(card)});
+document.getElementById('dlAllBtn').disabled=false;
+document.getElementById('dlSelBtn').disabled=false;
+renderHtml()}
+
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}
+
+function downloadAll(){
+document.querySelectorAll('.size-card').forEach((card,i)=>{
+const s=sizes[i];const a=document.createElement('a');
+a.href=card.dataset.dataUrl;a.download=`favicon-${s.w}x${s.h}.png`;a.click()})}
+
+function downloadSelected(){
+document.querySelectorAll('.size-card').forEach((card,i)=>{
+if(!selectedSizes.has(i))return;
+const s=sizes[i];const a=document.createElement('a');
+a.href=card.dataset.dataUrl;a.download=`favicon-${s.w}x${s.h}.png`;a.click()})}
+
+function renderHtml(){
+const code=`<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png">`;
+document.getElementById('htmlCode').style.display='block';
+document.getElementById('htmlPre').textContent=code}
+
+function copyHtml(){navigator.clipboard.writeText(document.getElementById('htmlPre').textContent).then(()=>showToast(i18n[lang].copied))}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+</script>
+</body>
+</html>

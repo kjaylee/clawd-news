@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meeting Cost Calculator — 회의 비용 계산기 | East Sea Tools</title>
+<meta name="description" content="회의 참석자 수와 시급으로 실시간 회의 비용을 계산합니다. 불필요한 회의를 줄이고 생산성을 높이세요.">
+<meta name="keywords" content="meeting cost calculator, 회의 비용 계산기, meeting timer, 생산성, productivity">
+<link rel="canonical" href="https://eastsea.monster/services/meeting-cost/">
+<meta property="og:title" content="⏱️ Meeting Cost Calculator — 회의 비용 계산기">
+<meta property="og:description" content="실시간 회의 비용 계산. 참석자×시급으로 비용을 시각화합니다.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/meeting-cost/">
+<meta property="og:site_name" content="East Sea Tools">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:600px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.cost-display{text-align:center;padding:40px 20px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;position:relative;overflow:hidden}
+.cost-display .amount{font-size:clamp(2.5rem,8vw,4rem);font-weight:900;font-variant-numeric:tabular-nums;transition:color .3s}
+.cost-display .amount.low{color:var(--green)}
+.cost-display .amount.mid{color:var(--yellow)}
+.cost-display .amount.high{color:var(--red)}
+.cost-display .timer{font-size:1.2rem;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}
+.cost-display .per-sec{font-size:.8rem;color:var(--dim);margin-top:4px}
+.pulse{position:absolute;top:10px;right:14px;width:10px;height:10px;border-radius:50%;background:var(--green)}
+.pulse.running{animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.3)}}
+.btn-row{display:flex;gap:10px;margin-bottom:24px}
+.btn{flex:1;padding:16px;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-start{background:linear-gradient(135deg,var(--green),#22d3ee);color:#000}
+.btn-stop{background:linear-gradient(135deg,var(--red),var(--pink));color:#fff}
+.btn-reset{background:var(--card);border:1px solid var(--border);color:var(--text)}
+.settings{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.settings h3{font-size:.9rem;color:var(--muted);margin-bottom:16px}
+.setting-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.setting-row:last-child{border-bottom:none}
+.setting-row label{font-size:.9rem}
+.setting-row .control{display:flex;align-items:center;gap:8px}
+.num-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:border-color .2s}
+.num-btn:hover{border-color:var(--accent)}
+.num-val{font-size:1.1rem;font-weight:700;min-width:40px;text-align:center;color:var(--accent)}
+.currency-sel{padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.9rem;outline:none}
+.hourly-input{width:80px;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;text-align:center;outline:none;font-weight:600}
+.hourly-input:focus{border-color:var(--accent)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;text-align:center}
+.stat .val{font-size:1.2rem;font-weight:700;color:var(--accent)}
+.stat .lbl{font-size:.75rem;color:var(--dim);margin-top:4px}
+.fun-fact{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:20px;text-align:center}
+.fun-fact .emoji{font-size:2rem;margin-bottom:8px}
+.fun-fact .text{font-size:.85rem;color:var(--muted)}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:24px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.container{padding:20px 14px 40px}.btn-row{flex-direction:column}.stats{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<a href="/services/">← Tools</a>
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+<div class="container">
+<h1>⏱️ <span data-i18n="title">회의 비용 계산기</span></h1>
+<p class="subtitle" data-i18n="subtitle">실시간으로 회의 비용을 계산하세요</p>
+
+<div class="cost-display">
+<div class="pulse" id="pulse"></div>
+<div class="amount low" id="costDisplay">$0.00</div>
+<div class="timer" id="timerDisplay">00:00:00</div>
+<div class="per-sec" id="perSecDisplay"></div>
+</div>
+
+<div class="btn-row">
+<button class="btn btn-start" id="startBtn" onclick="toggleTimer()" data-i18n="start">▶ 시작</button>
+<button class="btn btn-reset" onclick="resetTimer()" data-i18n="reset">↺ 초기화</button>
+</div>
+
+<div class="settings">
+<h3 data-i18n="settings">⚙️ 설정</h3>
+<div class="setting-row">
+<label data-i18n="attendees">참석자 수</label>
+<div class="control">
+<button class="num-btn" onclick="changeVal('attendees',-1)">−</button>
+<span class="num-val" id="attendees">5</span>
+<button class="num-btn" onclick="changeVal('attendees',1)">+</button>
+</div>
+</div>
+<div class="setting-row">
+<label data-i18n="avgHourly">평균 시급</label>
+<div class="control">
+<input type="number" class="hourly-input" id="hourlyRate" value="50" oninput="updateRate()">
+<select class="currency-sel" id="currency" onchange="updateRate()">
+<option value="$">$ USD</option>
+<option value="₩" selected>₩ KRW</option>
+<option value="€">€ EUR</option>
+<option value="¥">¥ JPY</option>
+<option value="£">£ GBP</option>
+</select>
+</div>
+</div>
+</div>
+
+<div class="stats" id="statsGrid"></div>
+
+<div class="fun-fact" id="funFact">
+<div class="emoji">💡</div>
+<div class="text" data-i18n="startHint">타이머를 시작하면 실시간 비용이 계산됩니다</div>
+</div>
+
+<div class="ad-placeholder">Ad Space</div>
+</div>
+
+<footer>
+<a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a>
+</footer>
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={
+ko:{title:'회의 비용 계산기',subtitle:'실시간으로 회의 비용을 계산하세요',start:'▶ 시작',stop:'⏸ 정지',reset:'↺ 초기화',settings:'⚙️ 설정',attendees:'참석자 수',avgHourly:'평균 시급',startHint:'타이머를 시작하면 실시간 비용이 계산됩니다',perSec:'초당',totalCost:'총 비용',duration:'경과 시간',perPerson:'1인당 비용',altCost:'같은 비용으로...',coffees:'커피',pizzas:'피자',netflix:'넷플릭스 구독',funFacts:['☕ 커피 {n}잔 살 수 있어요','🍕 피자 {n}판 살 수 있어요','🎬 넷플릭스 {n}개월 구독할 수 있어요','📱 택시비 {n}회분이에요','🎮 게임 {n}개 살 수 있어요']},
+en:{title:'Meeting Cost Calculator',subtitle:'Calculate meeting costs in real-time',start:'▶ Start',stop:'⏸ Pause',reset:'↺ Reset',settings:'⚙️ Settings',attendees:'Attendees',avgHourly:'Avg Hourly Rate',startHint:'Start the timer to calculate costs in real-time',perSec:'/sec',totalCost:'Total Cost',duration:'Duration',perPerson:'Per Person',altCost:'Same cost could buy...',coffees:'coffees',pizzas:'pizzas',netflix:'Netflix months',funFacts:['☕ Could buy {n} coffees','🍕 Could buy {n} pizzas','🎬 Worth {n} months of Netflix','🚕 Worth {n} taxi rides','🎮 Could buy {n} games']}
+};
+let lang='ko',running=false,startTime=0,elapsed=0,interval=null,attendees=5,hourlyRate=50,currency='₩';
+
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]});updateDisplay()}
+
+function changeVal(id,delta){
+if(id==='attendees'){attendees=Math.max(1,attendees+delta);document.getElementById('attendees').textContent=attendees;updateRate()}}
+
+function updateRate(){
+hourlyRate=+document.getElementById('hourlyRate').value||0;
+currency=document.getElementById('currency').value;
+updateDisplay()}
+
+function toggleTimer(){
+if(running){
+running=false;clearInterval(interval);
+document.getElementById('startBtn').textContent=i18n[lang].start;
+document.getElementById('startBtn').className='btn btn-start';
+document.getElementById('pulse').classList.remove('running')
+}else{
+running=true;startTime=Date.now()-elapsed*1000;
+interval=setInterval(tick,100);
+document.getElementById('startBtn').textContent=i18n[lang].stop;
+document.getElementById('startBtn').className='btn btn-stop';
+document.getElementById('pulse').classList.add('running')}}
+
+function resetTimer(){
+running=false;clearInterval(interval);elapsed=0;
+document.getElementById('startBtn').textContent=i18n[lang].start;
+document.getElementById('startBtn').className='btn btn-start';
+document.getElementById('pulse').classList.remove('running');
+updateDisplay()}
+
+function tick(){elapsed=(Date.now()-startTime)/1000;updateDisplay()}
+
+function updateDisplay(){
+const L=i18n[lang];
+const costPerSec=(hourlyRate*attendees)/3600;
+const totalCost=costPerSec*elapsed;
+const perPerson=elapsed>0?totalCost/attendees:0;
+// Format
+const h=Math.floor(elapsed/3600);const m=Math.floor((elapsed%3600)/60);const s=Math.floor(elapsed%60);
+document.getElementById('timerDisplay').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+const costEl=document.getElementById('costDisplay');
+const formatted=currency+fmtCost(totalCost);
+costEl.textContent=formatted;
+costEl.className='amount '+(totalCost<100?'low':totalCost<500?'mid':'high');
+if(currency==='₩'){costEl.className='amount '+(totalCost<50000?'low':totalCost<200000?'mid':'high')}
+document.getElementById('perSecDisplay').textContent=costPerSec>0?currency+fmtCost(costPerSec)+' '+L.perSec:'';
+document.getElementById('statsGrid').innerHTML=`
+<div class="stat"><div class="val">${currency}${fmtCost(totalCost)}</div><div class="lbl">${L.totalCost}</div></div>
+<div class="stat"><div class="val">${formatTime(elapsed)}</div><div class="lbl">${L.duration}</div></div>
+<div class="stat"><div class="val">${currency}${fmtCost(perPerson)}</div><div class="lbl">${L.perPerson}</div></div>
+<div class="stat"><div class="val">${attendees} × ${currency}${fmtCost(hourlyRate)}/h</div><div class="lbl">${L.avgHourly}</div></div>`;
+// Fun fact
+if(elapsed>0){
+const coffeePrice=currency==='₩'?5000:5;
+const n=Math.floor(totalCost/coffeePrice);
+const facts=L.funFacts;
+const fact=facts[Math.floor(elapsed/30)%facts.length].replace('{n}',Math.max(1,n));
+document.getElementById('funFact').innerHTML=`<div class="emoji">${fact.charAt(0)}</div><div class="text">${fact}</div>`}
+else{document.getElementById('funFact').innerHTML=`<div class="emoji">💡</div><div class="text">${L.startHint}</div>`}}
+
+function fmtCost(n){return n>=10000?Math.round(n).toLocaleString():n>=100?Math.round(n).toLocaleString():n.toFixed(2)}
+function formatTime(s){const h=Math.floor(s/3600);const m=Math.floor((s%3600)/60);if(h>0)return h+'h '+m+'m';return m+'m '+Math.floor(s%60)+'s'}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+
+// Default KRW hourly
+document.getElementById('hourlyRate').value='30000';hourlyRate=30000;
+updateDisplay();
+</script>
+</body>
+</html>

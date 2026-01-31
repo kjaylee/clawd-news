@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regex Playground — 정규표현식 테스트 | East Sea Tools</title>
+<meta name="description" content="실시간 정규표현식 테스트, 매칭 하이라이트, 그룹 추출, 치트시트. 개발자를 위한 필수 도구.">
+<meta name="keywords" content="regex tester, regular expression, 정규표현식, regex playground, regex101">
+<link rel="canonical" href="https://eastsea.monster/services/regex-playground/">
+<meta property="og:title" content="🎯 Regex Playground — 정규표현식 테스트">
+<meta property="og:description" content="실시간 정규표현식 테스트, 매칭 하이라이트, 치트시트.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/regex-playground/">
+<meta property="og:site_name" content="East Sea Tools">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:800px;margin:0 auto;padding:24px 20px 60px}
+h1{font-size:clamp(1.4rem,3.5vw,1.8rem);font-weight:800;text-align:center;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.subtitle{text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:24px}
+.regex-input{display:flex;align-items:center;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:12px}
+.regex-input .slash{color:var(--pink);font-size:1.3rem;padding:0 8px;font-family:monospace}
+.regex-input input{flex:1;background:transparent;border:none;color:var(--text);font-family:'Courier New',monospace;font-size:1rem;padding:12px 4px;outline:none}
+.flags{display:flex;gap:4px;padding-right:8px}
+.flag{width:30px;height:30px;display:flex;align-items:center;justify-content:center;border-radius:6px;cursor:pointer;font-family:monospace;font-size:.85rem;font-weight:700;background:var(--bg);border:1px solid var(--border);color:var(--dim);transition:all .2s}
+.flag.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.regex-status{font-size:.8rem;margin-bottom:14px;padding:0 4px}
+.regex-status.valid{color:var(--green)}.regex-status.invalid{color:var(--red)}
+.test-area{position:relative;margin-bottom:16px}
+.test-area textarea{width:100%;min-height:160px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);color:transparent;caret-color:var(--text);font-family:'Courier New',monospace;font-size:.9rem;padding:16px;line-height:1.8;resize:vertical;outline:none;position:relative;z-index:2}
+.test-area textarea:focus{border-color:var(--accent)}
+.highlight-layer{position:absolute;top:0;left:0;right:0;bottom:0;padding:16px;font-family:'Courier New',monospace;font-size:.9rem;line-height:1.8;white-space:pre-wrap;word-wrap:break-word;border-radius:var(--radius);pointer-events:none;z-index:1;overflow:hidden;border:1px solid transparent}
+.highlight-layer mark{background:rgba(102,126,234,.3);color:var(--text);border-bottom:2px solid var(--accent);border-radius:2px}
+.highlight-layer mark:nth-of-type(even){background:rgba(255,107,157,.2);border-bottom-color:var(--pink)}
+.results{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
+.results-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;font-size:.85rem}
+.results-header .count{color:var(--green);font-weight:600}
+.match-list{max-height:250px;overflow-y:auto;padding:8px}
+.match-item{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.03);font-family:monospace;font-size:.83rem}
+.match-item:last-child{border-bottom:none}
+.match-idx{color:var(--accent);font-weight:600;margin-right:8px}
+.match-val{color:var(--green)}
+.match-group{color:var(--yellow);margin-left:12px;font-size:.78rem}
+.match-pos{color:var(--dim);font-size:.75rem;float:right}
+.cheatsheet{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.cheatsheet summary{padding:14px 16px;cursor:pointer;font-weight:600;font-size:.9rem;color:var(--accent)}
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:2px;padding:0 8px 12px}
+.cheat-item{padding:6px 10px;display:flex;gap:10px;font-size:.78rem;cursor:pointer;border-radius:6px;transition:background .2s}
+.cheat-item:hover{background:rgba(102,126,234,.1)}
+.cheat-item code{color:var(--pink);font-family:monospace;min-width:60px}
+.cheat-item span{color:var(--muted)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.preset-btn{padding:6px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:.75rem;color:var(--muted);transition:all .2s}
+.preset-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:20px}
+footer{text-align:center;padding:16px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:30px}
+footer a{color:var(--accent);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="top-bar"><a href="/services/">← Tools</a><button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button></div>
+<div class="container">
+<h1>🎯 <span data-i18n="title">Regex Playground</span></h1>
+<p class="subtitle" data-i18n="subtitle">실시간 정규표현식 테스트 & 매칭</p>
+
+<div class="regex-input">
+<span class="slash">/</span>
+<input type="text" id="regexInput" placeholder="[a-z]+@[a-z]+\.[a-z]+" oninput="runRegex()">
+<span class="slash">/</span>
+<div class="flags">
+<div class="flag on" data-flag="g" onclick="togFlag(this)">g</div>
+<div class="flag on" data-flag="i" onclick="togFlag(this)">i</div>
+<div class="flag" data-flag="m" onclick="togFlag(this)">m</div>
+<div class="flag" data-flag="s" onclick="togFlag(this)">s</div>
+</div>
+</div>
+<div class="regex-status" id="regexStatus"></div>
+
+<div class="presets">
+<button class="preset-btn" onclick="loadPreset('email')">📧 Email</button>
+<button class="preset-btn" onclick="loadPreset('url')">🔗 URL</button>
+<button class="preset-btn" onclick="loadPreset('phone')">📱 Phone</button>
+<button class="preset-btn" onclick="loadPreset('ip')">🌐 IPv4</button>
+<button class="preset-btn" onclick="loadPreset('date')">📅 Date</button>
+<button class="preset-btn" onclick="loadPreset('hex')">🎨 Hex Color</button>
+</div>
+
+<div class="test-area">
+<div class="highlight-layer" id="highlight"></div>
+<textarea id="testInput" oninput="runRegex()" onscroll="syncScroll()">Hello World!
+test@example.com, user@domain.co.kr
+Phone: 010-1234-5678, +82-10-9876-5432
+IP: 192.168.1.1, 10.0.0.255
+Date: 2026-01-31, 12/25/2025
+Colors: #ff6b9d, #667eea, #4ade80
+URL: https://eastsea.monster/services/</textarea>
+</div>
+
+<div class="results">
+<div class="results-header"><span data-i18n="matches">매칭 결과</span><span class="count" id="matchCount">0</span></div>
+<div class="match-list" id="matchList"></div>
+</div>
+
+<details class="cheatsheet">
+<summary data-i18n="cheatsheet">정규표현식 치트시트</summary>
+<div class="cheat-grid" id="cheatGrid"></div>
+</details>
+
+<div class="ad-placeholder">Ad Space</div>
+</div>
+<footer><a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a></footer>
+
+<script>
+const i18n={ko:{title:'Regex Playground',subtitle:'실시간 정규표현식 테스트 & 매칭',matches:'매칭 결과',cheatsheet:'정규표현식 치트시트'},en:{title:'Regex Playground',subtitle:'Real-time regex testing & matching',matches:'Matches',cheatsheet:'Regex Cheatsheet'}};
+let lang='ko';
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]})}
+
+const presets={email:{regex:'[\\w.-]+@[\\w.-]+\\.[a-zA-Z]{2,}',test:''},url:{regex:'https?://[\\w.-]+(?:/[\\w./?%&=-]*)?',test:''},phone:{regex:'\\+?\\d{1,3}[-.\\s]?\\d{2,4}[-.\\s]?\\d{3,4}[-.\\s]?\\d{3,4}',test:''},ip:{regex:'\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b',test:''},date:{regex:'\\d{4}[-/]\\d{1,2}[-/]\\d{1,2}',test:''},hex:{regex:'#[0-9a-fA-F]{3,8}\\b',test:''}};
+function loadPreset(k){document.getElementById('regexInput').value=presets[k].regex;runRegex()}
+function togFlag(el){el.classList.toggle('on');runRegex()}
+function getFlags(){return Array.from(document.querySelectorAll('.flag.on')).map(f=>f.dataset.flag).join('')}
+
+function runRegex(){
+const pattern=document.getElementById('regexInput').value;const flags=getFlags();const text=document.getElementById('testInput').value;
+const status=document.getElementById('regexStatus');const hl=document.getElementById('highlight');const list=document.getElementById('matchList');
+if(!pattern){status.textContent='';hl.innerHTML=escapeHtml(text);list.innerHTML='';document.getElementById('matchCount').textContent='0';return}
+let re;try{re=new RegExp(pattern,flags);status.textContent='✓ Valid regex';status.className='regex-status valid'}catch(e){status.textContent='✗ '+e.message;status.className='regex-status invalid';hl.innerHTML=escapeHtml(text);list.innerHTML='';document.getElementById('matchCount').textContent='0';return}
+// Highlight
+let highlighted='',lastIdx=0,matches=[];const global=flags.includes('g');
+if(global){let m;const re2=new RegExp(pattern,flags);while((m=re2.exec(text))!==null){if(m.index===re2.lastIndex)re2.lastIndex++;
+highlighted+=escapeHtml(text.slice(lastIdx,m.index))+'<mark>'+escapeHtml(m[0])+'</mark>';lastIdx=m.lastIndex;matches.push({val:m[0],idx:m.index,groups:m.slice(1)})}}
+else{const m=re.exec(text);if(m){highlighted=escapeHtml(text.slice(0,m.index))+'<mark>'+escapeHtml(m[0])+'</mark>'+escapeHtml(text.slice(m.index+m[0].length));matches=[{val:m[0],idx:m.index,groups:m.slice(1)}]}else{highlighted=escapeHtml(text)}}
+if(lastIdx<text.length&&global)highlighted+=escapeHtml(text.slice(lastIdx));
+hl.innerHTML=highlighted;document.getElementById('matchCount').textContent=matches.length+' match'+(matches.length!==1?'es':'');
+list.innerHTML='';matches.forEach((m,i)=>{const d=document.createElement('div');d.className='match-item';let html=`<span class="match-idx">#${i+1}</span><span class="match-val">"${escapeHtml(m.val)}"</span><span class="match-pos">[${m.idx}:${m.idx+m.val.length}]</span>`;
+if(m.groups.length)html+='<br>'+m.groups.map((g,j)=>`<span class="match-group">Group ${j+1}: "${escapeHtml(g||'')}"</span>`).join(' ');
+d.innerHTML=html;list.appendChild(d)})}
+
+function escapeHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function syncScroll(){document.getElementById('highlight').scrollTop=document.getElementById('testInput').scrollTop}
+
+const cheatData=[
+['.','Any character'],['\\d','Digit [0-9]'],['\\D','Non-digit'],['\\w','Word char [a-zA-Z0-9_]'],['\\W','Non-word char'],['\\s','Whitespace'],['\\S','Non-whitespace'],['\\b','Word boundary'],
+['^','Start of string'],['$','End of string'],['*','0 or more'],['+','1 or more'],['?','0 or 1'],
+['{n}','Exactly n'],['{n,}','n or more'],['{n,m}','Between n and m'],['[abc]','Character set'],['[^abc]','Negated set'],
+['(abc)','Capture group'],['(?:abc)','Non-capture'],['a|b','Alternation'],['(?=abc)','Lookahead'],['(?!abc)','Neg. lookahead'],['(?<=abc)','Lookbehind']
+];
+const grid=document.getElementById('cheatGrid');cheatData.forEach(([code,desc])=>{const d=document.createElement('div');d.className='cheat-item';d.innerHTML=`<code>${escapeHtml(code)}</code><span>${desc}</span>`;d.onclick=()=>{const inp=document.getElementById('regexInput');inp.value+=code;inp.focus();runRegex()};grid.appendChild(d)});
+
+runRegex();
+</script>
+</body>
+</html>

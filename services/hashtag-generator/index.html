@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hashtag Generator — 해시태그 생성기 | East Sea Tools</title>
+<meta name="description" content="키워드를 입력하면 인스타그램, X(트위터), 틱톡에 최적화된 해시태그를 자동 생성합니다. 인기 해시태그 추천, 복사 기능.">
+<meta name="keywords" content="hashtag generator, 해시태그 생성기, instagram hashtags, 인스타 해시태그, tiktok, twitter, SNS marketing">
+<link rel="canonical" href="https://eastsea.monster/services/hashtag-generator/">
+<meta property="og:title" content="# Hashtag Generator — 해시태그 생성기">
+<meta property="og:description" content="키워드 입력 → 인스타/X/틱톡 해시태그 자동 생성. 무료 온라인 도구.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/hashtag-generator/">
+<meta property="og:site_name" content="East Sea Tools">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:640px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.input-area{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.input-area label{font-size:.85rem;color:var(--muted);display:block;margin-bottom:8px}
+.input-area input{width:100%;padding:12px 16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:1rem;outline:none}
+.input-area input:focus{border-color:var(--accent)}
+.platform-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.platform-tab{padding:8px 16px;border-radius:10px;background:var(--card);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.85rem;transition:all .2s}
+.platform-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(102,126,234,.1)}
+.platform-tab:hover{border-color:var(--accent)}
+.output-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px;min-height:120px}
+.tags-wrap{display:flex;flex-wrap:wrap;gap:8px}
+.tag{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;background:rgba(102,126,234,.12);border:1px solid rgba(102,126,234,.25);border-radius:20px;font-size:.85rem;color:var(--accent);cursor:pointer;transition:all .15s;user-select:none}
+.tag:hover{background:rgba(102,126,234,.25);transform:scale(1.05)}
+.tag.selected{background:var(--accent);color:#fff;border-color:var(--accent)}
+.tag .remove{font-size:.7rem;opacity:.6}
+.stats{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.stats span{font-size:.8rem;color:var(--muted)}
+.stats .count{color:var(--accent);font-weight:600}
+.btn-row{display:flex;gap:10px;margin-bottom:20px}
+.btn{flex:1;padding:14px;border:none;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;transition:transform .15s,opacity .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text)}
+.btn-secondary:hover{border-color:var(--accent)}
+.categories{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.categories h3{font-size:.9rem;color:var(--muted);margin-bottom:12px}
+.cat-chips{display:flex;flex-wrap:wrap;gap:6px}
+.cat-chip{padding:5px 12px;border-radius:16px;background:var(--bg);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.8rem;transition:all .2s}
+.cat-chip:hover{border-color:var(--pink);color:var(--pink)}
+.empty-msg{color:var(--dim);font-size:.9rem;text-align:center;padding:20px}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:24px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.container{padding:20px 14px 40px}.btn-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<a href="/services/">← Tools</a>
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+<div class="container">
+<h1># <span data-i18n="title">해시태그 생성기</span></h1>
+<p class="subtitle" data-i18n="subtitle">키워드를 입력하면 SNS에 최적화된 해시태그를 생성합니다</p>
+
+<div class="input-area">
+<label data-i18n="inputLabel">키워드 입력 (쉼표로 구분)</label>
+<input type="text" id="keywordInput" placeholder="여행, 서울, 맛집" data-i18n-ph="inputPh" oninput="debounceGen()">
+</div>
+
+<div class="platform-tabs">
+<div class="platform-tab active" data-platform="instagram" onclick="setPlatform(this)">📷 Instagram</div>
+<div class="platform-tab" data-platform="twitter" onclick="setPlatform(this)">𝕏 X (Twitter)</div>
+<div class="platform-tab" data-platform="tiktok" onclick="setPlatform(this)">🎵 TikTok</div>
+<div class="platform-tab" data-platform="youtube" onclick="setPlatform(this)">▶️ YouTube</div>
+</div>
+
+<div class="output-box" id="outputBox">
+<div class="tags-wrap" id="tagsWrap">
+<div class="empty-msg" data-i18n="emptyMsg">키워드를 입력하면 해시태그가 생성됩니다</div>
+</div>
+<div class="stats" id="statsBar" style="display:none">
+<span><span class="count" id="tagCount">0</span> <span data-i18n="selected">개 선택됨</span></span>
+<span id="charCount"></span>
+</div>
+</div>
+
+<div class="btn-row">
+<button class="btn btn-primary" onclick="copySelected()" data-i18n="copySelected">선택 복사</button>
+<button class="btn btn-secondary" onclick="copyAll()" data-i18n="copyAll">전체 복사</button>
+</div>
+
+<div class="categories">
+<h3 data-i18n="popularCat">🔥 인기 카테고리</h3>
+<div class="cat-chips" id="catChips"></div>
+</div>
+
+<div class="ad-placeholder">Ad Space</div>
+</div>
+
+<footer>
+<a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a>
+</footer>
+
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={
+ko:{title:'해시태그 생성기',subtitle:'키워드를 입력하면 SNS에 최적화된 해시태그를 생성합니다',inputLabel:'키워드 입력 (쉼표로 구분)',inputPh:'여행, 서울, 맛집',emptyMsg:'키워드를 입력하면 해시태그가 생성됩니다',selected:'개 선택됨',copySelected:'선택 복사',copyAll:'전체 복사',popularCat:'🔥 인기 카테고리',copied:'복사 완료!',noneSelected:'선택된 태그가 없습니다',charLimit:'글자'},
+en:{title:'Hashtag Generator',subtitle:'Enter keywords to generate optimized hashtags for social media',inputLabel:'Enter keywords (comma separated)',inputPh:'travel, seoul, food',emptyMsg:'Enter keywords to generate hashtags',selected:'selected',copySelected:'Copy Selected',copyAll:'Copy All',popularCat:'🔥 Popular Categories',copied:'Copied!',noneSelected:'No tags selected',charLimit:'chars'}
+};
+let lang='ko', platform='instagram', selectedTags=new Set(), allTags=[], debounceTimer=null;
+
+const platformLimits={instagram:{max:30,charLimit:2200},twitter:{max:10,charLimit:280},tiktok:{max:20,charLimit:4000},youtube:{max:15,charLimit:500}};
+
+const hashtagDB={
+ko:{
+travel:['여행','여행스타그램','여행에미치다','국내여행','해외여행','여행사진','여행기록','풍경','풍경스타그램','여행좋아요','배낭여행','힐링여행','제주도','부산여행','감성여행'],
+food:['맛집','맛스타그램','먹스타그램','음식','푸드스타그램','맛집추천','카페','디저트','홈쿡','요리','먹방','카페스타그램','브런치','맛있다','음식사진'],
+fashion:['패션','오오티디','데일리룩','코디','스타일','패션스타그램','옷','쇼핑','데일리코디','미니멀룩','스트릿패션','빈티지','트렌드'],
+beauty:['뷰티','메이크업','스킨케어','화장품','뷰티스타그램','립스틱','네일','헤어스타일','피부관리','코스메틱','뷰티추천','데일리메이크업'],
+fitness:['운동','헬스','피트니스','운동스타그램','다이어트','건강','홈트','웨이트','요가','필라테스','근육','바디프로필','운동하는여자','운동하는남자'],
+daily:['일상','데일리','소통','좋아요반사','인스타','셀카','셀피','감성','오늘','하루','소확행','팔로우','좋아요','일상스타그램'],
+photo:['사진','포토','감성사진','풍경사진','스냅사진','필름카메라','사진작가','포토그래피','카메라','빈티지사진','야경','인물사진'],
+pet:['반려동물','강아지','고양이','펫스타그램','멍스타그램','냥스타그램','애견','반려견','반려묘','펫','귀여워','산책'],
+cafe:['카페','카페스타그램','커피','라떼','카페추천','디저트카페','감성카페','브런치카페','핸드드립','커피스타그램','아메리카노'],
+tech:['테크','개발','코딩','프로그래밍','IT','개발자','스타트업','앱개발','웹개발','인공지능','AI','파이썬']
+},
+en:{
+travel:['travel','travelgram','wanderlust','explore','adventure','vacation','travelphotography','instatravel','traveltheworld','backpacking','roadtrip','travelblogger','paradise','bucketlist','getaway'],
+food:['food','foodporn','foodie','instafood','yummy','delicious','foodphotography','cooking','homemade','healthyfood','recipe','foodstagram','brunch','dessert','foodlover'],
+fashion:['fashion','ootd','style','fashionista','streetstyle','outfit','fashionblogger','clothing','trend','lookoftheday','fashionstyle','vintage','minimalist'],
+beauty:['beauty','makeup','skincare','cosmetics','beautyblogger','lipstick','nails','hairstyle','beautytips','mua','makeupartist','naturalbeauty'],
+fitness:['fitness','workout','gym','fit','motivation','bodybuilding','health','training','exercise','fitfam','yoga','crossfit','gains','fitnessmotivation'],
+daily:['daily','instagood','photooftheday','love','happy','beautiful','selfie','picoftheday','follow','like4like','instadaily','smile','life','mood'],
+photo:['photography','photo','camera','snapshot','portrait','landscape','streetphotography','photographer','canon','nikon','filmcamera','nightshot'],
+pet:['pet','dog','cat','dogsofinstagram','catsofinstagram','puppy','kitten','petlover','doglover','catlover','cute','animals','petsofinstagram'],
+cafe:['cafe','coffee','coffeelover','latte','coffeeshop','barista','espresso','coffeetime','cafehopping','coffeegram','americano','cappuccino'],
+tech:['tech','coding','programming','developer','software','startup','webdev','javascript','python','ai','machinelearning','innovation']
+}};
+
+const catLabels={ko:{travel:'✈️ 여행',food:'🍕 맛집',fashion:'👗 패션',beauty:'💄 뷰티',fitness:'💪 운동',daily:'📱 일상',photo:'📸 사진',pet:'🐾 반려동물',cafe:'☕ 카페',tech:'💻 테크'},en:{travel:'✈️ Travel',food:'🍕 Food',fashion:'👗 Fashion',beauty:'💄 Beauty',fitness:'💪 Fitness',daily:'📱 Daily',photo:'📸 Photo',pet:'🐾 Pets',cafe:'☕ Cafe',tech:'💻 Tech'}};
+
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]});document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const k=el.getAttribute('data-i18n-ph');if(i18n[lang][k])el.placeholder=i18n[lang][k]});renderCategories();generateTags()}
+
+function setPlatform(el){document.querySelectorAll('.platform-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');platform=el.dataset.platform;generateTags()}
+
+function debounceGen(){clearTimeout(debounceTimer);debounceTimer=setTimeout(generateTags,300)}
+
+function generateTags(){
+const input=document.getElementById('keywordInput').value.trim();
+if(!input){document.getElementById('tagsWrap').innerHTML=`<div class="empty-msg">${i18n[lang].emptyMsg}</div>`;document.getElementById('statsBar').style.display='none';return}
+const keywords=input.split(/[,，\s]+/).map(k=>k.trim().toLowerCase()).filter(Boolean);
+const tags=new Set();const db=hashtagDB[lang]||hashtagDB.en;
+keywords.forEach(kw=>{
+const clean=kw.replace(/^#/,'');
+tags.add(clean);
+Object.entries(db).forEach(([cat,list])=>{
+const catMatch=cat.includes(clean)||clean.includes(cat);
+list.forEach(tag=>{if(tag.includes(clean)||clean.includes(tag)||catMatch){tags.add(tag)}});
+});
+const variations=[clean+'스타그램',clean+'그램',clean+'추천',clean+'사진',clean+'일상'];
+if(lang==='en'){variations.length=0;variations.push(clean+'life',clean+'lover',clean+'daily',clean+'gram',clean+'goals')}
+variations.forEach(v=>tags.add(v));
+});
+allTags=[...tags].slice(0,platformLimits[platform].max+10);
+selectedTags=new Set(allTags.slice(0,Math.min(allTags.length,platformLimits[platform].max)));
+renderTags()}
+
+function renderTags(){
+const wrap=document.getElementById('tagsWrap');
+wrap.innerHTML='';
+allTags.forEach(tag=>{
+const el=document.createElement('div');el.className='tag'+(selectedTags.has(tag)?' selected':'');
+el.textContent='#'+tag;el.onclick=()=>{if(selectedTags.has(tag)){selectedTags.delete(tag)}else{if(selectedTags.size<platformLimits[platform].max)selectedTags.add(tag)}renderTags()};
+wrap.appendChild(el)});
+const stats=document.getElementById('statsBar');stats.style.display='flex';
+document.getElementById('tagCount').textContent=selectedTags.size;
+const text=[...selectedTags].map(t=>'#'+t).join(' ');
+document.getElementById('charCount').textContent=text.length+' '+i18n[lang].charLimit+' / '+platformLimits[platform].charLimit}
+
+function copySelected(){
+const tags=[...selectedTags].map(t=>'#'+t).join(' ');
+if(!tags){showToast(i18n[lang].noneSelected);return}
+navigator.clipboard.writeText(tags).then(()=>showToast(i18n[lang].copied))}
+
+function copyAll(){
+const tags=allTags.map(t=>'#'+t).join(' ');
+if(!tags)return;
+navigator.clipboard.writeText(tags).then(()=>showToast(i18n[lang].copied))}
+
+function renderCategories(){
+const chips=document.getElementById('catChips');chips.innerHTML='';
+const labels=catLabels[lang]||catLabels.ko;
+Object.entries(labels).forEach(([key,label])=>{
+const el=document.createElement('div');el.className='cat-chip';el.textContent=label;
+el.onclick=()=>{document.getElementById('keywordInput').value=key;generateTags()};
+chips.appendChild(el)})}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+
+renderCategories();
+</script>
+</body>
+</html>

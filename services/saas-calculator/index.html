@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SaaS Revenue Calculator — SaaS 수익 계산기 | East Sea Tools</title>
+<meta name="description" content="MRR, ARR, 이탈률(Churn), LTV, CAC 등 SaaS 핵심 지표를 계산하고 시뮬레이션합니다. 스타트업 필수 도구.">
+<meta name="keywords" content="saas calculator, MRR calculator, ARR, churn rate, LTV, CAC, SaaS 수익 계산기, 스타트업 계산기">
+<link rel="canonical" href="https://eastsea.monster/services/saas-calculator/">
+<meta property="og:title" content="📊 SaaS Revenue Calculator — SaaS 수익 계산기">
+<meta property="og:description" content="MRR/ARR/Churn/LTV/CAC 핵심 지표 계산 + 성장 시뮬레이션. 무료 온라인 도구.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/saas-calculator/">
+<meta property="og:site_name" content="East Sea Tools">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:680px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.card h3{font-size:.9rem;color:var(--muted);margin-bottom:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{margin-bottom:14px}
+.field label{font-size:.8rem;color:var(--dim);display:block;margin-bottom:4px}
+.field-input{display:flex;align-items:center}
+.field-input input{flex:1;padding:10px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px 0 0 8px;color:var(--text);font-size:1rem;outline:none;text-align:right;font-weight:600}
+.field-input input:focus{border-color:var(--accent)}
+.field-input .unit{padding:10px 10px;background:var(--border);border:1px solid var(--border);border-left:none;border-radius:0 8px 8px 0;color:var(--muted);font-size:.8rem;white-space:nowrap}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center}
+.metric .val{font-size:1.3rem;font-weight:800;margin-bottom:4px}
+.metric .val.green{color:var(--green)}
+.metric .val.accent{color:var(--accent)}
+.metric .val.pink{color:var(--pink)}
+.metric .val.yellow{color:var(--yellow)}
+.metric .lbl{font-size:.75rem;color:var(--dim)}
+.metric .hint{font-size:.65rem;color:var(--dim);margin-top:4px}
+.chart-container{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.chart-container h3{font-size:.9rem;color:var(--muted);margin-bottom:16px}
+.chart{width:100%;height:200px;position:relative}
+.chart canvas{width:100%;height:100%}
+.health{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.health h3{font-size:.9rem;color:var(--muted);margin-bottom:12px}
+.health-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.health-item .name{font-size:.85rem}
+.health-item .badge{padding:3px 10px;border-radius:10px;font-size:.75rem;font-weight:600}
+.badge-good{background:rgba(74,222,128,.15);color:var(--green)}
+.badge-ok{background:rgba(251,191,36,.15);color:var(--yellow)}
+.badge-bad{background:rgba(239,68,68,.15);color:var(--red)}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:24px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.container{padding:20px 14px 40px}.grid-2{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<a href="/services/">← Tools</a>
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+<div class="container">
+<h1>📊 <span data-i18n="title">SaaS 수익 계산기</span></h1>
+<p class="subtitle" data-i18n="subtitle">MRR, ARR, 이탈률, LTV, CAC 핵심 지표를 계산하세요</p>
+
+<div class="card">
+<h3 data-i18n="inputTitle">📝 기본 정보 입력</h3>
+<div class="grid-2">
+<div class="field">
+<label data-i18n="customers">유료 고객 수</label>
+<div class="field-input">
+<input type="number" id="customers" value="100" oninput="calc()">
+<div class="unit" data-i18n="ppl">명</div>
+</div>
+</div>
+<div class="field">
+<label data-i18n="arpu">월 평균 객단가 (ARPU)</label>
+<div class="field-input">
+<input type="number" id="arpu" value="29" oninput="calc()">
+<div class="unit">$</div>
+</div>
+</div>
+<div class="field">
+<label data-i18n="churn">월 이탈률 (Churn)</label>
+<div class="field-input">
+<input type="number" id="churn" value="5" step="0.1" oninput="calc()">
+<div class="unit">%</div>
+</div>
+</div>
+<div class="field">
+<label data-i18n="cac">고객획득비용 (CAC)</label>
+<div class="field-input">
+<input type="number" id="cac" value="50" oninput="calc()">
+<div class="unit">$</div>
+</div>
+</div>
+<div class="field">
+<label data-i18n="newCustomers">월 신규 고객</label>
+<div class="field-input">
+<input type="number" id="newCustomers" value="20" oninput="calc()">
+<div class="unit" data-i18n="ppl">명</div>
+</div>
+</div>
+<div class="field">
+<label data-i18n="grossMargin">매출총이익률</label>
+<div class="field-input">
+<input type="number" id="grossMargin" value="80" oninput="calc()">
+<div class="unit">%</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="metrics" id="metrics"></div>
+
+<div class="chart-container">
+<h3 data-i18n="projTitle">📈 12개월 성장 예측</h3>
+<div class="chart"><canvas id="chart"></canvas></div>
+</div>
+
+<div class="health" id="health">
+<h3 data-i18n="healthTitle">🏥 SaaS 건강 점수</h3>
+<div id="healthItems"></div>
+</div>
+
+<div class="ad-placeholder">Ad Space</div>
+</div>
+
+<footer>
+<a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a>
+</footer>
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={
+ko:{title:'SaaS 수익 계산기',subtitle:'MRR, ARR, 이탈률, LTV, CAC 핵심 지표를 계산하세요',inputTitle:'📝 기본 정보 입력',customers:'유료 고객 수',arpu:'월 평균 객단가 (ARPU)',churn:'월 이탈률 (Churn)',cac:'고객획득비용 (CAC)',newCustomers:'월 신규 고객',grossMargin:'매출총이익률',ppl:'명',projTitle:'📈 12개월 성장 예측',healthTitle:'🏥 SaaS 건강 점수',mrr:'MRR',arr:'ARR',ltv:'LTV',ltvCac:'LTV:CAC',payback:'회수 기간',annualChurn:'연 이탈률',nrr:'NRR (순유지율)',months:'개월',good:'양호',warning:'주의',danger:'위험',ltvCacDesc:'3:1 이상이 이상적',churnDesc:'월 5% 이하 권장',paybackDesc:'12개월 이내 권장',marginDesc:'70% 이상 권장'},
+en:{title:'SaaS Revenue Calculator',subtitle:'Calculate MRR, ARR, Churn, LTV, CAC and key metrics',inputTitle:'📝 Input Parameters',customers:'Paying Customers',arpu:'Monthly ARPU',churn:'Monthly Churn Rate',cac:'Customer Acquisition Cost',newCustomers:'New Customers/Month',grossMargin:'Gross Margin',ppl:'ppl',projTitle:'📈 12-Month Growth Projection',healthTitle:'🏥 SaaS Health Score',mrr:'MRR',arr:'ARR',ltv:'LTV',ltvCac:'LTV:CAC',payback:'Payback',annualChurn:'Annual Churn',nrr:'NRR',months:'months',good:'Good',warning:'Warning',danger:'Danger',ltvCacDesc:'3:1+ is ideal',churnDesc:'<5% monthly recommended',paybackDesc:'<12 months recommended',marginDesc:'70%+ recommended'}
+};
+let lang='ko';
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]});calc()}
+function fmtUSD(n){return n>=1000000?'$'+(n/1000000).toFixed(1)+'M':n>=1000?'$'+(n/1000).toFixed(1)+'K':'$'+Math.round(n)}
+
+function calc(){
+const L=i18n[lang];
+const customers=+document.getElementById('customers').value||0;
+const arpu=+document.getElementById('arpu').value||0;
+const churn=(+document.getElementById('churn').value||0)/100;
+const cac=+document.getElementById('cac').value||0;
+const newCust=+document.getElementById('newCustomers').value||0;
+const margin=(+document.getElementById('grossMargin').value||0)/100;
+const mrr=customers*arpu;
+const arr=mrr*12;
+const ltv=churn>0?arpu/churn:arpu*999;
+const ltvCacRatio=cac>0?ltv/cac:999;
+const payback=arpu>0?cac/arpu:999;
+const annualChurn=1-Math.pow(1-churn,12);
+const nrr=(1-churn)*100;
+
+document.getElementById('metrics').innerHTML=`
+<div class="metric"><div class="val green">${fmtUSD(mrr)}</div><div class="lbl">${L.mrr}</div></div>
+<div class="metric"><div class="val accent">${fmtUSD(arr)}</div><div class="lbl">${L.arr}</div></div>
+<div class="metric"><div class="val pink">${fmtUSD(ltv)}</div><div class="lbl">${L.ltv}</div></div>
+<div class="metric"><div class="val yellow">${ltvCacRatio.toFixed(1)}x</div><div class="lbl">${L.ltvCac}</div></div>
+<div class="metric"><div class="val ${payback<=12?'green':'red'}">${payback.toFixed(1)}</div><div class="lbl">${L.payback} (${L.months})</div></div>
+<div class="metric"><div class="val ${annualChurn<0.5?'green':'red'}">${(annualChurn*100).toFixed(1)}%</div><div class="lbl">${L.annualChurn}</div></div>`;
+
+// Health check
+const checks=[
+{name:L.ltvCac,val:ltvCacRatio>=3?L.good:ltvCacRatio>=1.5?L.warning:L.danger,cls:ltvCacRatio>=3?'good':ltvCacRatio>=1.5?'ok':'bad',desc:L.ltvCacDesc},
+{name:L.churn,val:churn<=0.03?L.good:churn<=0.07?L.warning:L.danger,cls:churn<=0.03?'good':churn<=0.07?'ok':'bad',desc:L.churnDesc},
+{name:L.payback,val:payback<=6?L.good:payback<=12?L.warning:L.danger,cls:payback<=6?'good':payback<=12?'ok':'bad',desc:L.paybackDesc},
+{name:L.grossMargin,val:margin>=0.7?L.good:margin>=0.5?L.warning:L.danger,cls:margin>=0.7?'good':margin>=0.5?'ok':'bad',desc:L.marginDesc}
+];
+document.getElementById('healthItems').innerHTML=checks.map(c=>`<div class="health-item"><span class="name">${c.name} <span style="color:var(--dim);font-size:.72rem">(${c.desc})</span></span><span class="badge badge-${c.cls}">${c.val}</span></div>`).join('');
+
+// 12-month projection chart
+drawChart(customers,arpu,churn,newCust)}
+
+function drawChart(customers,arpu,churn,newCust){
+const canvas=document.getElementById('chart');
+const ctx=canvas.getContext('2d');
+const dpr=window.devicePixelRatio||1;
+const rect=canvas.parentElement.getBoundingClientRect();
+canvas.width=rect.width*dpr;canvas.height=200*dpr;
+canvas.style.width=rect.width+'px';canvas.style.height='200px';
+ctx.scale(dpr,dpr);
+const W=rect.width,H=200,pad={t:20,r:20,b:30,l:50};
+ctx.clearRect(0,0,W,H);
+// Generate data
+const data=[];let cust=customers;
+for(let m=0;m<=12;m++){data.push({month:m,mrr:cust*arpu,customers:cust});const churned=Math.round(cust*churn);cust=cust-churned+newCust}
+const maxMrr=Math.max(...data.map(d=>d.mrr))*1.1||1;
+const gW=W-pad.l-pad.r,gH=H-pad.t-pad.b;
+// Grid
+ctx.strokeStyle='#1f1f2e';ctx.lineWidth=1;
+for(let i=0;i<=4;i++){const y=pad.t+gH*(1-i/4);ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(W-pad.r,y);ctx.stroke();
+ctx.fillStyle='#555';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.fillText(fmtUSD(maxMrr*i/4),pad.l-6,y+4)}
+// X labels
+ctx.fillStyle='#555';ctx.font='10px sans-serif';ctx.textAlign='center';
+data.forEach((d,i)=>{if(i%3===0){const x=pad.l+gW*(i/12);ctx.fillText('M'+d.month,x,H-8)}});
+// Line
+ctx.beginPath();ctx.strokeStyle='#667eea';ctx.lineWidth=2.5;
+data.forEach((d,i)=>{const x=pad.l+gW*(i/12);const y=pad.t+gH*(1-d.mrr/maxMrr);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});ctx.stroke();
+// Fill
+ctx.lineTo(pad.l+gW,pad.t+gH);ctx.lineTo(pad.l,pad.t+gH);ctx.closePath();
+ctx.fillStyle='rgba(102,126,234,.1)';ctx.fill();
+// Points
+data.forEach((d,i)=>{const x=pad.l+gW*(i/12);const y=pad.t+gH*(1-d.mrr/maxMrr);
+ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle='#667eea';ctx.fill()})}
+
+window.addEventListener('resize',calc);calc();
+</script>
+</body>
+</html>

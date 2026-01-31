@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSON Formatter & Validator — JSON 포맷터 | East Sea Tools</title>
+<meta name="description" content="JSON 뷰어, 포맷터, 유효성 검사. 트리 뷰, 축소, 정렬 기능. 오프라인 지원. 개발자 필수 도구.">
+<meta name="keywords" content="json formatter, json viewer, json validator, json beautify, json 포맷터">
+<link rel="canonical" href="https://eastsea.monster/services/json-formatter/">
+<meta property="og:title" content="{ } JSON Formatter & Validator">
+<meta property="og:description" content="JSON 포맷터, 뷰어, 유효성 검사. 오프라인 지원 개발자 도구.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/json-formatter/">
+<meta property="og:site_name" content="East Sea Tools">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24;--cyan:#22d3ee}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.header{text-align:center;padding:24px 20px 16px}
+h1{font-size:clamp(1.4rem,3.5vw,1.8rem);font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.subtitle{color:var(--muted);font-size:.85rem}
+.toolbar{display:flex;flex-wrap:wrap;gap:6px;padding:8px 20px;justify-content:center;margin-bottom:8px}
+.tool-btn{padding:7px 14px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-size:.78rem;transition:all .2s}
+.tool-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tool-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.editor-wrap{display:flex;gap:0;height:calc(100vh - 230px);min-height:400px;padding:0 20px 20px}
+.panel{flex:1;display:flex;flex-direction:column;min-width:0}
+.panel-header{padding:8px 12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius) var(--radius) 0 0;display:flex;justify-content:space-between;align-items:center;font-size:.8rem;color:var(--muted)}
+.panel-header .status{font-size:.75rem}
+.status.valid{color:var(--green)}.status.invalid{color:var(--red)}
+textarea{flex:1;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);color:var(--text);font-family:'Courier New',monospace;font-size:.85rem;padding:14px;resize:none;line-height:1.6;tab-size:2}
+textarea:focus{outline:none;border-color:var(--accent)}
+.divider{width:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.divider button{background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--accent);padding:8px;cursor:pointer;font-size:1.2rem}
+.tree-view{flex:1;background:var(--bg);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:14px;overflow:auto;font-family:'Courier New',monospace;font-size:.83rem;line-height:1.8}
+.tree-key{color:var(--accent)}.tree-str{color:var(--green)}.tree-num{color:var(--yellow)}.tree-bool{color:var(--pink)}.tree-null{color:var(--dim)}
+.tree-toggle{cursor:pointer;user-select:none;color:var(--muted)}
+.tree-toggle:hover{color:var(--accent)}
+.tree-children{margin-left:20px}
+.tree-children.collapsed{display:none}
+.error-msg{background:rgba(239,68,68,.1);border:1px solid var(--red);border-radius:8px;padding:10px 14px;margin:0 20px 10px;color:var(--red);font-size:.85rem;display:none}
+.stats-bar{display:flex;gap:16px;justify-content:center;padding:8px;font-size:.75rem;color:var(--dim)}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+footer{text-align:center;padding:16px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border)}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:768px){.editor-wrap{flex-direction:column;height:auto}.panel{min-height:200px}.divider{width:100%;height:30px}.divider button{transform:rotate(90deg)}}
+</style>
+</head>
+<body>
+<div class="top-bar"><a href="/services/">← Tools</a><button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button></div>
+<div class="header">
+<h1>{ } <span data-i18n="title">JSON Formatter</span></h1>
+<p class="subtitle" data-i18n="subtitle">포맷, 검증, 트리 뷰 — 올인원 JSON 도구</p>
+</div>
+
+<div class="toolbar">
+<button class="tool-btn" onclick="formatJSON(2)">Pretty 2</button>
+<button class="tool-btn" onclick="formatJSON(4)">Pretty 4</button>
+<button class="tool-btn" onclick="minifyJSON()">Minify</button>
+<button class="tool-btn" onclick="sortKeys()">Sort Keys</button>
+<button class="tool-btn" onclick="copyOutput()">📋 Copy</button>
+<button class="tool-btn" onclick="clearAll()">🗑 Clear</button>
+<button class="tool-btn" onclick="loadSample()">📄 Sample</button>
+<button class="tool-btn" id="viewToggle" onclick="toggleView()">🌳 Tree</button>
+</div>
+
+<div class="error-msg" id="errorMsg"></div>
+
+<div class="editor-wrap">
+<div class="panel">
+<div class="panel-header"><span data-i18n="input">입력</span><span class="status" id="inputStatus"></span></div>
+<textarea id="input" placeholder='{"key": "value"}' oninput="onInput()"></textarea>
+</div>
+<div class="divider"><button onclick="formatJSON(2)" title="Format">→</button></div>
+<div class="panel">
+<div class="panel-header"><span data-i18n="output">출력</span><span class="status" id="outputStatus"></span></div>
+<textarea id="output" readonly style="display:block"></textarea>
+<div class="tree-view" id="treeView" style="display:none"></div>
+</div>
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+<footer><a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a></footer>
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={ko:{title:'JSON Formatter',subtitle:'포맷, 검증, 트리 뷰 — 올인원 JSON 도구',input:'입력',output:'출력',valid:'✓ 유효',invalid:'✗ 오류',copied:'복사 완료!'},en:{title:'JSON Formatter',subtitle:'Format, validate, tree view — all-in-one JSON tool',input:'Input',output:'Output',valid:'✓ Valid',invalid:'✗ Error',copied:'Copied!'}};
+let lang='ko',showTree=false;
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]})}
+
+function parseInput(){
+const raw=document.getElementById('input').value.trim();if(!raw)return{ok:false,error:'Empty'};
+try{return{ok:true,data:JSON.parse(raw)}}catch(e){return{ok:false,error:e.message}}}
+
+function onInput(){
+const r=parseInput();const s=document.getElementById('inputStatus');const err=document.getElementById('errorMsg');
+if(!document.getElementById('input').value.trim()){s.textContent='';s.className='status';err.style.display='none';return}
+if(r.ok){s.textContent=i18n[lang].valid;s.className='status valid';err.style.display='none';formatJSON(2)}
+else{s.textContent=i18n[lang].invalid;s.className='status invalid';err.textContent=r.error;err.style.display='block'}}
+
+function formatJSON(indent){
+const r=parseInput();if(!r.ok)return;
+const out=JSON.stringify(r.data,null,indent);document.getElementById('output').value=out;
+if(showTree)renderTree(r.data);updateStats(out);
+document.getElementById('outputStatus').textContent=i18n[lang].valid;document.getElementById('outputStatus').className='status valid'}
+
+function minifyJSON(){
+const r=parseInput();if(!r.ok)return;
+const out=JSON.stringify(r.data);document.getElementById('output').value=out;updateStats(out)}
+
+function sortKeys(){
+const r=parseInput();if(!r.ok)return;
+function sortObj(o){if(Array.isArray(o))return o.map(sortObj);if(o&&typeof o==='object'){const s={};Object.keys(o).sort().forEach(k=>s[k]=sortObj(o[k]));return s}return o}
+const sorted=sortObj(r.data);document.getElementById('input').value=JSON.stringify(sorted,null,2);
+formatJSON(2)}
+
+function toggleView(){showTree=!showTree;
+document.getElementById('output').style.display=showTree?'none':'block';
+document.getElementById('treeView').style.display=showTree?'block':'none';
+document.getElementById('viewToggle').classList.toggle('active',showTree);
+if(showTree){const r=parseInput();if(r.ok)renderTree(r.data)}}
+
+function renderTree(data){
+const el=document.getElementById('treeView');el.innerHTML='';el.appendChild(buildNode(data,'root',true))}
+
+function buildNode(val,key,isRoot){
+const wrap=document.createElement('div');
+if(val===null){wrap.innerHTML=isRoot?'':`<span class="tree-key">"${key}"</span>: <span class="tree-null">null</span>`;return wrap}
+if(typeof val!=='object'){
+const cls=typeof val==='string'?'tree-str':typeof val==='number'?'tree-num':'tree-bool';
+const display=typeof val==='string'?`"${val}"`:String(val);
+wrap.innerHTML=isRoot?'':`<span class="tree-key">"${key}"</span>: <span class="${cls}">${display}</span>`;return wrap}
+const isArr=Array.isArray(val);const keys=Object.keys(val);const bracket=isArr?['[',']']:['{','}'];
+const toggle=document.createElement('span');toggle.className='tree-toggle';
+toggle.textContent=isRoot?`${bracket[0]} ${keys.length} items`:`"${key}": ${bracket[0]} ${keys.length}`;
+const children=document.createElement('div');children.className='tree-children';
+keys.forEach(k=>children.appendChild(buildNode(val[k],k,false)));
+const close=document.createElement('div');close.textContent=bracket[1];close.style.color='var(--dim)';
+toggle.onclick=()=>{children.classList.toggle('collapsed');toggle.textContent=children.classList.contains('collapsed')?(isRoot?`${bracket[0]}…${bracket[1]} (${keys.length})`:`"${key}": ${bracket[0]}…${bracket[1]} (${keys.length})`):(isRoot?`${bracket[0]} ${keys.length} items`:`"${key}": ${bracket[0]} ${keys.length}`)};
+wrap.appendChild(toggle);wrap.appendChild(children);wrap.appendChild(close);return wrap}
+
+function updateStats(json){
+const size=new Blob([json]).size;const lines=json.split('\n').length;
+const depth=(function getDepth(o){if(!o||typeof o!=='object')return 0;return 1+Math.max(0,...Object.values(o).map(getDepth))})(JSON.parse(json));
+document.getElementById('statsBar').textContent=`${formatBytes(size)} · ${lines} lines · depth ${depth}`}
+
+function formatBytes(b){if(b<1024)return b+' B';if(b<1048576)return(b/1024).toFixed(1)+' KB';return(b/1048576).toFixed(1)+' MB'}
+
+function copyOutput(){const t=showTree?document.getElementById('treeView').innerText:document.getElementById('output').value;navigator.clipboard.writeText(t);showToast(i18n[lang].copied)}
+function clearAll(){document.getElementById('input').value='';document.getElementById('output').value='';document.getElementById('treeView').innerHTML='';document.getElementById('inputStatus').textContent='';document.getElementById('outputStatus').textContent='';document.getElementById('errorMsg').style.display='none';document.getElementById('statsBar').textContent=''}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+
+function loadSample(){document.getElementById('input').value=JSON.stringify({name:"East Sea Tools",version:"1.0.0",services:["JSON Formatter","Regex Playground","Password Generator"],stats:{users:15000,rating:4.8},features:[{id:1,name:"Format",enabled:true},{id:2,name:"Validate",enabled:true},{id:3,name:"Tree View",enabled:true}],metadata:{created:"2026-01-31",author:{name:"Jay",url:"https://eastsea.monster"}}});onInput()}
+
+// Drag & drop
+document.getElementById('input').addEventListener('dragover',e=>{e.preventDefault();e.currentTarget.style.borderColor='var(--accent)'});
+document.getElementById('input').addEventListener('dragleave',e=>e.currentTarget.style.borderColor='var(--border)');
+document.getElementById('input').addEventListener('drop',e=>{e.preventDefault();e.currentTarget.style.borderColor='var(--border)';const f=e.dataTransfer.files[0];if(f){const r=new FileReader();r.onload=ev=>{document.getElementById('input').value=ev.target.result;onInput()};r.readAsText(f)}});
+</script>
+</body>
+</html>

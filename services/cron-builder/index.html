@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cron Expression Builder — 크론 표현식 생성기 | East Sea Tools</title>
+<meta name="description" content="시각적 크론 표현식 생성기. 드래그 앤 클릭으로 크론잡 스케줄 설정. 영어/한국어 설명, 다음 실행 시간 미리보기.">
+<meta name="keywords" content="cron expression, cron generator, crontab, 크론 표현식, cron builder">
+<link rel="canonical" href="https://eastsea.monster/services/cron-builder/">
+<meta property="og:title" content="⏰ Cron Expression Builder">
+<meta property="og:description" content="시각적 크론 표현식 생성기. 드래그로 쉽게 설정.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/cron-builder/">
+<meta property="og:site_name" content="East Sea Tools">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:700px;margin:0 auto;padding:24px 20px 60px}
+h1{font-size:clamp(1.4rem,3.5vw,1.8rem);font-weight:800;text-align:center;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:4px}
+.subtitle{text-align:center;color:var(--muted);font-size:.85rem;margin-bottom:24px}
+.cron-display{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center;margin-bottom:20px}
+.cron-expr{font-family:'Courier New',monospace;font-size:clamp(1.5rem,5vw,2.5rem);font-weight:700;letter-spacing:4px;margin-bottom:8px;cursor:pointer}
+.cron-expr span{padding:4px 8px;border-radius:6px;transition:background .2s}
+.cron-expr span:hover{background:rgba(102,126,234,.2)}
+.cron-expr span.active{background:rgba(102,126,234,.3);border-bottom:2px solid var(--accent)}
+.cron-desc{color:var(--green);font-size:.9rem;margin-bottom:6px}
+.cron-btns{display:flex;gap:8px;justify-content:center;margin-top:10px}
+.cron-btns button{padding:6px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-size:.8rem;transition:all .2s}
+.cron-btns button:hover{border-color:var(--accent);color:var(--accent)}
+.presets{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;justify-content:center}
+.preset{padding:7px 14px;background:var(--card);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:.8rem;color:var(--muted);transition:all .2s}
+.preset:hover{border-color:var(--accent);color:var(--accent)}
+.field-section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden}
+.field-header{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.field-header h3{font-size:.9rem;display:flex;align-items:center;gap:8px}
+.field-header .field-val{font-family:monospace;color:var(--accent);font-weight:600}
+.field-body{padding:16px;display:none}
+.field-body.open{display:block}
+.field-type{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.type-btn{padding:6px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:.78rem;color:var(--muted);transition:all .2s}
+.type-btn:hover{border-color:var(--accent)}.type-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.value-grid{display:flex;flex-wrap:wrap;gap:4px}
+.val-btn{width:38px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.78rem;font-family:monospace;color:var(--muted);transition:all .15s}
+.val-btn:hover{border-color:var(--accent)}.val-btn.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.field-input{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:monospace;font-size:.9rem;margin-top:8px}
+.field-input:focus{outline:none;border-color:var(--accent)}
+.next-runs{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:16px}
+.next-runs h3{font-size:.9rem;color:var(--muted);margin-bottom:10px}
+.run-item{padding:6px 0;border-bottom:1px solid rgba(255,255,255,.03);font-family:monospace;font-size:.85rem;display:flex;justify-content:space-between}
+.run-item .run-rel{color:var(--muted);font-size:.78rem}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:20px}
+footer{text-align:center;padding:16px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:30px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.val-btn{width:34px;height:28px;font-size:.72rem}}
+</style>
+</head>
+<body>
+<div class="top-bar"><a href="/services/">← Tools</a><button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button></div>
+<div class="container">
+<h1>⏰ <span data-i18n="title">Cron Expression Builder</span></h1>
+<p class="subtitle" data-i18n="subtitle">시각적으로 크론 표현식을 만들고 테스트하세요</p>
+
+<div class="cron-display">
+<div class="cron-expr" id="cronExpr"></div>
+<div class="cron-desc" id="cronDesc"></div>
+<div class="cron-btns">
+<button onclick="copyCron()">📋 Copy</button>
+<button onclick="resetCron()">↺ Reset</button>
+</div>
+</div>
+
+<div class="presets">
+<button class="preset" onclick="setCron('* * * * *')">Every minute</button>
+<button class="preset" onclick="setCron('*/5 * * * *')">Every 5 min</button>
+<button class="preset" onclick="setCron('0 * * * *')">Every hour</button>
+<button class="preset" onclick="setCron('0 0 * * *')">Daily midnight</button>
+<button class="preset" onclick="setCron('0 9 * * 1-5')">Weekdays 9AM</button>
+<button class="preset" onclick="setCron('0 0 * * 0')">Weekly Sunday</button>
+<button class="preset" onclick="setCron('0 0 1 * *')">Monthly</button>
+<button class="preset" onclick="setCron('0 0 1 1 *')">Yearly</button>
+</div>
+
+<div id="fields"></div>
+
+<div class="next-runs">
+<h3 data-i18n="nextRuns">다음 실행 시간 (10회)</h3>
+<div id="runList"></div>
+</div>
+
+<div class="ad-placeholder">Ad Space</div>
+</div>
+<footer><a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a></footer>
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={ko:{title:'Cron Expression Builder',subtitle:'시각적으로 크론 표현식을 만들고 테스트하세요',nextRuns:'다음 실행 시간 (10회)'},en:{title:'Cron Expression Builder',subtitle:'Build and test cron expressions visually',nextRuns:'Next 10 Runs'}};
+let lang='ko';
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]})}
+
+const fieldDefs=[
+{name:'Minute',icon:'⏱',min:0,max:59,id:'minute'},
+{name:'Hour',icon:'🕐',min:0,max:23,id:'hour'},
+{name:'Day',icon:'📅',min:1,max:31,id:'day'},
+{name:'Month',icon:'📆',min:1,max:12,id:'month',labels:['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']},
+{name:'Weekday',icon:'📋',min:0,max:6,id:'weekday',labels:['Sun','Mon','Tue','Wed','Thu','Fri','Sat']}
+];
+let cron=['*','*','*','*','*'];
+
+function initFields(){
+const container=document.getElementById('fields');
+fieldDefs.forEach((f,i)=>{
+const sec=document.createElement('div');sec.className='field-section';sec.id='sec-'+f.id;
+const header=document.createElement('div');header.className='field-header';
+header.innerHTML=`<h3>${f.icon} ${f.name}</h3><span class="field-val" id="val-${f.id}">*</span>`;
+header.onclick=()=>{const body=sec.querySelector('.field-body');body.classList.toggle('open')};
+const body=document.createElement('div');body.className='field-body';
+
+// Value grid
+const grid=document.createElement('div');grid.className='value-grid';grid.id='grid-'+f.id;
+for(let v=f.min;v<=f.max;v++){
+const btn=document.createElement('div');btn.className='val-btn';btn.dataset.val=v;
+btn.textContent=f.labels?f.labels[v]:String(v).padStart(2,'0');
+btn.onclick=()=>{btn.classList.toggle('on');updateField(i)};grid.appendChild(btn)}
+
+// Custom input
+const inp=document.createElement('input');inp.className='field-input';inp.id='inp-'+f.id;inp.placeholder='e.g., */5, 1-15, 0,30';
+inp.oninput=()=>{cron[i]=inp.value||'*';render()};
+
+body.appendChild(grid);body.appendChild(inp);sec.appendChild(header);sec.appendChild(body);container.appendChild(sec)});
+render()}
+
+function updateField(idx){
+const f=fieldDefs[idx];const grid=document.getElementById('grid-'+f.id);const selected=Array.from(grid.querySelectorAll('.val-btn.on')).map(b=>+b.dataset.val);
+if(selected.length===0)cron[idx]='*';
+else if(selected.length===f.max-f.min+1)cron[idx]='*';
+else{
+// Try to detect range
+const sorted=[...selected].sort((a,b)=>a-b);
+let isRange=sorted.length>2;for(let i=1;i<sorted.length&&isRange;i++){if(sorted[i]-sorted[i-1]!==1)isRange=false}
+if(isRange&&sorted.length>3)cron[idx]=`${sorted[0]}-${sorted[sorted.length-1]}`;
+else cron[idx]=sorted.join(',')}
+document.getElementById('inp-'+f.id).value=cron[idx]==='*'?'':cron[idx];
+render()}
+
+function render(){
+const expr=cron.join(' ');const el=document.getElementById('cronExpr');
+el.innerHTML=cron.map((c,i)=>`<span title="${fieldDefs[i].name}">${c}</span>`).join(' ');
+fieldDefs.forEach((f,i)=>document.getElementById('val-'+f.id).textContent=cron[i]);
+document.getElementById('cronDesc').textContent=describeCron(cron);
+computeNext()}
+
+function describeCron(c){
+const [min,hr,day,mon,dow]=c;
+let parts=[];
+if(min==='*'&&hr==='*')parts.push('Every minute');
+else if(min.startsWith('*/')&&hr==='*')parts.push(`Every ${min.slice(2)} minutes`);
+else if(hr==='*')parts.push(`At minute ${min} of every hour`);
+else if(min==='0'&&!hr.includes(',')&&!hr.includes('-')&&!hr.includes('/'))parts.push(`At ${hr}:00`);
+else parts.push(`At ${hr}:${min==='*'?'xx':min.padStart?min.padStart(2,'0'):min}`);
+if(day!=='*')parts.push(`on day ${day}`);
+if(mon!=='*'){const mNames=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const m=mon.split(',').map(v=>mNames[+v]||v).join(', ');parts.push(`in ${m}`)}
+if(dow!=='*'){const dNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+if(dow==='1-5')parts.push('on weekdays');else if(dow==='0,6')parts.push('on weekends');
+else{const d=dow.split(',').map(v=>dNames[+v]||v).join(', ');parts.push(`on ${d}`)}}
+return parts.join(' ')}
+
+function computeNext(){
+const list=document.getElementById('runList');list.innerHTML='';
+const now=new Date();const runs=[];
+try{
+const [minE,hrE,dayE,monE,dowE]=cron;
+let d=new Date(now);d.setSeconds(0);d.setMilliseconds(0);d.setMinutes(d.getMinutes()+1);
+for(let i=0;i<525600&&runs.length<10;i++){
+if(matchField(d.getMinutes(),minE)&&matchField(d.getHours(),hrE)&&matchField(d.getDate(),dayE)&&matchField(d.getMonth()+1,monE)&&matchField(d.getDay(),dowE)){
+runs.push(new Date(d))}d.setMinutes(d.getMinutes()+1)}
+}catch(e){}
+runs.forEach(r=>{const item=document.createElement('div');item.className='run-item';
+const diff=r-now;const mins=Math.floor(diff/60000);const hrs=Math.floor(mins/60);const days=Math.floor(hrs/24);
+let rel='';if(days>0)rel=`in ${days}d ${hrs%24}h`;else if(hrs>0)rel=`in ${hrs}h ${mins%60}m`;else rel=`in ${mins}m`;
+item.innerHTML=`<span>${r.toLocaleString()}</span><span class="run-rel">${rel}</span>`;list.appendChild(item)})}
+
+function matchField(val,expr){
+if(expr==='*')return true;
+return expr.split(',').some(part=>{
+if(part.includes('/')){const[range,step]=part.split('/');const s=+step;if(range==='*')return val%s===0;const[a]=range.split('-');return val>=+a&&(val-a)%s===0}
+if(part.includes('-')){const[a,b]=part.split('-');return val>=+a&&val<=+b}
+return val===+part})}
+
+function setCron(expr){cron=expr.split(' ');
+fieldDefs.forEach((f,i)=>{document.getElementById('inp-'+f.id).value=cron[i]==='*'?'':cron[i];
+const grid=document.getElementById('grid-'+f.id);grid.querySelectorAll('.val-btn').forEach(b=>{b.classList.toggle('on',matchField(+b.dataset.val,cron[i]))})});render()}
+
+function resetCron(){setCron('* * * * *')}
+function copyCron(){navigator.clipboard.writeText(cron.join(' '));const t=document.getElementById('toast');t.textContent='Copied!';t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+
+initFields();setCron('0 9 * * 1-5');
+</script>
+</body>
+</html>

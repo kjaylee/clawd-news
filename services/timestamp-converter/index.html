@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Unix Timestamp Converter — 타임스탬프 변환기 | East Sea Tools</title>
+<meta name="description" content="유닉스 타임스탬프를 날짜로, 날짜를 타임스탬프로 즉시 변환. 모든 타임존 지원. 개발자 필수 도구.">
+<meta name="keywords" content="unix timestamp, epoch converter, 타임스탬프 변환, unix time, epoch time">
+<link rel="canonical" href="https://eastsea.monster/services/timestamp-converter/">
+<meta property="og:title" content="⏱️ Unix Timestamp Converter">
+<meta property="og:description" content="유닉스 타임스탬프 ↔ 날짜 즉시 변환. 모든 타임존 지원.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/timestamp-converter/">
+<meta property="og:site_name" content="East Sea Tools">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:650px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.live-clock{text-align:center;margin-bottom:25px;padding:16px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+.live-ts{font-family:'Courier New',monospace;font-size:1.8rem;color:var(--green);cursor:pointer}
+.live-date{color:var(--muted);font-size:.85rem;margin-top:4px}
+.section{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.section h2{font-size:1rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.input-row{display:flex;gap:10px;margin-bottom:12px}
+.input-row input,.input-row select{flex:1;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.95rem;font-family:inherit}
+.input-row input:focus,.input-row select:focus{outline:none;border-color:var(--accent)}
+.btn{padding:12px 20px;border:none;border-radius:10px;font-size:.9rem;font-weight:600;cursor:pointer;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-sm{padding:8px 14px;font-size:.8rem;background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;cursor:pointer}
+.btn-sm:hover{border-color:var(--accent)}
+.result{margin-top:14px;padding:14px;background:var(--bg);border-radius:10px;font-family:'Courier New',monospace;font-size:.9rem;word-break:break-all;position:relative}
+.result .copy-btn{position:absolute;top:8px;right:8px;background:none;border:none;color:var(--accent);cursor:pointer;font-size:1rem}
+.tz-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:14px}
+.tz-item{padding:10px;background:var(--bg);border-radius:8px;font-size:.8rem}
+.tz-item .tz-name{color:var(--muted);font-size:.75rem}
+.tz-item .tz-time{font-family:monospace;color:var(--text);margin-top:2px}
+.quick-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:20px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.input-row{flex-direction:column}.tz-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top-bar"><a href="/services/">← Tools</a><button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button></div>
+<div class="container">
+<h1>⏱️ <span data-i18n="title">Unix Timestamp 변환기</span></h1>
+<p class="subtitle" data-i18n="subtitle">타임스탬프 ↔ 날짜 즉시 변환</p>
+
+<div class="live-clock">
+<div class="live-ts" id="liveTs" onclick="copyText(this.textContent)" title="클릭하여 복사"></div>
+<div class="live-date" id="liveDate"></div>
+</div>
+
+<div class="section">
+<h2>🔢 <span data-i18n="ts2date">타임스탬프 → 날짜</span></h2>
+<div class="input-row">
+<input type="text" id="tsInput" placeholder="1706745600" oninput="ts2date()">
+<select id="tsUnit" onchange="ts2date()"><option value="s">Seconds</option><option value="ms">Milliseconds</option></select>
+</div>
+<div class="quick-btns">
+<button class="btn-sm" onclick="setTs('now')">Now</button>
+<button class="btn-sm" onclick="setTs('today')">Today 00:00</button>
+<button class="btn-sm" onclick="setTs('tomorrow')">Tomorrow</button>
+<button class="btn-sm" onclick="setTs('year')">Year Start</button>
+</div>
+<div class="result" id="ts2dateResult" style="display:none"><button class="copy-btn" onclick="copyResult('ts2dateResult')">📋</button></div>
+</div>
+
+<div class="section">
+<h2>📅 <span data-i18n="date2ts">날짜 → 타임스탬프</span></h2>
+<div class="input-row">
+<input type="datetime-local" id="dateInput" onchange="date2ts()">
+</div>
+<div class="input-row">
+<select id="tzSelect" onchange="date2ts()"></select>
+</div>
+<button class="btn btn-primary" onclick="setNowDate()" data-i18n="setNow" style="width:100%;margin-top:4px">현재 시간 설정</button>
+<div class="result" id="date2tsResult" style="display:none"><button class="copy-btn" onclick="copyResult('date2tsResult')">📋</button></div>
+</div>
+
+<div class="section">
+<h2>🌍 <span data-i18n="worldClock">세계 시각</span></h2>
+<div class="tz-grid" id="tzGrid"></div>
+</div>
+
+<div class="ad-placeholder">Ad Space</div>
+</div>
+<footer><a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a></footer>
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={ko:{title:'Unix Timestamp 변환기',subtitle:'타임스탬프 ↔ 날짜 즉시 변환',ts2date:'타임스탬프 → 날짜',date2ts:'날짜 → 타임스탬프',worldClock:'세계 시각',setNow:'현재 시간 설정',copied:'복사 완료!'},en:{title:'Unix Timestamp Converter',subtitle:'Convert timestamp ↔ date instantly',ts2date:'Timestamp → Date',date2ts:'Date → Timestamp',worldClock:'World Clock',setNow:'Set Current Time',copied:'Copied!'}};
+let lang='ko';
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]})}
+
+const tzList=[
+{name:'UTC',tz:'UTC'},{name:'Seoul/Tokyo',tz:'Asia/Seoul'},{name:'Shanghai',tz:'Asia/Shanghai'},
+{name:'Singapore',tz:'Asia/Singapore'},{name:'Mumbai',tz:'Asia/Kolkata'},{name:'London',tz:'Europe/London'},
+{name:'Berlin/Paris',tz:'Europe/Berlin'},{name:'New York',tz:'America/New_York'},
+{name:'Chicago',tz:'America/Chicago'},{name:'LA/SF',tz:'America/Los_Angeles'},
+{name:'Sydney',tz:'Australia/Sydney'},{name:'Dubai',tz:'Asia/Dubai'}
+];
+
+function initTz(){
+const sel=document.getElementById('tzSelect');
+const localTz=Intl.DateTimeFormat().resolvedOptions().timeZone;
+tzList.forEach(t=>{const o=document.createElement('option');o.value=t.tz;o.textContent=`${t.name} (${t.tz})`;if(t.tz===localTz)o.selected=true;sel.appendChild(o)});
+if(!sel.value){const o=document.createElement('option');o.value=localTz;o.textContent=`Local (${localTz})`;o.selected=true;sel.insertBefore(o,sel.firstChild)}}
+
+function updateClock(){
+const now=Date.now();const ts=Math.floor(now/1000);
+document.getElementById('liveTs').textContent=ts;
+document.getElementById('liveDate').textContent=new Date(now).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})+ ' KST';
+const grid=document.getElementById('tzGrid');grid.innerHTML='';
+tzList.forEach(t=>{const d=document.createElement('div');d.className='tz-item';
+d.innerHTML=`<div class="tz-name">${t.name}</div><div class="tz-time">${new Date(now).toLocaleString('en-GB',{timeZone:t.tz,hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})} · ${new Date(now).toLocaleDateString('en-GB',{timeZone:t.tz,month:'short',day:'numeric'})}</div>`;grid.appendChild(d)})}
+
+function ts2date(){
+const v=document.getElementById('tsInput').value.trim();if(!v)return;
+const unit=document.getElementById('tsUnit').value;
+let ms=unit==='ms'?parseInt(v):parseInt(v)*1000;if(isNaN(ms))return;
+const d=new Date(ms);const r=document.getElementById('ts2dateResult');r.style.display='block';
+r.innerHTML=`<button class="copy-btn" onclick="copyResult('ts2dateResult')">📋</button>
+<div><b>UTC:</b> ${d.toUTCString()}</div>
+<div><b>Local:</b> ${d.toLocaleString()}</div>
+<div><b>ISO 8601:</b> ${d.toISOString()}</div>
+<div><b>KST:</b> ${d.toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})}</div>
+<div style="color:var(--muted);margin-top:6px;font-size:.8rem">Seconds: ${Math.floor(ms/1000)} · Milliseconds: ${ms}</div>`}
+
+function date2ts(){
+const v=document.getElementById('dateInput').value;if(!v)return;
+const tz=document.getElementById('tzSelect').value;
+const d=new Date(new Date(v).toLocaleString('en-US',{timeZone:tz}));
+const ts=Math.floor(new Date(v).getTime()/1000);
+const r=document.getElementById('date2tsResult');r.style.display='block';
+r.innerHTML=`<button class="copy-btn" onclick="copyResult('date2tsResult')">📋</button>
+<div><b>Seconds:</b> ${ts}</div>
+<div><b>Milliseconds:</b> ${ts*1000}</div>
+<div><b>ISO 8601:</b> ${new Date(v).toISOString()}</div>`}
+
+function setTs(type){
+const now=new Date();let ts;
+if(type==='now')ts=Math.floor(Date.now()/1000);
+else if(type==='today'){now.setHours(0,0,0,0);ts=Math.floor(now.getTime()/1000)}
+else if(type==='tomorrow'){now.setDate(now.getDate()+1);now.setHours(0,0,0,0);ts=Math.floor(now.getTime()/1000)}
+else if(type==='year'){ts=Math.floor(new Date(now.getFullYear(),0,1).getTime()/1000)}
+document.getElementById('tsInput').value=ts;ts2date()}
+
+function setNowDate(){
+const now=new Date();const y=now.getFullYear();const m=String(now.getMonth()+1).padStart(2,'0');
+const d=String(now.getDate()).padStart(2,'0');const h=String(now.getHours()).padStart(2,'0');
+const min=String(now.getMinutes()).padStart(2,'0');
+document.getElementById('dateInput').value=`${y}-${m}-${d}T${h}:${min}`;date2ts()}
+
+function copyText(t){navigator.clipboard.writeText(t);showToast(i18n[lang].copied)}
+function copyResult(id){const el=document.getElementById(id);const t=el.innerText.replace('📋','').trim();copyText(t)}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+
+initTz();updateClock();setInterval(updateClock,1000);
+</script>
+</body>
+</html>

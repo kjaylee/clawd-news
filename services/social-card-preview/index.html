@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Social Card Preview — OG 미리보기 | East Sea Tools</title>
+<meta name="description" content="URL의 Open Graph, Twitter Card 메타태그를 미리보기하세요. Facebook, X(Twitter), LinkedIn, 카카오톡 공유 모습을 확인합니다.">
+<meta name="keywords" content="og preview, social card preview, open graph tester, twitter card validator, 소셜 미리보기, 메타태그 검사">
+<link rel="canonical" href="https://eastsea.monster/services/social-card-preview/">
+<meta property="og:title" content="🔗 Social Card Preview — OG 미리보기">
+<meta property="og:description" content="URL 입력 → Facebook/X/LinkedIn/카카오톡 공유 미리보기. 무료 온라인 도구.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/social-card-preview/">
+<meta property="og:site_name" content="East Sea Tools">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:700px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.input-row{display:flex;gap:10px;margin-bottom:20px}
+.input-row input{flex:1;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:1rem;outline:none}
+.input-row input:focus{border-color:var(--accent)}
+.btn{padding:12px 24px;border:none;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.meta-editor{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:24px}
+.meta-editor h3{font-size:.9rem;color:var(--muted);margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{font-size:.8rem;color:var(--dim);display:block;margin-bottom:4px}
+.field input,.field textarea{width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.9rem;outline:none;font-family:inherit}
+.field textarea{resize:vertical;min-height:60px}
+.field input:focus,.field textarea:focus{border-color:var(--accent)}
+.platform-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.platform-tab{padding:8px 16px;border-radius:10px;background:var(--card);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.85rem;transition:all .2s}
+.platform-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(102,126,234,.1)}
+.preview-area{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:20px;min-height:200px}
+/* Facebook preview */
+.fb-card{max-width:500px;margin:0 auto;background:#242526;border-radius:8px;overflow:hidden;font-family:Helvetica,Arial,sans-serif;border:1px solid #3a3b3c}
+.fb-card .img-area{width:100%;aspect-ratio:1.91/1;background:#1a1a2e;display:flex;align-items:center;justify-content:center;color:var(--dim);overflow:hidden}
+.fb-card .img-area img{width:100%;height:100%;object-fit:cover}
+.fb-card .info{padding:12px 16px}
+.fb-card .domain{font-size:.75rem;color:#b0b3b8;text-transform:uppercase}
+.fb-card .og-title{font-size:.95rem;font-weight:600;color:#e4e6eb;margin:4px 0}
+.fb-card .og-desc{font-size:.8rem;color:#b0b3b8;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+/* Twitter preview */
+.tw-card{max-width:500px;margin:0 auto;background:#15202b;border-radius:16px;overflow:hidden;font-family:-apple-system,sans-serif;border:1px solid #38444d}
+.tw-card .img-area{width:100%;aspect-ratio:2/1;background:#1a1a2e;display:flex;align-items:center;justify-content:center;color:var(--dim);overflow:hidden}
+.tw-card .img-area img{width:100%;height:100%;object-fit:cover}
+.tw-card .info{padding:12px 16px}
+.tw-card .og-title{font-size:.9rem;font-weight:700;color:#e7e9ea}
+.tw-card .og-desc{font-size:.8rem;color:#8b98a5;margin:4px 0}
+.tw-card .domain{font-size:.75rem;color:#8b98a5}
+/* LinkedIn preview */
+.li-card{max-width:500px;margin:0 auto;background:#1b1f23;border-radius:8px;overflow:hidden;font-family:-apple-system,sans-serif;border:1px solid #38434f}
+.li-card .img-area{width:100%;aspect-ratio:1.91/1;background:#1a1a2e;display:flex;align-items:center;justify-content:center;color:var(--dim);overflow:hidden}
+.li-card .img-area img{width:100%;height:100%;object-fit:cover}
+.li-card .info{padding:12px 16px}
+.li-card .og-title{font-size:.9rem;font-weight:600;color:#fff}
+.li-card .og-desc{font-size:.8rem;color:#ffffffb3;margin:4px 0}
+.li-card .domain{font-size:.75rem;color:#ffffff80}
+/* Kakao preview */
+.kk-card{max-width:340px;margin:0 auto;background:#f2f2f2;border-radius:16px;overflow:hidden;font-family:'Apple SD Gothic Neo',-apple-system,sans-serif}
+.kk-card .img-area{width:100%;aspect-ratio:1.6/1;background:#ddd;display:flex;align-items:center;justify-content:center;color:#999;overflow:hidden}
+.kk-card .img-area img{width:100%;height:100%;object-fit:cover}
+.kk-card .info{padding:12px 16px}
+.kk-card .og-title{font-size:.85rem;font-weight:600;color:#333}
+.kk-card .og-desc{font-size:.78rem;color:#666;margin:4px 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kk-card .domain{font-size:.72rem;color:#999}
+.checklist{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.checklist h3{font-size:.9rem;color:var(--muted);margin-bottom:12px}
+.check-item{display:flex;align-items:center;gap:8px;padding:6px 0;font-size:.85rem}
+.check-item .icon{font-size:1rem}
+.check-item.pass .icon{color:var(--green)}
+.check-item.warn .icon{color:var(--yellow)}
+.check-item.fail .icon{color:var(--red)}
+.empty-msg{color:var(--dim);font-size:.9rem;text-align:center;padding:30px}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:24px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.container{padding:20px 14px 40px}.input-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<a href="/services/">← Tools</a>
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+<div class="container">
+<h1>🔗 <span data-i18n="title">소셜 카드 미리보기</span></h1>
+<p class="subtitle" data-i18n="subtitle">OG 메타태그를 입력하고 각 플랫폼에서 어떻게 보이는지 미리보기하세요</p>
+
+<div class="meta-editor">
+<h3 data-i18n="metaTitle">📝 메타 정보 입력</h3>
+<div class="field">
+<label>og:title</label>
+<input type="text" id="ogTitle" placeholder="페이지 제목" oninput="renderPreview()">
+</div>
+<div class="field">
+<label>og:description</label>
+<textarea id="ogDesc" placeholder="페이지 설명 (최대 200자 권장)" oninput="renderPreview()"></textarea>
+</div>
+<div class="field">
+<label>og:image (URL)</label>
+<input type="text" id="ogImage" placeholder="https://example.com/image.jpg" oninput="renderPreview()">
+</div>
+<div class="field">
+<label>og:url</label>
+<input type="text" id="ogUrl" placeholder="https://example.com/page" oninput="renderPreview()">
+</div>
+</div>
+
+<div class="platform-tabs">
+<div class="platform-tab active" data-p="facebook" onclick="setPreviewPlatform(this)">📘 Facebook</div>
+<div class="platform-tab" data-p="twitter" onclick="setPreviewPlatform(this)">𝕏 Twitter</div>
+<div class="platform-tab" data-p="linkedin" onclick="setPreviewPlatform(this)">💼 LinkedIn</div>
+<div class="platform-tab" data-p="kakao" onclick="setPreviewPlatform(this)">💬 KakaoTalk</div>
+</div>
+
+<div class="preview-area" id="previewArea">
+<div class="empty-msg" data-i18n="emptyPreview">메타 정보를 입력하면 미리보기가 표시됩니다</div>
+</div>
+
+<div class="checklist" id="checklist">
+<h3 data-i18n="checklistTitle">✅ SEO 체크리스트</h3>
+<div id="checkItems"></div>
+</div>
+
+<button class="btn btn-primary" onclick="copyMeta()" style="width:100%;margin-bottom:20px" data-i18n="copyMeta">메타태그 HTML 복사</button>
+
+<div class="ad-placeholder">Ad Space</div>
+</div>
+
+<footer>
+<a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a>
+</footer>
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={
+ko:{title:'소셜 카드 미리보기',subtitle:'OG 메타태그를 입력하고 각 플랫폼에서 어떻게 보이는지 미리보기하세요',metaTitle:'📝 메타 정보 입력',emptyPreview:'메타 정보를 입력하면 미리보기가 표시됩니다',checklistTitle:'✅ SEO 체크리스트',copyMeta:'메타태그 HTML 복사',copied:'복사 완료!',noImg:'이미지 없음',checks:{titleOk:'og:title 설정됨',titleLen:'제목 길이 적정 (60자 이하)',descOk:'og:description 설정됨',descLen:'설명 길이 적정 (160자 이하)',imgOk:'og:image 설정됨',urlOk:'og:url 설정됨',titleMissing:'og:title 미설정',titleLong:'제목이 너무 깁니다 (60자 초과)',descMissing:'og:description 미설정',descLong:'설명이 너무 깁니다 (160자 초과)',imgMissing:'og:image 미설정',urlMissing:'og:url 미설정'}},
+en:{title:'Social Card Preview',subtitle:'Enter OG meta tags and preview how they appear on each platform',metaTitle:'📝 Meta Information',emptyPreview:'Enter meta information to see preview',checklistTitle:'✅ SEO Checklist',copyMeta:'Copy Meta Tag HTML',copied:'Copied!',noImg:'No Image',checks:{titleOk:'og:title is set',titleLen:'Title length is good (≤60 chars)',descOk:'og:description is set',descLen:'Description length is good (≤160 chars)',imgOk:'og:image is set',urlOk:'og:url is set',titleMissing:'og:title not set',titleLong:'Title is too long (>60 chars)',descMissing:'og:description not set',descLong:'Description is too long (>160 chars)',imgMissing:'og:image not set',urlMissing:'og:url not set'}}
+};
+let lang='ko',previewPlatform='facebook';
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]});renderPreview()}
+function setPreviewPlatform(el){document.querySelectorAll('.platform-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');previewPlatform=el.dataset.p;renderPreview()}
+function getDomain(url){try{return new URL(url).hostname}catch{return url||'example.com'}}
+function renderPreview(){
+const title=document.getElementById('ogTitle').value||'';
+const desc=document.getElementById('ogDesc').value||'';
+const img=document.getElementById('ogImage').value||'';
+const url=document.getElementById('ogUrl').value||'';
+if(!title&&!desc&&!img){document.getElementById('previewArea').innerHTML=`<div class="empty-msg">${i18n[lang].emptyPreview}</div>`;updateChecklist(title,desc,img,url);return}
+const domain=getDomain(url);
+const imgHtml=img?`<img src="${img}" onerror="this.parentNode.textContent='${i18n[lang].noImg}'" alt="preview">`:`<span>${i18n[lang].noImg}</span>`;
+let html='';
+if(previewPlatform==='facebook'){
+html=`<div class="fb-card"><div class="img-area">${imgHtml}</div><div class="info"><div class="domain">${domain}</div><div class="og-title">${esc(title)||'Untitled'}</div><div class="og-desc">${esc(desc)}</div></div></div>`}
+else if(previewPlatform==='twitter'){
+html=`<div class="tw-card"><div class="img-area">${imgHtml}</div><div class="info"><div class="og-title">${esc(title)||'Untitled'}</div><div class="og-desc">${esc(desc)}</div><div class="domain">🔗 ${domain}</div></div></div>`}
+else if(previewPlatform==='linkedin'){
+html=`<div class="li-card"><div class="img-area">${imgHtml}</div><div class="info"><div class="og-title">${esc(title)||'Untitled'}</div><div class="domain">${domain}</div></div></div>`}
+else if(previewPlatform==='kakao'){
+html=`<div class="kk-card"><div class="img-area">${imgHtml}</div><div class="info"><div class="og-title">${esc(title)||'Untitled'}</div><div class="og-desc">${esc(desc)}</div><div class="domain">${domain}</div></div></div>`}
+document.getElementById('previewArea').innerHTML=html;
+updateChecklist(title,desc,img,url)}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+function updateChecklist(title,desc,img,url){
+const c=i18n[lang].checks;const items=[];
+if(title){items.push({s:'pass',t:c.titleOk});items.push(title.length<=60?{s:'pass',t:c.titleLen}:{s:'warn',t:c.titleLong})}else{items.push({s:'fail',t:c.titleMissing})}
+if(desc){items.push({s:'pass',t:c.descOk});items.push(desc.length<=160?{s:'pass',t:c.descLen}:{s:'warn',t:c.descLong})}else{items.push({s:'fail',t:c.descMissing})}
+items.push(img?{s:'pass',t:c.imgOk}:{s:'fail',t:c.imgMissing});
+items.push(url?{s:'pass',t:c.urlOk}:{s:'warn',t:c.urlMissing});
+const icons={pass:'✅',warn:'⚠️',fail:'❌'};
+document.getElementById('checkItems').innerHTML=items.map(i=>`<div class="check-item ${i.s}"><span class="icon">${icons[i.s]}</span><span>${i.t}</span></div>`).join('')}
+function copyMeta(){
+const title=document.getElementById('ogTitle').value;
+const desc=document.getElementById('ogDesc').value;
+const img=document.getElementById('ogImage').value;
+const url=document.getElementById('ogUrl').value;
+let html=`<!-- Open Graph -->\n`;
+if(title)html+=`<meta property="og:title" content="${esc(title)}">\n`;
+if(desc)html+=`<meta property="og:description" content="${esc(desc)}">\n`;
+if(img)html+=`<meta property="og:image" content="${esc(img)}">\n`;
+if(url)html+=`<meta property="og:url" content="${esc(url)}">\n`;
+html+=`<meta property="og:type" content="website">\n\n<!-- Twitter Card -->\n<meta name="twitter:card" content="summary_large_image">\n`;
+if(title)html+=`<meta name="twitter:title" content="${esc(title)}">\n`;
+if(desc)html+=`<meta name="twitter:description" content="${esc(desc)}">\n`;
+if(img)html+=`<meta name="twitter:image" content="${esc(img)}">\n`;
+navigator.clipboard.writeText(html).then(()=>showToast(i18n[lang].copied))}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+updateChecklist('','','','');
+</script>
+</body>
+</html>

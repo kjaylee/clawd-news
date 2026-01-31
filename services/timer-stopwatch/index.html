@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timer & Stopwatch — 타이머 & 스톱워치 | East Sea Tools</title>
+<meta name="description" content="전체화면 타이머, 스톱워치, 알람 기능을 하나에. 포모도로, 운동, 요리 등 다양한 용도로 사용하세요.">
+<meta name="keywords" content="online timer, stopwatch, 타이머, 스톱워치, pomodoro, countdown">
+<link rel="canonical" href="https://eastsea.monster/services/timer-stopwatch/">
+<meta property="og:title" content="⏰ Timer & Stopwatch — 타이머 & 스톱워치">
+<meta property="og:description" content="전체화면 타이머, 스톱워치, 알람. 브라우저에서 바로 사용.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/timer-stopwatch/">
+<meta property="og:site_name" content="East Sea Tools">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border)}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.top-right{display:flex;gap:8px}
+.lang-btn,.fs-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.tabs{display:flex;justify-content:center;gap:4px;padding:20px 20px 0}
+.tab{padding:10px 24px;background:var(--card);border:1px solid var(--border);border-radius:12px 12px 0 0;cursor:pointer;font-size:.9rem;color:var(--muted);transition:all .2s;border-bottom:none}
+.tab.active{background:var(--bg);color:var(--accent);border-color:var(--accent);border-bottom:1px solid var(--bg);font-weight:600}
+.main{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px}
+.display{font-family:'Courier New',monospace;font-size:clamp(3rem,12vw,7rem);font-weight:700;letter-spacing:2px;text-align:center;margin-bottom:10px;color:var(--text)}
+.display.warning{color:var(--yellow)}
+.display.danger{color:var(--red);animation:pulse-red 1s infinite}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:.5}}
+.ms{font-size:clamp(1.5rem,5vw,3rem);color:var(--muted)}
+.controls{display:flex;gap:12px;margin:30px 0 20px;flex-wrap:wrap;justify-content:center}
+.ctrl-btn{width:70px;height:70px;border-radius:50%;border:2px solid var(--border);background:var(--card);color:var(--text);font-size:.8rem;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.ctrl-btn:hover{border-color:var(--accent);transform:scale(1.05)}
+.ctrl-btn.start{border-color:var(--green);color:var(--green)}
+.ctrl-btn.stop{border-color:var(--red);color:var(--red)}
+.ctrl-btn .icon{font-size:1.5rem;line-height:1}
+.presets{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px}
+.preset{padding:8px 16px;background:var(--card);border:1px solid var(--border);border-radius:20px;cursor:pointer;font-size:.82rem;color:var(--muted);transition:all .2s}
+.preset:hover{border-color:var(--accent);color:var(--accent)}
+.preset.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.custom-time{display:flex;gap:8px;align-items:center;justify-content:center;margin-bottom:20px}
+.custom-time input{width:60px;padding:8px;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:1rem;font-family:monospace}
+.custom-time input:focus{outline:none;border-color:var(--accent)}
+.custom-time span{color:var(--muted);font-size:.85rem}
+.laps{width:100%;max-width:400px;max-height:200px;overflow-y:auto;margin-top:10px}
+.lap{display:flex;justify-content:space-between;padding:6px 12px;font-family:monospace;font-size:.85rem;border-bottom:1px solid rgba(255,255,255,.05)}
+.lap:nth-child(1){color:var(--green)}.lap:nth-child(2){color:var(--pink)}
+.pane{display:none}.pane.active{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;width:100%}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:20px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:auto;width:100%;max-width:500px}
+footer{text-align:center;padding:16px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border)}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.ctrl-btn{width:60px;height:60px}.custom-time input{width:50px}}
+body.fullscreen .top-bar,body.fullscreen .tabs,body.fullscreen footer,body.fullscreen .ad-placeholder{display:none}
+body.fullscreen{background:#000}body.fullscreen .main{padding:0}
+</style>
+</head>
+<body>
+<div class="top-bar"><a href="/services/">← Tools</a><div class="top-right"><button class="fs-btn" onclick="toggleFS()">⛶</button><button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button></div></div>
+
+<div class="tabs">
+<div class="tab active" onclick="switchTab('sw')" data-i18n="tabSW">스톱워치</div>
+<div class="tab" onclick="switchTab('timer')" data-i18n="tabTimer">타이머</div>
+</div>
+
+<div class="main">
+<!-- Stopwatch -->
+<div class="pane active" id="swPane">
+<div class="display" id="swDisplay">00:00:00<span class="ms">.00</span></div>
+<div class="controls">
+<button class="ctrl-btn start" id="swStartBtn" onclick="swToggle()"><span class="icon">▶</span></button>
+<button class="ctrl-btn" onclick="swLap()"><span class="icon">🏁</span></button>
+<button class="ctrl-btn" onclick="swReset()"><span class="icon">↺</span></button>
+</div>
+<div class="laps" id="laps"></div>
+</div>
+
+<!-- Timer -->
+<div class="pane" id="timerPane">
+<div class="presets" id="presets"></div>
+<div class="custom-time" id="customTime">
+<input type="number" id="hh" value="0" min="0" max="99" placeholder="H"><span>:</span>
+<input type="number" id="mm" value="5" min="0" max="59" placeholder="M"><span>:</span>
+<input type="number" id="ss" value="0" min="0" max="59" placeholder="S">
+</div>
+<div class="display" id="timerDisplay">00:05:00</div>
+<div class="controls">
+<button class="ctrl-btn start" id="timerStartBtn" onclick="timerToggle()"><span class="icon">▶</span></button>
+<button class="ctrl-btn" onclick="timerReset()"><span class="icon">↺</span></button>
+</div>
+</div>
+</div>
+
+<footer><a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a></footer>
+
+<script>
+const i18n={ko:{tabSW:'스톱워치',tabTimer:'타이머'},en:{tabSW:'Stopwatch',tabTimer:'Timer'}};
+let lang='ko';
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]})}
+function toggleFS(){document.body.classList.toggle('fullscreen');if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()}
+
+function switchTab(t){document.querySelectorAll('.tab').forEach((el,i)=>el.classList.toggle('active',i===(t==='sw'?0:1)));document.getElementById('swPane').classList.toggle('active',t==='sw');document.getElementById('timerPane').classList.toggle('active',t==='timer')}
+
+// Stopwatch
+let swRunning=false,swStart=0,swElapsed=0,swInterval=null,lapTimes=[],lapCount=0;
+function swToggle(){
+if(swRunning){clearInterval(swInterval);swElapsed+=Date.now()-swStart;swRunning=false;document.getElementById('swStartBtn').innerHTML='<span class="icon">▶</span>';document.getElementById('swStartBtn').classList.remove('stop');document.getElementById('swStartBtn').classList.add('start')}
+else{swStart=Date.now();swRunning=true;document.getElementById('swStartBtn').innerHTML='<span class="icon">⏸</span>';document.getElementById('swStartBtn').classList.remove('start');document.getElementById('swStartBtn').classList.add('stop');swInterval=setInterval(updateSW,10)}}
+function updateSW(){const t=swElapsed+(Date.now()-swStart);renderTime('swDisplay',t,true)}
+function renderTime(id,ms,showMs){
+const h=Math.floor(ms/3600000);const m=Math.floor((ms%3600000)/60000);const s=Math.floor((ms%60000)/1000);const cs=Math.floor((ms%1000)/10);
+const d=document.getElementById(id);
+const base=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+d.innerHTML=showMs?`${base}<span class="ms">.${String(cs).padStart(2,'0')}</span>`:base}
+function swLap(){if(!swRunning)return;const t=swElapsed+(Date.now()-swStart);lapCount++;lapTimes.unshift(t);
+const lapsEl=document.getElementById('laps');const prev=lapTimes.length>1?lapTimes[1]:0;const diff=t-prev;
+const item=document.createElement('div');item.className='lap';item.innerHTML=`<span>Lap ${lapCount}</span><span>+${fmtMs(diff)}</span><span>${fmtMs(t)}</span>`;lapsEl.prepend(item)}
+function fmtMs(ms){const m=Math.floor(ms/60000);const s=Math.floor((ms%60000)/1000);const c=Math.floor((ms%1000)/10);return`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(c).padStart(2,'0')}`}
+function swReset(){clearInterval(swInterval);swRunning=false;swElapsed=0;lapTimes=[];lapCount=0;renderTime('swDisplay',0,true);document.getElementById('laps').innerHTML='';document.getElementById('swStartBtn').innerHTML='<span class="icon">▶</span>';document.getElementById('swStartBtn').classList.remove('stop');document.getElementById('swStartBtn').classList.add('start')}
+
+// Timer
+let tmRunning=false,tmEnd=0,tmRemaining=0,tmInterval=null;
+const presetData=[{label:'1m',s:60},{label:'3m',s:180},{label:'5m',s:300},{label:'10m',s:600},{label:'15m',s:900},{label:'25m',s:1500},{label:'30m',s:1800},{label:'1h',s:3600}];
+function initPresets(){const c=document.getElementById('presets');presetData.forEach(p=>{const d=document.createElement('div');d.className='preset';d.textContent=p.label;d.onclick=()=>{setTimer(p.s);document.querySelectorAll('.preset').forEach(x=>x.classList.remove('active'));d.classList.add('active')};c.appendChild(d)})}
+function setTimer(sec){
+const h=Math.floor(sec/3600);const m=Math.floor((sec%3600)/60);const s=sec%60;
+document.getElementById('hh').value=h;document.getElementById('mm').value=m;document.getElementById('ss').value=s;
+tmRemaining=sec*1000;renderTime('timerDisplay',tmRemaining,false);
+document.getElementById('timerDisplay').className='display'}
+function getTimerSec(){return(+document.getElementById('hh').value||0)*3600+(+document.getElementById('mm').value||0)*60+(+document.getElementById('ss').value||0)}
+function timerToggle(){
+if(tmRunning){clearInterval(tmInterval);tmRunning=false;document.getElementById('timerStartBtn').innerHTML='<span class="icon">▶</span>';document.getElementById('timerStartBtn').classList.remove('stop');document.getElementById('timerStartBtn').classList.add('start')}
+else{if(tmRemaining<=0)tmRemaining=getTimerSec()*1000;if(tmRemaining<=0)return;tmEnd=Date.now()+tmRemaining;tmRunning=true;
+document.getElementById('timerStartBtn').innerHTML='<span class="icon">⏸</span>';document.getElementById('timerStartBtn').classList.remove('start');document.getElementById('timerStartBtn').classList.add('stop');
+document.getElementById('customTime').style.display='none';
+tmInterval=setInterval(updateTimer,50)}}
+function updateTimer(){
+const rem=tmEnd-Date.now();if(rem<=0){clearInterval(tmInterval);tmRunning=false;tmRemaining=0;renderTime('timerDisplay',0,false);document.getElementById('timerDisplay').className='display danger';alarm();return}
+tmRemaining=rem;renderTime('timerDisplay',rem,false);
+document.getElementById('timerDisplay').className=rem<10000?'display danger':rem<30000?'display warning':'display'}
+function timerReset(){clearInterval(tmInterval);tmRunning=false;const sec=getTimerSec();tmRemaining=sec*1000;renderTime('timerDisplay',tmRemaining,false);document.getElementById('timerDisplay').className='display';document.getElementById('customTime').style.display='flex';document.getElementById('timerStartBtn').innerHTML='<span class="icon">▶</span>';document.getElementById('timerStartBtn').classList.remove('stop');document.getElementById('timerStartBtn').classList.add('start')}
+function alarm(){
+try{const ac=new(window.AudioContext||window.webkitAudioContext)();
+for(let i=0;i<3;i++){setTimeout(()=>{const o=ac.createOscillator();const g=ac.createGain();o.connect(g);g.connect(ac.destination);o.frequency.value=880;o.type='sine';g.gain.value=0.3;o.start(ac.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ac.currentTime+0.5);o.stop(ac.currentTime+0.5)},i*600)}}catch(e){}
+document.title='⏰ TIME\'S UP!';setTimeout(()=>document.title='Timer & Stopwatch — East Sea Tools',5000)}
+
+['hh','mm','ss'].forEach(id=>{document.getElementById(id).addEventListener('change',()=>{if(!tmRunning){tmRemaining=getTimerSec()*1000;renderTime('timerDisplay',tmRemaining,false)}})});
+
+initPresets();renderTime('swDisplay',0,true);renderTime('timerDisplay',300000,false);
+</script>
+</body>
+</html>

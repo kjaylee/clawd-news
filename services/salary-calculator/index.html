@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Salary Calculator — 연봉 실수령액 계산기 | East Sea Tools</title>
+<meta name="description" content="연봉, 월급, 시급 환산 및 세후 실수령액을 계산합니다. 4대보험, 소득세 자동 계산. 2025년 기준 한국 세금 적용.">
+<meta name="keywords" content="salary calculator, 연봉 계산기, 실수령액, 세후 월급, 4대보험, 소득세, 시급 계산">
+<link rel="canonical" href="https://eastsea.monster/services/salary-calculator/">
+<meta property="og:title" content="💰 Salary Calculator — 연봉 실수령액 계산기">
+<meta property="og:description" content="연봉→월급→시급 환산 + 4대보험/소득세 자동 계산. 무료 온라인 도구.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/salary-calculator/">
+<meta property="og:site_name" content="East Sea Tools">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:640px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.input-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.type-tabs{display:flex;gap:6px;margin-bottom:16px}
+.type-tab{flex:1;padding:10px;text-align:center;border-radius:10px;background:var(--bg);border:1px solid var(--border);color:var(--muted);cursor:pointer;font-size:.85rem;transition:all .2s}
+.type-tab.active{border-color:var(--accent);color:var(--accent);background:rgba(102,126,234,.1)}
+.field{margin-bottom:14px}
+.field label{font-size:.85rem;color:var(--muted);display:block;margin-bottom:6px}
+.field-input{display:flex;align-items:center;gap:0}
+.field-input input{flex:1;padding:12px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px 0 0 10px;color:var(--text);font-size:1.1rem;outline:none;text-align:right;font-weight:600}
+.field-input input:focus{border-color:var(--accent)}
+.field-input .unit{padding:12px 14px;background:var(--border);border:1px solid var(--border);border-left:none;border-radius:0 10px 10px 0;color:var(--muted);font-size:.85rem;white-space:nowrap}
+.opt-row{display:flex;gap:10px;flex-wrap:wrap}
+.opt-item{flex:1;min-width:120px}
+.opt-item select{width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.9rem;outline:none}
+.result-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.result-card h3{font-size:.9rem;color:var(--muted);margin-bottom:16px}
+.result-main{text-align:center;padding:20px 0;border-bottom:1px solid var(--border);margin-bottom:16px}
+.result-main .amount{font-size:2rem;font-weight:800;background:linear-gradient(135deg,var(--green),#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.result-main .label{font-size:.85rem;color:var(--muted);margin-top:4px}
+.conversions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.conv-item{text-align:center;padding:12px;background:var(--bg);border-radius:10px}
+.conv-item .val{font-size:1.1rem;font-weight:700;color:var(--accent)}
+.conv-item .lbl{font-size:.75rem;color:var(--dim);margin-top:4px}
+.breakdown{border-top:1px solid var(--border);padding-top:16px}
+.breakdown h4{font-size:.85rem;color:var(--muted);margin-bottom:10px}
+.br-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:.85rem}
+.br-row .label{color:var(--muted)}
+.br-row .val{font-weight:600}
+.br-row .val.minus{color:var(--red)}
+.br-row .val.plus{color:var(--green)}
+.br-row.total{border-top:2px solid var(--border);border-bottom:none;padding-top:12px;margin-top:4px;font-weight:700;font-size:.95rem}
+.chart-bar{margin-top:16px}
+.chart-bar .bar{height:24px;border-radius:12px;overflow:hidden;display:flex;margin-top:8px}
+.chart-bar .bar-seg{height:100%;transition:width .3s}
+.chart-bar .legend{display:flex;gap:16px;margin-top:8px;flex-wrap:wrap}
+.chart-bar .legend-item{display:flex;align-items:center;gap:4px;font-size:.75rem;color:var(--muted)}
+.chart-bar .legend-dot{width:8px;height:8px;border-radius:50%}
+.copy-toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.copy-toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:24px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.container{padding:20px 14px 40px}.conversions{grid-template-columns:1fr}.opt-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<a href="/services/">← Tools</a>
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+<div class="container">
+<h1>💰 <span data-i18n="title">연봉 실수령액 계산기</span></h1>
+<p class="subtitle" data-i18n="subtitle">연봉, 월급, 시급 환산 + 4대보험·소득세 자동 계산</p>
+
+<div class="input-card">
+<div class="type-tabs">
+<div class="type-tab active" data-type="annual" onclick="setType(this)" data-i18n="annual">연봉</div>
+<div class="type-tab" data-type="monthly" onclick="setType(this)" data-i18n="monthly">월급</div>
+<div class="type-tab" data-type="hourly" onclick="setType(this)" data-i18n="hourly">시급</div>
+</div>
+<div class="field">
+<label data-i18n="inputLabel">금액 입력</label>
+<div class="field-input">
+<input type="text" id="amountInput" placeholder="50,000,000" oninput="formatAndCalc()" inputmode="numeric">
+<div class="unit" id="unitLabel" data-i18n="won">원</div>
+</div>
+</div>
+<div class="opt-row">
+<div class="opt-item">
+<div class="field">
+<label data-i18n="dependents">부양가족 수</label>
+<select id="dependents" onchange="calculate()">
+<option value="1">1명 (본인)</option>
+<option value="2">2명</option>
+<option value="3">3명</option>
+<option value="4">4명</option>
+<option value="5">5명+</option>
+</select>
+</div>
+</div>
+<div class="opt-item">
+<div class="field">
+<label data-i18n="nonTaxable">비과세액 (월)</label>
+<div class="field-input">
+<input type="text" id="nonTaxable" value="200,000" oninput="formatAndCalc()" inputmode="numeric" style="font-size:.9rem">
+<div class="unit" data-i18n="won">원</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="result-card" id="resultCard">
+<h3 data-i18n="resultTitle">💵 계산 결과</h3>
+<div class="result-main">
+<div class="amount" id="netAmount">₩ 0</div>
+<div class="label" data-i18n="monthlyNet">월 실수령액</div>
+</div>
+<div class="conversions" id="conversions"></div>
+<div class="breakdown" id="breakdown"></div>
+<div class="chart-bar" id="chartBar"></div>
+</div>
+
+<div class="ad-placeholder">Ad Space</div>
+</div>
+
+<footer>
+<a href="/services/">East Sea Tools</a> · <a href="/">eastsea.monster</a>
+</footer>
+<div class="copy-toast" id="toast"></div>
+
+<script>
+const i18n={
+ko:{title:'연봉 실수령액 계산기',subtitle:'연봉, 월급, 시급 환산 + 4대보험·소득세 자동 계산',annual:'연봉',monthly:'월급',hourly:'시급',inputLabel:'금액 입력',won:'원',dependents:'부양가족 수',nonTaxable:'비과세액 (월)',resultTitle:'💵 계산 결과',monthlyNet:'월 실수령액',annualSalary:'연봉',monthlySalary:'월급 (세전)',hourlySalary:'시급 환산',nationalPension:'국민연금',healthIns:'건강보험',longTermCare:'장기요양보험',employment:'고용보험',incomeTax:'소득세',localTax:'지방소득세',totalDeduction:'총 공제액',netPay:'실수령액',taxable:'과세 소득',takeHome:'실수령',deductions:'공제',disclaimer:'※ 이 계산은 참고용입니다. 실제 세금은 다를 수 있습니다.'},
+en:{title:'Salary Calculator',subtitle:'Annual/Monthly/Hourly conversion + Tax & Insurance calculation',annual:'Annual',monthly:'Monthly',hourly:'Hourly',inputLabel:'Enter Amount',won:'KRW',dependents:'Dependents',nonTaxable:'Non-taxable (monthly)',resultTitle:'💵 Calculation Result',monthlyNet:'Monthly Take-Home Pay',annualSalary:'Annual',monthlySalary:'Monthly (Pre-tax)',hourlySalary:'Hourly Rate',nationalPension:'National Pension',healthIns:'Health Insurance',longTermCare:'Long-term Care',employment:'Employment Ins.',incomeTax:'Income Tax',localTax:'Local Income Tax',totalDeduction:'Total Deductions',netPay:'Take-Home Pay',taxable:'Taxable',takeHome:'Take-Home',deductions:'Deductions',disclaimer:'※ This calculation is for reference only. Actual taxes may vary.'}
+};
+let lang='ko',inputType='annual';
+
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]});calculate()}
+function setType(el){document.querySelectorAll('.type-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');inputType=el.dataset.type;calculate()}
+
+function parseNum(s){return parseInt((s||'0').replace(/[^0-9]/g,''))||0}
+function fmtNum(n){return Math.round(n).toLocaleString('ko-KR')}
+function formatAndCalc(){
+const input=document.getElementById('amountInput');
+const v=parseNum(input.value);
+if(v)input.value=fmtNum(v);
+calculate()}
+
+function calculate(){
+const raw=parseNum(document.getElementById('amountInput').value);
+const nonTax=parseNum(document.getElementById('nonTaxable').value);
+const deps=parseInt(document.getElementById('dependents').value);
+if(!raw){document.getElementById('netAmount').textContent='₩ 0';return}
+let annual,monthly;
+if(inputType==='annual'){annual=raw;monthly=Math.round(raw/12)}
+else if(inputType==='monthly'){monthly=raw;annual=raw*12}
+else{monthly=Math.round(raw*209);annual=monthly*12}// 209h/month standard
+const hourly=Math.round(annual/12/209);
+// Taxable monthly income
+const taxableMonthly=Math.max(0,monthly-nonTax);
+// 4대보험 (2025 rates)
+const pension=Math.round(Math.min(taxableMonthly*0.045,265500));// 국민연금 4.5%, 상한
+const health=Math.round(taxableMonthly*0.03545);// 건강보험 3.545%
+const longCare=Math.round(health*0.1295);// 장기요양 12.95% of health
+const employ=Math.round(taxableMonthly*0.009);// 고용보험 0.9%
+// 소득세 (간이세액표 근사)
+let incomeTax=0;
+const annualTaxable=taxableMonthly*12;
+if(annualTaxable<=14000000)incomeTax=annualTaxable*0.06;
+else if(annualTaxable<=50000000)incomeTax=840000+(annualTaxable-14000000)*0.15;
+else if(annualTaxable<=88000000)incomeTax=6240000+(annualTaxable-50000000)*0.24;
+else if(annualTaxable<=150000000)incomeTax=15360000+(annualTaxable-88000000)*0.35;
+else if(annualTaxable<=300000000)incomeTax=37060000+(annualTaxable-150000000)*0.38;
+else if(annualTaxable<=500000000)incomeTax=94060000+(annualTaxable-300000000)*0.40;
+else if(annualTaxable<=1000000000)incomeTax=174060000+(annualTaxable-500000000)*0.42;
+else incomeTax=384060000+(annualTaxable-1000000000)*0.45;
+// Dependents deduction
+const depDeduction=deps*1500000;
+incomeTax=Math.max(0,incomeTax-depDeduction*0.15);
+const monthlyIncomeTax=Math.round(incomeTax/12);
+const localTax=Math.round(monthlyIncomeTax*0.1);
+const totalDeduction=pension+health+longCare+employ+monthlyIncomeTax+localTax;
+const netMonthly=monthly-totalDeduction;
+// Render
+const L=i18n[lang];
+document.getElementById('netAmount').textContent='₩ '+fmtNum(netMonthly);
+document.getElementById('conversions').innerHTML=`
+<div class="conv-item"><div class="val">₩${fmtNum(annual)}</div><div class="lbl">${L.annualSalary}</div></div>
+<div class="conv-item"><div class="val">₩${fmtNum(monthly)}</div><div class="lbl">${L.monthlySalary}</div></div>
+<div class="conv-item"><div class="val">₩${fmtNum(hourly)}</div><div class="lbl">${L.hourlySalary}</div></div>`;
+document.getElementById('breakdown').innerHTML=`
+<h4>📊 ${L.totalDeduction}</h4>
+<div class="br-row"><span class="label">${L.nationalPension}</span><span class="val minus">-₩${fmtNum(pension)}</span></div>
+<div class="br-row"><span class="label">${L.healthIns}</span><span class="val minus">-₩${fmtNum(health)}</span></div>
+<div class="br-row"><span class="label">${L.longTermCare}</span><span class="val minus">-₩${fmtNum(longCare)}</span></div>
+<div class="br-row"><span class="label">${L.employment}</span><span class="val minus">-₩${fmtNum(employ)}</span></div>
+<div class="br-row"><span class="label">${L.incomeTax}</span><span class="val minus">-₩${fmtNum(monthlyIncomeTax)}</span></div>
+<div class="br-row"><span class="label">${L.localTax}</span><span class="val minus">-₩${fmtNum(localTax)}</span></div>
+<div class="br-row total"><span class="label">${L.totalDeduction}</span><span class="val minus">-₩${fmtNum(totalDeduction)}</span></div>
+<div class="br-row total"><span class="label">${L.netPay}</span><span class="val plus">₩${fmtNum(netMonthly)}</span></div>
+<p style="font-size:.72rem;color:var(--dim);margin-top:12px">${L.disclaimer}</p>`;
+const netPct=((netMonthly/monthly)*100).toFixed(1);
+const taxPct=((totalDeduction/monthly)*100).toFixed(1);
+document.getElementById('chartBar').innerHTML=`
+<div class="bar"><div class="bar-seg" style="width:${netPct}%;background:var(--green)"></div><div class="bar-seg" style="width:${taxPct}%;background:var(--red)"></div></div>
+<div class="legend"><div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>${L.takeHome} ${netPct}%</div><div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>${L.deductions} ${taxPct}%</div></div>`}
+
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),1500)}
+document.getElementById('amountInput').value='50,000,000';calculate();
+</script>
+</body>
+</html>
