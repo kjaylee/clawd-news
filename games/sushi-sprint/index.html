@@ -456,7 +456,7 @@ box-shadow:0 6px 20px rgba(230,57,70,.4);
   <div class="loading-sub">寿司スプリント</div>
   <div id="loading-bar-outer"><div id="loading-bar"></div></div>
   <div id="loading-text">Loading...</div>
-  <div class="loading-credits">Art &amp; Audio: 게임마당<br>(한국콘텐츠진흥원 · KOCCA)</div>
+  <div class="loading-credits">UI: GUI PRO Kit – Casual Game<br>Music: Fantasy Music Pack 2 · SFX: Cute UI SFX Pack</div>
 </div>
 
 <!-- TITLE SCREEN -->
@@ -467,7 +467,7 @@ box-shadow:0 6px 20px rgba(230,57,70,.4);
   <div class="title-text">SUSHI SPRINT</div>
   <div class="title-sub">寿司スプリント</div>
   <div class="title-stats">
-    <span>💰 <b id="title-coins">0</b></span>
+    <span><img src="assets/sprites/icon-gold.png" style="width:18px;height:18px;vertical-align:middle" alt="💰"> <b id="title-coins">0</b></span>
     <span>🌊 <b id="title-wave">0</b></span>
     <span>🏆 <b id="title-best">0</b></span>
   </div>
@@ -478,7 +478,7 @@ box-shadow:0 6px 20px rgba(230,57,70,.4);
 <!-- SHOP SCREEN -->
 <div id="shop-screen" class="screen hidden">
   <div class="shop-title">🏪 SHOP</div>
-  <div class="shop-coins">💰 <span id="shop-coins">0</span></div>
+  <div class="shop-coins"><img src="assets/sprites/icon-gold.png" style="width:20px;height:20px;vertical-align:middle" alt="💰"> <span id="shop-coins">0</span></div>
   <div class="shop-scroll" id="shop-scroll"></div>
   <button class="btn btn-sm" id="btn-shop-back" style="background:rgba(255,255,255,.1);color:#fff;margin-top:16px">← Back</button>
 </div>
@@ -588,13 +588,13 @@ const Audio = (() => {
   const preload = async (onProgress) => {
     init();
     const manifest = {
-      click: 'assets/audio/click.ogg',
-      place: 'assets/audio/place.ogg',
-      serve: 'assets/audio/serve.ogg',
-      miss: 'assets/audio/miss.ogg',
-      combo: 'assets/audio/combo.ogg',
-      select: 'assets/audio/select.ogg',
-      merge: 'assets/audio/merge.ogg',
+      click: 'assets/audio/click.mp3',
+      place: 'assets/audio/place.mp3',
+      serve: 'assets/audio/serve.mp3',
+      miss: 'assets/audio/miss.mp3',
+      combo: 'assets/audio/combo.mp3',
+      select: 'assets/audio/select.mp3',
+      merge: 'assets/audio/merge.mp3',
       bgm: 'assets/audio/bgm.mp3',
     };
     const entries = Object.entries(manifest);
@@ -1589,7 +1589,12 @@ async function preloadAllAssets() {
   });
 
   // Phase 2: Preload images (remaining 20%)
-  const images = ['assets/sprites/home.png', 'assets/ui/01_main screen-04.png'];
+  const images = ['assets/sprites/home.png', 'assets/ui/01_main screen-04.png',
+    'assets/sprites/icon-gold.png', 'assets/sprites/icon-gem.png',
+    'assets/sprites/badge-best.png', 'assets/sprites/stamp-clear.png',
+    'assets/ui/btn-yellow.png', 'assets/ui/btn-blue.png',
+    'assets/ui/popup.png', 'assets/ui/label-ribbon.png',
+    'assets/ui/card-orange.png', 'assets/ui/bar-frame.png'];
   let imgLoaded = 0;
   for (const src of images) {
     await new Promise(resolve => {

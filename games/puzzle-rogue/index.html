@@ -21,7 +21,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .screen.active{display:flex;z-index:10}
 
 /* Title Screen */
-#title-screen{justify-content:center;align-items:center;background:radial-gradient(ellipse at center,#1a1a3e 0%,#0a0a12 70%);text-align:center}
+#title-screen{justify-content:center;align-items:center;background:url('assets/ui/bg-title.png') center/cover no-repeat,radial-gradient(ellipse at center,#1a1a3e 0%,#0a0a12 70%);text-align:center}
 #title-screen h1{font-size:2em;color:var(--gold);text-shadow:0 0 20px rgba(240,192,64,.5);margin-bottom:.2em;letter-spacing:2px}
 #title-screen h2{font-size:1em;color:#888;margin-bottom:2em}
 .menu-btn{display:block;width:80%;max-width:300px;margin:.4em auto;padding:.8em;border:2px solid var(--gold);background:rgba(240,192,64,.1);color:var(--gold);font-size:1.1em;border-radius:8px;cursor:pointer;transition:all .2s}
@@ -30,7 +30,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .stats-line{color:#777;font-size:.85em;margin-top:1.5em;line-height:1.8}
 
 /* Hero Select */
-#hero-screen{padding:1em;background:var(--bg)}
+#hero-screen{padding:1em;background:url('assets/ui/bg-home.png') center/cover no-repeat,var(--bg)}
 #hero-screen h2{text-align:center;color:var(--gold);margin-bottom:.8em}
 .hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:.8em;flex:1;overflow-y:auto}
 .hero-card{border:2px solid #333;border-radius:12px;padding:1em;text-align:center;cursor:pointer;background:var(--bg2);transition:all .2s}
@@ -105,13 +105,13 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .relic-icon{font-size:1.1em}
 
 /* Reward Screen */
-#reward-screen{justify-content:center;align-items:center;background:rgba(0,0,0,.9);padding:1.5em}
+#reward-screen{justify-content:center;align-items:center;background:url('assets/ui/bg-reward.png') center/cover no-repeat,rgba(0,0,0,.9);padding:1.5em}
 #reward-screen h2{color:var(--gold);text-align:center;margin-bottom:.3em;font-size:1.5em}
 #reward-screen .sub{color:#aaa;text-align:center;margin-bottom:1.5em;font-size:.9em}
 .reward-cards{display:flex;gap:.8em;justify-content:center;margin-bottom:1.5em}
-.reward-card{width:110px;padding:1em .5em;border:2px solid #444;border-radius:12px;text-align:center;cursor:pointer;background:var(--bg2);transition:all .2s}
+.reward-card{width:110px;padding:1em .5em;border:2px solid #444;border-radius:12px;text-align:center;cursor:pointer;background:var(--bg2);transition:all .2s;border-image:url('assets/ui/card-frame.png') 30 stretch;border-image-width:15px;background-clip:padding-box}
 .reward-card:hover,.reward-card:active{border-color:var(--gold);transform:translateY(-5px)}
-.reward-card .r-icon{font-size:2em;margin-bottom:.3em}
+.reward-card .r-icon{font-size:2em;margin-bottom:.3em;min-height:48px;display:flex;align-items:center;justify-content:center}
 .reward-card .r-name{font-size:.85em;font-weight:bold;color:var(--gold)}
 .reward-card .r-desc{font-size:.7em;color:#aaa;margin-top:.3em;line-height:1.3}
 .skip-btn{display:block;margin:0 auto;padding:.6em 2em;background:none;border:1px solid #555;color:#777;border-radius:6px;cursor:pointer;font-size:.85em}
@@ -222,7 +222,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   <div class="load-sub">퍼즐 로그 던전</div>
   <div class="load-bar-wrap"><div class="load-bar-fill" id="load-bar"></div></div>
   <div class="load-text" id="load-text">Loading...</div>
-  <div class="load-credit">Art &amp; Audio: 게임마당<br>(한국콘텐츠진흥원 · KOCCA)</div>
+  <div class="load-credit">UI: GUI PRO Kit – Fantasy RPG · Icons: 2000 Fantasy Icons<br>Music: Fantasy Music Pack 2 · SFX: Cute UI Sound Effects</div>
 </div>
 
 <!-- Title -->
@@ -354,6 +354,29 @@ const GRID_SIZE = 6;
 const GEM_TYPES = ['red','blue','green','yellow','purple'];
 const GEM_EMOJI = {red:'🔴',blue:'🔵',green:'🟢',yellow:'🟡',purple:'🟣',star:'⭐',curse:'💀'};
 const GEM_LABELS = {red:'Attack',blue:'Shield',green:'Heal',yellow:'Mana',purple:'Ultimate'};
+
+const HERO_PORTRAITS = {
+  warrior: 'assets/sprites/hero-warrior.png',
+  mage: 'assets/sprites/hero-mage.png',
+  knight: 'assets/sprites/hero-ranger.png',
+  rogue: 'assets/sprites/hero-rogue.png'
+};
+const RELIC_SPRITES = {
+  fire_ring: 'assets/sprites/relic-ring.png',
+  ice_crown: 'assets/sprites/relic-helm.png',
+  life_seed: 'assets/sprites/icon-potion.png',
+  thunder_gem: 'assets/sprites/icon-gem.png',
+  void_orb: 'assets/sprites/skill-dark.png',
+  vampire_fang: 'assets/sprites/icon-dagger.png',
+  berserker_axe: 'assets/sprites/icon-axe.png',
+  mirror_shield: 'assets/sprites/icon-shield.png',
+  lucky_coin: 'assets/sprites/icon-coin.png',
+  chain_link: 'assets/sprites/relic-ring.png',
+  mana_crystal: 'assets/sprites/icon-gem.png',
+  heart_locket: 'assets/sprites/relic-ring.png',
+  poison_dagger: 'assets/sprites/icon-dagger.png',
+  gold_idol: 'assets/sprites/icon-gold.png'
+};
 
 const HEROES = {
   warrior: {name:'전사',icon:'⚔️',hp:100,atk:12,def:8,mana:8,crit:10,
@@ -488,13 +511,13 @@ const AudioManager = {
     const manifest = {
       bgm:'assets/audio/bgm.mp3',
       attack:'assets/audio/attack.ogg',
-      click:'assets/audio/click.ogg',
+      click:'assets/audio/click.mp3',
       hurt:'assets/audio/hurt.ogg',
-      levelup:'assets/audio/levelup.ogg',
-      merge:'assets/audio/merge.ogg',
-      pickup:'assets/audio/pickup.ogg',
-      select:'assets/audio/select.ogg',
-      step:'assets/audio/step.ogg',
+      levelup:'assets/audio/levelup.mp3',
+      merge:'assets/audio/merge.mp3',
+      pickup:'assets/audio/pickup.mp3',
+      select:'assets/audio/select.mp3',
+      step:'assets/audio/step.mp3',
       death:'assets/audio/death.ogg',
       shoot:'assets/audio/shoot.ogg'
     };
@@ -837,8 +860,9 @@ function renderHeroSelect() {
     const unlocked = meta.unlockedHeroes.includes(key);
     const card = document.createElement('div');
     card.className = 'hero-card' + (key === selectedHero ? ' selected' : '') + (!unlocked ? ' locked' : '');
+    const portrait = HERO_PORTRAITS[key];
     card.innerHTML = `
-      <div class="hero-icon">${h.icon}</div>
+      <div class="hero-icon">${portrait ? `<img src="${portrait}" style="width:80px;height:80px;object-fit:contain;image-rendering:auto" alt="${h.name}">` : h.icon}</div>
       <div class="hero-name">${h.name}</div>
       <div class="hero-stats">
         HP: ${h.hp} | ATK: ${h.atk}<br>
@@ -1661,7 +1685,10 @@ function updateBattleUI() {
 
   // Relics
   const relicsEl = document.getElementById('b-relics');
-  relicsEl.innerHTML = run.relics.map(r => `<span class="relic-icon" title="${r.name}">${r.icon}</span>`).join('');
+  relicsEl.innerHTML = run.relics.map(r => {
+    const sp = RELIC_SPRITES[r.id];
+    return sp ? `<span class="relic-icon" title="${r.name}"><img src="${sp}" style="width:24px;height:24px;object-fit:contain" alt="${r.name}"></span>` : `<span class="relic-icon" title="${r.name}">${r.icon}</span>`;
+  }).join('');
 
   // Vignette
   updateVignette();
@@ -1734,8 +1761,9 @@ function showRewardScreen() {
   picks.forEach(relic => {
     const card = document.createElement('div');
     card.className = 'reward-card';
+    const relicSp = RELIC_SPRITES[relic.id];
     card.innerHTML = `
-      <div class="r-icon">${relic.icon}</div>
+      <div class="r-icon">${relicSp ? `<img src="${relicSp}" style="width:48px;height:48px;object-fit:contain" alt="${relic.name}">` : relic.icon}</div>
       <div class="r-name">${relic.name}</div>
       <div class="r-desc">${relic.desc}</div>
     `;
@@ -2039,9 +2067,28 @@ async function init() {
   if (!meta.upgrades) meta.upgrades = {};
   if (!meta.unlockedHeroes) meta.unlockedHeroes = ['warrior'];
 
-  // Phase 2: Preload audio
-  if (loadText) loadText.textContent = 'Loading audio...';
+  // Phase 2a: Preload images
+  if (loadText) loadText.textContent = 'Loading images...';
+  if (loadBar) loadBar.style.width = '15%';
+  const imagesToPreload = [
+    ...Object.values(HERO_PORTRAITS),
+    ...Object.values(RELIC_SPRITES),
+    'assets/sprites/chest-closed.png', 'assets/sprites/chest-open.png',
+    'assets/sprites/icon-sword.png', 'assets/sprites/icon-bow.png',
+    'assets/sprites/icon-staff.png', 'assets/sprites/icon-dagger.png',
+    'assets/sprites/skill-attack.png', 'assets/sprites/skill-magic.png',
+    'assets/sprites/skill-heal.png', 'assets/sprites/skill-arrow.png',
+    'assets/ui/bg-title.png', 'assets/ui/bg-reward.png',
+    'assets/ui/card-frame.png', 'assets/ui/popup-bg.png'
+  ];
+  const uniqueImages = [...new Set(imagesToPreload)];
+  await Promise.allSettled(uniqueImages.map(src => new Promise((resolve) => {
+    const img = new Image(); img.onload = resolve; img.onerror = resolve; img.src = src;
+  })));
   if (loadBar) loadBar.style.width = '20%';
+
+  // Phase 2b: Preload audio
+  if (loadText) loadText.textContent = 'Loading audio...';
   await AudioManager.preload((loaded, total) => {
     const pct = 20 + Math.round((loaded / total) * 70);
     if (loadBar) loadBar.style.width = pct + '%';
