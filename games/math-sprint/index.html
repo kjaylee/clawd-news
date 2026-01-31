@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>Math Sprint — East Sea Games</title>
+<meta name="description" content="Math Sprint - Solve math problems as fast as you can! 60 seconds, combo streaks, three difficulty levels.">
+<link rel="canonical" href="https://eastsea.monster/games/math-sprint/">
+<meta property="og:title" content="🧮 Math Sprint — East Sea Games">
+<meta property="og:description" content="수학 스프린트! 60초 안에 최대한 많은 문제를 풀어보세요. 콤보 보너스로 시간 추가!">
+<meta property="og:image" content="https://eastsea.monster/games/math-sprint/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/math-sprint/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://eastsea.monster/games/math-sprint/og.png">
+<link rel="manifest" href="/games/manifest.json">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"VideoGame","name":"Math Sprint",
+  "url":"https://eastsea.monster/games/math-sprint/",
+  "description":"Solve math problems as fast as you can! 60-second sprint with combo bonuses and three difficulty levels.",
+  "image":"https://eastsea.monster/games/math-sprint/og.png",
+  "gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+  "genre":"Education","operatingSystem":"Any","inLanguage":["ko","en"],"playMode":"SinglePlayer",
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},
+  "author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}
+}
+</script>
+
+<!-- Telegram Mini App SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!-- Inline TG SDK Wrapper -->
+<script>
+(function(){
+'use strict';
+const TG={
+  app:window.Telegram?.WebApp,user:null,isReady:false,_backHandlers:[],
+  init(){
+    if(!this.app){this.isReady=true;this._injectStandaloneCSS();return false}
+    this.app.ready();this.app.expand();
+    this.user=this.app.initDataUnsafe?.user||null;
+    this._applyTheme();this._setupSafeArea();this._setupBackButton();
+    this.app.onEvent('viewportChanged',({isStateStable})=>{if(isStateStable)this._updateViewport()});
+    this.app.onEvent('themeChanged',()=>this._applyTheme());
+    this.isReady=true;return true;
+  },
+  _applyTheme(){
+    const tp=this.app?.themeParams;if(!tp)return;
+    const r=document.documentElement.style;
+    const m={'--tg-bg':tp.bg_color,'--tg-text':tp.text_color,'--tg-hint':tp.hint_color,
+      '--tg-link':tp.link_color,'--tg-button':tp.button_color,'--tg-button-text':tp.button_text_color,
+      '--tg-secondary-bg':tp.secondary_bg_color,'--tg-header-bg':tp.header_bg_color};
+    for(const[p,v]of Object.entries(m)){if(v)r.setProperty(p,v)}
+  },
+  _setupSafeArea(){
+    this._applySafeAreaValues();
+    if(this.app?.onEvent){
+      this.app.onEvent('safeAreaChanged',()=>this._applySafeAreaValues());
+      this.app.onEvent('contentSafeAreaChanged',()=>this._applySafeAreaValues());
+    }
+    this._updateViewport();
+  },
+  _applySafeAreaValues(){
+    const r=document.documentElement.style;
+    const sa=this.app?.safeAreaInset||{top:0,bottom:0,left:0,right:0};
+    const csa=this.app?.contentSafeAreaInset||{top:0,bottom:0,left:0,right:0};
+    const tt=sa.top+csa.top,tb=sa.bottom+csa.bottom;
+    r.setProperty('--safe-top',tt+'px');r.setProperty('--safe-bottom',tb+'px');
+    r.setProperty('--safe-left',sa.left+'px');r.setProperty('--safe-right',sa.right+'px');
+    document.body.style.paddingTop=tt+'px';document.body.style.paddingBottom=tb+'px';
+    document.body.style.boxSizing='border-box';
+  },
+  _updateViewport(){
+    const vh=this.app?.viewportStableHeight||window.innerHeight;
+    document.documentElement.style.setProperty('--tg-viewport-height',vh+'px');
+  },
+  _setupBackButton(){
+    if(!this.app?.BackButton)return;
+    this.app.BackButton.show();
+    this.app.BackButton.onClick(()=>{
+      for(let i=this._backHandlers.length-1;i>=0;i--){if(this._backHandlers[i]())return}
+      this.app.close();
+    });
+  },
+  _injectStandaloneCSS(){
+    const r=document.documentElement.style;
+    r.setProperty('--tg-bg','#1a1a2e');r.setProperty('--tg-text','#ffffff');
+    r.setProperty('--tg-hint','#999999');r.setProperty('--tg-link','#4ea8ff');
+    r.setProperty('--tg-button','#3390ec');r.setProperty('--tg-button-text','#ffffff');
+    r.setProperty('--tg-secondary-bg','#16213e');
+    r.setProperty('--tg-viewport-height',window.innerHeight+'px');
+    r.setProperty('--safe-top','0px');r.setProperty('--safe-bottom','0px');
+  },
+  getUserId(){return this.user?.id||'anonymous'},
+  getUserName(){return this.user?.first_name||'Player'},
+  getLang(){return this.user?.language_code||'en'},
+  isTelegram(){return!!this.app},
+  haptic(type='impact',style='medium'){
+    try{
+      if(type==='impact')this.app?.HapticFeedback?.impactOccurred(style);
+      else if(type==='notification')this.app?.HapticFeedback?.notificationOccurred(style);
+      else if(type==='selection')this.app?.HapticFeedback?.selectionChanged();
+    }catch{}
+  },
+  share(text,url){
+    if(this.app){
+      const u=url||window.location.href;
+      this.app.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(u)}&text=${encodeURIComponent(text)}`);
+    }
+  },
+  onBack(h){this._backHandlers.push(h)},
+  save(k,v){try{localStorage.setItem(`tg_${this.getUserId()}_${k}`,JSON.stringify(v))}catch{}},
+  load(k,fb=null){try{const r=localStorage.getItem(`tg_${this.getUserId()}_${k}`);return r?JSON.parse(r):fb}catch{return fb}}
+};
+const GameScore={
+  _key(id){return`esg_${id}_${TG.getUserId()}`},
+  getBest(id){return parseInt(localStorage.getItem(this._key(id)+'_best'))||0},
+  setBest(id,s){const k=this._key(id)+'_best';const old=parseInt(localStorage.getItem(k))||0;
+    if(s>old){localStorage.setItem(k,s);return true}return false},
+  setLast(id,s){localStorage.setItem(this._key(id)+'_last',s)}
+};
+window.TG=TG;window.GameScore=GameScore;
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>TG.init());
+else TG.init();
+})();
+</script>
+
+<style>
+:root {
+  --tg-bg: #1a1a2e;
+  --tg-text: #ffffff;
+  --tg-hint: #999999;
+  --tg-button: #3390ec;
+  --tg-button-text: #ffffff;
+  --tg-secondary-bg: #16213e;
+  --safe-top: 0px;
+  --safe-bottom: 0px;
+  --accent: #6c63ff;
+  --correct: #27ae60;
+  --wrong: #e74c3c;
+  --combo: #f39c12;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans KR', sans-serif;
+  background: var(--tg-bg);
+  color: var(--tg-text);
+  min-height: 100vh;
+  min-height: calc(var(--tg-viewport-height, 100vh));
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+#game {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+  min-height: 100vh;
+  min-height: calc(var(--tg-viewport-height, 100vh));
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+/* ═══ HUD ═══ */
+.hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  gap: 8px;
+}
+
+.hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.hud-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--tg-hint);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+
+.hud-value {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+#hud-timer { color: #4ecdc4; }
+#hud-score { color: var(--accent); }
+#hud-combo { color: var(--combo); }
+#hud-best { color: #ffd700; }
+
+.timer-warning { color: #e74c3c !important; animation: pulse-red 0.5s ease infinite; }
+
+@keyframes pulse-red {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ═══ Problem Area ═══ */
+.problem-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  position: relative;
+}
+
+.problem-card {
+  background: var(--tg-secondary-bg);
+  border-radius: 24px;
+  padding: 28px 20px 24px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  border: 2px solid rgba(255,255,255,0.06);
+  transition: transform 0.15s, border-color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.problem-question {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+  font-variant-numeric: tabular-nums;
+  min-height: 62px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.problem-hint {
+  font-size: 13px;
+  color: var(--tg-hint);
+  margin-bottom: 20px;
+}
+
+/* ═══ Choices ═══ */
+.choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.choice-btn {
+  background: rgba(108,99,255,0.12);
+  border: 2px solid rgba(108,99,255,0.25);
+  border-radius: 16px;
+  color: var(--tg-text);
+  font-size: 28px;
+  font-weight: 700;
+  padding: 18px 8px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s, border-color 0.15s;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.choice-btn:active { transform: scale(0.95); }
+
+.choice-btn.correct {
+  background: rgba(39,174,96,0.35) !important;
+  border-color: var(--correct) !important;
+  animation: pop-correct 0.3s ease;
+}
+
+.choice-btn.wrong {
+  background: rgba(231,76,60,0.35) !important;
+  border-color: var(--wrong) !important;
+  animation: shake 0.4s ease;
+}
+
+@keyframes pop-correct {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(4px); }
+}
+
+/* Flash overlay */
+.flash-correct {
+  animation: flash-green 0.35s ease;
+}
+
+.flash-wrong {
+  animation: flash-red 0.35s ease;
+}
+
+@keyframes flash-green {
+  0% { box-shadow: inset 0 0 0 0 rgba(39,174,96,0); }
+  30% { box-shadow: inset 0 0 60px 20px rgba(39,174,96,0.25); }
+  100% { box-shadow: inset 0 0 0 0 rgba(39,174,96,0); }
+}
+
+@keyframes flash-red {
+  0% { box-shadow: inset 0 0 0 0 rgba(231,76,60,0); }
+  30% { box-shadow: inset 0 0 60px 20px rgba(231,76,60,0.25); }
+  100% { box-shadow: inset 0 0 0 0 rgba(231,76,60,0); }
+}
+
+/* ═══ Combo / Bonus Popup ═══ */
+.combo-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 20px;
+  font-weight: 800;
+  pointer-events: none;
+  z-index: 10;
+  animation: float-up 0.9s ease forwards;
+  white-space: nowrap;
+}
+
+.combo-popup.bonus { color: #4ecdc4; }
+.combo-popup.penalty { color: var(--wrong); }
+.combo-popup.streak { color: var(--combo); font-size: 24px; }
+
+@keyframes float-up {
+  0% { opacity: 1; transform: translate(-50%,-50%) translateY(0) scale(1); }
+  100% { opacity: 0; transform: translate(-50%,-50%) translateY(-60px) scale(1.2); }
+}
+
+/* ═══ Difficulty Bar ═══ */
+.diff-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.diff-btn {
+  flex: 1;
+  padding: 10px 6px;
+  border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: var(--tg-hint);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.diff-btn.active {
+  border-color: var(--accent);
+  background: rgba(108,99,255,0.2);
+  color: #fff;
+}
+
+.diff-btn:active { transform: scale(0.96); }
+
+/* ═══ Overlays ═══ */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 24px;
+  z-index: 100;
+  transition: opacity 0.3s;
+}
+
+.overlay.hidden { opacity: 0; pointer-events: none; }
+
+.menu-icon { font-size: 64px; margin-bottom: 8px; }
+.menu-title { font-size: 28px; font-weight: 800; margin-bottom: 4px; }
+.menu-subtitle { font-size: 14px; color: var(--tg-hint); margin-bottom: 24px; text-align: center; }
+
+.btn {
+  padding: 16px 48px;
+  border: none;
+  border-radius: 16px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, opacity 0.15s;
+  min-height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  max-width: 280px;
+}
+
+.btn:active { transform: scale(0.96); opacity: 0.85; }
+
+.btn-play {
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  color: #fff;
+  box-shadow: 0 6px 24px rgba(108,99,255,0.35);
+  margin-bottom: 10px;
+}
+
+.btn-secondary {
+  background: rgba(255,255,255,0.08);
+  color: var(--tg-text);
+  border: 1px solid rgba(255,255,255,0.12);
+  margin-bottom: 8px;
+}
+
+.btn-share {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: #fff;
+}
+
+.menu-best {
+  color: #ffd700;
+  font-size: 15px;
+  font-weight: 600;
+  margin-top: 16px;
+}
+
+/* ═══ Game Over specific ═══ */
+.go-score-big {
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--accent);
+  margin: 12px 0 4px;
+}
+
+.go-label { font-size: 13px; color: var(--tg-hint); text-transform: uppercase; letter-spacing: 2px; }
+
+.go-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin: 20px 0;
+  width: 100%;
+  max-width: 300px;
+}
+
+.go-stat {
+  text-align: center;
+}
+
+.go-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.go-stat-label {
+  font-size: 11px;
+  color: var(--tg-hint);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.go-new-best {
+  color: #ffd700;
+  font-size: 16px;
+  font-weight: 700;
+  animation: pulse-gold 1s ease infinite;
+}
+
+@keyframes pulse-gold {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.go-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 280px;
+  gap: 0;
+}
+
+/* ═══ Rules box ═══ */
+.rules-box {
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 14px 16px;
+  margin-top: 20px;
+  max-width: 300px;
+  width: 100%;
+}
+
+.rules-box .rule {
+  font-size: 13px;
+  color: var(--tg-hint);
+  padding: 3px 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.rules-box .rule-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+/* ═══ Progress bar under problem ═══ */
+.timer-bar-wrap {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 12px;
+}
+
+.timer-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #4ecdc4, var(--accent));
+  border-radius: 2px;
+  transition: width 0.3s linear;
+  width: 100%;
+}
+
+.timer-bar.low { background: linear-gradient(90deg, var(--wrong), #ff8a5c); }
+</style>
+</head>
+<body>
+
+<div id="game">
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hud-item">
+      <span class="hud-label" data-i18n="time">TIME</span>
+      <span class="hud-value" id="hud-timer">60</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label" data-i18n="score">SCORE</span>
+      <span class="hud-value" id="hud-score">0</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label" data-i18n="combo">COMBO</span>
+      <span class="hud-value" id="hud-combo">0</span>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label" data-i18n="best">BEST</span>
+      <span class="hud-value" id="hud-best">0</span>
+    </div>
+  </div>
+
+  <!-- Problem Area -->
+  <div class="problem-area">
+    <div class="problem-card" id="problem-card">
+      <div class="problem-question" id="problem-q">—</div>
+      <div class="problem-hint" id="problem-hint"></div>
+      <div class="choices" id="choices">
+        <button class="choice-btn" data-idx="0">—</button>
+        <button class="choice-btn" data-idx="1">—</button>
+        <button class="choice-btn" data-idx="2">—</button>
+        <button class="choice-btn" data-idx="3">—</button>
+      </div>
+      <div class="timer-bar-wrap">
+        <div class="timer-bar" id="timer-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu Overlay -->
+  <div class="overlay" id="menu-overlay">
+    <div class="menu-icon">🧮</div>
+    <div class="menu-title" data-i18n="title">Math Sprint</div>
+    <div class="menu-subtitle" data-i18n="subtitle">Solve as many as you can in 60 seconds!</div>
+
+    <div class="diff-bar" id="diff-bar">
+      <button class="diff-btn" data-diff="easy" data-i18n="easy">Easy +−</button>
+      <button class="diff-btn active" data-diff="normal" data-i18n="normal">Normal +−×</button>
+      <button class="diff-btn" data-diff="hard" data-i18n="hard">Hard +−×÷</button>
+    </div>
+
+    <button class="btn btn-play" id="btn-start" data-i18n="startBtn">▶ START</button>
+    <div class="menu-best">🏆 <span data-i18n="bestLabel">Best</span>: <span id="menu-best">0</span></div>
+
+    <div class="rules-box">
+      <div class="rule"><span class="rule-icon">✅</span> <span data-i18n="rule1">Correct: +10 pts</span></div>
+      <div class="rule"><span class="rule-icon">🔥</span> <span data-i18n="rule2">Combo: +1s per 5 streak</span></div>
+      <div class="rule"><span class="rule-icon">❌</span> <span data-i18n="rule3">Wrong: −2s penalty</span></div>
+      <div class="rule"><span class="rule-icon">⏱️</span> <span data-i18n="rule4">60 seconds to solve!</span></div>
+    </div>
+  </div>
+
+  <!-- Game Over Overlay -->
+  <div class="overlay hidden" id="go-overlay">
+    <div class="menu-icon">🏁</div>
+    <div class="menu-title" data-i18n="gameOver">Game Over</div>
+    <div class="go-score-big" id="go-score">0</div>
+    <div class="go-label" data-i18n="finalScore">FINAL SCORE</div>
+    <div class="go-new-best hidden" id="go-new-best" data-i18n="newBest">🏆 New Best!</div>
+
+    <div class="go-stats">
+      <div class="go-stat">
+        <div class="go-stat-value" id="go-correct">0</div>
+        <div class="go-stat-label" data-i18n="correct">Correct</div>
+      </div>
+      <div class="go-stat">
+        <div class="go-stat-value" id="go-wrong">0</div>
+        <div class="go-stat-label" data-i18n="wrong">Wrong</div>
+      </div>
+      <div class="go-stat">
+        <div class="go-stat-value" id="go-maxcombo">0</div>
+        <div class="go-stat-label" data-i18n="maxCombo">Max Combo</div>
+      </div>
+    </div>
+
+    <div class="go-buttons">
+      <button class="btn btn-play" id="btn-retry" data-i18n="replay">🔄 Replay</button>
+      <button class="btn btn-share" id="btn-share" data-i18n="share">📢 Share</button>
+      <button class="btn btn-secondary" id="btn-home" data-i18n="home">🏠 Home</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cross-promo -->
+<script src="/games/cross-promo.js"></script>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════ i18n ═══════════════ */
+const STRINGS = {
+  title:      { en:'Math Sprint',    ko:'수학 스프린트' },
+  subtitle:   { en:'Solve as many as you can in 60 seconds!', ko:'60초 안에 최대한 많이 풀어보세요!' },
+  time:       { en:'TIME',  ko:'시간' },
+  score:      { en:'SCORE', ko:'점수' },
+  combo:      { en:'COMBO', ko:'콤보' },
+  best:       { en:'BEST',  ko:'최고' },
+  easy:       { en:'Easy +−',     ko:'쉬움 +−' },
+  normal:     { en:'Normal +−×',  ko:'보통 +−×' },
+  hard:       { en:'Hard +−×÷',   ko:'어려움 +−×÷' },
+  startBtn:   { en:'▶ START',  ko:'▶ 시작' },
+  bestLabel:  { en:'Best',     ko:'최고기록' },
+  rule1:      { en:'Correct: +10 pts',       ko:'정답: +10점' },
+  rule2:      { en:'Combo: +1s per 5 streak', ko:'5콤보마다 +1초 보너스' },
+  rule3:      { en:'Wrong: −2s penalty',      ko:'오답: −2초 패널티' },
+  rule4:      { en:'60 seconds to solve!',    ko:'60초 안에 풀어보세요!' },
+  gameOver:   { en:'Game Over',     ko:'게임 오버' },
+  finalScore: { en:'FINAL SCORE',   ko:'최종 점수' },
+  newBest:    { en:'🏆 New Best!',  ko:'🏆 새 기록!' },
+  correct:    { en:'Correct',   ko:'정답' },
+  wrong:      { en:'Wrong',     ko:'오답' },
+  maxCombo:   { en:'Max Combo', ko:'최고 콤보' },
+  replay:     { en:'🔄 Replay', ko:'🔄 다시하기' },
+  share:      { en:'📢 Share',  ko:'📢 공유' },
+  home:       { en:'🏠 Home',   ko:'🏠 홈' },
+  bonusTime:  { en:'+{s}s TIME!',  ko:'+{s}초!' },
+  penalty:    { en:'−2s',          ko:'−2초' },
+  comboN:     { en:'{n} COMBO!',   ko:'{n} 콤보!' },
+  shareMsg:   { en:'🧮 I scored {s} in Math Sprint ({d})! Can you beat me?',
+                ko:'🧮 수학 스프린트({d})에서 {s}점! 도전해봐!' },
+  diffEasy:   { en:'Easy', ko:'쉬움' },
+  diffNormal: { en:'Normal', ko:'보통' },
+  diffHard:   { en:'Hard', ko:'어려움' },
+};
+
+let lang = 'en';
+try {
+  const tgLang = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code;
+  if (tgLang && tgLang.startsWith('ko')) lang = 'ko';
+  else if (navigator.language?.startsWith('ko')) lang = 'ko';
+} catch {}
+
+function T(key, vars) {
+  let s = STRINGS[key]?.[lang] || STRINGS[key]?.en || key;
+  if (vars) { for (const [k,v] of Object.entries(vars)) s = s.replace(`{${k}}`, v); }
+  return s;
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (STRINGS[key]) el.textContent = T(key);
+  });
+}
+
+/* ═══════════════ Audio ═══════════════ */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new AudioCtx();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freq, dur, type='sine', vol=0.15) {
+  try {
+    ensureAudio();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + dur);
+  } catch {}
+}
+
+function sfxCorrect() { playTone(523, 0.12); setTimeout(() => playTone(659, 0.12), 80); setTimeout(() => playTone(784, 0.15), 160); }
+function sfxWrong() { playTone(200, 0.25, 'sawtooth', 0.1); }
+function sfxCombo() { playTone(880, 0.08); setTimeout(() => playTone(1047, 0.08), 60); setTimeout(() => playTone(1319, 0.15), 120); }
+function sfxStart() { playTone(440, 0.1); setTimeout(() => playTone(554, 0.1), 80); setTimeout(() => playTone(659, 0.15), 160); }
+function sfxEnd() { playTone(440, 0.2, 'triangle'); setTimeout(() => playTone(330, 0.2, 'triangle'), 150); setTimeout(() => playTone(262, 0.4, 'triangle'), 300); }
+function sfxTick() { playTone(1200, 0.04, 'sine', 0.05); }
+
+/* ═══════════════ DOM ═══════════════ */
+const $timer    = document.getElementById('hud-timer');
+const $score    = document.getElementById('hud-score');
+const $combo    = document.getElementById('hud-combo');
+const $best     = document.getElementById('hud-best');
+const $question = document.getElementById('problem-q');
+const $hint     = document.getElementById('problem-hint');
+const $card     = document.getElementById('problem-card');
+const $choices  = document.getElementById('choices');
+const $timerBar = document.getElementById('timer-bar');
+const $menuOv   = document.getElementById('menu-overlay');
+const $goOv     = document.getElementById('go-overlay');
+const $menuBest = document.getElementById('menu-best');
+const $goScore  = document.getElementById('go-score');
+const $goNewBest= document.getElementById('go-new-best');
+const $goCorrect= document.getElementById('go-correct');
+const $goWrong  = document.getElementById('go-wrong');
+const $goMaxC   = document.getElementById('go-maxcombo');
+const btns = $choices.querySelectorAll('.choice-btn');
+
+/* ═══════════════ State ═══════════════ */
+const GAME_ID = 'math-sprint';
+const TOTAL_TIME = 60;
+
+let difficulty = 'normal'; // easy | normal | hard
+let timeLeft = TOTAL_TIME;
+let score = 0;
+let combo = 0;
+let maxCombo = 0;
+let correctCount = 0;
+let wrongCount = 0;
+let currentAnswer = 0;
+let answerIdx = -1;
+let isPlaying = false;
+let timerInterval = null;
+let canAnswer = true;
+
+/* ═══════════════ Problem Generation ═══════════════ */
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function genProblem() {
+  const ops = difficulty === 'easy' ? ['+','-'] : difficulty === 'normal' ? ['+','-','×'] : ['+','-','×','÷'];
+  const op = ops[randInt(0, ops.length - 1)];
+
+  let a, b, answer;
+
+  switch (op) {
+    case '+':
+      a = randInt(1, difficulty === 'easy' ? 50 : 99);
+      b = randInt(1, difficulty === 'easy' ? 50 : 99);
+      answer = a + b;
+      break;
+    case '-':
+      a = randInt(1, difficulty === 'easy' ? 50 : 99);
+      b = randInt(1, a); // ensure non-negative
+      answer = a - b;
+      break;
+    case '×':
+      a = randInt(2, 12);
+      b = randInt(2, difficulty === 'normal' ? 12 : 15);
+      answer = a * b;
+      break;
+    case '÷':
+      b = randInt(2, 12);
+      answer = randInt(1, 12);
+      a = b * answer; // ensure clean division
+      break;
+  }
+
+  return { text: `${a} ${op} ${b}`, answer };
+}
+
+function genChoices(answer) {
+  const choices = new Set([answer]);
+  const range = Math.max(10, Math.abs(answer));
+  
+  while (choices.size < 4) {
+    // Generate plausible wrong answers
+    let wrong;
+    const r = Math.random();
+    if (r < 0.4) {
+      // Close to answer
+      wrong = answer + randInt(-5, 5);
+    } else if (r < 0.7) {
+      // Off by a common mistake amount
+      wrong = answer + (Math.random() < 0.5 ? 1 : -1) * randInt(1, Math.ceil(range * 0.3));
+    } else {
+      // Random in range
+      wrong = randInt(Math.max(0, answer - range), answer + range);
+    }
+    if (wrong !== answer && wrong >= 0) choices.add(wrong);
+  }
+
+  const arr = Array.from(choices);
+  // Shuffle
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = randInt(0, i);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/* ═══════════════ Game Logic ═══════════════ */
+function showProblem() {
+  if (!isPlaying) return;
+  canAnswer = true;
+
+  const problem = genProblem();
+  currentAnswer = problem.answer;
+  $question.textContent = problem.text + ' = ?';
+
+  const choices = genChoices(currentAnswer);
+  answerIdx = choices.indexOf(currentAnswer);
+
+  btns.forEach((btn, i) => {
+    btn.textContent = choices[i];
+    btn.className = 'choice-btn';
+    btn.dataset.val = choices[i];
+  });
+}
+
+function handleAnswer(idx) {
+  if (!isPlaying || !canAnswer) return;
+  canAnswer = false;
+
+  const btn = btns[idx];
+  const val = parseInt(btn.dataset.val);
+  const isCorrect = (val === currentAnswer);
+
+  if (isCorrect) {
+    // Correct!
+    btn.classList.add('correct');
+    $card.classList.remove('flash-wrong');
+    $card.classList.remove('flash-correct');
+    void $card.offsetWidth; // reflow
+    $card.classList.add('flash-correct');
+
+    score += 10;
+    combo++;
+    correctCount++;
+    if (combo > maxCombo) maxCombo = combo;
+
+    sfxCorrect();
+    TG.haptic('impact', 'light');
+
+    // Combo bonus: +1s every 5 streak
+    if (combo > 0 && combo % 5 === 0) {
+      const bonus = 1;
+      timeLeft += bonus;
+      sfxCombo();
+      showPopup(T('bonusTime', { s: bonus }), 'bonus');
+      showPopup(T('comboN', { n: combo }), 'streak');
+    }
+
+    updateHUD();
+    setTimeout(showProblem, 280);
+
+  } else {
+    // Wrong!
+    btn.classList.add('wrong');
+    // Also highlight the correct answer
+    btns.forEach(b => { if (parseInt(b.dataset.val) === currentAnswer) b.classList.add('correct'); });
+
+    $card.classList.remove('flash-correct');
+    $card.classList.remove('flash-wrong');
+    void $card.offsetWidth;
+    $card.classList.add('flash-wrong');
+
+    timeLeft = Math.max(0, timeLeft - 2);
+    combo = 0;
+    wrongCount++;
+
+    sfxWrong();
+    TG.haptic('notification', 'error');
+    showPopup(T('penalty'), 'penalty');
+
+    updateHUD();
+    setTimeout(showProblem, 600);
+  }
+}
+
+function showPopup(text, cls) {
+  const el = document.createElement('div');
+  el.className = 'combo-popup ' + cls;
+  el.textContent = text;
+  $card.appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+function updateHUD() {
+  $score.textContent = score;
+  $combo.textContent = combo;
+  $timer.textContent = Math.ceil(timeLeft);
+
+  // Timer visual warning
+  if (timeLeft <= 10) {
+    $timer.classList.add('timer-warning');
+    $timerBar.classList.add('low');
+  } else {
+    $timer.classList.remove('timer-warning');
+    $timerBar.classList.remove('low');
+  }
+
+  $timerBar.style.width = Math.max(0, (timeLeft / TOTAL_TIME) * 100) + '%';
+}
+
+function startTimer() {
+  let lastTime = performance.now();
+  let lastTickSec = Math.ceil(timeLeft);
+
+  timerInterval = setInterval(() => {
+    const now = performance.now();
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
+
+    timeLeft -= dt;
+
+    // Tick sound when <= 5s
+    const currentSec = Math.ceil(timeLeft);
+    if (currentSec !== lastTickSec && currentSec <= 5 && currentSec > 0) {
+      sfxTick();
+    }
+    lastTickSec = currentSec;
+
+    updateHUD();
+
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      updateHUD();
+      endGame();
+    }
+  }, 50);
+}
+
+function startGame() {
+  ensureAudio();
+  sfxStart();
+
+  score = 0;
+  combo = 0;
+  maxCombo = 0;
+  correctCount = 0;
+  wrongCount = 0;
+  timeLeft = TOTAL_TIME;
+  isPlaying = true;
+  canAnswer = true;
+
+  $best.textContent = GameScore.getBest(GAME_ID);
+  updateHUD();
+
+  $menuOv.classList.add('hidden');
+  $goOv.classList.add('hidden');
+
+  showProblem();
+  startTimer();
+}
+
+function endGame() {
+  isPlaying = false;
+  clearInterval(timerInterval);
+  sfxEnd();
+  TG.haptic('notification', 'warning');
+
+  const isNew = GameScore.setBest(GAME_ID, score);
+  GameScore.setLast(GAME_ID, score);
+  const best = GameScore.getBest(GAME_ID);
+
+  $goScore.textContent = score;
+  $goCorrect.textContent = correctCount;
+  $goWrong.textContent = wrongCount;
+  $goMaxC.textContent = maxCombo;
+  $goNewBest.classList.toggle('hidden', !isNew);
+
+  $goOv.classList.remove('hidden');
+  $best.textContent = best;
+
+  if (isNew) TG.haptic('notification', 'success');
+}
+
+function goHome() {
+  $goOv.classList.add('hidden');
+  $menuOv.classList.remove('hidden');
+  $menuBest.textContent = GameScore.getBest(GAME_ID);
+}
+
+function shareScore() {
+  const diffName = T('diff' + difficulty.charAt(0).toUpperCase() + difficulty.slice(1));
+  const msg = T('shareMsg', { s: score, d: diffName });
+  TG.share(msg, 'https://t.me/eastsea_games_bot?startapp=game_math-sprint');
+}
+
+/* ═══════════════ Event Listeners ═══════════════ */
+
+// Choice buttons
+$choices.addEventListener('click', e => {
+  const btn = e.target.closest('.choice-btn');
+  if (!btn) return;
+  handleAnswer(parseInt(btn.dataset.idx));
+});
+
+// Touch support: prevent double-tap zoom
+$choices.addEventListener('touchend', e => {
+  e.preventDefault();
+  const btn = e.target.closest('.choice-btn');
+  if (!btn) return;
+  handleAnswer(parseInt(btn.dataset.idx));
+}, { passive: false });
+
+// Difficulty selection
+document.getElementById('diff-bar').addEventListener('click', e => {
+  const btn = e.target.closest('.diff-btn');
+  if (!btn) return;
+  TG.haptic('selection');
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  difficulty = btn.dataset.diff;
+});
+
+// Start / Retry / Home / Share
+document.getElementById('btn-start').addEventListener('click', startGame);
+document.getElementById('btn-retry').addEventListener('click', startGame);
+document.getElementById('btn-home').addEventListener('click', goHome);
+document.getElementById('btn-share').addEventListener('click', shareScore);
+
+// Keyboard support (1-4 keys)
+document.addEventListener('keydown', e => {
+  if (!isPlaying) {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (!$menuOv.classList.contains('hidden')) startGame();
+      else if (!$goOv.classList.contains('hidden')) startGame();
+    }
+    return;
+  }
+  const map = { '1': 0, '2': 1, '3': 2, '4': 3 };
+  if (map[e.key] !== undefined) {
+    e.preventDefault();
+    handleAnswer(map[e.key]);
+  }
+});
+
+// TG back button
+TG.onBack(() => {
+  if (!$goOv.classList.contains('hidden')) {
+    goHome();
+    return true;
+  }
+  return false;
+});
+
+/* ═══════════════ Init ═══════════════ */
+applyI18n();
+$menuBest.textContent = GameScore.getBest(GAME_ID);
+$best.textContent = GameScore.getBest(GAME_ID);
+
+})();
+</script>
+</body>
+</html>
