@@ -27,10 +27,10 @@
         Premium upgrade: Full progression, sound, effects, leaderboard, daily challenge
         
         에셋 출처 (Asset Credits):
-        - 모든 그래픽: Canvas API 프로시저럴 생성 (CORS-free)
-        - 영감: OpenGameArt.org CC0, Kenney.nl CC0
-        - 사운드: Web Audio API 프로시저럴 생성
-        - 라이선스: MIT
+        - Art/UI: 게임마당 (한국콘텐츠진흥원 · KOCCA)
+        - 사운드/BGM: 게임마당 (한국콘텐츠진흥원 · KOCCA)
+        - 캐릭터/적: Canvas API 프로시저럴 생성
+        - 라이선스: MIT (코드), 게임마당 이용약관 (에셋)
         ============================================
     -->
     <style>
@@ -531,6 +531,21 @@
             from { transform: translateY(0); }
             to { transform: translateY(4px); }
         }
+
+        /* ============ Loading Screen ============ */
+        #loadingScreen { position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center; background:linear-gradient(180deg,#0f0f1a 0%,#1a1a3a 50%,#0f0f1a 100%); transition:opacity .6s ease; }
+        #loadingScreen.fade-out { opacity:0; pointer-events:none; }
+        .loading-content { text-align:center; padding:30px; }
+        .loading-icon { font-size:4em; animation:titlePulse 2s ease-in-out infinite; }
+        .loading-title { font-size:1.8em; font-weight:900; color:var(--neon-green); margin:12px 0; text-shadow:0 0 20px var(--neon-green),0 0 40px var(--neon-green); }
+        .loading-bar { width:220px; height:8px; background:rgba(255,255,255,.1); border-radius:4px; overflow:hidden; margin:16px auto; }
+        .loading-fill { width:0%; height:100%; background:linear-gradient(90deg,var(--neon-green),var(--neon-blue),var(--neon-purple)); border-radius:4px; transition:width .3s ease; }
+        .loading-text { font-size:.9em; color:var(--neon-green); font-weight:600; margin-top:4px; }
+        .loading-credit { margin-top:24px; font-size:.55em; color:rgba(0,255,136,.4); line-height:1.5; }
+        /* Attribution */
+        .attribution { position:fixed; bottom:2px; left:0; right:0; text-align:center; font-size:.5em; color:rgba(0,255,136,.25); pointer-events:none; z-index:5; }
+        /* Upgrade Sprite */
+        .upgrade-sprite { width:52px; height:52px; border-radius:10px; object-fit:cover; margin-bottom:6px; filter:drop-shadow(0 0 6px rgba(0,255,136,.4)); }
     </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -574,6 +589,18 @@
 </script>
 </head>
 <body>
+<!-- Loading Screen -->
+<div id="loadingScreen">
+  <div class="loading-content">
+    <div class="loading-icon">🟢</div>
+    <div class="loading-title">슬라임 서바이버</div>
+    <div style="font-size:.75rem;color:var(--neon-gold);margin-bottom:12px;">✨ PREMIUM EDITION ✨</div>
+    <div class="loading-bar"><div class="loading-fill" id="loadFill"></div></div>
+    <div class="loading-text" id="loadText">Loading...</div>
+    <div class="loading-credit">Art: 게임마당 (한국콘텐츠진흥원 · KOCCA)</div>
+  </div>
+</div>
+
 <div id="gameContainer">
     <canvas id="gameCanvas"></canvas>
 
@@ -681,26 +708,27 @@
 'use strict';
 
 // ═══════════════════════════════════════════════════════════════
-// 🔊 SOUND SYSTEM (Web Audio API - Procedural + BGM)
+// 🔊 SOUND SYSTEM (Real Audio Assets)
 // ═══════════════════════════════════════════════════════════════
+const SKILL_SPRITES = {};
+const UPGRADE_SPRITE_MAP = {
+    '⚔️':'skill_1','🔥':'skill_4','👟':'skill_7','❤️':'skill_8',
+    '🔮':'skill_3','🌀':'skill_2','📍':'skill_2','💫':'skill_7',
+    '🧲':'skill_6','💚':'skill_5','💥':'skill_1','🛡️':'skill_5'
+};
+
 const AudioManager = {
-    ctx: null,
-    enabled: true,
-    masterGain: null,
-    sfxGain: null,
-    bgmGain: null,
-    bgmPlaying: false,
-    bgmNodes: [],
+    ctx: null, enabled: true, masterGain: null, sfxGain: null,
+    bgmGain: null, bgmPlaying: false, bgmSource: null, buffers: {},
     _xpPickupCounter: 0,
 
     init() {
+        if (this.ctx) return;
         try {
-            if (this.ctx) return; // already initialized
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
             this.masterGain = this.ctx.createGain();
             this.masterGain.gain.value = 0.3;
             this.masterGain.connect(this.ctx.destination);
-            // Separate SFX and BGM buses
             this.sfxGain = this.ctx.createGain();
             this.sfxGain.gain.value = 1.0;
             this.sfxGain.connect(this.masterGain);
@@ -708,6 +736,32 @@ const AudioManager = {
             this.bgmGain.gain.value = 0.35;
             this.bgmGain.connect(this.masterGain);
         } catch(e) { this.enabled = false; }
+    },
+
+    async _loadBuf(name, url) {
+        try {
+            const r = await fetch(url);
+            const ab = await r.arrayBuffer();
+            this.buffers[name] = await this.ctx.decodeAudioData(ab);
+        } catch(e) { console.warn('Audio load fail:', name, e); }
+    },
+
+    async preload(onProgress) {
+        this.init();
+        const m = {
+            shoot:'assets/audio/shoot.ogg', hit:'assets/audio/hit.ogg',
+            death:'assets/audio/death.ogg', levelup:'assets/audio/levelup.ogg',
+            pickup:'assets/audio/pickup.ogg', click:'assets/audio/click.ogg',
+            select:'assets/audio/select.ogg', merge:'assets/audio/merge.ogg',
+            bgm:'assets/audio/bgm.mp3'
+        };
+        const entries = Object.entries(m);
+        let n = 0;
+        for (const [k, v] of entries) {
+            await this._loadBuf(k, v);
+            n++;
+            if (onProgress) onProgress(n, entries.length);
+        }
     },
 
     resume() {
@@ -718,7 +772,6 @@ const AudioManager = {
         this.enabled = !this.enabled;
         if (this.masterGain) this.masterGain.gain.value = this.enabled ? 0.3 : 0;
         document.getElementById('soundToggle').textContent = this.enabled ? 'ON' : 'OFF';
-        // Update mute FAB
         const fab = document.getElementById('muteFab');
         if (fab) {
             fab.textContent = this.enabled ? '🔊' : '🔇';
@@ -726,288 +779,55 @@ const AudioManager = {
         }
     },
 
-    _play(freq, type, duration, volume = 0.5, detune = 0) {
-        if (!this.enabled || !this.ctx) return;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = type;
-        osc.frequency.value = freq;
-        if (detune) osc.detune.value = detune;
-        gain.gain.setValueAtTime(volume, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(this.sfxGain);
-        osc.start();
-        osc.stop(this.ctx.currentTime + duration);
+    _playBuf(name, vol, rate) {
+        if (!this.enabled || !this.ctx || !this.buffers[name]) return;
+        try {
+            const s = this.ctx.createBufferSource();
+            const g = this.ctx.createGain();
+            s.buffer = this.buffers[name];
+            s.playbackRate.value = rate || 1.0;
+            g.gain.value = vol || 0.5;
+            s.connect(g); g.connect(this.sfxGain);
+            s.start(0);
+        } catch(e) {}
     },
 
-    _noise(duration, volume = 0.2) {
-        if (!this.enabled || !this.ctx) return;
-        const bufferSize = Math.floor(this.ctx.sampleRate * duration);
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-        const src = this.ctx.createBufferSource();
-        const gain = this.ctx.createGain();
-        src.buffer = buffer;
-        gain.gain.setValueAtTime(volume, this.ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
-        src.connect(gain);
-        gain.connect(this.sfxGain);
-        src.start();
-    },
-
-    // ── BGM: 8-bit Chiptune C-Am-F-G + Drums ──
+    // BGM (real mp3 loop)
     startBGM() {
-        if (!this.ctx || this.bgmPlaying) return;
+        if (this.bgmPlaying || !this.ctx || !this.buffers.bgm) return;
         this.bgmPlaying = true;
-        const ctx = this.ctx;
-        const bpm = 130;
-        const beatLen = 60 / bpm;
-        const barLen = beatLen * 4;
-        const totalBars = 4; // C-Am-F-G pattern
-        const loopLen = barLen * totalBars;
-
-        const scheduleLoop = () => {
-            if (!this.bgmPlaying) return;
-            const now = ctx.currentTime + 0.05;
-
-            // Chord pattern: C-Am-F-G (each 1 bar)
-            const chords = [
-                [261.63, 329.63, 392.00], // C major
-                [220.00, 261.63, 329.63], // Am
-                [174.61, 220.00, 261.63], // F major
-                [196.00, 246.94, 293.66], // G major
-            ];
-
-            for (let bar = 0; bar < totalBars; bar++) {
-                const chord = chords[bar];
-                const barStart = now + bar * barLen;
-
-                // Arpeggio pattern (8th notes)
-                for (let n = 0; n < 8; n++) {
-                    const noteTime = barStart + n * (beatLen / 2);
-                    const noteIdx = n % chord.length;
-                    const octave = (n >= 4) ? 2 : 1;
-                    const freq = chord[noteIdx] * octave;
-
-                    const osc = ctx.createOscillator();
-                    const g = ctx.createGain();
-                    osc.type = 'square';
-                    osc.frequency.value = freq;
-                    g.gain.setValueAtTime(0.08, noteTime);
-                    g.gain.exponentialRampToValueAtTime(0.001, noteTime + beatLen * 0.45);
-                    osc.connect(g);
-                    g.connect(this.bgmGain);
-                    osc.start(noteTime);
-                    osc.stop(noteTime + beatLen * 0.5);
-                    this.bgmNodes.push(osc);
-                }
-
-                // Bass line (root note, each beat)
-                for (let b = 0; b < 4; b++) {
-                    const bassTime = barStart + b * beatLen;
-                    const bassFreq = chord[0] / 2;
-                    const bassOsc = ctx.createOscillator();
-                    const bassG = ctx.createGain();
-                    bassOsc.type = 'triangle';
-                    bassOsc.frequency.value = bassFreq;
-                    bassG.gain.setValueAtTime(0.12, bassTime);
-                    bassG.gain.exponentialRampToValueAtTime(0.001, bassTime + beatLen * 0.8);
-                    bassOsc.connect(bassG);
-                    bassG.connect(this.bgmGain);
-                    bassOsc.start(bassTime);
-                    bassOsc.stop(bassTime + beatLen * 0.9);
-                    this.bgmNodes.push(bassOsc);
-                }
-
-                // Drums: kick on 1,3 / snare(noise) on 2,4 / hihat on 8ths
-                for (let b = 0; b < 4; b++) {
-                    const drumTime = barStart + b * beatLen;
-                    // Kick (beats 1, 3)
-                    if (b === 0 || b === 2) {
-                        const kickOsc = ctx.createOscillator();
-                        const kickG = ctx.createGain();
-                        kickOsc.type = 'sine';
-                        kickOsc.frequency.setValueAtTime(150, drumTime);
-                        kickOsc.frequency.exponentialRampToValueAtTime(40, drumTime + 0.12);
-                        kickG.gain.setValueAtTime(0.18, drumTime);
-                        kickG.gain.exponentialRampToValueAtTime(0.001, drumTime + 0.15);
-                        kickOsc.connect(kickG);
-                        kickG.connect(this.bgmGain);
-                        kickOsc.start(drumTime);
-                        kickOsc.stop(drumTime + 0.2);
-                        this.bgmNodes.push(kickOsc);
-                    }
-                    // Snare (beats 2, 4) — noise burst
-                    if (b === 1 || b === 3) {
-                        const snareLen = 0.1;
-                        const snareBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * snareLen), ctx.sampleRate);
-                        const sd = snareBuf.getChannelData(0);
-                        for (let si = 0; si < sd.length; si++) sd[si] = Math.random() * 2 - 1;
-                        const snareSrc = ctx.createBufferSource();
-                        const snareG = ctx.createGain();
-                        snareSrc.buffer = snareBuf;
-                        snareG.gain.setValueAtTime(0.1, drumTime);
-                        snareG.gain.exponentialRampToValueAtTime(0.001, drumTime + snareLen);
-                        snareSrc.connect(snareG);
-                        snareG.connect(this.bgmGain);
-                        snareSrc.start(drumTime);
-                        this.bgmNodes.push(snareSrc);
-                    }
-                    // Hi-hat (every 8th note)
-                    for (let h = 0; h < 2; h++) {
-                        const hhTime = drumTime + h * (beatLen / 2);
-                        const hhLen = 0.04;
-                        const hhBuf = ctx.createBuffer(1, Math.floor(ctx.sampleRate * hhLen), ctx.sampleRate);
-                        const hd = hhBuf.getChannelData(0);
-                        for (let hi = 0; hi < hd.length; hi++) hd[hi] = Math.random() * 2 - 1;
-                        const hhSrc = ctx.createBufferSource();
-                        const hhG = ctx.createGain();
-                        // Hi-pass filter for metallic sound
-                        const hhFilter = ctx.createBiquadFilter();
-                        hhFilter.type = 'highpass';
-                        hhFilter.frequency.value = 8000;
-                        hhSrc.buffer = hhBuf;
-                        hhG.gain.setValueAtTime(0.04, hhTime);
-                        hhG.gain.exponentialRampToValueAtTime(0.001, hhTime + hhLen);
-                        hhSrc.connect(hhFilter);
-                        hhFilter.connect(hhG);
-                        hhG.connect(this.bgmGain);
-                        hhSrc.start(hhTime);
-                        this.bgmNodes.push(hhSrc);
-                    }
-                }
-            }
-
-            // Clean old nodes
-            this.bgmNodes = this.bgmNodes.filter(n => {
-                try { n._ended; return true; } catch(e) { return false; }
-            });
-            if (this.bgmNodes.length > 200) this.bgmNodes.splice(0, this.bgmNodes.length - 50);
-
-            // Schedule next loop
-            this._bgmTimeout = setTimeout(scheduleLoop, (loopLen - 0.1) * 1000);
-        };
-
-        scheduleLoop();
+        this.bgmSource = this.ctx.createBufferSource();
+        this.bgmSource.buffer = this.buffers.bgm;
+        this.bgmSource.loop = true;
+        this.bgmSource.connect(this.bgmGain);
+        this.bgmSource.start(0);
     },
 
     stopBGM() {
         this.bgmPlaying = false;
-        if (this._bgmTimeout) clearTimeout(this._bgmTimeout);
-        this.bgmNodes.forEach(n => { try { n.stop(); } catch(e) {} });
-        this.bgmNodes = [];
+        if (this.bgmSource) { try { this.bgmSource.stop(); } catch(e) {} this.bgmSource = null; }
     },
 
-    // ── SFX: Weapon-specific ──
-    shootEnergy() {
-        // Woosh sound for energy ball
-        this._play(800, 'square', 0.06, 0.12);
-        this._play(1200, 'sine', 0.04, 0.08);
-    },
-
-    shootFire() {
-        // Crackle for fire
-        this._noise(0.08, 0.12);
-        this._play(300, 'sawtooth', 0.1, 0.1, Math.random() * 200);
-    },
-
-    orbitalHum() {
-        // Low hum for orbital weapon
-        this._play(120, 'triangle', 0.15, 0.06);
-        this._play(180, 'sine', 0.1, 0.04);
-    },
-
-    hit() {
-        this._play(200, 'square', 0.1, 0.2, Math.random() * 100);
-        this._noise(0.05, 0.15);
-    },
-
-    kill() {
-        this._play(300, 'sawtooth', 0.15, 0.2);
-        this._play(150, 'square', 0.2, 0.15);
-        this._noise(0.1, 0.1);
-    },
-
-    // XP pickup — rising pitch each consecutive pickup
+    // SFX — all using real .ogg files
+    shootEnergy()    { this._playBuf('shoot', 0.35, 1.1); },
+    shootFire()      { this._playBuf('shoot', 0.4, 0.8); },
+    orbitalHum()     { this._playBuf('hit', 0.08, 0.5); },
+    hit()            { this._playBuf('hit', 0.5); },
+    kill()           { this._playBuf('death', 0.5); },
     pickup() {
         this._xpPickupCounter++;
-        const basePitch = 880 + Math.min(this._xpPickupCounter * 40, 600);
-        this._play(basePitch, 'sine', 0.08, 0.15);
-        this._play(basePitch * 1.25, 'sine', 0.06, 0.1);
-        // Reset counter after a gap
+        const rate = 1.0 + Math.min(this._xpPickupCounter * 0.05, 0.5);
+        this._playBuf('pickup', 0.4, rate);
         clearTimeout(this._xpResetTimer);
         this._xpResetTimer = setTimeout(() => { this._xpPickupCounter = 0; }, 500);
     },
-
-    // Level up fanfare — triumphant arpeggio melody
-    levelUp() {
-        // C-E-G-C5-E5 fast arpeggio + harmony
-        const melody = [523, 659, 784, 1047, 1319, 1047];
-        melody.forEach((f, i) => {
-            setTimeout(() => {
-                this._play(f, 'square', 0.15, 0.2);
-                this._play(f * 0.5, 'triangle', 0.2, 0.12); // bass harmony
-            }, i * 70);
-        });
-        // Final chord
-        setTimeout(() => {
-            [1047, 1319, 1568].forEach(f => this._play(f, 'sine', 0.5, 0.12));
-        }, melody.length * 70);
-    },
-
-    gameOver() {
-        [400, 350, 300, 250, 200, 150].forEach((f, i) => {
-            setTimeout(() => this._play(f, 'sawtooth', 0.4, 0.2), i * 130);
-        });
-        this._noise(0.3, 0.08);
-    },
-
-    coinPickup() {
-        this._play(1200, 'sine', 0.06, 0.15);
-        setTimeout(() => this._play(1500, 'sine', 0.08, 0.12), 50);
-    },
-
-    // Boss alert — ominous warning
-    bossAlert() {
-        // Low ominous rumble
-        this._play(80, 'sawtooth', 0.8, 0.15);
-        this._noise(0.6, 0.08);
-        // Warning stabs
-        [200, 250, 200, 250, 300, 400].forEach((f, i) => {
-            setTimeout(() => {
-                this._play(f, 'square', 0.12, 0.25);
-                if (i >= 4) this._play(f * 0.5, 'sawtooth', 0.15, 0.15);
-            }, i * 130);
-        });
-        // Impact at end
-        setTimeout(() => {
-            this._play(60, 'sine', 0.3, 0.3);
-            this._noise(0.2, 0.15);
-        }, 800);
-    },
-
-    achievement() {
-        [660, 880, 1100, 880, 1320].forEach((f, i) => {
-            setTimeout(() => this._play(f, 'sine', 0.15, 0.2), i * 100);
-        });
-    },
-
-    // Combo milestone sound
-    comboMilestone() {
-        this._play(600, 'square', 0.08, 0.2);
-        this._play(900, 'square', 0.08, 0.18);
-        setTimeout(() => {
-            this._play(1200, 'square', 0.15, 0.2);
-            this._play(1500, 'sine', 0.1, 0.15);
-        }, 80);
-    },
-
-    // Backward compat — generic shoot
-    shoot() {
-        this.shootEnergy();
-    }
+    coinPickup()     { this._playBuf('pickup', 0.35, 1.3); },
+    levelUp()        { this._playBuf('levelup', 0.6); },
+    gameOver()       { this._playBuf('death', 0.7, 0.6); },
+    bossAlert()      { this._playBuf('merge', 0.6, 0.7); },
+    achievement()    { this._playBuf('levelup', 0.5, 1.2); },
+    comboMilestone() { this._playBuf('merge', 0.5); },
+    shoot()          { this.shootEnergy(); }
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -2287,8 +2107,10 @@ function levelUp() {
         const tier = Math.max(0, upg.tier());
         const card = document.createElement('div');
         card.className = 'upgrade-card';
+        const _sk = UPGRADE_SPRITE_MAP[upg.icon];
+        const _si = _sk && SKILL_SPRITES[_sk] ? '<img class="upgrade-sprite" src="'+SKILL_SPRITES[_sk].src+'">' : '<div class="upgrade-icon">'+upg.icon+'</div>';
         card.innerHTML = `
-            <div class="upgrade-icon">${upg.icon}</div>
+            ${_si}
             <div class="upgrade-name">${upg.name}</div>
             <div class="upgrade-desc">${upg.desc}</div>
             ${tier > 0 ? `<div class="upgrade-tier">${'★'.repeat(Math.min(tier,5))} Tier ${tier+1}</div>` : ''}
@@ -2810,9 +2632,44 @@ function selectChar(idx) {
 // ═══════════════════════════════════════════════════════════════
 // 🚀 INIT
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// 🚀 ASSET PRELOAD & INIT
+// ═══════════════════════════════════════════════════════════════
+async function preloadAllAssets() {
+    const lf = document.getElementById('loadFill');
+    const lt = document.getElementById('loadText');
+    const total = 17; let done = 0;
+    const tick = () => { done++; if (lf) lf.style.width = Math.round((done/total)*100)+'%'; };
+    if (lt) lt.textContent = 'Loading audio...';
+    await AudioManager.preload((n,t) => { tick(); if (lt) lt.textContent = 'Audio '+n+'/'+t+'...'; });
+    if (lt) lt.textContent = 'Loading sprites...';
+    for (const nm of ['skill_1','skill_2','skill_3','skill_4','skill_5','skill_6','skill_7','skill_8']) {
+        await new Promise(r => {
+            const img = new Image();
+            img.onload = () => { SKILL_SPRITES[nm] = img; tick(); r(); };
+            img.onerror = () => { tick(); r(); };
+            img.src = 'assets/sprites/'+nm+'.png';
+        });
+    }
+    if (lt) lt.textContent = 'Ready!';
+    if (lf) lf.style.width = '100%';
+}
+
 initSprites();
 Progression.load();
 buildStartScreen();
+
+// UI click sounds on buttons
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.btn,.char-card,.upgrade-card,#pauseBtn,#muteFab')) AudioManager._playBuf('click', 0.2);
+});
+
+preloadAllAssets().then(() => {
+    setTimeout(() => {
+        const ls = document.getElementById('loadingScreen');
+        if (ls) { ls.classList.add('fade-out'); setTimeout(() => ls.remove(), 600); }
+    }, 300);
+}).catch(() => { const ls = document.getElementById('loadingScreen'); if (ls) ls.remove(); });
 
 // Prevent zoom/scroll on mobile
 document.addEventListener('touchmove', (e) => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
@@ -2852,5 +2709,6 @@ window.addEventListener('popstate', () => {
     })();
     </script>
 <script src="../cross-promo.js"></script>
+<div class="attribution">Art: 게임마당 (한국콘텐츠진흥원 · KOCCA)</div>
 </body>
 </html>
