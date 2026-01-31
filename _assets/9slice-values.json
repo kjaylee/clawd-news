@@ -1,0 +1,626 @@
+{
+  "games/merge-bloom/assets/ui/btn.png": {
+    "size": "350x133",
+    "slice": "34 35 49 34 fill",
+    "width": "20px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/merge-bloom/assets/ui/card-frame.png": {
+    "size": "65x130",
+    "slice": "23 18 37 18 fill",
+    "width": "18px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/merge-bloom/assets/ui/panel-bottom.png": {
+    "size": "1125x238",
+    "slice": "8 5 5 5 fill",
+    "width": "6px",
+    "confidence": 0.573,
+    "suitable": true,
+    "applied": true
+  },
+  "games/merge-bloom/assets/ui/panel-top.png": {
+    "size": "1125x124",
+    "slice": "41 25 41 25 fill",
+    "width": "8px",
+    "confidence": 0.517,
+    "suitable": true,
+    "applied": true
+  },
+  "games/merge-bloom/assets/ui/ribbon.png": {
+    "size": "257x141",
+    "slice": "47 119 47 119 fill",
+    "width": "20px",
+    "confidence": 0.267,
+    "suitable": false
+  },
+  "games/merge-bloom/assets/ui/slider.png": {
+    "size": "29x44",
+    "slice": "10 10 10 10 fill",
+    "width": "10px",
+    "confidence": 0.96,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/bar-bg.png": {
+    "size": "149x22",
+    "slice": "7 106 7 36 fill",
+    "width": "7px",
+    "confidence": 0.217,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/board-border.png": {
+    "size": "20x20",
+    "slice": "15 1 1 1 fill",
+    "width": "3px",
+    "confidence": 0.833,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/btn-blue.png": {
+    "size": "64x225",
+    "slice": "26 26 133 26 fill",
+    "width": "20px",
+    "confidence": 0.768,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-circle-dark.png": {
+    "size": "128x128",
+    "slice": "63 63 63 63 fill",
+    "width": "20px",
+    "confidence": 0.026,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/btn-circle-white.png": {
+    "size": "128x128",
+    "slice": "63 63 63 63 fill",
+    "width": "20px",
+    "confidence": 0.026,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/btn-gray.png": {
+    "size": "64x225",
+    "slice": "26 26 132 26 fill",
+    "width": "20px",
+    "confidence": 0.775,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-green.png": {
+    "size": "64x225",
+    "slice": "25 26 132 26 fill",
+    "width": "20px",
+    "confidence": 0.783,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-orange.png": {
+    "size": "64x225",
+    "slice": "26 26 133 26 fill",
+    "width": "20px",
+    "confidence": 0.768,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-purple.png": {
+    "size": "64x225",
+    "slice": "26 26 132 26 fill",
+    "width": "20px",
+    "confidence": 0.775,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-red.png": {
+    "size": "64x225",
+    "slice": "25 26 133 26 fill",
+    "width": "20px",
+    "confidence": 0.775,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-sky.png": {
+    "size": "64x225",
+    "slice": "26 26 132 26 fill",
+    "width": "20px",
+    "confidence": 0.775,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-sm-blue.png": {
+    "size": "64x175",
+    "slice": "26 26 108 26 fill",
+    "width": "20px",
+    "confidence": 0.667,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-sm-gray.png": {
+    "size": "64x175",
+    "slice": "26 26 107 26 fill",
+    "width": "20px",
+    "confidence": 0.677,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-sm-white.png": {
+    "size": "64x175",
+    "slice": "26 26 108 26 fill",
+    "width": "20px",
+    "confidence": 0.667,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-sq-navy.png": {
+    "size": "54x54",
+    "slice": "20 20 26 20 fill",
+    "width": "20px",
+    "confidence": 0.617,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-sq-white.png": {
+    "size": "54x54",
+    "slice": "21 21 27 21 fill",
+    "width": "20px",
+    "confidence": 0.494,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-white.png": {
+    "size": "64x225",
+    "slice": "26 26 132 26 fill",
+    "width": "20px",
+    "confidence": 0.775,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn-yellow.png": {
+    "size": "64x225",
+    "slice": "26 26 133 26 fill",
+    "width": "20px",
+    "confidence": 0.768,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/btn1.png": {
+    "size": "1248x1208",
+    "slice": "1191 1231 1 1 fill",
+    "width": "3px",
+    "confidence": 0.043,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/btn2.png": {
+    "size": "1215x1183",
+    "slice": "1 862 1159 312 fill",
+    "width": "3px",
+    "confidence": 0.087,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/cell-bg.png": {
+    "size": "72x72",
+    "slice": "1 1 1 1 fill",
+    "width": "3px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/frame-round12.png": {
+    "size": "36x36",
+    "slice": "12 12 12 12 fill",
+    "width": "12px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/frame-round20.png": {
+    "size": "51x50",
+    "slice": "20 20 20 20 fill",
+    "width": "20px",
+    "confidence": 0.627,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/frame-square.png": {
+    "size": "97x98",
+    "slice": "24 24 24 25 fill",
+    "width": "20px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/item-frame-blue.png": {
+    "size": "177x188",
+    "slice": "22 21 79 21 fill",
+    "width": "20px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/item-frame-empty.png": {
+    "size": "39x39",
+    "slice": "18 18 18 18 fill",
+    "width": "18px",
+    "confidence": 0.171,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/item-frame-purple.png": {
+    "size": "177x188",
+    "slice": "22 21 33 21 fill",
+    "width": "20px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/item-frame-yellow.png": {
+    "size": "177x188",
+    "slice": "22 21 33 21 fill",
+    "width": "20px",
+    "confidence": 1.0,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/label-ribbon-bg.png": {
+    "size": "78x86",
+    "slice": "28 27 28 17 fill",
+    "width": "17px",
+    "confidence": 0.65,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/label-ribbon-orange.png": {
+    "size": "74x86",
+    "slice": "28 27 28 43 fill",
+    "width": "20px",
+    "confidence": 0.218,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/panel-bg.png": {
+    "size": "67x67",
+    "slice": "27 26 27 26 fill",
+    "width": "20px",
+    "confidence": 0.647,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/panel-inner.png": {
+    "size": "66x32",
+    "slice": "27 26 1 26 fill",
+    "width": "20px",
+    "confidence": 0.537,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/panel-navy.png": {
+    "size": "780x299",
+    "slice": "27 389 116 389 fill",
+    "width": "20px",
+    "confidence": 0.502,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/panel.png": {
+    "size": "64x16",
+    "slice": "5 21 5 21 fill",
+    "width": "5px",
+    "confidence": 0.3,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/panel2.png": {
+    "size": "90x51",
+    "slice": "49 30 1 30 fill",
+    "width": "20px",
+    "confidence": 0.183,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/popup-bg.png": {
+    "size": "57x66",
+    "slice": "22 22 35 22 fill",
+    "width": "20px",
+    "confidence": 0.553,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/popup-glow.png": {
+    "size": "512x512",
+    "slice": "1 498 498 1 fill",
+    "width": "3px",
+    "confidence": 0.085,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/popup-light.png": {
+    "size": "57x33",
+    "slice": "11 22 11 22 fill",
+    "width": "11px",
+    "confidence": 0.501,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/popup-navy.png": {
+    "size": "52x64",
+    "slice": "22 22 35 22 fill",
+    "width": "20px",
+    "confidence": 0.381,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/popup-purple.png": {
+    "size": "52x64",
+    "slice": "23 23 35 23 fill",
+    "width": "20px",
+    "confidence": 0.29,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/popup-topline.png": {
+    "size": "53x59",
+    "slice": "22 20 12 20 fill",
+    "width": "20px",
+    "confidence": 0.877,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/resbar-bg.png": {
+    "size": "31x64",
+    "slice": "15 12 15 12 fill",
+    "width": "12px",
+    "confidence": 0.823,
+    "suitable": true,
+    "applied": true
+  },
+  "games/power-2048/assets/ui/resbar-btn-blue.png": {
+    "size": "49x53",
+    "slice": "23 23 26 22 fill",
+    "width": "20px",
+    "confidence": 0.196,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/resbar-btn-purple.png": {
+    "size": "49x53",
+    "slice": "23 23 26 22 fill",
+    "width": "20px",
+    "confidence": 0.196,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/resbar-btn-yellow.png": {
+    "size": "49x53",
+    "slice": "23 22 26 23 fill",
+    "width": "20px",
+    "confidence": 0.196,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/skill-frame-bg.png": {
+    "size": "186x186",
+    "slice": "92 92 92 92 fill",
+    "width": "20px",
+    "confidence": 0.018,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/skill-frame-border.png": {
+    "size": "192x206",
+    "slice": "68 64 68 64 fill",
+    "width": "20px",
+    "confidence": 0.3,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/slider-bg.png": {
+    "size": "22x22",
+    "slice": "10 10 10 10 fill",
+    "width": "10px",
+    "confidence": 0.152,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/slider-fill-blue.png": {
+    "size": "29x48",
+    "slice": "30 12 8 11 fill",
+    "width": "11px",
+    "confidence": 0.6,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/slider-fill-white.png": {
+    "size": "27x48",
+    "slice": "30 12 8 11 fill",
+    "width": "11px",
+    "confidence": 0.498,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/stage-frame-bg.png": {
+    "size": "213x251",
+    "slice": "77 71 99 71 fill",
+    "width": "20px",
+    "confidence": 0.641,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/stage-frame-focus.png": {
+    "size": "405x422",
+    "slice": "190 364 190 39 fill",
+    "width": "20px",
+    "confidence": 0.166,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/title-flag-blue.png": {
+    "size": "820x231",
+    "slice": "21 409 82 409 fill",
+    "width": "20px",
+    "confidence": 0.502,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/title-flag-orange.png": {
+    "size": "820x231",
+    "slice": "21 409 82 409 fill",
+    "width": "20px",
+    "confidence": 0.502,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/title-flag-purple.png": {
+    "size": "820x231",
+    "slice": "21 409 82 409 fill",
+    "width": "20px",
+    "confidence": 0.502,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/toast-purple.png": {
+    "size": "4x36",
+    "slice": "16 1 1 1 fill",
+    "width": "3px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/toast-white.png": {
+    "size": "10x44",
+    "slice": "24 1 1 1 fill",
+    "width": "3px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/power-2048/assets/ui/top-bar.png": {
+    "size": "500x131",
+    "slice": "43 9 43 485 fill",
+    "width": "20px",
+    "confidence": 0.167,
+    "suitable": false
+  },
+  "games/power-2048/assets/ui/topbar.png": {
+    "size": "6x13",
+    "slice": "7 1 1 1 fill",
+    "width": "3px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/puzzle-rogue/assets/ui/btn-blue.png": {
+    "size": "180x111",
+    "slice": "21 70 69 70 fill",
+    "width": "20px",
+    "confidence": 0.661,
+    "suitable": true,
+    "applied": true
+  },
+  "games/puzzle-rogue/assets/ui/btn-circle-red.png": {
+    "size": "148x155",
+    "slice": "73 73 80 73 fill",
+    "width": "20px",
+    "confidence": 0.022,
+    "suitable": false
+  },
+  "games/puzzle-rogue/assets/ui/btn-green.png": {
+    "size": "180x111",
+    "slice": "21 71 29 71 fill",
+    "width": "20px",
+    "confidence": 0.843,
+    "suitable": true
+  },
+  "games/puzzle-rogue/assets/ui/btn-purple.png": {
+    "size": "180x111",
+    "slice": "21 69 48 69 fill",
+    "width": "20px",
+    "confidence": 0.88,
+    "suitable": true,
+    "applied": true
+  },
+  "games/puzzle-rogue/assets/ui/card-frame.png": {
+    "size": "226x230",
+    "slice": "83 71 67 59 fill",
+    "width": "20px",
+    "confidence": 1.0,
+    "suitable": true,
+    "applied": true
+  },
+  "games/puzzle-rogue/assets/ui/hp-bar-bg.png": {
+    "size": "17x41",
+    "slice": "13 7 13 7 fill",
+    "width": "7px",
+    "confidence": 0.346,
+    "suitable": false,
+    "applied": true
+  },
+  "games/puzzle-rogue/assets/ui/hp-bar-fill.png": {
+    "size": "323x39",
+    "slice": "13 6 13 1 fill",
+    "width": "3px",
+    "confidence": 0.65,
+    "suitable": true
+  },
+  "games/puzzle-rogue/assets/ui/list-frame.png": {
+    "size": "50x55",
+    "slice": "22 22 27 22 fill",
+    "width": "20px",
+    "confidence": 0.318,
+    "suitable": false
+  },
+  "games/puzzle-rogue/assets/ui/popup-bg.png": {
+    "size": "56x47",
+    "slice": "6 27 29 27 fill",
+    "width": "6px",
+    "confidence": 0.42,
+    "suitable": true
+  },
+  "games/slime-survivor-premium/assets/ui/display.png": {
+    "size": "453x729",
+    "slice": "1 1 1 1 fill",
+    "width": "3px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/sushi-sprint/assets/ui/bar-frame.png": {
+    "size": "1280x139",
+    "slice": "134 426 1 426 fill",
+    "width": "20px",
+    "confidence": 0.198,
+    "suitable": false
+  },
+  "games/sushi-sprint/assets/ui/btn-blue.png": {
+    "size": "82x244",
+    "slice": "134 37 58 36 fill",
+    "width": "20px",
+    "confidence": 0.511,
+    "suitable": true
+  },
+  "games/sushi-sprint/assets/ui/btn-circle.png": {
+    "size": "132x147",
+    "slice": "67 65 77 65 fill",
+    "width": "20px",
+    "confidence": 0.035,
+    "suitable": false
+  },
+  "games/sushi-sprint/assets/ui/btn-yellow.png": {
+    "size": "82x244",
+    "slice": "33 37 161 37 fill",
+    "width": "20px",
+    "confidence": 0.477,
+    "suitable": true
+  },
+  "games/sushi-sprint/assets/ui/card-orange.png": {
+    "size": "65x130",
+    "slice": "23 18 37 18 fill",
+    "width": "18px",
+    "confidence": 1.0,
+    "suitable": true
+  },
+  "games/sushi-sprint/assets/ui/label-ribbon.png": {
+    "size": "257x141",
+    "slice": "47 119 47 119 fill",
+    "width": "20px",
+    "confidence": 0.267,
+    "suitable": false
+  },
+  "games/sushi-sprint/assets/ui/label-white.png": {
+    "size": "40x67",
+    "slice": "15 18 15 18 fill",
+    "width": "15px",
+    "confidence": 0.625,
+    "suitable": true
+  },
+  "games/sushi-sprint/assets/ui/list-frame.png": {
+    "size": "403x212",
+    "slice": "70 18 70 133 fill",
+    "width": "20px",
+    "confidence": 0.65,
+    "suitable": true
+  },
+  "games/sushi-sprint/assets/ui/popup.png": {
+    "size": "50x225",
+    "slice": "28 23 36 23 fill",
+    "width": "20px",
+    "confidence": 0.6,
+    "suitable": true
+  },
+  "games/sushi-sprint/assets/ui/slider-alt.png": {
+    "size": "24x24",
+    "slice": "10 10 10 10 fill",
+    "width": "10px",
+    "confidence": 0.417,
+    "suitable": true
+  },
+  "games/sushi-sprint/assets/ui/slider-frame.png": {
+    "size": "29x44",
+    "slice": "10 10 10 10 fill",
+    "width": "10px",
+    "confidence": 0.96,
+    "suitable": true
+  }
+}

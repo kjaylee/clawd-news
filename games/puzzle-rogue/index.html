@@ -24,7 +24,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #title-screen{justify-content:center;align-items:center;background:url('assets/ui/bg-title.png') center/cover no-repeat,radial-gradient(ellipse at center,#1a1a3e 0%,#0a0a12 70%);text-align:center}
 #title-screen h1{font-size:2em;color:var(--gold);text-shadow:0 0 20px rgba(240,192,64,.5);margin-bottom:.2em;letter-spacing:2px}
 #title-screen h2{font-size:1em;color:#888;margin-bottom:2em}
-.menu-btn{display:block;width:80%;max-width:300px;margin:.4em auto;padding:.8em;border:2px solid var(--gold);background:rgba(240,192,64,.1);color:var(--gold);font-size:1.1em;border-radius:8px;cursor:pointer;transition:all .2s}
+.menu-btn{display:block;width:80%;max-width:300px;margin:.4em auto;padding:.8em;border:none;border-image:url('assets/ui/btn-purple.png') 21 69 48 69 fill / 15px / 0 stretch;background:none;color:var(--gold);font-size:1.1em;cursor:pointer;transition:all .2s}
 .menu-btn:hover,.menu-btn:active{background:rgba(240,192,64,.25);transform:scale(1.02)}
 .menu-btn:disabled{opacity:.4;cursor:default;transform:none}
 .stats-line{color:#777;font-size:.85em;margin-top:1.5em;line-height:1.8}
@@ -48,7 +48,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .enemy-top{display:flex;justify-content:space-between;align-items:center}
 .floor-info{color:var(--gold);font-size:.85em;font-weight:bold}
 .enemy-name{font-size:1.1em;font-weight:bold}
-.enemy-hp-bar{height:14px;background:var(--hp-bg);border-radius:7px;margin:.4em 0;overflow:hidden;position:relative}
+.enemy-hp-bar{height:14px;border-image:url('assets/ui/hp-bar-bg.png') 5 5 5 5 fill / 5px / 0 stretch;margin:.4em 0;overflow:hidden;position:relative}
 .enemy-hp-fill{height:100%;background:linear-gradient(90deg,var(--hp-red),#e74c3c);border-radius:7px;transition:width .4s}
 .enemy-hp-text{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:.7em;color:#fff;text-shadow:1px 1px 2px #000}
 .enemy-intent{font-size:.85em;color:#ccc;padding:.2em 0}
@@ -109,7 +109,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #reward-screen h2{color:var(--gold);text-align:center;margin-bottom:.3em;font-size:1.5em}
 #reward-screen .sub{color:#aaa;text-align:center;margin-bottom:1.5em;font-size:.9em}
 .reward-cards{display:flex;gap:.8em;justify-content:center;margin-bottom:1.5em}
-.reward-card{width:110px;padding:1em .5em;border:2px solid #444;border-radius:12px;text-align:center;cursor:pointer;background:var(--bg2);transition:all .2s;border-image:url('assets/ui/card-frame.png') 30 stretch;border-image-width:15px;background-clip:padding-box}
+.reward-card{width:110px;padding:1em .5em;border:2px solid #444;border-radius:12px;text-align:center;cursor:pointer;background:var(--bg2);transition:all .2s;border-image:url('assets/ui/card-frame.png') 83 71 67 59 fill / 20px / 0 stretch;background-clip:padding-box}
 .reward-card:hover,.reward-card:active{border-color:var(--gold);transform:translateY(-5px)}
 .reward-card .r-icon{font-size:2em;margin-bottom:.3em;min-height:48px;display:flex;align-items:center;justify-content:center}
 .reward-card .r-name{font-size:.85em;font-weight:bold;color:var(--gold)}
@@ -120,7 +120,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #event-screen{justify-content:center;align-items:center;background:rgba(0,0,0,.92);padding:1.5em}
 #event-screen h2{color:var(--gold);margin-bottom:.5em;font-size:1.3em}
 .event-choices{width:100%;max-width:320px}
-.event-btn{display:block;width:100%;padding:1em;margin:.5em 0;border:2px solid #444;background:var(--bg2);color:var(--white);border-radius:10px;font-size:1em;cursor:pointer;text-align:left;transition:all .2s}
+.event-btn{display:block;width:100%;padding:1em;margin:.5em 0;border:none;border-image:url('assets/ui/btn-blue.png') 21 70 69 70 fill / 12px / 0 stretch;background:none;color:var(--white);font-size:1em;cursor:pointer;text-align:left;transition:all .2s}
 .event-btn:active{border-color:var(--gold);background:rgba(240,192,64,.1)}
 .event-btn .ev-icon{font-size:1.3em;margin-right:.5em}
 
