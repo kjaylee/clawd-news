@@ -22,17 +22,46 @@ permalink: /assets/
 
 ## 🏪 Unity Asset Store (268개)
 
-### 카테고리별
+<div class="card-grid">
+<div class="card">
+    <a href="/assets/unity-assets-2d/">
+        <h3>🎨 2D 스프라이트 (48개)</h3>
+        <p>SPUM 메이커, Tiny Swords, 타일셋, 배경</p>
+    </a>
+</div>
+<div class="card">
+    <a href="/assets/unity-assets-3d/">
+        <h3>🏗️ 3D 모델/환경 (26개)</h3>
+        <p>POLYGON, KayKit, Ida Faber 캐릭터</p>
+    </a>
+</div>
+<div class="card">
+    <a href="/assets/unity-assets-vfx/">
+        <h3>✨ VFX/셰이더 (26개)</h3>
+        <p>Cartoon FX, Toony Colors Pro, 파티클</p>
+    </a>
+</div>
+<div class="card">
+    <a href="/assets/unity-assets-audio/">
+        <h3>🔊 오디오 (17개)</h3>
+        <p>Ultimate SFX 5.9GB, Fantasy BGM</p>
+    </a>
+</div>
+<div class="card">
+    <a href="/assets/unity-assets-tools/">
+        <h3>🛠️ 도구/플러그인 (55개)</h3>
+        <p>Feel, DOTween, Corgi Engine, Odin</p>
+    </a>
+</div>
+<div class="card">
+    <a href="/assets/unity-assets-etc/">
+        <h3>🖼️ GUI/아이콘 (96개)</h3>
+        <p>LAYERLAB GUI 13종, 2000+ 아이콘</p>
+    </a>
+</div>
+</div>
 
-| 카테고리 | 수량 | 주요 에셋 | 링크 |
-|---------|:----:|----------|:----:|
-| 🎨 2D 스프라이트 | 48개 | SPUM 메이커, Tiny Swords, 타일셋 | [보기](/assets/unity-assets-2d/) |
-| 🏗️ 3D 모델/환경 | 26개 | POLYGON, KayKit, Ida Faber 캐릭터 | [보기](/assets/unity-assets-3d/) |
-| ✨ VFX/셰이더 | 26개 | Cartoon FX, Toony Colors Pro, 파티클 | [보기](/assets/unity-assets-vfx/) |
-| 🔊 오디오 | 17개 | Ultimate SFX (5.9GB), Fantasy BGM | [보기](/assets/unity-assets-audio/) |
-| 🛠️ 도구/플러그인 | 55개 | Feel, DOTween, Odin, Corgi Engine | [보기](/assets/unity-assets-tools/) |
-| 🖼️ GUI/아이콘 | 96개 | LAYERLAB GUI 13종, 2000+ 아이콘 | [보기](/assets/unity-assets-etc/) |
-| | **268개** | | [전체](/assets/unity-assets-all/) |
+[📦 전체 목록 보기 →](/assets/unity-assets-all/)
 
 ### 🔧 핵심 도구 TOP 10
 
@@ -106,12 +135,6 @@ permalink: /assets/
 - **사운드:** Casual Game SFX, Cute UI SFX
 - **셰이더:** Toony Colors Pro 2
 
-### 🃏 카드/보드 게임
-- **VFX:** Board Card Game Stylized VFX Magic
-- **UI:** GUI Pro - Casual Game, Card Shirts Lite, TCG Cards Pack
-- **아이콘:** 2000 Fantasy Icons, Fantasy Inventory Icons
-- **사운드:** UI SFX Mega Pack, Cute UI SFX
-
 ### 🧩 매치3 / 머지 퍼즐
 - **UI:** GUI Pro - Casual Game, Cartoon GUI Pack
 - **VFX:** Hyper Casual FX, Collectable Item VFX, Break Items VFX
@@ -133,7 +156,6 @@ permalink: /assets/
 - **VFX:** Polygon Arsenal, Lightning VFX, Stylized Shoot Hit
 - **UI:** Sci-fi GUI Skin, Heat Modern UI
 - **사운드:** Sci-Fi Game Sound Effects
-- **배경:** Dynamic Space Background, Free Galaxy Background
 
 ---
 
@@ -146,10 +168,7 @@ permalink: /assets/
 | Pixel Hero Maker / Megapack / Shooters | 캐릭터 메이커 |
 | Luiz Melo 중세 캐릭터 시리즈 (7종) | 캐릭터 |
 | Tiny Swords, Cute Fantasy RPG 16x16 | 타일셋 |
-| 2D RPG Topdown Tilesets (2종) | 타일셋 |
 | Retro Arsenal, Arcade Pixel VFX | VFX |
-| 8-Bit Retro Game SFX Pack | 오디오 |
-| Pixel Art Icon Pack RPG, Pixel Gem Pack | 아이콘 |
 
 ### 🟨 카툰 / 스타일라이즈드
 | 에셋 | 카테고리 |
@@ -158,17 +177,14 @@ permalink: /assets/
 | Simple Fantasy Cartoon Assets | 3D 환경 |
 | Cartoon FX Remaster / Cartoon FX 2 | VFX |
 | Toony Colors Pro 2 | 셰이더 |
-| Cartoon GUI Pack, GUI - Yellow Kid | UI |
 | 🎪 게임마당 캐주얼 에셋 다수 | 캐주얼 UI/캐릭터 |
 
 ### 🟩 로우폴리
 | 에셋 | 카테고리 |
 |------|---------|
 | Low Poly Mega Pack - Polyworks | 3D 환경 |
-| Low Poly Ultimate Pack | 3D 환경 |
 | POLYGON Casino Pack, City Zombies | 3D 모델 |
 | Polyquest Heroes / Islands Full Pack | 3D 세트 |
-| Micro Monster Heroes Pack | 3D 캐릭터 |
 
 ### 🟥 상용 게임급 (게임마당)
 | 에셋 | 용량 |
@@ -177,13 +193,6 @@ permalink: /assets/
 | 인섹트서바이벌 — 서바이벌 장르 풀셋 | ~5GB |
 | 쓰리매치퍼즐프로젝트 — 매치3 풀셋 3종 | ~12GB |
 | 보스러쉬히어로즈 — 보스전 액션 | ~4GB |
-| 캐주얼 UI 5종 세트 | ~20GB |
-
----
-
-## 📚 에셋 카테고리
-
-에셋 컬렉션이 정적 페이지로 이전되었습니다. 위의 카테고리별 표를 참조하세요.
 
 ---
 

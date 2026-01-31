@@ -236,7 +236,19 @@
                 </ul>
             </div>
             
-            <!-- 게임 에셋 (컬렉션 제거됨 — 사이드바에서도 제거) -->
+            <!-- 게임 에셋 -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">🎨 게임 에셋</div>
+                <ul class="sidebar-nav">
+                    <li><a href="/assets/" {% if page.url == '/assets/' %}class="active"{% endif %}>📦 전체 라이브러리 (426)</a></li>
+                    <li><a href="/assets/unity-assets-2d/" {% if page.url == '/assets/unity-assets-2d/' %}class="active"{% endif %}>🎨 2D 스프라이트 <div class="sub">48개</div></a></li>
+                    <li><a href="/assets/unity-assets-3d/" {% if page.url == '/assets/unity-assets-3d/' %}class="active"{% endif %}>🏗️ 3D 모델/환경 <div class="sub">26개</div></a></li>
+                    <li><a href="/assets/unity-assets-vfx/" {% if page.url == '/assets/unity-assets-vfx/' %}class="active"{% endif %}>✨ VFX/셰이더 <div class="sub">26개</div></a></li>
+                    <li><a href="/assets/unity-assets-audio/" {% if page.url == '/assets/unity-assets-audio/' %}class="active"{% endif %}>🔊 오디오 <div class="sub">17개</div></a></li>
+                    <li><a href="/assets/unity-assets-tools/" {% if page.url == '/assets/unity-assets-tools/' %}class="active"{% endif %}>🛠️ 도구/플러그인 <div class="sub">55개</div></a></li>
+                    <li><a href="/assets/unity-assets-etc/" {% if page.url == '/assets/unity-assets-etc/' %}class="active"{% endif %}>🖼️ GUI/아이콘 <div class="sub">96개</div></a></li>
+                </ul>
+            </div>
         </aside>
         
         <main class="main">

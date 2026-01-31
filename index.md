@@ -108,18 +108,29 @@ title: 홈
 
 <div class="card-grid">
 <div class="card" style="border-color: #f59e0b;">
-    <a href="{{ '/assets/' | relative_url }}">
+    <a href="/assets/">
         <h3>🏪 Unity Asset Store — 268개</h3>
         <p>2D · 3D · VFX · 오디오 · 도구 · GUI/아이콘</p>
     </a>
 </div>
 <div class="card" style="border-color: #10b981;">
-    <a href="{{ '/assets/' | relative_url }}#-게임마당-에셋-158개">
+    <a href="/assets/#-게임마당-에셋-158개">
         <h3>🎪 게임마당 — 158개</h3>
         <p>2D 그래픽 150개 · 3D 모델 8개 (432GB)</p>
     </a>
 </div>
-<!-- 에셋 컬렉션 제거됨 — 정적 카테고리는 /assets/ 페이지에서 확인 -->
+<div class="card">
+    <a href="/assets/unity-assets-2d/"><h3>🎨 2D 스프라이트</h3><p>48개 에셋</p></a>
+</div>
+<div class="card">
+    <a href="/assets/unity-assets-3d/"><h3>🏗️ 3D 모델/환경</h3><p>26개 에셋</p></a>
+</div>
+<div class="card">
+    <a href="/assets/unity-assets-vfx/"><h3>✨ VFX/셰이더</h3><p>26개 에셋</p></a>
+</div>
+<div class="card">
+    <a href="/assets/unity-assets-tools/"><h3>🛠️ 도구/플러그인</h3><p>55개 에셋</p></a>
+</div>
 </div>
 
-[📦 전체 에셋 라이브러리 보기 →]({{ '/assets/' | relative_url }})
+[📦 전체 에셋 라이브러리 보기 →](/assets/)
