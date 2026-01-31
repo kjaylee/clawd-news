@@ -1,0 +1,1554 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover">
+<title>삼국지 SNAP — Three Kingdoms SNAP</title>
+<meta name="description" content="삼국지 장수 카드로 펼치는 전략 배틀! Build your deck and conquer three battlefields.">
+<meta property="og:title" content="삼국지 SNAP">
+<meta property="og:description" content="36명의 장수, 15개 전장, 6턴의 전략 카드 배틀">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/games/three-kingdoms-snap/">
+<meta name="theme-color" content="#1a1410">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoi7IK86rWt7KeAIFNOQVAiLCJzaG9ydF9uYW1lIjoi7IK86rWt7KeAU05BUCIsInN0YXJ0X3VybCI6Ii9nYW1lcy90aHJlZS1raW5nZG9tcy1zbmFwLyIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwidGhlbWVfY29sb3IiOiIjMWExNDEwIiwiYmFja2dyb3VuZF9jb2xvciI6IiMxYTE0MTAifQ==">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+--bg:#151210;--card-bg:#221e18;--card-border:#3a3228;
+--gold:#d4af37;--gold-dim:#a08520;--red:#c41e3a;--red-dim:#8b1528;
+--text:#e8dcc8;--text-dim:#8a7e6a;--text-dark:#5a4e3a;
+--wei:#4a90d9;--shu:#4caf50;--wu:#e74c3c;--neutral:#9e9e9e;
+--wei-bg:rgba(74,144,217,0.12);--shu-bg:rgba(76,175,80,0.12);
+--wu-bg:rgba(231,76,60,0.12);--neutral-bg:rgba(158,158,158,0.1);
+--safe-top:0px;--safe-bottom:0px;--tg-viewport-height:100vh;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{
+font-family:'Georgia','Noto Serif KR',serif;
+background:var(--bg);color:var(--text);
+overflow:hidden;touch-action:manipulation;user-select:none;-webkit-user-select:none;
+}
+#app{
+width:100vw;height:calc(var(--tg-viewport-height,100vh));
+display:flex;flex-direction:column;position:relative;overflow:hidden;
+padding-top:var(--safe-top);padding-bottom:var(--safe-bottom);
+}
+/* Ink texture overlay */
+#app::before{
+content:'';position:absolute;inset:0;pointer-events:none;z-index:0;
+background:
+ radial-gradient(ellipse at 15% 20%,rgba(139,115,85,0.06) 0%,transparent 50%),
+ radial-gradient(ellipse at 85% 80%,rgba(139,115,85,0.04) 0%,transparent 40%),
+ radial-gradient(ellipse at 50% 50%,rgba(200,180,140,0.02) 0%,transparent 60%);
+}
+#app>*{position:relative;z-index:1;}
+
+/* === MENU === */
+.menu{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;}
+.menu-title{font-size:42px;font-weight:900;color:var(--gold);letter-spacing:6px;
+text-shadow:0 2px 8px rgba(212,175,55,0.4),0 0 30px rgba(212,175,55,0.15);
+margin-bottom:4px;line-height:1.2;}
+.menu-sub{font-size:14px;color:var(--text-dim);letter-spacing:3px;margin-bottom:20px;}
+.menu-merit{font-size:13px;color:var(--gold-dim);margin-bottom:8px;}
+.btn{
+display:inline-flex;align-items:center;justify-content:center;gap:6px;
+padding:14px 32px;border:1px solid var(--gold-dim);border-radius:4px;
+background:linear-gradient(180deg,rgba(139,0,0,0.6),rgba(80,0,0,0.8));
+color:var(--gold);font-size:16px;font-family:inherit;font-weight:700;
+letter-spacing:2px;cursor:pointer;transition:all .15s;min-width:200px;
+text-shadow:0 1px 3px rgba(0,0,0,0.5);
+}
+.btn:active{transform:scale(0.96);opacity:0.85;}
+.btn-sm{padding:8px 16px;font-size:13px;min-width:auto;letter-spacing:1px;}
+.btn-ghost{background:transparent;border-color:var(--text-dark);color:var(--text-dim);}
+.btn-snap{
+background:linear-gradient(180deg,#c41e3a,#8b1528);
+border-color:#ff4060;color:#fff;
+animation:pulse-snap 2s ease-in-out infinite;
+}
+@keyframes pulse-snap{0%,100%{box-shadow:0 0 8px rgba(196,30,58,0.3);}50%{box-shadow:0 0 20px rgba(196,30,58,0.6);}}
+.btn-end{background:linear-gradient(180deg,rgba(60,80,40,0.8),rgba(30,50,20,0.9));border-color:var(--shu);}
+
+/* === DECK BUILDER === */
+.deck-builder{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.db-header{padding:10px 12px;display:flex;align-items:center;justify-content:space-between;
+border-bottom:1px solid var(--card-border);}
+.db-title{font-size:16px;color:var(--gold);font-weight:700;}
+.db-count{font-size:14px;color:var(--text-dim);}
+.db-count .ok{color:var(--shu);}
+.db-filters{display:flex;gap:4px;padding:8px 12px;overflow-x:auto;}
+.db-filter{padding:5px 10px;border-radius:3px;font-size:12px;border:1px solid var(--card-border);
+background:transparent;color:var(--text-dim);cursor:pointer;font-family:inherit;white-space:nowrap;}
+.db-filter.active{border-color:var(--gold);color:var(--gold);background:rgba(212,175,55,0.1);}
+.db-grid{flex:1;overflow-y:auto;padding:8px;display:grid;
+grid-template-columns:repeat(auto-fill,minmax(95px,1fr));gap:6px;
+-webkit-overflow-scrolling:touch;}
+.db-curve{display:flex;align-items:flex-end;justify-content:center;gap:8px;
+padding:8px 12px;border-top:1px solid var(--card-border);height:60px;}
+.db-curve-bar{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.db-curve-fill{width:20px;background:var(--gold-dim);border-radius:2px 2px 0 0;
+transition:height .2s;}
+.db-curve-label{font-size:10px;color:var(--text-dim);}
+.db-footer{padding:8px 12px;display:flex;gap:8px;justify-content:center;
+border-top:1px solid var(--card-border);}
+
+/* === CARDS === */
+.card{
+position:relative;border-radius:4px;
+background:var(--card-bg);border:1px solid var(--card-border);
+overflow:hidden;cursor:pointer;transition:all .15s;
+}
+.card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;}
+.card.f-wei::before{background:var(--wei);}
+.card.f-shu::before{background:var(--shu);}
+.card.f-wu::before{background:var(--wu);}
+.card.f-neutral::before{background:var(--neutral);}
+.card.f-wei{background:linear-gradient(135deg,#1a2636,#1e2a3e);}
+.card.f-shu{background:linear-gradient(135deg,#1a2e1a,#1e3e1e);}
+.card.f-wu{background:linear-gradient(135deg,#2e1a1a,#3e1e1e);}
+.card.f-neutral{background:linear-gradient(135deg,#222,#2a2a2a);}
+.card.selected{box-shadow:0 0 12px rgba(212,175,55,0.6);border-color:var(--gold);transform:translateY(-4px);}
+.card.in-deck{box-shadow:0 0 8px rgba(76,175,80,0.4);border-color:var(--shu);}
+.card.disabled{opacity:0.35;pointer-events:none;}
+.card.placed-this-turn{box-shadow:0 0 6px rgba(212,175,55,0.3);}
+.card-cost{position:absolute;top:2px;left:6px;font-size:11px;font-weight:900;color:var(--gold);}
+.card-power{position:absolute;bottom:2px;right:5px;font-size:11px;font-weight:900;color:#fff;
+text-shadow:0 1px 2px rgba(0,0,0,0.8);}
+.card-power.buffed{color:#4caf50;}
+.card-power.nerfed{color:#e74c3c;}
+.card-emoji{text-align:center;line-height:1;}
+.card-name{text-align:center;font-size:9px;color:var(--text);font-weight:700;
+white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 2px;}
+.card-type{position:absolute;top:2px;right:4px;font-size:8px;}
+.card-desc{font-size:7px;color:var(--text-dim);text-align:center;
+padding:0 2px;line-height:1.2;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+
+/* Deck builder card */
+.card-db{width:100%;aspect-ratio:3/4.2;padding:4px;}
+.card-db .card-emoji{font-size:24px;margin:4px 0 2px;}
+.card-db .card-name{font-size:11px;}
+.card-db .card-desc{font-size:8px;margin-top:2px;}
+.card-db .card-cost{font-size:13px;top:3px;left:7px;}
+.card-db .card-power{font-size:13px;bottom:3px;right:6px;}
+
+/* Hand card */
+.card-hand{width:58px;height:80px;flex-shrink:0;padding:2px;}
+.card-hand .card-emoji{font-size:18px;margin-top:14px;}
+.card-hand .card-name{font-size:8px;margin-top:1px;}
+.card-hand .card-desc{display:none;}
+
+/* Board card */
+.card-board{width:40px;height:54px;flex-shrink:0;padding:1px;}
+.card-board .card-emoji{font-size:14px;margin-top:12px;}
+.card-board .card-name{font-size:7px;margin-top:0;}
+.card-board .card-desc{display:none;}
+.card-board .card-cost{font-size:9px;top:1px;left:4px;}
+.card-board .card-power{font-size:9px;bottom:1px;right:3px;}
+
+/* Face-down card */
+.card-facedown{
+background:repeating-linear-gradient(45deg,#2a2218,#2a2218 4px,#322a1e 4px,#322a1e 8px)!important;
+border-color:#4a3f2f!important;
+}
+.card-facedown::before{display:none;}
+.card-facedown *{visibility:hidden;}
+.card-facedown::after{
+content:'?';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+font-size:18px;color:var(--text-dark);font-weight:900;visibility:visible;
+}
+
+/* Token card */
+.card-token{opacity:0.8;}
+.card-token::after{content:'';position:absolute;inset:0;border:1px dashed var(--text-dark);border-radius:3px;pointer-events:none;}
+
+/* === GAME BOARD === */
+.game{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.game-hud{
+display:flex;align-items:center;justify-content:space-between;
+padding:6px 10px;font-size:12px;min-height:36px;
+border-bottom:1px solid var(--card-border);
+}
+.hud-turn{color:var(--text);}
+.hud-energy{display:flex;gap:2px;align-items:center;}
+.energy-pip{width:10px;height:10px;border-radius:2px;border:1px solid var(--gold-dim);}
+.energy-pip.filled{background:var(--gold);border-color:var(--gold);}
+.energy-pip.used{background:var(--gold-dim);border-color:var(--gold-dim);opacity:0.4;}
+.hud-stakes{color:var(--red);font-weight:700;font-size:13px;}
+.hud-stakes.snapped{animation:pulse-snap 1s ease-in-out infinite;}
+.hud-merit{color:var(--gold-dim);font-size:11px;}
+
+.board{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+.board-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:0 4px;}
+
+/* Battlefield columns */
+.bf-col{display:flex;flex-direction:column;align-items:center;min-height:0;}
+
+/* AI card area */
+.bf-ai-cards{
+min-height:60px;display:flex;flex-wrap:nowrap;align-items:flex-end;justify-content:center;
+padding:2px;gap:0;
+}
+.bf-ai-cards .card-board{margin-left:-6px;}
+.bf-ai-cards .card-board:first-child{margin-left:0;}
+
+/* Battlefield info bar */
+.bf-info{
+text-align:center;padding:3px 2px;border-radius:3px;min-height:46px;
+background:rgba(255,255,255,0.03);border:1px solid var(--card-border);
+margin:2px 0;cursor:pointer;display:flex;flex-direction:column;justify-content:center;
+}
+.bf-info.unrevealed{background:rgba(0,0,0,0.3);border-style:dashed;}
+.bf-name{font-size:10px;font-weight:700;color:var(--gold);line-height:1.2;}
+.bf-effect{font-size:7px;color:var(--text-dim);line-height:1.2;margin:1px 0;}
+.bf-power-row{display:flex;justify-content:center;gap:4px;font-size:11px;font-weight:700;}
+.bf-power-p{color:var(--shu);}
+.bf-power-a{color:var(--wu);}
+.bf-power-vs{color:var(--text-dark);font-size:9px;}
+.bf-winner-p .bf-info{border-color:var(--shu);box-shadow:0 0 6px rgba(76,175,80,0.2);}
+.bf-winner-a .bf-info{border-color:var(--wu);box-shadow:0 0 6px rgba(231,76,60,0.2);}
+.bf-winner-tie .bf-info{border-color:var(--gold-dim);}
+
+/* Player card area */
+.bf-my-cards{
+min-height:60px;display:flex;flex-wrap:nowrap;align-items:flex-start;justify-content:center;
+padding:2px;gap:0;
+}
+.bf-my-cards .card-board{margin-left:-6px;}
+.bf-my-cards .card-board:first-child{margin-left:0;}
+
+/* Drop zone indicator */
+.bf-drop{
+position:absolute;inset:0;border:2px dashed var(--gold);border-radius:4px;
+background:rgba(212,175,55,0.08);opacity:0;pointer-events:none;transition:opacity .15s;
+}
+.bf-col.drop-target .bf-drop{opacity:1;pointer-events:auto;}
+.bf-col.drop-invalid .bf-drop{border-color:var(--red);background:rgba(196,30,58,0.08);}
+
+/* Hand area */
+.hand-area{
+border-top:1px solid var(--card-border);padding:6px 8px 4px;
+background:rgba(0,0,0,0.3);
+}
+.hand-cards{
+display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;
+-webkit-overflow-scrolling:touch;justify-content:center;min-height:84px;align-items:center;
+}
+.hand-empty{color:var(--text-dark);font-size:12px;text-align:center;width:100%;}
+
+/* Controls */
+.controls{
+display:flex;gap:6px;padding:6px 10px 8px;justify-content:center;
+border-top:1px solid var(--card-border);
+}
+
+/* === RESULT SCREEN === */
+.result{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;}
+.result-title{font-size:36px;font-weight:900;letter-spacing:4px;text-shadow:0 2px 10px rgba(0,0,0,0.5);}
+.result-title.win{color:var(--gold);}
+.result-title.lose{color:var(--red);}
+.result-title.draw{color:var(--text-dim);}
+.result-bfs{display:flex;gap:12px;margin:8px 0;}
+.result-bf{text-align:center;padding:8px 12px;border-radius:4px;border:1px solid var(--card-border);}
+.result-bf.won{border-color:var(--shu);color:var(--shu);}
+.result-bf.lost{border-color:var(--wu);color:var(--wu);}
+.result-bf.tied{border-color:var(--gold-dim);color:var(--gold-dim);}
+.result-merit{font-size:24px;font-weight:900;}
+.result-merit.positive{color:var(--shu);}
+.result-merit.negative{color:var(--wu);}
+.result-record{font-size:13px;color:var(--text-dim);}
+
+/* === HELP SCREEN === */
+.help{flex:1;overflow-y:auto;padding:16px;-webkit-overflow-scrolling:touch;}
+.help h2{color:var(--gold);font-size:18px;margin:16px 0 8px;letter-spacing:2px;}
+.help h2:first-child{margin-top:0;}
+.help p,.help li{color:var(--text-dim);font-size:13px;line-height:1.6;margin-bottom:6px;}
+.help ul{padding-left:20px;}
+.help-back{padding:10px;text-align:center;}
+
+/* === RECORDS === */
+.records{flex:1;display:flex;flex-direction:column;align-items:center;padding:20px;gap:12px;overflow-y:auto;}
+.records-title{font-size:20px;color:var(--gold);font-weight:700;letter-spacing:3px;}
+.stat-row{display:flex;gap:20px;font-size:16px;}
+.stat-item{text-align:center;}
+.stat-val{font-size:28px;font-weight:900;color:var(--text);}
+.stat-label{font-size:11px;color:var(--text-dim);letter-spacing:1px;}
+
+/* === CARD DETAIL MODAL === */
+.modal-overlay{
+position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;
+background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+}
+.modal-card{
+background:var(--card-bg);border:2px solid var(--gold-dim);border-radius:8px;
+padding:20px;max-width:300px;width:85%;text-align:center;
+}
+.modal-card .mc-emoji{font-size:48px;}
+.modal-card .mc-name{font-size:20px;font-weight:900;color:var(--gold);margin:4px 0;}
+.modal-card .mc-hanja{font-size:14px;color:var(--text-dim);}
+.modal-card .mc-stats{display:flex;justify-content:center;gap:20px;margin:10px 0;font-size:15px;}
+.modal-card .mc-cost{color:var(--gold);}
+.modal-card .mc-power{color:var(--text);}
+.modal-card .mc-faction{font-size:12px;margin:4px 0;}
+.modal-card .mc-type{font-size:12px;color:var(--text-dim);margin:2px 0;}
+.modal-card .mc-desc{font-size:14px;color:var(--text);margin:8px 0;line-height:1.5;}
+.modal-card .mc-lore{font-size:11px;color:var(--text-dark);font-style:italic;margin-top:8px;}
+
+/* === ANIMATIONS === */
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px);}to{opacity:1;transform:translateY(0);}}
+@keyframes cardDeal{from{opacity:0;transform:translateY(40px) scale(0.8);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes cardFlip{
+0%{transform:scaleX(1);}50%{transform:scaleX(0);}100%{transform:scaleX(1);}
+}
+@keyframes cardPlace{from{opacity:0;transform:scale(0.6);}to{opacity:1;transform:scale(1);}}
+@keyframes abilityFlash{
+0%{box-shadow:0 0 0 rgba(212,175,55,0);}
+50%{box-shadow:0 0 20px rgba(212,175,55,0.6);}
+100%{box-shadow:0 0 0 rgba(212,175,55,0);}
+}
+@keyframes snapFlash{
+0%{background:transparent;}
+25%{background:rgba(196,30,58,0.4);}
+50%{background:transparent;}
+75%{background:rgba(196,30,58,0.2);}
+100%{background:transparent;}
+}
+@keyframes destroyCard{from{opacity:1;transform:scale(1);}to{opacity:0;transform:scale(0) rotate(15deg);}}
+@keyframes bfReveal{
+0%{opacity:0;transform:rotateY(90deg);}
+100%{opacity:1;transform:rotateY(0);}
+}
+@keyframes floatText{
+0%{opacity:1;transform:translateY(0);}
+100%{opacity:0;transform:translateY(-30px);}
+}
+.anim-deal{animation:cardDeal .3s ease-out both;}
+.anim-flip{animation:cardFlip .4s ease-in-out;}
+.anim-place{animation:cardPlace .25s ease-out;}
+.anim-ability{animation:abilityFlash .5s ease-out;}
+.anim-destroy{animation:destroyCard .4s ease-in forwards;}
+.anim-bf-reveal{animation:bfReveal .5s ease-out both;}
+.anim-snap{animation:snapFlash .6s ease-out;}
+
+/* Float text for power changes */
+.float-text{
+position:absolute;pointer-events:none;font-size:14px;font-weight:900;
+animation:floatText .8s ease-out forwards;z-index:100;
+}
+.float-text.buff{color:var(--shu);}
+.float-text.nerf{color:var(--wu);}
+
+/* SNAP overlay */
+.snap-overlay{
+position:fixed;inset:0;z-index:999;display:flex;align-items:center;justify-content:center;
+background:rgba(139,21,40,0.5);animation:fadeIn .15s;
+}
+.snap-text{
+font-size:64px;font-weight:900;color:#fff;letter-spacing:12px;
+text-shadow:0 0 40px rgba(255,64,96,0.8),0 0 80px rgba(255,64,96,0.4);
+animation:slideUp .4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:var(--text-dark);border-radius:2px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* Responsive */
+@media(min-width:500px){
+.card-hand{width:68px;height:94px;}
+.card-hand .card-emoji{font-size:22px;}
+.card-hand .card-name{font-size:9px;}
+.card-board{width:46px;height:62px;}
+.card-board .card-emoji{font-size:16px;}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   TG SDK WRAPPER (INLINE)
+   ═══════════════════════════════════════════════════════════ */
+(function(){
+'use strict';
+const TG={
+app:window.Telegram?.WebApp,user:null,isReady:false,_backHandlers:[],
+init(){
+if(!this.app){this.isReady=true;this._injectStandalone();return false;}
+this.app.ready();this.app.expand();
+this.user=this.app.initDataUnsafe?.user||null;
+this._applyTheme();this._setupSafeArea();this._setupBack();
+this.app.onEvent('viewportChanged',({isStateStable})=>{if(isStateStable)this._updateVP();});
+this.app.onEvent('themeChanged',()=>this._applyTheme());
+this.isReady=true;return true;
+},
+_applyTheme(){
+const tp=this.app?.themeParams;if(!tp)return;
+const r=document.documentElement.style;
+const m={'--tg-bg':tp.bg_color,'--tg-text':tp.text_color,'--tg-hint':tp.hint_color,
+'--tg-button':tp.button_color,'--tg-secondary-bg':tp.secondary_bg_color};
+for(const[k,v]of Object.entries(m))if(v)r.setProperty(k,v);
+},
+_setupSafeArea(){
+this._applySA();
+if(this.app?.onEvent){
+this.app.onEvent('safeAreaChanged',()=>this._applySA());
+this.app.onEvent('contentSafeAreaChanged',()=>this._applySA());
+}
+this._updateVP();
+},
+_applySA(){
+const r=document.documentElement.style;
+const sa=this.app?.safeAreaInset||{top:0,bottom:0};
+const csa=this.app?.contentSafeAreaInset||{top:0,bottom:0};
+const t=sa.top+csa.top,b=sa.bottom+csa.bottom;
+r.setProperty('--safe-top',t+'px');r.setProperty('--safe-bottom',b+'px');
+},
+_updateVP(){
+const vh=this.app?.viewportStableHeight||window.innerHeight;
+document.documentElement.style.setProperty('--tg-viewport-height',vh+'px');
+},
+_setupBack(){
+if(!this.app?.BackButton)return;
+this.app.BackButton.show();
+this.app.BackButton.onClick(()=>{
+for(let i=this._backHandlers.length-1;i>=0;i--)if(this._backHandlers[i]())return;
+this.app.close();
+});
+},
+_injectStandalone(){
+const r=document.documentElement.style;
+r.setProperty('--tg-viewport-height',window.innerHeight+'px');
+r.setProperty('--safe-top','0px');r.setProperty('--safe-bottom','0px');
+window.addEventListener('resize',()=>r.setProperty('--tg-viewport-height',window.innerHeight+'px'));
+},
+getUserId(){return this.user?.id||'anon';},
+getUserName(){return this.user?.first_name||'Player';},
+getLang(){return this.user?.language_code||navigator.language?.slice(0,2)||'ko';},
+save(k,v){try{localStorage.setItem('tksnap_'+this.getUserId()+'_'+k,JSON.stringify(v));}catch(e){}},
+load(k,fb=null){try{const r=localStorage.getItem('tksnap_'+this.getUserId()+'_'+k);return r?JSON.parse(r):fb;}catch{return fb;}},
+haptic(type='impact',style='medium'){
+if(!this.app?.HapticFeedback)return;
+try{
+if(type==='impact')this.app.HapticFeedback.impactOccurred(style);
+else if(type==='notification')this.app.HapticFeedback.notificationOccurred(style);
+else this.app.HapticFeedback.selectionChanged();
+}catch{}
+},
+onBack(h){this._backHandlers.push(h);},
+offBack(h){this._backHandlers=this._backHandlers.filter(x=>x!==h);},
+shareScore(score,name){
+const text=`⚔️ 삼국지 SNAP에서 전공 ${score} 달성!\n도전해보세요! 👇`;
+const url='https://t.me/eastsea_games_bot?startapp=game_three-kingdoms-snap';
+if(this.app)this.app.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+}
+};
+window.TG=TG;
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>TG.init());
+else TG.init();
+})();
+
+/* ═══════════════════════════════════════════════════════════
+   i18n
+   ═══════════════════════════════════════════════════════════ */
+const LANG={
+ko:{
+title:'삼국지 SNAP',subtitle:'三國志',
+start:'출전',deckBuild:'진용 편성',records:'전적',help:'도움말',
+merit:'전공',turn:'턴',energy:'군량',
+endTurn:'출전 완료',snap:'🔥 결전',retreat:'🏳️ 퇴각',
+win:'대승',lose:'패배',draw:'무승부',
+selectCard:'장수를 선택하세요',selectBf:'전장을 선택하세요',
+deckSaved:'진용 저장 완료',deckNeed12:'12장을 선택하세요',
+save:'저장',back:'뒤로',reset:'초기화',
+all:'전체',wei:'위',shu:'촉',wu:'오',neutral:'무',
+noCards:'패에 카드가 없습니다',
+retreatConfirm:'퇴각하시겠습니까?',
+snapDeclare:'결전 선언!',aiSnap:'상대가 결전을 선언했습니다!',
+stakesLabel:'전공 배수',
+onReveal:'출전',ongoing:'지속',vanilla:'—',
+winsLabel:'승',lossesLabel:'패',drawsLabel:'무',
+totalMerit:'누적 전공',bestStreak:'최다 연승',
+helpTitle:'게임 규칙',
+bfFull:'전장이 가득 찼습니다',notEnoughEnergy:'군량이 부족합니다',
+bfRestriction:'이 전장에 배치할 수 없습니다',
+aiRetreated:'상대가 퇴각했습니다!',youRetreated:'퇴각했습니다.',
+replay:'다시 하기',home:'메뉴로',share:'공유',
+},
+en:{
+title:'Three Kingdoms SNAP',subtitle:'三國志',
+start:'Battle',deckBuild:'Build Deck',records:'Records',help:'Help',
+merit:'Merit',turn:'Turn',energy:'Energy',
+endTurn:'End Turn',snap:'🔥 SNAP',retreat:'🏳️ Retreat',
+win:'VICTORY',lose:'DEFEAT',draw:'DRAW',
+selectCard:'Select a general',selectBf:'Select a battlefield',
+deckSaved:'Deck saved',deckNeed12:'Select 12 cards',
+save:'Save',back:'Back',reset:'Reset',
+all:'All',wei:'Wei',shu:'Shu',wu:'Wu',neutral:'Misc',
+noCards:'No cards in hand',
+retreatConfirm:'Retreat and concede?',
+snapDeclare:'SNAP declared!',aiSnap:'Opponent declared SNAP!',
+stakesLabel:'Stakes',
+onReveal:'Deploy',ongoing:'Ongoing',vanilla:'—',
+winsLabel:'W',lossesLabel:'L',drawsLabel:'D',
+totalMerit:'Total Merit',bestStreak:'Best Streak',
+helpTitle:'How to Play',
+bfFull:'Battlefield is full',notEnoughEnergy:'Not enough energy',
+bfRestriction:'Cannot place here',
+aiRetreated:'Opponent retreated!',youRetreated:'You retreated.',
+replay:'Replay',home:'Menu',share:'Share',
+}
+};
+
+/* ═══════════════════════════════════════════════════════════
+   CARD DATA (36 cards + tokens)
+   ═══════════════════════════════════════════════════════════ */
+const CARDS=[
+// === WEI ===
+{id:'caocao',name:'조조',nameEn:'Cao Cao',hanja:'曹操',emoji:'👑',cost:4,basePower:3,faction:'wei',type:'onReveal',
+desc:'여기 모든 상대 카드 -1',descEn:'All enemy cards here -1'},
+{id:'simayi',name:'사마의',nameEn:'Sima Yi',hanja:'司馬懿',emoji:'🦊',cost:5,basePower:4,faction:'wei',type:'onReveal',
+desc:'여기 상대 지속효과 무효화',descEn:'Silence enemy Ongoing here'},
+{id:'zhangliao',name:'장료',nameEn:'Zhang Liao',hanja:'張遼',emoji:'⚔️',cost:3,basePower:2,faction:'wei',type:'onReveal',
+desc:'여기 랜덤 상대 -3',descEn:'Random enemy here -3'},
+{id:'xiahoudun',name:'하후돈',nameEn:'Xiahou Dun',hanja:'夏侯惇',emoji:'👁️',cost:2,basePower:1,faction:'wei',type:'onReveal',
+desc:'여기 상대 전체 -1',descEn:'All enemies here -1'},
+{id:'xunyu',name:'순욱',nameEn:'Xun Yu',hanja:'荀彧',emoji:'📜',cost:2,basePower:1,faction:'wei',type:'ongoing',
+desc:'여기 다른 위 장수 +2',descEn:'Other Wei allies here +2'},
+{id:'guojia',name:'곽가',nameEn:'Guo Jia',hanja:'郭嘉',emoji:'🎯',cost:1,basePower:1,faction:'wei',type:'onReveal',
+desc:'카드 1장 뽑기',descEn:'Draw 1 card'},
+{id:'dianwei',name:'전위',nameEn:'Dian Wei',hanja:'典韋',emoji:'🛡️',cost:3,basePower:4,faction:'wei',type:'none',desc:'',descEn:''},
+{id:'xuchu',name:'허저',nameEn:'Xu Chu',hanja:'許褚',emoji:'💪',cost:4,basePower:6,faction:'wei',type:'none',desc:'',descEn:''},
+{id:'caoren',name:'조인',nameEn:'Cao Ren',hanja:'曹仁',emoji:'🏰',cost:2,basePower:3,faction:'wei',type:'none',desc:'',descEn:''},
+{id:'zhanghe',name:'장합',nameEn:'Zhang He',hanja:'張郃',emoji:'🐎',cost:3,basePower:2,faction:'wei',type:'onReveal',
+desc:'승리 중인 다른 전장으로 이동',descEn:'Move to winning battlefield'},
+// === SHU ===
+{id:'liubei',name:'유비',nameEn:'Liu Bei',hanja:'劉備',emoji:'🤝',cost:4,basePower:2,faction:'shu',type:'ongoing',
+desc:'여기 다른 촉 장수 +2',descEn:'Other Shu allies here +2'},
+{id:'guanyu',name:'관우',nameEn:'Guan Yu',hanja:'關羽',emoji:'🗡️',cost:5,basePower:7,faction:'shu',type:'ongoing',
+desc:'여기 혼자면 +5',descEn:'If alone here +5'},
+{id:'zhangfei',name:'장비',nameEn:'Zhang Fei',hanja:'張飛',emoji:'😤',cost:3,basePower:3,faction:'shu',type:'onReveal',
+desc:'이곳 첫 아군이면 +3',descEn:'If first ally here +3'},
+{id:'zhugeliang',name:'제갈량',nameEn:'Zhuge Liang',hanja:'諸葛亮',emoji:'🪶',cost:5,basePower:3,faction:'shu',type:'onReveal',
+desc:'상대 전장 하나 전체 -2',descEn:'All cards in one enemy BF -2'},
+{id:'zhaoyun',name:'조운',nameEn:'Zhao Yun',hanja:'趙雲',emoji:'🐉',cost:4,basePower:4,faction:'shu',type:'onReveal',
+desc:'아군 없는 전장으로 이동',descEn:'Move to empty ally BF'},
+{id:'machao',name:'마초',nameEn:'Ma Chao',hanja:'馬超',emoji:'🏇',cost:3,basePower:3,faction:'shu',type:'onReveal',
+desc:'여기 가장 약한 상대 파괴',descEn:'Destroy weakest enemy here'},
+{id:'huangzhong',name:'황충',nameEn:'Huang Zhong',hanja:'黃忠',emoji:'🏹',cost:2,basePower:1,faction:'shu',type:'onReveal',
+desc:'6턴이면 +5',descEn:'If turn 6, +5'},
+{id:'pangtong',name:'방통',nameEn:'Pang Tong',hanja:'龐統',emoji:'🔗',cost:3,basePower:1,faction:'shu',type:'onReveal',
+desc:'이 전장 랜덤 교체',descEn:'Replace this battlefield'},
+{id:'weiyan',name:'위연',nameEn:'Wei Yan',hanja:'魏延',emoji:'😈',cost:4,basePower:7,faction:'shu',type:'ongoing',
+desc:'여기서 지면 -3',descEn:'If losing here -3'},
+{id:'guanxing',name:'관흥',nameEn:'Guan Xing',hanja:'關興',emoji:'⚡',cost:1,basePower:2,faction:'shu',type:'none',desc:'',descEn:''},
+// === WU ===
+{id:'sunquan',name:'손권',nameEn:'Sun Quan',hanja:'孫權',emoji:'🐯',cost:4,basePower:3,faction:'wu',type:'onReveal',
+desc:'여기 랜덤 아군 +3',descEn:'Random ally here +3'},
+{id:'zhouyu',name:'주유',nameEn:'Zhou Yu',hanja:'周瑜',emoji:'🔥',cost:5,basePower:4,faction:'wu',type:'onReveal',
+desc:'여기 최강 상대 파괴',descEn:'Destroy strongest enemy here'},
+{id:'lvmeng',name:'여몽',nameEn:'Lü Meng',hanja:'呂蒙',emoji:'🌊',cost:3,basePower:2,faction:'wu',type:'onReveal',
+desc:'상대 카드에서 파워 2 훔침',descEn:'Steal 2 power from enemy'},
+{id:'ganning',name:'감녕',nameEn:'Gan Ning',hanja:'甘寧',emoji:'⚓',cost:2,basePower:2,faction:'wu',type:'onReveal',
+desc:'여기 랜덤 상대 -2',descEn:'Random enemy here -2'},
+{id:'luxun',name:'육손',nameEn:'Lu Xun',hanja:'陸遜',emoji:'📖',cost:4,basePower:2,faction:'wu',type:'onReveal',
+desc:'이곳 2코 이하 카드 모두 파괴',descEn:'Destroy all ≤2 cost cards here'},
+{id:'taishici',name:'태사자',nameEn:'Taishi Ci',hanja:'太史慈',emoji:'🎯',cost:3,basePower:4,faction:'wu',type:'none',desc:'',descEn:''},
+{id:'huanggai',name:'황개',nameEn:'Huang Gai',hanja:'黃蓋',emoji:'🚢',cost:2,basePower:0,faction:'wu',type:'onReveal',
+desc:'자신 파괴, 4파워 화선 생성',descEn:'Destroy self, create 4-power Fire Ship'},
+{id:'sunce',name:'손책',nameEn:'Sun Ce',hanja:'孫策',emoji:'⚔️',cost:3,basePower:3,faction:'wu',type:'onReveal',
+desc:'각 전장에 1/1 병사 추가',descEn:'Add 1/1 Soldier to each BF'},
+{id:'daqiaoxiaoqiao',name:'대교소교',nameEn:'Da Qiao & Xiao Qiao',hanja:'大喬小喬',emoji:'💃',cost:1,basePower:1,faction:'wu',type:'ongoing',
+desc:'여기 아군 파괴 불가',descEn:'Allies here can\'t be destroyed'},
+{id:'lusu',name:'노숙',nameEn:'Lu Su',hanja:'魯肅',emoji:'🤝',cost:2,basePower:1,faction:'wu',type:'onReveal',
+desc:'양측 카드 1장 뽑기',descEn:'Both sides draw 1'},
+// === NEUTRAL ===
+{id:'lvbu',name:'여포',nameEn:'Lü Bu',hanja:'呂布',emoji:'💀',cost:6,basePower:10,faction:'neutral',type:'ongoing',
+desc:'혼자면 +4, 아군 있으면 각 -2',descEn:'Alone +4, else allies -2'},
+{id:'diaochan',name:'초선',nameEn:'Diao Chan',hanja:'貂蟬',emoji:'💎',cost:2,basePower:1,faction:'neutral',type:'onReveal',
+desc:'랜덤 상대를 다른 전장으로',descEn:'Move random enemy to other BF'},
+{id:'dongzhuo',name:'동탁',nameEn:'Dong Zhuo',hanja:'董卓',emoji:'👹',cost:6,basePower:8,faction:'neutral',type:'onReveal',
+desc:'모든 전장 파워2이하 파괴',descEn:'Destroy all ≤2 power cards everywhere'},
+{id:'huatuo',name:'화타',nameEn:'Hua Tuo',hanja:'華佗',emoji:'💊',cost:1,basePower:0,faction:'neutral',type:'onReveal',
+desc:'여기 다른 아군 +3',descEn:'Another ally here +3'},
+{id:'zhangjiao',name:'장각',nameEn:'Zhang Jiao',hanja:'張角',emoji:'📿',cost:3,basePower:2,faction:'neutral',type:'onReveal',
+desc:'빈칸에 1/1 황건적 채움',descEn:'Fill empty slots with 1/1 Yellow Turbans'},
+{id:'zuoci',name:'좌자',nameEn:'Zuo Ci',hanja:'左慈',emoji:'🎭',cost:3,basePower:0,faction:'neutral',type:'onReveal',
+desc:'여기 최강 상대 파워 복사',descEn:'Copy strongest enemy\'s power'},
+];
+
+const TOKEN_DEFS={
+soldier:{id:'token_soldier',name:'병사',nameEn:'Soldier',hanja:'兵',emoji:'🗡️',cost:0,basePower:1,faction:'neutral',type:'none',desc:'',descEn:'',isToken:true},
+fireship:{id:'token_fireship',name:'화선',nameEn:'Fire Ship',hanja:'火',emoji:'🔥',cost:0,basePower:4,faction:'wu',type:'none',desc:'',descEn:'',isToken:true},
+yellowturban:{id:'token_yellowturban',name:'황건적',nameEn:'Yellow Turban',hanja:'黃',emoji:'🟡',cost:0,basePower:1,faction:'neutral',type:'none',desc:'',descEn:'',isToken:true},
+nanman:{id:'token_nanman',name:'남만병',nameEn:'Nanman',hanja:'蠻',emoji:'🌿',cost:0,basePower:1,faction:'neutral',type:'none',desc:'',descEn:'',isToken:true},
+};
+
+/* ═══════════════════════════════════════════════════════════
+   BATTLEFIELD DATA (15)
+   ═══════════════════════════════════════════════════════════ */
+const BATTLEFIELDS=[
+{id:'chibi',name:'적벽',nameEn:'Red Cliffs',hanja:'赤壁',
+desc:'턴 종료: 양측 최강 -2',descEn:'End: strongest each side -2',timing:'turnEnd'},
+{id:'guandu',name:'관도',nameEn:'Guandu',hanja:'官渡',
+desc:'먼저 놓은 측 전체 +2',descEn:'First to place: all +2',timing:'ongoing'},
+{id:'yiling',name:'이릉',nameEn:'Yiling',hanja:'夷陵',
+desc:'턴 종료: 1코 이하 파괴',descEn:'End: destroy ≤1 cost',timing:'turnEnd'},
+{id:'changbanpo',name:'장판파',nameEn:'Changban',hanja:'長坂坡',
+desc:'각 측 첫 카드 +5',descEn:'First card each side +5',timing:'ongoing'},
+{id:'wuzhangyuan',name:'오장원',nameEn:'Wuzhang Plains',hanja:'五丈原',
+desc:'마지막 턴: 전체 +3',descEn:'Final turn: all +3',timing:'ongoing'},
+{id:'xuchang',name:'허창',nameEn:'Xuchang',hanja:'許昌',
+desc:'위(魏) 장수 +2',descEn:'Wei generals +2',timing:'ongoing'},
+{id:'chengdu',name:'성도',nameEn:'Chengdu',hanja:'成都',
+desc:'촉(蜀) 장수 +2',descEn:'Shu generals +2',timing:'ongoing'},
+{id:'jianye',name:'건업',nameEn:'Jianye',hanja:'建業',
+desc:'오(吳) 장수 +2',descEn:'Wu generals +2',timing:'ongoing'},
+{id:'luoyang',name:'낙양',nameEn:'Luoyang',hanja:'洛陽',
+desc:'카드 배치 시 1장 뽑기',descEn:'Draw 1 on card place',timing:'onPlace'},
+{id:'tongguan',name:'동관',nameEn:'Tongguan',hanja:'潼關',
+desc:'최대 2장만 배치 가능',descEn:'Max 2 cards per side',timing:'restriction'},
+{id:'hefei',name:'합비',nameEn:'Hefei',hanja:'合肥',
+desc:'모든 카드 +1',descEn:'All cards +1',timing:'ongoing'},
+{id:'jingzhou',name:'형주',nameEn:'Jingzhou',hanja:'荊州',
+desc:'각 측 마지막 카드 +3',descEn:'Last card each side +3',timing:'ongoing'},
+{id:'hanzhong',name:'한중',nameEn:'Hanzhong',hanja:'漢中',
+desc:'3코 이상만 배치 가능',descEn:'Only ≥3 cost cards',timing:'restriction'},
+{id:'hulao',name:'호로관',nameEn:'Hulao Pass',hanja:'虎牢關',
+desc:'6코 장수 +5',descEn:'6-cost generals +5',timing:'ongoing'},
+{id:'menghuomirin',name:'맹획밀림',nameEn:'Nanman Jungle',hanja:'孟獲密林',
+desc:'턴 시작: 양측 1/1 남만병',descEn:'Start: add 1/1 Nanman each',timing:'turnStart'},
+];
+
+/* ═══════════════════════════════════════════════════════════
+   AI DECK TEMPLATES
+   ═══════════════════════════════════════════════════════════ */
+const AI_DECKS=[
+{name:'위 제어덱',nameEn:'Wei Control',
+cards:['caocao','simayi','zhangliao','xiahoudun','xunyu','guojia','dianwei','xuchu','caoren','lvbu','huatuo','dongzhuo']},
+{name:'촉 결속덱',nameEn:'Shu Bond',
+cards:['liubei','guanyu','zhangfei','zhugeliang','zhaoyun','machao','huangzhong','pangtong','guanxing','huatuo','lvbu','diaochan']},
+{name:'오 파괴덱',nameEn:'Wu Destroy',
+cards:['sunquan','zhouyu','lvmeng','ganning','luxun','taishici','huanggai','sunce','daqiaoxiaoqiao','lusu','dongzhuo','zhangjiao']},
+{name:'혼합 공격덱',nameEn:'Mixed Assault',
+cards:['caocao','guanyu','zhouyu','lvbu','dianwei','taishici','guojia','ganning','huatuo','zhangjiao','xuchu','machao']},
+];
+
+const DEFAULT_DECK=['caocao','liubei','sunquan','guanyu','dianwei','taishici','guojia','huatuo','ganning','huangzhong','lvbu','guanxing'];
+
+/* ═══════════════════════════════════════════════════════════
+   GAME STATE
+   ═══════════════════════════════════════════════════════════ */
+let uid_counter=0;
+function newUid(){return++uid_counter;}
+
+const G={
+screen:'menu',turn:0,maxTurn:6,energy:0,energyUsed:0,
+playerDeck:[],playerHand:[],aiDeck:[],aiHand:[],
+battlefields:[null,null,null],
+stakes:1,playerSnapped:false,aiSnapped:false,
+gameOver:false,isProcessing:false,
+selectedHandIdx:null,
+pendingPlays:[],// {uid, bfIndex} for cards placed this turn
+lang:'ko',
+// Records
+merit:0,wins:0,losses:0,draws:0,bestStreak:0,currentStreak:0,
+// Deck builder
+buildDeck:[],buildFilter:'all',
+// Modal
+modal:null,
+// message
+message:null,messageTimer:null,
+};
+
+/* ═══════════════════════════════════════════════════════════
+   UTILITY
+   ═══════════════════════════════════════════════════════════ */
+function t(key){return(LANG[G.lang]||LANG.ko)[key]||key;}
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function delay(ms){return new Promise(r=>setTimeout(r,ms));}
+function getCardDef(id){return CARDS.find(c=>c.id===id);}
+function cardName(c){return G.lang==='ko'?c.name:c.nameEn;}
+function cardDesc(c){return G.lang==='ko'?c.desc:c.descEn;}
+function bfName(b){return G.lang==='ko'?b.name:b.nameEn;}
+function bfDesc(b){return G.lang==='ko'?b.desc:b.descEn;}
+function factionClass(f){return'f-'+(f||'neutral');}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+
+function makeCard(def,owner){
+return{...def,uid:newUid(),powerMod:0,silenced:false,isActive:false,isDestroyed:false,
+owner,bfIndex:-1,turnPlaced:0,placedThisTurn:false,isToken:def.isToken||false};
+}
+
+function showMsg(msg,duration=1500){
+G.message=msg;render();
+clearTimeout(G.messageTimer);
+G.messageTimer=setTimeout(()=>{G.message=null;render();},duration);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   POWER CALCULATION
+   ═══════════════════════════════════════════════════════════ */
+function getEffectivePower(card,bfIdx){
+if(card.isDestroyed)return 0;
+let p=card.basePower+card.powerMod;
+
+// Self ongoing bonus
+if(card.isActive&&!card.silenced&&card.type==='ongoing'){
+p+=getSelfOngoing(card,bfIdx);
+}
+
+const bf=G.battlefields[bfIdx];
+if(!bf)return p;
+const allCards=[...bf.playerCards,...bf.aiCards];
+
+// Other cards' ongoing effects on this card
+for(const other of allCards){
+if(other===card||other.isDestroyed||!other.isActive||other.silenced||other.type!=='ongoing')continue;
+if(other.owner===card.owner){
+p+=getAllyOngoing(other,card,bfIdx);
+}
+// Enemy ongoing that affects this card (여포 only affects allies, not enemies)
+}
+
+// Battlefield ongoing
+p+=getBfBonus(card,bfIdx);
+
+return p;
+}
+
+function getSelfOngoing(card,bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf)return 0;
+const myCards=card.owner==='player'?bf.playerCards:bf.aiCards;
+const activeAllies=myCards.filter(c=>c!==card&&!c.isDestroyed);
+
+switch(card.id){
+case'guanyu':return activeAllies.length===0?5:0;
+case'weiyan':{
+const myPow=calcBfPowerRaw(card.owner,bfIdx);
+const oppPow=calcBfPowerRaw(card.owner==='player'?'ai':'player',bfIdx);
+return myPow<oppPow?-3:0;
+}
+case'lvbu':return activeAllies.length===0?4:0;
+default:return 0;
+}
+}
+
+function getAllyOngoing(source,target,bfIdx){
+if(source===target)return 0;
+switch(source.id){
+case'xunyu':return target.faction==='wei'?2:0;
+case'liubei':return target.faction==='shu'?2:0;
+case'lvbu':return-2;// Allies get -2
+default:return 0;
+}
+}
+
+function getBfBonus(card,bfIdx){
+const bf=G.battlefields[bfIdx];
+if(!bf||!bf.revealed||!bf.def)return 0;
+let b=0;
+const def=bf.def;
+switch(def.id){
+case'xuchang':if(card.faction==='wei')b+=2;break;
+case'chengdu':if(card.faction==='shu')b+=2;break;
+case'jianye':if(card.faction==='wu')b+=2;break;
+case'hefei':b+=1;break;
+case'hulao':if(card.cost===6)b+=5;break;
+case'wuzhangyuan':if(G.turn>=6)b+=3;break;
+case'changbanpo':{
+const myCards=card.owner==='player'?bf.playerCards:bf.aiCards;
+const first=myCards.find(c=>!c.isDestroyed);
+if(first&&first.uid===card.uid)b+=5;
+break;
+}
+case'jingzhou':{
+const myCards=card.owner==='player'?bf.playerCards:bf.aiCards;
+const active=myCards.filter(c=>!c.isDestroyed);
+if(active.length>0&&active[active.length-1].uid===card.uid)b+=3;
+break;
+}
+case'guandu':{
+if(bf.whoPlacedFirst===card.owner)b+=2;
+break;
+}
+}
+return b;
+}
+
+// Raw power without considering circular references
+function calcBfPowerRaw(owner,bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf)return 0;
+const cards=owner==='player'?bf.playerCards:bf.aiCards;
+let total=0;
+for(const c of cards){
+if(c.isDestroyed)continue;
+total+=c.basePower+c.powerMod;
+}
+return total;
+}
+
+function calcBfPower(owner,bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf)return 0;
+const cards=owner==='player'?bf.playerCards:bf.aiCards;
+let total=0;
+for(const c of cards)if(!c.isDestroyed)total+=getEffectivePower(c,bfIdx);
+return total;
+}
+
+function getBfWinner(bfIdx){
+const p=calcBfPower('player',bfIdx);
+const a=calcBfPower('ai',bfIdx);
+if(p>a)return'player';if(a>p)return'ai';return'tie';
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARD ABILITIES
+   ═══════════════════════════════════════════════════════════ */
+function isIndestructible(card,bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf)return false;
+const myCards=card.owner==='player'?bf.playerCards:bf.aiCards;
+return myCards.some(c=>c.id==='daqiaoxiaoqiao'&&c.isActive&&!c.silenced&&!c.isDestroyed&&c!==card);
+}
+
+function destroyCard(card,bfIdx){
+if(card.isDestroyed)return false;
+if(isIndestructible(card,bfIdx))return false;
+card.isDestroyed=true;
+return true;
+}
+
+function drawCard(owner,count=1){
+for(let i=0;i<count;i++){
+const deck=owner==='player'?G.playerDeck:G.aiDeck;
+const hand=owner==='player'?G.playerHand:G.aiHand;
+if(deck.length>0&&hand.length<10){
+hand.push(deck.pop());
+}
+}
+}
+
+function getOppCards(owner,bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf)return[];
+return(owner==='player'?bf.aiCards:bf.playerCards).filter(c=>!c.isDestroyed);
+}
+
+function getMyCards(owner,bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf)return[];
+return(owner==='player'?bf.playerCards:bf.aiCards).filter(c=>!c.isDestroyed);
+}
+
+function addToken(tokenType,owner,bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf)return null;
+const myCards=owner==='player'?bf.playerCards:bf.aiCards;
+const maxCards=bf.def?.id==='tongguan'?2:4;
+if(myCards.filter(c=>!c.isDestroyed).length>=maxCards)return null;
+// Check hanzhong restriction
+if(bf.def?.id==='hanzhong'&&TOKEN_DEFS[tokenType].cost<3)return null;
+const token=makeCard(TOKEN_DEFS[tokenType],owner);
+token.bfIndex=bfIdx;token.turnPlaced=G.turn;token.isActive=true;
+myCards.push(token);
+return token;
+}
+
+function executeAbility(card,bfIdx){
+if(card.type!=='onReveal'||card.silenced)return;
+const bf=G.battlefields[bfIdx];if(!bf)return;
+const owner=card.owner;
+const opp=owner==='player'?'ai':'player';
+
+switch(card.id){
+case'caocao':case'xiahoudun':{
+const oppCards=getOppCards(owner,bfIdx);
+oppCards.forEach(c=>{c.powerMod-=1;});
+break;
+}
+case'simayi':{
+const oppCards=getOppCards(owner,bfIdx);
+oppCards.forEach(c=>{if(c.type==='ongoing')c.silenced=true;});
+break;
+}
+case'zhangliao':{
+const oppCards=getOppCards(owner,bfIdx);
+if(oppCards.length>0){
+const target=oppCards[Math.floor(Math.random()*oppCards.length)];
+target.powerMod-=3;
+}
+break;
+}
+case'guojia':drawCard(owner,1);break;
+case'zhanghe':{
+// Move to winning other battlefield
+const otherBfs=[0,1,2].filter(i=>i!==bfIdx);
+const winningBfs=otherBfs.filter(i=>{
+const w=getBfWinner(i);return w===owner;
+});
+if(winningBfs.length>0){
+const target=winningBfs[Math.floor(Math.random()*winningBfs.length)];
+moveCard(card,bfIdx,target);
+}
+break;
+}
+case'zhangfei':{
+const myCards=getMyCards(owner,bfIdx);
+const activeAllies=myCards.filter(c=>c!==card&&c.isActive);
+if(activeAllies.length===0)card.powerMod+=3;
+break;
+}
+case'zhugeliang':{
+// Pick opponent BF with most cards
+const otherBfs=[0,1,2].filter(i=>i!==bfIdx);
+let bestBf=-1,bestCount=-1;
+for(const i of otherBfs){
+const oppCards=getOppCards(owner,i);
+if(oppCards.length>bestCount){bestCount=oppCards.length;bestBf=i;}
+}
+if(bestBf>=0){
+getOppCards(owner,bestBf).forEach(c=>{c.powerMod-=2;});
+}
+break;
+}
+case'zhaoyun':{
+const otherBfs=[0,1,2].filter(i=>i!==bfIdx);
+const emptyBfs=otherBfs.filter(i=>{
+const myCards=getMyCards(owner,i);
+return myCards.length===0;
+});
+if(emptyBfs.length>0){
+const target=emptyBfs[Math.floor(Math.random()*emptyBfs.length)];
+moveCard(card,bfIdx,target);
+}
+break;
+}
+case'machao':{
+const oppCards=getOppCards(owner,bfIdx);
+if(oppCards.length>0){
+let weakest=oppCards[0],weakPow=getEffectivePower(oppCards[0],bfIdx);
+for(const c of oppCards){
+const p=getEffectivePower(c,bfIdx);
+if(p<weakPow){weakPow=p;weakest=c;}
+}
+destroyCard(weakest,bfIdx);
+}
+break;
+}
+case'huangzhong':if(G.turn>=6)card.powerMod+=5;break;
+case'pangtong':{
+const usedIds=G.battlefields.map(b=>b.def?.id).filter(Boolean);
+const available=BATTLEFIELDS.filter(b=>!usedIds.includes(b.id));
+if(available.length>0){
+const newBf=available[Math.floor(Math.random()*available.length)];
+bf.def=newBf;bf.revealed=true;
+}
+break;
+}
+case'sunquan':{
+const myCards=getMyCards(owner,bfIdx).filter(c=>c!==card);
+if(myCards.length>0){
+const target=myCards[Math.floor(Math.random()*myCards.length)];
+target.powerMod+=3;
+}
+break;
+}
+case'zhouyu':{
+const oppCards=getOppCards(owner,bfIdx);
+if(oppCards.length>0){
+let strongest=oppCards[0],strongPow=getEffectivePower(oppCards[0],bfIdx);
+for(const c of oppCards){
+const p=getEffectivePower(c,bfIdx);
+if(p>strongPow){strongPow=p;strongest=c;}
+}
+destroyCard(strongest,bfIdx);
+}
+break;
+}
+case'lvmeng':{
+const oppCards=getOppCards(owner,bfIdx);
+if(oppCards.length>0){
+const target=oppCards[Math.floor(Math.random()*oppCards.length)];
+target.powerMod-=2;
+card.powerMod+=2;
+}
+break;
+}
+case'ganning':{
+const oppCards=getOppCards(owner,bfIdx);
+if(oppCards.length>0){
+const target=oppCards[Math.floor(Math.random()*oppCards.length)];
+target.powerMod-=2;
+}
+break;
+}
+case'luxun':{
+const allCards=[...bf.playerCards,...bf.aiCards];
+allCards.forEach(c=>{
+if(!c.isDestroyed&&c.cost<=2&&c!==card){
+destroyCard(c,bfIdx);
+}
+});
+break;
+}
+case'huanggai':{
+destroyCard(card,bfIdx);
+addToken('fireship',owner,bfIdx);
+break;
+}
+case'sunce':{
+for(let i=0;i<3;i++)addToken('soldier',owner,i);
+break;
+}
+case'lusu':drawCard('player',1);drawCard('ai',1);break;
+case'diaochan':{
+const oppCards=getOppCards(owner,bfIdx);
+if(oppCards.length>0){
+const target=oppCards[Math.floor(Math.random()*oppCards.length)];
+const otherBfs=[0,1,2].filter(i=>i!==bfIdx);
+if(otherBfs.length>0){
+const dest=otherBfs[Math.floor(Math.random()*otherBfs.length)];
+moveCard(target,bfIdx,dest);
+}
+}
+break;
+}
+case'dongzhuo':{
+for(let i=0;i<3;i++){
+const allCards=[...G.battlefields[i].playerCards,...G.battlefields[i].aiCards];
+allCards.forEach(c=>{
+if(!c.isDestroyed&&c!==card&&getEffectivePower(c,i)<=2){
+destroyCard(c,i);
+}
+});
+}
+break;
+}
+case'huatuo':{
+const myCards=getMyCards(owner,bfIdx).filter(c=>c!==card);
+if(myCards.length>0){
+const target=myCards[Math.floor(Math.random()*myCards.length)];
+target.powerMod+=3;
+}
+break;
+}
+case'zhangjiao':{
+const myCards=getMyCards(owner,bfIdx);
+const maxCards=bf.def?.id==='tongguan'?2:4;
+const slots=maxCards-myCards.length;
+for(let i=0;i<slots;i++)addToken('yellowturban',owner,bfIdx);
+break;
+}
+case'zuoci':{
+const oppCards=getOppCards(owner,bfIdx);
+if(oppCards.length>0){
+let maxPow=-999;
+for(const c of oppCards){
+const p=getEffectivePower(c,bfIdx);
+if(p>maxPow)maxPow=p;
+}
+card.powerMod=maxPow-card.basePower;
+}
+break;
+}
+}
+}
+
+function moveCard(card,fromBf,toBf){
+const from=G.battlefields[fromBf];const to=G.battlefields[toBf];
+if(!from||!to)return;
+// Check destination limits
+const toCards=card.owner==='player'?to.playerCards:to.aiCards;
+const maxCards=to.def?.id==='tongguan'?2:4;
+if(toCards.filter(c=>!c.isDestroyed).length>=maxCards)return;
+// Check hanzhong restriction
+if(to.def?.id==='hanzhong'&&card.cost<3)return;
+
+// Remove from source
+const fromCards=card.owner==='player'?from.playerCards:from.aiCards;
+const idx=fromCards.indexOf(card);
+if(idx>=0)fromCards.splice(idx,1);
+// Add to destination
+toCards.push(card);
+card.bfIndex=toBf;
+// Track placement for bf effects
+if(!to.whoPlacedFirst)to.whoPlacedFirst=card.owner;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BATTLEFIELD EFFECTS
+   ═══════════════════════════════════════════════════════════ */
+function applyBfTurnEnd(bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf||!bf.revealed||!bf.def)return;
+switch(bf.def.id){
+case'chibi':{
+// Strongest card each side -2
+for(const owner of['player','ai']){
+const cards=owner==='player'?bf.playerCards:bf.aiCards;
+const active=cards.filter(c=>!c.isDestroyed);
+if(active.length>0){
+let strongest=active[0],sPow=getEffectivePower(active[0],bfIdx);
+for(const c of active){
+const p=getEffectivePower(c,bfIdx);
+if(p>sPow){sPow=p;strongest=c;}
+}
+strongest.powerMod-=2;
+}
+}
+break;
+}
+case'yiling':{
+// Destroy all ≤1 cost cards
+const allCards=[...bf.playerCards,...bf.aiCards];
+allCards.forEach(c=>{
+if(!c.isDestroyed&&c.cost<=1)destroyCard(c,bfIdx);
+});
+break;
+}
+}
+}
+
+function applyBfTurnStart(bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf||!bf.revealed||!bf.def)return;
+switch(bf.def.id){
+case'menghuomirin':{
+addToken('nanman','player',bfIdx);
+addToken('nanman','ai',bfIdx);
+break;
+}
+}
+}
+
+function applyBfOnPlace(owner,bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf||!bf.revealed||!bf.def)return;
+switch(bf.def.id){
+case'luoyang':drawCard(owner,1);break;
+}
+}
+
+function canPlaceAt(card,bfIdx){
+const bf=G.battlefields[bfIdx];if(!bf)return false;
+const myCards=(card.owner||'player')==='player'?bf.playerCards:bf.aiCards;
+const activeCount=myCards.filter(c=>!c.isDestroyed).length;
+// Max cards
+const maxCards=bf.def?.id==='tongguan'&&bf.revealed?2:4;
+if(activeCount>=maxCards)return false;
+// Hanzhong restriction
+if(bf.def?.id==='hanzhong'&&bf.revealed&&card.cost<3)return false;
+return true;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GAME FLOW
+   ═══════════════════════════════════════════════════════════ */
+function loadRecords(){
+G.merit=TG.load('merit',0);
+G.wins=TG.load('wins',0);
+G.losses=TG.load('losses',0);
+G.draws=TG.load('draws',0);
+G.bestStreak=TG.load('bestStreak',0);
+G.currentStreak=TG.load('currentStreak',0);
+}
+
+function saveRecords(){
+TG.save('merit',G.merit);TG.save('wins',G.wins);
+TG.save('losses',G.losses);TG.save('draws',G.draws);
+TG.save('bestStreak',G.bestStreak);TG.save('currentStreak',G.currentStreak);
+}
+
+function loadDeck(){
+const saved=TG.load('deck',null);
+if(saved&&saved.length===12)return saved;
+return[...DEFAULT_DECK];
+}
+
+function startGame(){
+G.screen='game';G.turn=0;G.energy=0;G.energyUsed=0;
+G.stakes=1;G.playerSnapped=false;G.aiSnapped=false;
+G.gameOver=false;G.isProcessing=false;G.selectedHandIdx=null;
+G.pendingPlays=[];G.modal=null;G.message=null;
+
+// Setup decks
+const playerDeckIds=loadDeck();
+const aiDeckTemplate=AI_DECKS[Math.floor(Math.random()*AI_DECKS.length)];
+const playerCards=shuffle(playerDeckIds.map(id=>{const def=getCardDef(id);return makeCard(def,'player');}));
+const aiCards=shuffle(aiDeckTemplate.cards.map(id=>{const def=getCardDef(id);return makeCard(def,'ai');}));
+
+G.playerHand=playerCards.splice(0,3);
+G.playerDeck=playerCards;
+G.aiHand=aiCards.splice(0,3);
+G.aiDeck=aiCards;
+
+// Setup battlefields
+const bfDefs=shuffle([...BATTLEFIELDS]).slice(0,3);
+G.battlefields=bfDefs.map(def=>({
+def,revealed:false,playerCards:[],aiCards:[],
+whoPlacedFirst:null,
+}));
+
+render();
+nextTurn();
+}
+
+async function nextTurn(){
+G.turn++;
+if(G.turn>G.maxTurn){endGame();return;}
+
+G.energy=G.turn;G.energyUsed=0;
+G.selectedHandIdx=null;G.pendingPlays=[];
+
+// Turn start BF effects
+for(let i=0;i<3;i++)applyBfTurnStart(i);
+
+// Draw card
+drawCard('player',1);
+drawCard('ai',1);
+
+// Reveal battlefield
+if(G.turn<=3){
+G.battlefields[G.turn-1].revealed=true;
+}
+
+render();
+
+// Auto-reveal animation
+if(G.turn<=3){
+await delay(600);
+render();
+}
+}
+
+function placeCard(handIdx,bfIdx){
+if(G.isProcessing||G.gameOver)return;
+const card=G.playerHand[handIdx];if(!card)return;
+const cost=card.cost;
+const remaining=G.energy-G.energyUsed;
+if(cost>remaining){showMsg(t('notEnoughEnergy'));return;}
+
+if(!canPlaceAt({...card,owner:'player'},bfIdx)){
+const bf=G.battlefields[bfIdx];
+if(bf.def?.id==='tongguan'&&bf.revealed)showMsg(t('bfFull'));
+else if(bf.def?.id==='hanzhong'&&bf.revealed)showMsg(t('bfRestriction'));
+else showMsg(t('bfFull'));
+return;
+}
+
+// Place card
+G.playerHand.splice(handIdx,1);
+card.bfIndex=bfIdx;card.turnPlaced=G.turn;card.placedThisTurn=true;
+const bf=G.battlefields[bfIdx];
+bf.playerCards.push(card);
+if(!bf.whoPlacedFirst)bf.whoPlacedFirst='player';
+
+G.energyUsed+=cost;
+G.pendingPlays.push({uid:card.uid,bfIdx});
+G.selectedHandIdx=null;
+
+// BF on-place effect
+applyBfOnPlace('player',bfIdx);
+
+TG.haptic('impact','light');
+render();
+}
+
+function unplaceCard(uid){
+if(G.isProcessing)return;
+const ppIdx=G.pendingPlays.findIndex(p=>p.uid===uid);
+if(ppIdx<0)return;
+const pp=G.pendingPlays[ppIdx];
+const bf=G.battlefields[pp.bfIdx];
+const cardIdx=bf.playerCards.findIndex(c=>c.uid===uid);
+if(cardIdx<0)return;
+const card=bf.playerCards[cardIdx];
+
+bf.playerCards.splice(cardIdx,1);
+G.energyUsed-=card.cost;
+card.bfIndex=-1;card.placedThisTurn=false;
+G.playerHand.push(card);
+G.pendingPlays.splice(ppIdx,1);
+
+// Undo whoPlacedFirst if no more cards
+if(bf.playerCards.length===0&&bf.aiCards.length===0)bf.whoPlacedFirst=null;
+
+TG.haptic('selection');
+render();
+}
+
+async function endTurn(){
+if(G.isProcessing||G.gameOver)return;
+G.isProcessing=true;
+G.selectedHandIdx=null;
+
+// Commit player plays
+G.pendingPlays.forEach(pp=>{
+const bf=G.battlefields[pp.bfIdx];
+const card=bf.playerCards.find(c=>c.uid===pp.uid);
+if(card)card.placedThisTurn=false;
+});
+G.pendingPlays=[];
+
+render();
+await delay(200);
+
+// AI plays
+const aiPlays=aiDecide();
+for(const play of aiPlays){
+const bf=G.battlefields[play.bfIdx];
+const card=play.card;
+card.bfIndex=play.bfIdx;card.turnPlaced=G.turn;card.isActive=false;
+bf.aiCards.push(card);
+if(!bf.whoPlacedFirst)bf.whoPlacedFirst='ai';
+const hIdx=G.aiHand.indexOf(card);
+if(hIdx>=0)G.aiHand.splice(hIdx,1);
+applyBfOnPlace('ai',play.bfIdx);
+render();
+await delay(250);
+}
+
+await delay(400);
+
+// Reveal phase — activate all cards placed this turn
+for(let bi=0;bi<3;bi++){
+const bf=G.battlefields[bi];
+const playerPow=calcBfPower('player',bi);
+const aiPow=calcBfPower('ai',bi);
+const firstOwner=playerPow>=aiPow?'player':'ai';
+const secondOwner=firstOwner==='player'?'ai':'player';
+
+for(const owner of[firstOwner,secondOwner]){
+const cards=owner==='player'?bf.playerCards:bf.aiCards;
+for(const card of cards){
+if(!card.isActive&&!card.isDestroyed){
+card.isActive=true;
+render();
+await delay(150);
+executeAbility(card,bi);
+render();
+await delay(100);
+}
+}
+}
+}
+
+// BF turn-end effects
+for(let i=0;i<3;i++)applyBfTurnEnd(i);
+
+// AI SNAP decision
+if(!G.aiSnapped&&G.turn>=3){
+let aiWinning=0;
+for(let i=0;i<3;i++)if(getBfWinner(i)==='ai')aiWinning++;
+if(aiWinning>=2&&Math.random()>0.3){
+G.aiSnapped=true;G.stakes*=2;
+showMsg(t('aiSnap'),1500);
+await delay(1000);
+}
+}
+
+// AI retreat decision
+if(G.turn>=4&&!G.gameOver){
+let aiLosing=0;
+for(let i=0;i<3;i++)if(getBfWinner(i)==='player')aiLosing++;
+if(aiLosing===3&&Math.random()>0.5){
+G.gameOver=true;
+handleResult('player','aiRetreat');
+G.isProcessing=false;
+return;
+}
+}
+
+render();
+
+G.isProcessing=false;
+
+if(G.turn>=G.maxTurn){
+await delay(500);
+endGame();
+}else{
+await delay(300);
+nextTurn();
+}
+}
+
+function doSnap(){
+if(G.playerSnapped||G.isProcessing||G.gameOver)return;
+G.playerSnapped=true;G.stakes*=2;
+TG.haptic('notification','success');
+// Show snap overlay
+const overlay=document.createElement('div');
+overlay.className='snap-overlay';
+overlay.innerHTML='<div class="snap-text">結 戰</div>';
+document.body.appendChild(overlay);
+setTimeout(()=>overlay.remove(),800);
+render();
+}
+
+function doRetreat(){
+if(G.isProcessing||G.gameOver)return;
+if(!confirm(t('retreatConfirm')))return;
+G.gameOver=true;
+handleResult('ai','playerRetreat');
+}
+
+function endGame(){
+if(G.gameOver)return;
+G.gameOver=true;
+G.stakes*=2;// End-game auto double
+
+let playerWins=0,aiWins=0;
+for(let i=0;i<3;i++){
+const w=getBfWinner(i);
+if(w==='player')playerWins++;
+else if(w==='ai')aiWins++;
+}
+
+if(playerWins>aiWins)handleResult('player','normal');
+else if(aiWins>playerWins)handleResult('ai','normal');
+else{
+// Tiebreaker: total power
+let pTotal=0,aTotal=0;
+for(let i=0;i<3;i++){pTotal+=calcBfPower('player',i);aTotal+=calcBfPower('ai',i);}
+if(pTotal>aTotal)handleResult('player','normal');
+else if(aTotal>pTotal)handleResult('ai','normal');
+else handleResult('tie','normal');
+}
+}
+
+function handleResult(winner,reason){
+G.screen='result';
+G._result={winner,reason,stakes:G.stakes};
+
+let meritChange=0;
+if(winner==='player'){
+meritChange=G.stakes;
+G.wins++;G.currentStreak++;
+if(G.currentStreak>G.bestStreak)G.bestStreak=G.currentStreak;
+}else if(winner==='ai'){
+meritChange=-G.stakes;
+G.losses++;G.currentStreak=0;
+}else{
+G.draws++;
+}
+
+G.merit+=meritChange;
+G._result.meritChange=meritChange;
+saveRecords();
+TG.haptic('notification',winner==='player'?'success':'error');
+render();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AI ENGINE
+   ═══════════════════════════════════════════════════════════ */
+function aiDecide(){
+const plays=[];
+let energy=G.energy;
+let hand=[...G.aiHand];
+
+// Sort by cost descending (play expensive cards first)
+hand.sort((a,b)=>b.cost-a.cost);
+
+// Evaluate each card for each battlefield
+for(const card of hand){
+if(card.cost>energy)continue;
+
+let bestBf=-1,bestScore=-Infinity;
+
+for(let bi=0;bi<3;bi++){
+if(!canPlaceAt({...card,owner:'ai'},bi))continue;
+
+// Already have a play at this BF? Check slot count
+const bf=G.battlefields[bi];
+const existingPlays=plays.filter(p=>p.bfIdx===bi).length;
+const currentCards=bf.aiCards.filter(c=>!c.isDestroyed).length;
+const maxCards=bf.def?.id==='tongguan'&&bf.revealed?2:4;
+if(currentCards+existingPlays>=maxCards)continue;
+if(bf.def?.id==='hanzhong'&&bf.revealed&&card.cost<3)continue;
+
+let score=card.basePower;
+
+// Consider current battlefield state
+const aiPow=calcBfPower('ai',bi)+card.basePower;
+const playerPow=calcBfPower('player',bi);
+
+// Prefer battlefields where we're behind
+if(playerPow>aiPow)score+=3;
+// But also don't over-invest in one BF
+if(existingPlays>0)score-=2;
+
+// Battlefield synergy
+if(bf.def?.id==='xuchang'&&bf.revealed&&card.faction==='wei')score+=2;
+if(bf.def?.id==='chengdu'&&bf.revealed&&card.faction==='shu')score+=2;
+if(bf.def?.id==='jianye'&&bf.revealed&&card.faction==='wu')score+=2;
+if(bf.def?.id==='hulao'&&bf.revealed&&card.cost===6)score+=5;
+
+// Ability value estimates
+if(card.type==='onReveal')score+=1;
+if(card.type==='ongoing')score+=1;
+
+// Spread across battlefields
+const bfCounts=[0,1,2].map(i=>bf.aiCards.filter(c=>!c.isDestroyed).length+plays.filter(p=>p.bfIdx===i).length);
+if(bfCounts[bi]===0)score+=2;// Prefer empty BFs
+
+// Small randomness for variety
+score+=Math.random()*1.5;
+
+if(score>bestScore){bestScore=score;bestBf=bi;}
+}
+
+if(bestBf>=0){
+plays.push({card,bfIdx:bestBf});
+energy-=card.cost;
+}
+}
+
+return plays;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   AUDIO
+   ═══════════════════════════════════════════════════════════ */
+const SFX={
+ctx:null,
+init(){try{this.ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}},
+play(type){
+if(!this.ctx)return;
+try{
+const now=this.ctx.currentTime;
+const osc=this.ctx.createOscillator();
+const gain=this.ctx.createGain();
+osc.connect(gain);gain.connect(this.ctx.destination);
+switch(type){
+case'place':osc.frequency.value=400;gain.gain.setValueAtTime(0.08,now);
+gain.gain.exponentialRampToValueAtTime(0.001,now+0.1);osc.start(now);osc.stop(now+0.1);break;
+case'snap':osc.type='sawtooth';osc.frequency.value=200;
+gain.gain.setValueAtTime(0.15,now);gain.gain.exponentialRampToValueAtTime(0.001,now+0.3);
+osc.start(now);osc.stop(now+0.3);break;
+case'win':osc.frequency.setValueAtTime(523,now);osc.frequency.setValueAtTime(659,now+0.15);
+osc.frequency.setValueAtTime(784,now+0.3);gain.gain.setValueAtTime(0.1,now);
+gain.gain.exponentialRampToValueAtTime(0.001,now+0.5);osc.start(now);osc.stop(now+0.5);break;
+case'click':osc.frequency.value=800;gain.gain.setValueAtTime(0.04,now);
+gain.gain.exponentialRampToValueAtTime(0.001,now+0.05);osc.start(now);osc.stop(now+0.05);break;
+}
+}catch(e){}
+},
+ensure(){if(this.ctx?.state==='suspended')this.ctx.resume();}
+};
+
+/* ═══════════════════════════════════════════════════════════
+   UI RENDERING
+   ═══════════════════════════════════════════════════════════ */
+function render(){
+const app=document.getElementById('app');
+if(!app)return;
+let html='';
+switch(G.screen){
+case'menu':html=renderMenu();break;
+case'deckBuild':html=renderDeckBuilder();break;
+case'game':html=renderGame();break;
+case'result':html=renderResult();break;
+case'help':html=renderHelp();break;
+case'records':html=renderRecords();break;
+}
+if(G.message){
+html+=`
