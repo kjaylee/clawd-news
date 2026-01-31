@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Air Hockey 🏒</title>
+<meta name="description" content="네온 에어하키! AI와 물리 대전으로 골을 넣으세요!">
+<meta property="og:title" content="Air Hockey 🏒 — East Sea Games">
+<meta property="og:description" content="네온 에어하키! 터치로 패들을 움직여 AI를 이겨라!">
+<meta property="og:image" content="https://eastsea.monster/games/air-hockey/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/air-hockey/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/air-hockey/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Air Hockey",
+"url":"https://eastsea.monster/games/air-hockey/",
+"description":"네온 에어하키! AI와 물리 대전으로 골을 넣으세요!",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Sports","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0a0a1a;color:#e0e0e0;user-select:none}
+:root{--safe-top:0px;--safe-bottom:0px}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.scoreboard{display:flex;justify-content:space-between;align-items:center;padding:10px 20px}
+.sb{text-align:center;flex:1}
+.sb-label{font-size:11px;opacity:0.6;text-transform:uppercase;letter-spacing:1px}
+.sb-val{font-size:28px;font-weight:800}
+.sb-ai .sb-val{color:#e94560}
+.sb-you .sb-val{color:#4ea8ff}
+.sb-vs{font-size:14px;opacity:0.4}
+.canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;touch-action:none}
+canvas{border-radius:16px}
+.msg{text-align:center;padding:6px;font-size:14px;font-weight:600;min-height:28px;color:#ffd700}
+.diff{display:flex;justify-content:center;gap:8px;padding:8px 16px 12px}
+.diff-btn{padding:10px 16px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;background:rgba(255,255,255,0.08);color:#aaa;border:1px solid rgba(255,255,255,0.1);transition:all 0.15s}
+.diff-btn:active{transform:scale(0.95)}
+.diff-btn.active{background:#4ea8ff;color:#fff;border-color:#4ea8ff}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal{background:#16213e;border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;margin-bottom:8px}
+.modal .big{font-size:48px;font-weight:800;color:#fff;margin:12px 0}
+.modal .sub{font-size:14px;opacity:0.7;margin-bottom:16px}
+.mbtn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;min-height:48px}
+.mbtn:active{transform:scale(0.95)}
+.mbtn-p{background:#4ea8ff;color:#fff}
+.mbtn-s{background:rgba(255,255,255,0.1);color:#e0e0e0;border:1px solid rgba(255,255,255,0.15)}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="scoreboard">
+<div class="sb sb-ai"><div class="sb-label" data-i18n="ai">AI</div><div class="sb-val" id="aiScore">0</div></div>
+<div class="sb sb-vs">VS</div>
+<div class="sb sb-you"><div class="sb-label" data-i18n="you">YOU</div><div class="sb-val" id="yourScore">0</div></div>
+</div>
+<div class="canvas-wrap"><canvas id="cv"></canvas></div>
+<div class="msg" id="msg"></div>
+<div class="diff">
+<button class="diff-btn active" data-d="0" data-i18n="easy">Easy</button>
+<button class="diff-btn" data-d="1" data-i18n="normal">Normal</button>
+<button class="diff-btn" data-d="2" data-i18n="hard">Hard</button>
+</div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="mTitle"></h2>
+<div class="big" id="mScore"></div>
+<div class="sub" id="mSub"></div>
+<button class="mbtn mbtn-p" id="mReplay" data-i18n="replay">Play Again</button>
+<button class="mbtn mbtn-s" id="mShare" data-i18n="share">Share</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{ai:'AI',you:'나',easy:'쉬움',normal:'보통',hard:'어려움',goal:'골!',win:'승리!',lose:'패배',draw:'무승부',replay:'다시하기',share:'공유',firstTo:'먼저 7점!',youWin:'당신의 승리!',aiWin:'AI의 승리!'},
+en:{ai:'AI',you:'YOU',easy:'Easy',normal:'Normal',hard:'Hard',goal:'GOAL!',win:'You Win!',lose:'You Lose',draw:'Draw',replay:'Play Again',share:'Share',firstTo:'First to 7!',youWin:'You Win!',aiWin:'AI Wins!'},
+ja:{ai:'AI',you:'あなた',easy:'かんたん',normal:'ふつう',hard:'むずかしい',goal:'ゴール！',win:'勝利！',lose:'敗北',draw:'引き分け',replay:'もう一度',share:'シェア',firstTo:'7点先取！',youWin:'あなたの勝ち！',aiWin:'AIの勝ち！'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+const W=Math.min(window.innerWidth,420)-16;
+const H=Math.min(window.innerHeight-180,W*1.5);
+cv.width=W;cv.height=H;
+
+const GOAL_W=W*0.3;
+const PADDLE_R=W*0.07;
+const PUCK_R=W*0.04;
+const WIN_SCORE=7;
+const FRICTION=0.995;
+const WALL_BOUNCE=0.85;
+const PADDLE_BOUNCE=1.15;
+const MAX_SPEED=W*0.03;
+const AI_SPEEDS=[0.03,0.06,0.1];
+
+let diff=0,aiS=0,yourS=0,goalPause=false,gameOver=false;
+let puck={x:W/2,y:H/2,vx:0,vy:0};
+let player={x:W/2,y:H*0.8,r:PADDLE_R};
+let ai={x:W/2,y:H*0.2,r:PADDLE_R};
+let touching=false,prevTouch={x:0,y:0};
+
+// Difficulty buttons
+document.querySelectorAll('.diff-btn').forEach(b=>{
+b.addEventListener('click',()=>{
+document.querySelectorAll('.diff-btn').forEach(x=>x.classList.remove('active'));
+b.classList.add('active');
+diff=parseInt(b.dataset.d);
+resetGame();
+});
+});
+
+function resetPuck(dir){
+puck.x=W/2;puck.y=H/2;
+puck.vx=(Math.random()-0.5)*2;
+puck.vy=dir*(1+Math.random());
+goalPause=true;
+setTimeout(()=>goalPause=false,800);
+}
+
+function resetGame(){
+aiS=0;yourS=0;gameOver=false;
+document.getElementById('aiScore').textContent='0';
+document.getElementById('yourScore').textContent='0';
+document.getElementById('msg').textContent=t('firstTo');
+player.x=W/2;player.y=H*0.8;
+ai.x=W/2;ai.y=H*0.2;
+resetPuck(1);
+}
+
+function drawField(){
+// Background
+ctx.fillStyle='#0f1a2e';
+ctx.fillRect(0,0,W,H);
+// Center line
+ctx.strokeStyle='rgba(255,255,255,0.15)';
+ctx.lineWidth=2;
+ctx.setLineDash([8,8]);
+ctx.beginPath();ctx.moveTo(0,H/2);ctx.lineTo(W,H/2);ctx.stroke();
+ctx.setLineDash([]);
+// Center circle
+ctx.beginPath();ctx.arc(W/2,H/2,W*0.12,0,Math.PI*2);ctx.stroke();
+// Goals
+ctx.fillStyle='rgba(233,69,96,0.3)';
+ctx.fillRect((W-GOAL_W)/2,0,GOAL_W,6);
+ctx.fillStyle='rgba(78,168,255,0.3)';
+ctx.fillRect((W-GOAL_W)/2,H-6,GOAL_W,6);
+// Walls
+ctx.strokeStyle='rgba(255,255,255,0.2)';
+ctx.lineWidth=3;
+ctx.strokeRect(1,1,W-2,H-2);
+}
+
+function drawCircle(x,y,r,color,glow){
+if(glow){
+ctx.shadowColor=color;
+ctx.shadowBlur=20;
+}
+ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+ctx.fillStyle=color;ctx.fill();
+ctx.strokeStyle='rgba(255,255,255,0.4)';
+ctx.lineWidth=2;ctx.stroke();
+ctx.shadowBlur=0;
+// Shine
+const grad=ctx.createRadialGradient(x-r*0.3,y-r*0.3,r*0.1,x,y,r);
+grad.addColorStop(0,'rgba(255,255,255,0.3)');
+grad.addColorStop(1,'rgba(255,255,255,0)');
+ctx.fillStyle=grad;ctx.fill();
+}
+
+function clamp(v,min,max){return Math.max(min,Math.min(max,v))}
+function dist(a,b){return Math.hypot(a.x-b.x,a.y-b.y)}
+
+function collide(paddle,p){
+const d=dist(paddle,p);
+if(d<paddle.r+PUCK_R){
+const nx=(p.x-paddle.x)/d;
+const ny=(p.y-paddle.y)/d;
+p.x=paddle.x+nx*(paddle.r+PUCK_R+1);
+p.y=paddle.y+ny*(paddle.r+PUCK_R+1);
+const dvx=p.vx;const dvy=p.vy;
+p.vx=nx*Math.hypot(dvx,dvy)*PADDLE_BOUNCE+(Math.random()-0.5)*0.5;
+p.vy=ny*Math.hypot(dvx,dvy)*PADDLE_BOUNCE+(Math.random()-0.5)*0.5;
+window.TG?.haptic?.('impact','light');
+}
+}
+
+function updateAI(){
+const speed=AI_SPEEDS[diff]*W;
+const targetX=puck.y<H/2?puck.x:W/2;
+const targetY=puck.y<H/2?puck.y-PADDLE_R*1.5:H*0.15;
+const dx=targetX-ai.x;
+const dy=targetY-ai.y;
+const d=Math.hypot(dx,dy);
+if(d>1){
+ai.x+=dx/d*Math.min(speed,d);
+ai.y+=dy/d*Math.min(speed,d);
+}
+ai.x=clamp(ai.x,ai.r,W-ai.r);
+ai.y=clamp(ai.y,ai.r,H/2-ai.r);
+}
+
+function update(){
+if(goalPause||gameOver)return;
+// Physics
+puck.x+=puck.vx;puck.y+=puck.vy;
+puck.vx*=FRICTION;puck.vy*=FRICTION;
+// Speed cap
+const spd=Math.hypot(puck.vx,puck.vy);
+if(spd>MAX_SPEED){puck.vx=puck.vx/spd*MAX_SPEED;puck.vy=puck.vy/spd*MAX_SPEED}
+// Wall bounce
+const gl=(W-GOAL_W)/2;const gr=(W+GOAL_W)/2;
+if(puck.x<PUCK_R){puck.x=PUCK_R;puck.vx*=-WALL_BOUNCE}
+if(puck.x>W-PUCK_R){puck.x=W-PUCK_R;puck.vx*=-WALL_BOUNCE}
+// Top wall (with goal gap)
+if(puck.y<PUCK_R){
+if(puck.x>gl&&puck.x<gr){
+// AI goal scored (you score!)
+yourS++;
+document.getElementById('yourScore').textContent=yourS;
+document.getElementById('msg').textContent=t('goal');
+window.TG?.haptic?.('notification','success');
+if(yourS>=WIN_SCORE)return endGame(true);
+resetPuck(1);return;
+}
+puck.y=PUCK_R;puck.vy*=-WALL_BOUNCE;
+}
+// Bottom wall (with goal gap)
+if(puck.y>H-PUCK_R){
+if(puck.x>gl&&puck.x<gr){
+aiS++;
+document.getElementById('aiScore').textContent=aiS;
+document.getElementById('msg').textContent=t('goal');
+window.TG?.haptic?.('notification','error');
+if(aiS>=WIN_SCORE)return endGame(false);
+resetPuck(-1);return;
+}
+puck.y=H-PUCK_R;puck.vy*=-WALL_BOUNCE;
+}
+// Collisions
+collide(player,puck);
+collide(ai,puck);
+updateAI();
+}
+
+function endGame(won){
+gameOver=true;
+document.getElementById('mTitle').textContent=won?t('youWin'):t('aiWin');
+document.getElementById('mTitle').style.color=won?'#4ea8ff':'#e94560';
+document.getElementById('mScore').textContent=yourS+' - '+aiS;
+document.getElementById('mSub').textContent='';
+document.getElementById('modalBg').style.display='flex';
+const total=yourS;
+window.TG?.save?.('ahockey_best',Math.max(total,window.TG?.load?.('ahockey_best',0)||0));
+}
+
+document.getElementById('mReplay').addEventListener('click',()=>{document.getElementById('modalBg').style.display='none';resetGame()});
+document.getElementById('mShare').addEventListener('click',()=>{window.TG?.shareScore?.(yourS,'Air Hockey','air-hockey')});
+
+// Touch/Mouse controls for player paddle
+function getPos(e){
+const r=cv.getBoundingClientRect();
+const touch=e.touches?e.touches[0]:e;
+return{x:touch.clientX-r.left,y:touch.clientY-r.top};
+}
+cv.addEventListener('mousedown',e=>{touching=true;prevTouch=getPos(e)});
+cv.addEventListener('mousemove',e=>{
+if(!touching)return;
+const p=getPos(e);
+player.x=clamp(p.x,player.r,W-player.r);
+player.y=clamp(p.y,H/2+player.r,H-player.r);
+prevTouch=p;
+});
+cv.addEventListener('mouseup',()=>touching=false);
+cv.addEventListener('touchstart',e=>{e.preventDefault();touching=true;prevTouch=getPos(e)},{passive:false});
+cv.addEventListener('touchmove',e=>{
+e.preventDefault();
+const p=getPos(e);
+player.x=clamp(p.x,player.r,W-player.r);
+player.y=clamp(p.y,H/2+player.r,H-player.r);
+prevTouch=p;
+},{passive:false});
+cv.addEventListener('touchend',()=>touching=false);
+
+function render(){
+drawField();
+drawCircle(ai.x,ai.y,ai.r,'#e94560',true);
+drawCircle(player.x,player.y,player.r,'#4ea8ff',true);
+drawCircle(puck.x,puck.y,PUCK_R,'#ffffff',true);
+}
+
+function loop(){
+update();render();
+requestAnimationFrame(loop);
+}
+
+resetGame();
+loop();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

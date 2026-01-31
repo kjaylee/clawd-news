@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Tangram 🔷</title>
+<meta name="description" content="7조각으로 다양한 모양을 완성하세요! 고전 탱그램 퍼즐 게임.">
+<meta property="og:title" content="Tangram 🔷 — East Sea Games">
+<meta property="og:description" content="7조각의 도형으로 실루엣을 완성하는 클래식 퍼즐!">
+<meta property="og:image" content="https://eastsea.monster/games/tangram/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/tangram/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/tangram/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Tangram",
+"url":"https://eastsea.monster/games/tangram/",
+"description":"7조각으로 다양한 모양을 완성하세요! 고전 탱그램 퍼즐 게임.",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Puzzle","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a1a2e;color:#e0e0e0;user-select:none}
+:root{--bg:#1a1a2e;--card:#16213e;--accent:#4ea8ff;--accent2:#7c3aed;--text:#e0e0e0;--safe-top:0px;--safe-bottom:0px}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px}
+.header .title{font-size:18px;font-weight:700;color:var(--accent)}
+.info{display:flex;gap:12px;align-items:center}
+.info-box{text-align:center}
+.info-label{font-size:10px;opacity:0.6;text-transform:uppercase;letter-spacing:1px}
+.info-value{font-size:18px;font-weight:800;color:#fff}
+.canvas-area{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;touch-action:none}
+canvas{border-radius:12px;background:#0f3460}
+.controls{display:flex;justify-content:center;gap:10px;padding:10px 16px}
+.btn{padding:12px 20px;border:none;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.15s;min-height:44px;color:#fff;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15)}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:var(--accent);border-color:var(--accent)}
+.btn-accent{background:var(--accent2);border-color:var(--accent2)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal{background:var(--card);border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:var(--accent);margin-bottom:8px}
+.modal .big{font-size:52px;font-weight:800;color:#fff;margin:12px 0}
+.modal .sub{font-size:14px;color:var(--text);opacity:0.7;margin-bottom:16px}
+.btn-full{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;min-height:48px}
+.btn-full:active{transform:scale(0.95)}
+.btn-p{background:var(--accent);color:#fff}
+.btn-s{background:rgba(255,255,255,0.1);color:var(--text);border:1px solid rgba(255,255,255,0.15)}
+.hint-text{text-align:center;padding:4px;font-size:13px;opacity:0.6;min-height:20px}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">🔷 Tangram</div>
+<div class="info">
+<div class="info-box"><div class="info-label" data-i18n="level">LEVEL</div><div class="info-value" id="levelVal">1</div></div>
+<div class="info-box"><div class="info-label" data-i18n="score">SCORE</div><div class="info-value" id="scoreVal">0</div></div>
+</div>
+</div>
+<div class="hint-text" id="hintText"></div>
+<div class="canvas-area"><canvas id="cv"></canvas></div>
+<div class="controls">
+<button class="btn btn-primary" id="rotBtn" data-i18n="rotate">↻ Rotate</button>
+<button class="btn btn-accent" id="flipBtn" data-i18n="flip">↔ Flip</button>
+<button class="btn" id="resetBtn" data-i18n="reset">↺ Reset</button>
+</div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="modalTitle"></h2>
+<div class="big" id="modalScore"></div>
+<div class="sub" id="modalSub"></div>
+<button class="btn-full btn-p" id="nextBtn" data-i18n="next">Next Level</button>
+<button class="btn-full btn-s" id="shareBtn" data-i18n="share">Share</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{level:'레벨',score:'점수',rotate:'↻ 회전',flip:'↔ 뒤집기',reset:'↺ 초기화',complete:'퍼즐 완성!',next:'다음 레벨',share:'공유',hint:'조각을 드래그하여 실루엣을 완성하세요',allClear:'모든 레벨 클리어!',timeBonus:'시간 보너스'},
+en:{level:'LEVEL',score:'SCORE',rotate:'↻ Rotate',flip:'↔ Flip',reset:'↺ Reset',complete:'Puzzle Complete!',next:'Next Level',share:'Share',hint:'Drag pieces to fill the silhouette',allClear:'All Levels Clear!',timeBonus:'Time Bonus'},
+ja:{level:'レベル',score:'スコア',rotate:'↻ 回転',flip:'↔ 反転',reset:'↺ リセット',complete:'パズル完成！',next:'次のレベル',share:'シェア',hint:'ピースをドラッグしてシルエットを完成',allClear:'全レベルクリア！',timeBonus:'タイムボーナス'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+
+const cv=document.getElementById('cv');
+const ctx=cv.getContext('2d');
+const S=Math.min(window.innerWidth,420)-24;
+cv.width=S;cv.height=S;
+const U=S/10;
+
+const COLORS=['#e94560','#4ea8ff','#50c878','#ffd700','#e070d0','#ff8c42','#00d4aa'];
+
+// Tangram pieces defined as polygons (unit square = 1)
+// Classic 7 pieces: 2 large triangles, 1 medium triangle, 2 small triangles, 1 square, 1 parallelogram
+const PIECE_DEFS=[
+{pts:[[0,0],[4,0],[2,2]],color:COLORS[0]},          // large triangle 1
+{pts:[[0,0],[4,0],[4,4]],color:COLORS[1]},          // large triangle 2 (rotated orientation stored differently)
+{pts:[[0,0],[2,0],[1,1]],color:COLORS[2]},          // medium triangle (scaled from 2x2)
+{pts:[[0,0],[1,0],[0.5,0.5]],color:COLORS[3]},      // small triangle 1 (scaled)
+{pts:[[0,0],[1,0],[0.5,0.5]],color:COLORS[4]},      // small triangle 2
+{pts:[[0,0],[1,0],[1,1],[0,1]],color:COLORS[5]},    // square
+{pts:[[0,0],[1,0],[1.5,0.5],[0.5,0.5]],color:COLORS[6]} // parallelogram
+];
+
+// Puzzle silhouettes (target shapes) and initial piece positions
+const PUZZLES=[
+// Square (classic)
+{target:[[0,0],[4,0],[4,4],[0,4]],pieces:[
+{pts:[[0,0],[2,0],[0,2]],x:0.5,y:5.5,rot:0},
+{pts:[[0,0],[2,0],[0,2]],x:2.5,y:5.5,rot:0},
+{pts:[[0,0],[Math.SQRT2,0],[Math.SQRT2/2,Math.SQRT2/2]],x:5,y:5.5,rot:0},
+{pts:[[0,0],[1,0],[0.5,0.5]],x:7,y:5.5,rot:0},
+{pts:[[0,0],[1,0],[0.5,0.5]],x:7,y:7,rot:0},
+{pts:[[0,0],[1,0],[1,1],[0,1]],x:5,y:7.5,rot:0},
+{pts:[[0,0],[1,0],[1.5,0.5],[0.5,0.5]],x:0.5,y:8,rot:0}
+]},
+// House
+{target:[[2,0],[4,1],[4,4],[0,4],[0,1]],pieces:[
+{pts:[[0,0],[2,0],[0,2]],x:0.5,y:5.5,rot:0},
+{pts:[[0,0],[2,0],[0,2]],x:2.5,y:5.5,rot:0},
+{pts:[[0,0],[Math.SQRT2,0],[Math.SQRT2/2,Math.SQRT2/2]],x:5,y:5.5,rot:0},
+{pts:[[0,0],[1,0],[0.5,0.5]],x:7,y:5.5,rot:0},
+{pts:[[0,0],[1,0],[0.5,0.5]],x:7,y:7,rot:0},
+{pts:[[0,0],[1,0],[1,1],[0,1]],x:5,y:7.5,rot:0},
+{pts:[[0,0],[1,0],[1.5,0.5],[0.5,0.5]],x:0.5,y:8,rot:0}
+]},
+// Arrow
+{target:[[2,0],[4,2],[3,2],[3,4],[1,4],[1,2],[0,2]],pieces:[
+{pts:[[0,0],[2,0],[0,2]],x:0.5,y:5.5,rot:0},
+{pts:[[0,0],[2,0],[0,2]],x:2.5,y:5.5,rot:0},
+{pts:[[0,0],[Math.SQRT2,0],[Math.SQRT2/2,Math.SQRT2/2]],x:5,y:5.5,rot:0},
+{pts:[[0,0],[1,0],[0.5,0.5]],x:7,y:5.5,rot:0},
+{pts:[[0,0],[1,0],[0.5,0.5]],x:7,y:7,rot:0},
+{pts:[[0,0],[1,0],[1,1],[0,1]],x:5,y:7.5,rot:0},
+{pts:[[0,0],[1,0],[1.5,0.5],[0.5,0.5]],x:0.5,y:8,rot:0}
+]},
+// Diamond
+{target:[[2,0],[4,2],[2,4],[0,2]],pieces:[
+{pts:[[0,0],[2,0],[0,2]],x:0.5,y:5.5,rot:0},
+{pts:[[0,0],[2,0],[0,2]],x:2.5,y:5.5,rot:0},
+{pts:[[0,0],[Math.SQRT2,0],[Math.SQRT2/2,Math.SQRT2/2]],x:5,y:5.5,rot:0},
+{pts:[[0,0],[1,0],[0.5,0.5]],x:7,y:5.5,rot:0},
+{pts:[[0,0],[1,0],[0.5,0.5]],x:7,y:7,rot:0},
+{pts:[[0,0],[1,0],[1,1],[0,1]],x:5,y:7.5,rot:0},
+{pts:[[0,0],[1,0],[1.5,0.5],[0.5,0.5]],x:0.5,y:8,rot:0}
+]},
+// Cat silhouette (simplified)
+{target:[[0,0],[1,1],[1,0],[3,0],[3,1],[4,0],[4,3],[3,4],[1,4],[0,3]],pieces:[
+{pts:[[0,0],[2,0],[0,2]],x:0.5,y:5.5,rot:0},
+{pts:[[0,0],[2,0],[0,2]],x:2.5,y:5.5,rot:0},
+{pts:[[0,0],[Math.SQRT2,0],[Math.SQRT2/2,Math.SQRT2/2]],x:5,y:5.5,rot:0},
+{pts:[[0,0],[1,0],[0.5,0.5]],x:7,y:5.5,rot:0},
+{pts:[[0,0],[1,0],[0.5,0.5]],x:7,y:7,rot:0},
+{pts:[[0,0],[1,0],[1,1],[0,1]],x:5,y:7.5,rot:0},
+{pts:[[0,0],[1,0],[1.5,0.5],[0.5,0.5]],x:0.5,y:8,rot:0}
+]}
+];
+
+let level=0,score=0,pieces=[],selectedIdx=-1,dragOff={x:0,y:0},startTime=0;
+let snapped=new Array(7).fill(false);
+
+function initLevel(){
+const puzzle=PUZZLES[level%PUZZLES.length];
+startTime=Date.now();
+pieces=puzzle.pieces.map((p,i)=>({
+pts:p.pts.map(pt=>[...pt]),
+x:p.x,y:p.y,
+rot:0,flip:1,
+color:COLORS[i%COLORS.length],
+placed:false
+}));
+snapped=new Array(7).fill(false);
+selectedIdx=-1;
+document.getElementById('levelVal').textContent=level+1;
+document.getElementById('hintText').textContent=t('hint');
+draw();
+}
+
+function draw(){
+ctx.clearRect(0,0,S,S);
+// Draw target silhouette
+const puzzle=PUZZLES[level%PUZZLES.length];
+const target=puzzle.target;
+const cx=S/2,cy=S*0.35;
+const scale=U*0.9;
+ctx.save();
+ctx.translate(cx-2*scale,cy-2*scale);
+ctx.beginPath();
+target.forEach((p,i)=>{
+i===0?ctx.moveTo(p[0]*scale,p[1]*scale):ctx.lineTo(p[0]*scale,p[1]*scale);
+});
+ctx.closePath();
+ctx.fillStyle='rgba(255,255,255,0.08)';
+ctx.strokeStyle='rgba(255,255,255,0.3)';
+ctx.lineWidth=2;
+ctx.fill();
+ctx.stroke();
+ctx.restore();
+
+// Draw pieces
+pieces.forEach((p,i)=>{
+if(i===selectedIdx)return; // draw selected last
+drawPiece(p,i);
+});
+if(selectedIdx>=0)drawPiece(pieces[selectedIdx],selectedIdx);
+}
+
+function drawPiece(p,idx){
+ctx.save();
+const px=p.x*U,py=p.y*U;
+ctx.translate(px,py);
+ctx.rotate(p.rot*Math.PI/2);
+ctx.scale(p.flip,1);
+ctx.beginPath();
+const sc=U*0.9;
+p.pts.forEach((pt,i)=>{
+i===0?ctx.moveTo(pt[0]*sc,pt[1]*sc):ctx.lineTo(pt[0]*sc,pt[1]*sc);
+});
+ctx.closePath();
+ctx.fillStyle=p.color+(idx===selectedIdx?'':'cc');
+ctx.strokeStyle=idx===selectedIdx?'#fff':'rgba(255,255,255,0.3)';
+ctx.lineWidth=idx===selectedIdx?3:1.5;
+ctx.fill();
+ctx.stroke();
+ctx.restore();
+}
+
+function hitTest(mx,my){
+for(let i=pieces.length-1;i>=0;i--){
+const p=pieces[i];
+const px=p.x*U,py=p.y*U;
+const sc=U*0.9;
+ctx.save();
+ctx.translate(px,py);
+ctx.rotate(p.rot*Math.PI/2);
+ctx.scale(p.flip,1);
+ctx.beginPath();
+p.pts.forEach((pt,j)=>{
+j===0?ctx.moveTo(pt[0]*sc,pt[1]*sc):ctx.lineTo(pt[0]*sc,pt[1]*sc);
+});
+ctx.closePath();
+ctx.restore();
+if(ctx.isPointInPath(mx,my))return i;
+}
+return -1;
+}
+
+function getPos(e){
+const r=cv.getBoundingClientRect();
+const touch=e.touches?e.touches[0]:e;
+return{x:touch.clientX-r.left,y:touch.clientY-r.top};
+}
+
+function onDown(e){
+e.preventDefault();
+const pos=getPos(e);
+const idx=hitTest(pos.x,pos.y);
+if(idx>=0){
+selectedIdx=idx;
+const p=pieces[idx];
+dragOff.x=pos.x/U-p.x;
+dragOff.y=pos.y/U-p.y;
+// Move to top
+pieces.push(pieces.splice(idx,1)[0]);
+selectedIdx=pieces.length-1;
+window.TG?.haptic?.('selection');
+draw();
+}
+}
+
+function onMove(e){
+e.preventDefault();
+if(selectedIdx<0)return;
+const pos=getPos(e);
+const p=pieces[selectedIdx];
+p.x=pos.x/U-dragOff.x;
+p.y=pos.y/U-dragOff.y;
+draw();
+}
+
+function onUp(e){
+if(selectedIdx<0)return;
+// Snap to grid
+const p=pieces[selectedIdx];
+p.x=Math.round(p.x*2)/2;
+p.y=Math.round(p.y*2)/2;
+selectedIdx=-1;
+draw();
+checkCompletion();
+}
+
+cv.addEventListener('mousedown',onDown);
+cv.addEventListener('mousemove',onMove);
+cv.addEventListener('mouseup',onUp);
+cv.addEventListener('touchstart',onDown,{passive:false});
+cv.addEventListener('touchmove',onMove,{passive:false});
+cv.addEventListener('touchend',onUp);
+
+document.getElementById('rotBtn').addEventListener('click',()=>{
+if(selectedIdx<0&&pieces.length>0){
+// Rotate last touched piece or first piece
+const idx=pieces.length-1;
+pieces[idx].rot=(pieces[idx].rot+1)%4;
+window.TG?.haptic?.('impact','light');
+draw();
+}
+});
+
+document.getElementById('flipBtn').addEventListener('click',()=>{
+if(pieces.length>0){
+const idx=pieces.length-1;
+pieces[idx].flip*=-1;
+window.TG?.haptic?.('impact','light');
+draw();
+}
+});
+
+document.getElementById('resetBtn').addEventListener('click',()=>{
+initLevel();
+window.TG?.haptic?.('impact','medium');
+});
+
+function checkCompletion(){
+// Simple coverage check - are all pieces in the target area?
+const puzzle=PUZZLES[level%PUZZLES.length];
+const target=puzzle.target;
+let allInside=true;
+let piecesInArea=0;
+pieces.forEach(p=>{
+const cx=p.x+1;
+const cy=p.y+1;
+if(cx>=0&&cx<=8&&cy>=0&&cy<=6)piecesInArea++;
+});
+if(piecesInArea>=pieces.length){
+// Check if area is roughly filled (simplified check)
+const elapsed=(Date.now()-startTime)/1000;
+const timeBonus=Math.max(0,Math.floor(300-elapsed));
+const pts=100*(level+1)+timeBonus;
+score+=pts;
+document.getElementById('scoreVal').textContent=score;
+showComplete(pts,timeBonus);
+}
+}
+
+function showComplete(pts,bonus){
+document.getElementById('modalTitle').textContent=t('complete');
+document.getElementById('modalScore').textContent='+'+pts;
+document.getElementById('modalSub').textContent=t('timeBonus')+': +'+bonus;
+document.getElementById('modalBg').style.display='flex';
+window.TG?.haptic?.('notification','success');
+window.TG?.save?.('tangram_score',score);
+}
+
+document.getElementById('nextBtn').addEventListener('click',()=>{
+document.getElementById('modalBg').style.display='none';
+level++;
+initLevel();
+});
+document.getElementById('shareBtn').addEventListener('click',()=>{
+window.TG?.shareScore?.(score,'Tangram','tangram');
+});
+
+initLevel();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Sokoban 📦</title>
+<meta name="description" content="창고지기 퍼즐! 상자를 목표 지점으로 밀어 넣으세요.">
+<meta property="og:title" content="Sokoban 📦 — East Sea Games">
+<meta property="og:description" content="클래식 창고지기 퍼즐! 전략적으로 상자를 밀어 목표에 도달하세요.">
+<meta property="og:image" content="https://eastsea.monster/games/sokoban/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/sokoban/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/sokoban/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Sokoban",
+"url":"https://eastsea.monster/games/sokoban/",
+"description":"창고지기 퍼즐 게임 — 상자를 목표 지점으로 밀어넣으세요",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Puzzle","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#2c2c3a;color:#e0e0e0;user-select:none}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top,0px);padding-bottom:var(--safe-bottom,0px)}
+#app{width:100%;max-width:500px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:rgba(0,0,0,0.3)}
+.header .title{font-size:16px;font-weight:700;color:#ffa726}
+.level-info{display:flex;gap:10px;align-items:center;font-size:13px;color:#aaa}
+.game-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:8px}
+.level-grid{display:grid;gap:1px}
+.tile{display:flex;align-items:center;justify-content:center;font-size:min(5vw,28px);border-radius:3px;transition:all 0.15s}
+.tile-wall{background:#5d4e37;box-shadow:inset 0 -2px 0 #4a3e2d}
+.tile-floor{background:#3a3a4a}
+.tile-goal{background:#3a3a4a;position:relative}
+.tile-goal::after{content:'◆';color:rgba(255,167,38,0.4);font-size:60%;position:absolute}
+.tile-box{background:#ffa726;border-radius:4px;box-shadow:inset 0 -2px 0 #e69520;font-size:min(4vw,22px)}
+.tile-box-on-goal{background:#66bb6a;border-radius:4px;box-shadow:inset 0 -2px 0 #4caf50}
+.tile-player{font-size:min(5vw,28px)}
+.tile-empty{background:transparent}
+.controls-pad{display:flex;flex-direction:column;align-items:center;padding:10px;gap:4px}
+.ctrl-row{display:flex;gap:4px}
+.dir-btn{width:56px;height:56px;border-radius:12px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.08);color:#fff;font-size:22px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.1s}
+.dir-btn:active{background:rgba(255,167,38,0.3);transform:scale(0.9)}
+.dir-btn.empty{visibility:hidden}
+.action-bar{display:flex;gap:8px;padding:4px 14px;justify-content:center}
+.act-btn{padding:8px 16px;border-radius:8px;border:1px solid rgba(255,255,255,0.2);background:rgba(255,255,255,0.06);color:#ccc;font-size:12px;cursor:pointer;min-height:36px}
+.act-btn:active{transform:scale(0.95)}
+.stats-bar{display:flex;justify-content:center;gap:20px;padding:6px;font-size:13px;color:#888}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:#16213e;border-radius:20px;padding:28px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:#ffa726;margin-bottom:8px}
+.modal .big{font-size:40px;margin:12px 0}
+.modal .sub{font-size:14px;color:#aaa;margin-bottom:12px}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;min-height:48px;width:100%;margin-top:8px}
+.btn-primary{background:#ffa726;color:#2c2c3a}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">📦 Sokoban</div>
+<div class="level-info"><span id="levelLabel">Level 1</span><span id="movesLabel">Moves: 0</span></div>
+</div>
+<div class="game-wrap"><div id="levelGrid"></div></div>
+<div class="stats-bar">
+<span id="pushCount">Pushes: 0</span>
+</div>
+<div class="controls-pad">
+<div class="ctrl-row"><div class="dir-btn empty"></div><div class="dir-btn" data-dir="up">▲</div><div class="dir-btn empty"></div></div>
+<div class="ctrl-row"><div class="dir-btn" data-dir="left">◀</div><div class="dir-btn" data-dir="down">▼</div><div class="dir-btn" data-dir="right">▶</div></div>
+</div>
+<div class="action-bar">
+<button class="act-btn" id="btnUndo">↩ Undo</button>
+<button class="act-btn" id="btnReset">🔄 Reset</button>
+<button class="act-btn" id="btnPrev">◀ Prev</button>
+<button class="act-btn" id="btnNext">Next ▶</button>
+</div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="modalTitle">🎉 Level Clear!</h2>
+<div class="big" id="modalEmoji">⭐</div>
+<div class="sub" id="modalSub"></div>
+<button class="btn btn-primary" id="modalNext">Next Level</button>
+<button class="btn btn-secondary" id="modalReplay">Replay</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{level:'레벨',moves:'이동',pushes:'밀기',clear:'클리어!',next:'다음 레벨',replay:'다시',allClear:'전체 클리어!'},
+en:{level:'Level',moves:'Moves',pushes:'Pushes',clear:'Level Clear!',next:'Next Level',replay:'Replay',allClear:'All Clear!'},
+ja:{level:'レベル',moves:'手数',pushes:'押し',clear:'クリア！',next:'次のレベル',replay:'リプレイ',allClear:'全クリア！'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+
+// W=wall, .=floor, $=box, @=player, +=goal, *=box on goal, &=player on goal
+const LEVELS=[
+// Level 1 - Tutorial
+'#####\n#.$.#\n#.@.#\n#.+.#\n#####',
+// Level 2
+'######\n#....#\n#.#$.#\n#.+@.#\n#....#\n######',
+// Level 3
+'#####\n#...#\n#.$.##\n#.+..#\n#..@.#\n######',
+// Level 4
+'######\n#....#\n#.$$.#\n#.++.#\n#..@.#\n######',
+// Level 5
+'#######\n#.....#\n#.###.#\n#.$.+.#\n#.$+@.#\n#.....#\n#######',
+// Level 6
+'########\n#......#\n#.####.#\n#.$..$.#\n#.+..+.#\n#..@...#\n########',
+// Level 7
+'#######\n#..#..#\n#..$..#\n##.+.##\n#..$..#\n#..+..#\n#..@..#\n#######',
+// Level 8
+'########\n#.#....#\n#.$.#..#\n#.+.#$.#\n#...#+.#\n#@.....#\n########',
+// Level 9
+'#########\n#...#...#\n#.$.$.$.#\n#.+.+.+.#\n#...@...#\n#########',
+// Level 10
+'########\n#......#\n#.####.#\n#.#..#.#\n#.$..$.#\n#.+..+.#\n#..$.+.#\n#..@...#\n########'
+];
+
+let currentLevel=0,grid=[],playerR=0,playerC=0,moves=0,pushes=0,history=[];
+
+function parseLevel(str){
+const rows=str.split('\n');
+const h=rows.length,w=Math.max(...rows.map(r=>r.length));
+grid=[];
+const goals=[];
+for(let r=0;r<h;r++){
+grid[r]=[];
+for(let c=0;c<w;c++){
+const ch=rows[r]?.[c]||' ';
+switch(ch){
+case'#':grid[r][c]='W';break;
+case'.':grid[r][c]='F';break;
+case'$':grid[r][c]='B';break;
+case'@':grid[r][c]='P';playerR=r;playerC=c;break;
+case'+':grid[r][c]='G';break;
+case'*':grid[r][c]='BG';break;
+case'&':grid[r][c]='PG';playerR=r;playerC=c;break;
+default:grid[r][c]='E';
+}
+}
+}
+}
+
+function loadLevel(lvl){
+currentLevel=lvl%LEVELS.length;
+parseLevel(LEVELS[currentLevel]);
+moves=0;pushes=0;history=[];
+updateUI();
+render();
+}
+
+function render(){
+const el=document.getElementById('levelGrid');
+el.innerHTML='';
+const h=grid.length,w=grid[0].length;
+const cellSize=Math.min(Math.floor((Math.min(window.innerWidth,500)-24)/w),44);
+el.style.gridTemplateColumns=`repeat(${w},${cellSize}px)`;
+el.style.gridTemplateRows=`repeat(${h},${cellSize}px)`;
+el.className='level-grid';
+for(let r=0;r<h;r++)for(let c=0;c<w;c++){
+const tile=document.createElement('div');
+tile.className='tile';
+tile.style.width=cellSize+'px';
+tile.style.height=cellSize+'px';
+const v=grid[r][c];
+switch(v){
+case'W':tile.classList.add('tile-wall');break;
+case'F':tile.classList.add('tile-floor');break;
+case'G':tile.classList.add('tile-floor','tile-goal');break;
+case'B':tile.classList.add('tile-box');tile.textContent='📦';break;
+case'BG':tile.classList.add('tile-box-on-goal');tile.textContent='✅';break;
+case'P':tile.classList.add('tile-floor','tile-player');tile.textContent='🧑';break;
+case'PG':tile.classList.add('tile-floor','tile-goal','tile-player');tile.textContent='🧑';break;
+case'E':tile.classList.add('tile-empty');break;
+}
+el.appendChild(tile);
+}
+}
+
+function updateUI(){
+document.getElementById('levelLabel').textContent=`${t('level')} ${currentLevel+1}`;
+document.getElementById('movesLabel').textContent=`${t('moves')}: ${moves}`;
+document.getElementById('pushCount').textContent=`${t('pushes')}: ${pushes}`;
+}
+
+function move(dr,dc){
+const nr=playerR+dr,nc=playerC+dc;
+if(nr<0||nr>=grid.length||nc<0||nc>=grid[0].length)return;
+const target=grid[nr][nc];
+if(target==='W'||target==='E')return;
+// Save state
+history.push({grid:grid.map(r=>[...r]),playerR,playerC,moves,pushes});
+if(target==='B'||target==='BG'){
+const br=nr+dr,bc=nc+dc;
+if(br<0||br>=grid.length||bc<0||bc>=grid[0].length)return;
+const boxTarget=grid[br][bc];
+if(boxTarget!=='F'&&boxTarget!=='G')return;
+// Move box
+grid[br][bc]=boxTarget==='G'?'BG':'B';
+grid[nr][nc]=(target==='BG')?'G':'F';
+pushes++;
+}
+// Move player
+const curTile=grid[playerR][playerC];
+grid[playerR][playerC]=curTile==='PG'?'G':'F';
+const newTile=grid[nr][nc];
+grid[nr][nc]=newTile==='G'?'PG':'P';
+playerR=nr;playerC=nc;
+moves++;
+updateUI();render();
+window.TG?.haptic?.('impact','light');
+checkWin();
+}
+
+function checkWin(){
+for(let r=0;r<grid.length;r++)for(let c=0;c<grid[0].length;c++){
+if(grid[r][c]==='B')return; // Unplaced box
+}
+// All boxes on goals!
+const stars=moves<=(currentLevel+1)*8?3:moves<=(currentLevel+1)*15?2:1;
+const score=(currentLevel+1)*1000-moves*10;
+document.getElementById('modalTitle').textContent=t('clear');
+document.getElementById('modalEmoji').textContent='⭐'.repeat(stars);
+document.getElementById('modalSub').textContent=`${t('moves')}: ${moves} | ${t('pushes')}: ${pushes}`;
+document.getElementById('modalBg').style.display='flex';
+window.TG?.haptic?.('notification','success');
+if(window.GameScore)GameScore.save('sokoban',Math.max(0,score));
+}
+
+// Controls
+document.querySelectorAll('.dir-btn[data-dir]').forEach(btn=>{
+btn.addEventListener('click',()=>{
+const d=btn.dataset.dir;
+switch(d){
+case'up':move(-1,0);break;
+case'down':move(1,0);break;
+case'left':move(0,-1);break;
+case'right':move(0,1);break;
+}
+});
+});
+
+// Keyboard
+document.addEventListener('keydown',(e)=>{
+switch(e.key){
+case'ArrowUp':case'w':move(-1,0);e.preventDefault();break;
+case'ArrowDown':case's':move(1,0);e.preventDefault();break;
+case'ArrowLeft':case'a':move(0,-1);e.preventDefault();break;
+case'ArrowRight':case'd':move(0,1);e.preventDefault();break;
+}
+});
+
+// Swipe
+let touchStart=null;
+document.addEventListener('touchstart',(e)=>{
+if(e.target.closest('.dir-btn,.act-btn,.btn'))return;
+touchStart={x:e.touches[0].clientX,y:e.touches[0].clientY};
+});
+document.addEventListener('touchend',(e)=>{
+if(!touchStart)return;
+const dx=e.changedTouches[0].clientX-touchStart.x;
+const dy=e.changedTouches[0].clientY-touchStart.y;
+touchStart=null;
+if(Math.abs(dx)<20&&Math.abs(dy)<20)return;
+if(Math.abs(dx)>Math.abs(dy)){move(0,dx>0?1:-1)}
+else{move(dy>0?1:-1,0)}
+});
+
+document.getElementById('btnUndo').addEventListener('click',()=>{
+if(history.length===0)return;
+const prev=history.pop();
+grid=prev.grid;playerR=prev.playerR;playerC=prev.playerC;moves=prev.moves;pushes=prev.pushes;
+updateUI();render();
+});
+document.getElementById('btnReset').addEventListener('click',()=>loadLevel(currentLevel));
+document.getElementById('btnPrev').addEventListener('click',()=>loadLevel(Math.max(0,currentLevel-1)));
+document.getElementById('btnNext').addEventListener('click',()=>loadLevel(currentLevel+1));
+document.getElementById('modalNext').addEventListener('click',()=>{document.getElementById('modalBg').style.display='none';loadLevel(currentLevel+1)});
+document.getElementById('modalReplay').addEventListener('click',()=>{document.getElementById('modalBg').style.display='none';loadLevel(currentLevel)});
+
+loadLevel(0);
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

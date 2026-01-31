@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Rope Cut ✂️</title>
+<meta name="description" content="로프를 자르고 물리 법칙으로 별을 모으세요! 로프 자르기 퍼즐 게임.">
+<meta property="og:title" content="Rope Cut ✂️ — East Sea Games">
+<meta property="og:description" content="로프를 자르고 별을 모으세요! 물리 퍼즐">
+<meta property="og:image" content="https://eastsea.monster/games/rope-cut/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/rope-cut/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/rope-cut/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Rope Cut",
+"url":"https://eastsea.monster/games/rope-cut/",
+"description":"로프를 자르고 별을 모으세요! 물리 퍼즐",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Puzzle","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a1a2e;color:#e0e0e0;user-select:none}
+:root{--bg:#1a1a2e;--card:#16213e;--accent:#e94560;--safe-top:0px;--safe-bottom:0px}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 16px}
+.title{font-size:18px;font-weight:700;color:var(--accent)}
+.hdr-info{display:flex;gap:10px;align-items:center}
+.score-box{text-align:center;min-width:45px}
+.score-label{font-size:9px;opacity:0.6;text-transform:uppercase}
+.score-value{font-size:16px;font-weight:800;color:#fff}
+.stars-display{display:flex;gap:2px;font-size:18px}
+.canvas-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:4px}
+canvas{border-radius:12px;touch-action:none;cursor:crosshair}
+.controls{display:flex;gap:8px;padding:6px 16px 12px;justify-content:center}
+.ctrl-btn{padding:10px 18px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;background:rgba(255,255,255,0.1);color:#fff;transition:all 0.15s;min-height:40px}
+.ctrl-btn:active{transform:scale(0.95)}
+.ctrl-btn.primary{background:var(--accent)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:var(--card);border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:var(--accent);margin-bottom:8px}
+.modal .big{font-size:48px;margin:12px 0}
+.modal .sub{font-size:14px;opacity:0.7;margin-bottom:16px}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;min-height:48px}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">✂️ Rope Cut</div>
+<div class="hdr-info">
+<div class="score-box"><div class="score-label">LEVEL</div><div class="score-value" id="levelVal">1</div></div>
+<div class="stars-display" id="starsDisplay">⭐⭐⭐</div>
+</div>
+</div>
+<div class="canvas-wrap"><canvas id="canvas"></canvas></div>
+<div class="controls">
+<button class="ctrl-btn" id="resetBtn">🔄 Reset</button>
+<button class="ctrl-btn" id="skipBtn">⏭ Skip</button>
+</div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="modalTitle">Level Complete!</h2>
+<div class="big" id="modalStars"></div>
+<div class="sub" id="modalSub"></div>
+<button class="btn btn-primary" id="modalNext">Next Level</button>
+<button class="btn btn-secondary" id="modalRetry">Retry</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{complete:'레벨 클리어!',next:'다음 레벨',retry:'다시하기',stars:'별 획득'},
+en:{complete:'Level Complete!',next:'Next Level',retry:'Retry',stars:'Stars Collected'},
+ja:{complete:'レベルクリア！',next:'次のレベル',retry:'リトライ',stars:'星獲得'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let W,H,level=1,totalStars=0;
+let ropes=[],ball=null,stars=[],target=null,gameActive=true;
+let starsCollected=0,gravity=0.3,dt=1;
+let cutLine=null;
+const SEGS=15;
+
+function resize(){
+const wrap=document.querySelector('.canvas-wrap');
+const r=wrap.getBoundingClientRect();
+W=Math.min(r.width-8,400);
+H=Math.min(r.height-8,550);
+canvas.width=W;canvas.height=H;
+canvas.style.width=W+'px';canvas.style.height=H+'px';
+}
+
+class RopePoint{
+constructor(x,y,pinned=false){
+this.x=x;this.y=y;this.ox=x;this.oy=y;
+this.pinned=pinned;
+}
+update(){
+if(this.pinned)return;
+const vx=this.x-this.ox;
+const vy=this.y-this.oy;
+this.ox=this.x;this.oy=this.y;
+this.x+=vx*0.99;
+this.y+=vy*0.99+gravity;
+// Bounds
+if(this.y>H-10){this.y=H-10;this.oy=this.y;}
+if(this.x<5){this.x=5;this.ox=this.x;}
+if(this.x>W-5){this.x=W-5;this.ox=this.x;}
+}
+}
+
+class Rope{
+constructor(ax,ay,bx,by,attachBall=false){
+this.points=[];
+this.cut=false;
+this.attachBall=attachBall;
+const segs=SEGS;
+for(let i=0;i<=segs;i++){
+const t=i/segs;
+const x=ax+(bx-ax)*t;
+const y=ay+(by-ay)*t;
+this.points.push(new RopePoint(x,y,i===0));
+}
+}
+update(){
+if(this.cut)return;
+// Update points
+this.points.forEach(p=>p.update());
+// Constraints
+for(let iter=0;iter<5;iter++){
+for(let i=0;i<this.points.length-1;i++){
+const a=this.points[i],b=this.points[i+1];
+const dx=b.x-a.x,dy=b.y-a.y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+const rest=15;
+const diff=(rest-dist)/dist*0.5;
+if(!a.pinned){a.x-=dx*diff;a.y-=dy*diff;}
+if(!b.pinned){b.x+=dx*diff;b.y+=dy*diff;}
+}
+}
+// Attach ball to last point
+if(this.attachBall&&ball){
+const last=this.points[this.points.length-1];
+ball.x=last.x;ball.y=last.y;
+}
+}
+draw(ctx){
+if(this.cut)return;
+ctx.beginPath();
+ctx.moveTo(this.points[0].x,this.points[0].y);
+for(let i=1;i<this.points.length;i++){
+ctx.lineTo(this.points[i].x,this.points[i].y);
+}
+ctx.strokeStyle='#c8a87c';
+ctx.lineWidth=3;
+ctx.stroke();
+// Pin
+const p0=this.points[0];
+ctx.beginPath();
+ctx.arc(p0.x,p0.y,5,0,Math.PI*2);
+ctx.fillStyle='#888';
+ctx.fill();
+}
+cutAt(x1,y1,x2,y2){
+if(this.cut)return false;
+for(let i=0;i<this.points.length-1;i++){
+const a=this.points[i],b=this.points[i+1];
+if(lineIntersect(x1,y1,x2,y2,a.x,a.y,b.x,b.y)){
+this.cut=true;
+// Transfer velocity to ball
+if(this.attachBall&&ball){
+const last=this.points[this.points.length-1];
+ball.vx=(last.x-last.ox)*1.5;
+ball.vy=(last.y-last.oy)*1.5;
+ball.free=true;
+}
+return true;
+}
+}
+return false;
+}
+}
+
+function lineIntersect(x1,y1,x2,y2,x3,y3,x4,y4){
+const d=(x1-x2)*(y3-y4)-(y1-y2)*(x3-x4);
+if(Math.abs(d)<0.001)return false;
+const t=((x1-x3)*(y3-y4)-(y1-y3)*(x3-x4))/d;
+const u=-((x1-x2)*(y1-y3)-(y1-y2)*(x1-x3))/d;
+return t>=0&&t<=1&&u>=0&&u<=1;
+}
+
+function generateLevel(){
+ropes=[];stars=[];starsCollected=0;gameActive=true;
+const cx=W/2,cy=H*0.15;
+// Ball position varies by level
+const numRopes=Math.min(1+Math.floor(level/3),4);
+const ballX=cx+Math.sin(level)*W*0.2;
+const ballY=cy+50;
+ball={x:ballX,y:ballY,r:16,vx:0,vy:0,free:false,color:'#e94560'};
+// Target (basket)
+target={x:W/2+Math.cos(level*0.7)*W*0.25,y:H*0.82,w:60,h:30};
+// Create ropes
+for(let i=0;i<numRopes;i++){
+const ax=W*0.15+Math.random()*W*0.7;
+const ay=10+Math.random()*H*0.15;
+ropes.push(new Rope(ax,ay,ballX,ballY,i===0));
+}
+// Stars
+const numStars=3;
+for(let i=0;i<numStars;i++){
+const sx=W*0.2+Math.random()*W*0.6;
+const sy=H*0.3+Math.random()*H*0.35;
+stars.push({x:sx,y:sy,r:12,collected:false});
+}
+document.getElementById('levelVal').textContent=level;
+updateStarsUI();
+}
+
+function updateStarsUI(){
+const d=document.getElementById('starsDisplay');
+let s='';
+for(let i=0;i<3;i++)s+=i<starsCollected?'⭐':'☆';
+d.textContent=s;
+}
+
+function update(){
+if(!gameActive)return;
+ropes.forEach(r=>r.update());
+if(ball.free){
+ball.vx*=0.999;
+ball.vy+=gravity;
+ball.x+=ball.vx;
+ball.y+=ball.vy;
+// Bounce off walls
+if(ball.x<ball.r){ball.x=ball.r;ball.vx*=-0.6;}
+if(ball.x>W-ball.r){ball.x=W-ball.r;ball.vx*=-0.6;}
+if(ball.y>H-ball.r){ball.y=H-ball.r;ball.vy*=-0.4;ball.vx*=0.9;}
+// Check star collection
+stars.forEach(s=>{
+if(!s.collected){
+const dx=ball.x-s.x,dy=ball.y-s.y;
+if(Math.sqrt(dx*dx+dy*dy)<ball.r+s.r){
+s.collected=true;starsCollected++;
+updateStarsUI();
+window.TG?.haptic?.('impact','light');
+}
+}
+});
+// Check target
+const dx=ball.x-target.x,dy=ball.y-target.y;
+if(Math.abs(dx)<target.w/2&&Math.abs(dy)<target.h/2){
+gameActive=false;
+window.TG?.haptic?.('notification','success');
+setTimeout(showComplete,300);
+}
+// Fell off screen
+if(ball.y>H+50){
+gameActive=false;
+setTimeout(()=>generateLevel(),500);
+}
+}
+}
+
+function draw(){
+ctx.clearRect(0,0,W,H);
+// Background gradient
+const grad=ctx.createLinearGradient(0,0,0,H);
+grad.addColorStop(0,'#1a1a2e');
+grad.addColorStop(1,'#0f3460');
+ctx.fillStyle=grad;
+ctx.fillRect(0,0,W,H);
+// Target basket
+ctx.save();
+ctx.strokeStyle='#c8a87c';
+ctx.lineWidth=3;
+ctx.beginPath();
+ctx.moveTo(target.x-target.w/2,target.y-target.h/2);
+ctx.lineTo(target.x-target.w/2+5,target.y+target.h/2);
+ctx.lineTo(target.x+target.w/2-5,target.y+target.h/2);
+ctx.lineTo(target.x+target.w/2,target.y-target.h/2);
+ctx.stroke();
+ctx.fillStyle='rgba(200,168,124,0.1)';
+ctx.fill();
+ctx.font='20px sans-serif';
+ctx.textAlign='center';
+ctx.fillText('🎯',target.x,target.y+6);
+ctx.restore();
+// Stars
+stars.forEach(s=>{
+if(s.collected)return;
+ctx.font='24px sans-serif';
+ctx.textAlign='center';
+ctx.textBaseline='middle';
+ctx.fillText('⭐',s.x,s.y);
+// Glow
+ctx.beginPath();
+ctx.arc(s.x,s.y,s.r+4,0,Math.PI*2);
+ctx.fillStyle='rgba(255,215,0,0.1)';
+ctx.fill();
+});
+// Ropes
+ropes.forEach(r=>r.draw(ctx));
+// Ball
+if(ball){
+ctx.beginPath();
+ctx.arc(ball.x,ball.y,ball.r,0,Math.PI*2);
+const ballGrad=ctx.createRadialGradient(ball.x-4,ball.y-4,0,ball.x,ball.y,ball.r);
+ballGrad.addColorStop(0,'#ff6b9d');
+ballGrad.addColorStop(1,ball.color);
+ctx.fillStyle=ballGrad;
+ctx.fill();
+ctx.strokeStyle='rgba(255,255,255,0.3)';
+ctx.lineWidth=1.5;
+ctx.stroke();
+// Face
+ctx.font='14px sans-serif';
+ctx.textAlign='center';
+ctx.textBaseline='middle';
+ctx.fillText('😊',ball.x,ball.y);
+}
+// Cut line preview
+if(cutLine){
+ctx.beginPath();
+ctx.moveTo(cutLine.x1,cutLine.y1);
+ctx.lineTo(cutLine.x2,cutLine.y2);
+ctx.strokeStyle='rgba(233,69,96,0.6)';
+ctx.lineWidth=2;
+ctx.setLineDash([5,5]);
+ctx.stroke();
+ctx.setLineDash([]);
+}
+}
+
+function loop(){
+update();draw();
+requestAnimationFrame(loop);
+}
+
+function showComplete(){
+document.getElementById('modalTitle').textContent=t('complete');
+document.getElementById('modalStars').textContent='⭐'.repeat(starsCollected)+'☆'.repeat(3-starsCollected);
+document.getElementById('modalSub').textContent=t('stars')+': '+starsCollected+'/3';
+document.getElementById('modalBg').style.display='flex';
+totalStars+=starsCollected;
+if(window.GameScore)GameScore.save('rope-cut',totalStars);
+}
+
+// Input
+let dragging=false;
+function getPos(e){
+const r=canvas.getBoundingClientRect();
+const touch=e.touches?e.touches[0]:e;
+return{x:touch.clientX-r.left,y:touch.clientY-r.top};
+}
+canvas.addEventListener('mousedown',e=>{dragging=true;const p=getPos(e);cutLine={x1:p.x,y1:p.y,x2:p.x,y2:p.y};});
+canvas.addEventListener('touchstart',e=>{e.preventDefault();dragging=true;const p=getPos(e);cutLine={x1:p.x,y1:p.y,x2:p.x,y2:p.y};},{passive:false});
+canvas.addEventListener('mousemove',e=>{if(dragging){const p=getPos(e);cutLine.x2=p.x;cutLine.y2=p.y;}});
+canvas.addEventListener('touchmove',e=>{e.preventDefault();if(dragging){const p=getPos(e);cutLine.x2=p.x;cutLine.y2=p.y;}},{passive:false});
+function endCut(){
+if(!dragging||!cutLine)return;
+dragging=false;
+let anyCut=false;
+ropes.forEach(r=>{
+if(r.cutAt(cutLine.x1,cutLine.y1,cutLine.x2,cutLine.y2)){
+anyCut=true;
+window.TG?.haptic?.('impact','heavy');
+}
+});
+cutLine=null;
+}
+canvas.addEventListener('mouseup',endCut);
+canvas.addEventListener('touchend',e=>{e.preventDefault();endCut();});
+
+document.getElementById('resetBtn').addEventListener('click',generateLevel);
+document.getElementById('skipBtn').addEventListener('click',()=>{level++;generateLevel();});
+document.getElementById('modalNext').addEventListener('click',()=>{level++;document.getElementById('modalBg').style.display='none';generateLevel();});
+document.getElementById('modalRetry').addEventListener('click',()=>{document.getElementById('modalBg').style.display='none';generateLevel();});
+
+window.addEventListener('resize',()=>{resize();generateLevel();});
+resize();
+generateLevel();
+loop();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Piano Tiles 🎹</title>
+<meta name="description" content="검은 건반만 터치! 빠르게 정확하게 눌러 최고 기록에 도전!">
+<meta property="og:title" content="Piano Tiles 🎹 — East Sea Games">
+<meta property="og:description" content="검은 건반만 터치하세요! 속도와 정확성의 한계에 도전!">
+<meta property="og:image" content="https://eastsea.monster/games/piano-tiles/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/piano-tiles/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/piano-tiles/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Piano Tiles",
+"url":"https://eastsea.monster/games/piano-tiles/",
+"description":"검은 건반만 터치! 빠르게 정확하게 눌러 최고 기록에 도전!",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Music","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#111;color:#e0e0e0;user-select:none}
+:root{--safe-top:0px;--safe-bottom:0px}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 16px;background:rgba(0,0,0,0.3)}
+.title{font-size:16px;font-weight:700;color:#fff}
+.hdr-stats{display:flex;gap:14px}
+.hdr-stat{text-align:center}
+.hdr-label{font-size:9px;opacity:0.5;text-transform:uppercase;letter-spacing:1px}
+.hdr-val{font-size:18px;font-weight:800;color:#fff}
+.game-area{flex:1;position:relative;overflow:hidden;touch-action:none}
+.lane{position:absolute;top:0;bottom:0;border-right:1px solid rgba(255,255,255,0.1)}
+.tile{position:absolute;border-radius:4px;transition:opacity 0.1s;cursor:pointer}
+.tile-black{background:linear-gradient(180deg,#1a1a2e 0%,#0d0d1a 100%);border:1px solid rgba(255,255,255,0.08)}
+.tile-tapped{background:linear-gradient(180deg,#4ea8ff 0%,#2980b9 100%);opacity:0.7}
+.tile-missed{background:#e94560;animation:missFlash 0.3s}
+.tile-wrong{position:absolute;border-radius:50%;width:30px;height:30px;background:#e94560;animation:wrongPop 0.4s forwards;pointer-events:none}
+@keyframes missFlash{0%,100%{opacity:1}50%{opacity:0.3}}
+@keyframes wrongPop{0%{transform:scale(0);opacity:1}100%{transform:scale(2);opacity:0}}
+.start-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.8);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10}
+.start-overlay h2{font-size:28px;color:#fff;margin-bottom:8px}
+.start-overlay p{font-size:14px;opacity:0.7;margin-bottom:24px}
+.start-btn{padding:16px 40px;background:#4ea8ff;color:#fff;border:none;border-radius:14px;font-size:18px;font-weight:700;cursor:pointer;min-height:52px}
+.start-btn:active{transform:scale(0.95)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal{background:#16213e;border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;margin-bottom:8px}
+.modal .big{font-size:52px;font-weight:800;color:#fff;margin:12px 0}
+.modal .sub{font-size:14px;opacity:0.7;margin-bottom:16px}
+.modal .new-best{color:#ffd700;font-size:16px;font-weight:700}
+.mbtn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;min-height:48px}
+.mbtn:active{transform:scale(0.95)}
+.mbtn-p{background:#4ea8ff;color:#fff}
+.mbtn-s{background:rgba(255,255,255,0.1);color:#e0e0e0;border:1px solid rgba(255,255,255,0.15)}
+.combo-display{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;font-weight:900;color:#ffd700;opacity:0;pointer-events:none;text-shadow:0 0 20px rgba(255,215,0,0.5);z-index:5}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">🎹 Piano Tiles</div>
+<div class="hdr-stats">
+<div class="hdr-stat"><div class="hdr-label" data-i18n="score">SCORE</div><div class="hdr-val" id="scoreVal">0</div></div>
+<div class="hdr-stat"><div class="hdr-label" data-i18n="best">BEST</div><div class="hdr-val" id="bestVal">0</div></div>
+</div>
+</div>
+<div class="game-area" id="gameArea">
+<div class="start-overlay" id="startOverlay">
+<h2>🎹 Piano Tiles</h2>
+<p data-i18n="tapBlack">Tap the black tiles!</p>
+<button class="start-btn" id="startBtn" data-i18n="start">START</button>
+</div>
+<div class="combo-display" id="comboDisplay"></div>
+</div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="mTitle" data-i18n="gameOver">Game Over</h2>
+<div class="big" id="mScore">0</div>
+<div class="sub" id="mSub"></div>
+<div id="mBest" class="new-best" style="display:none"></div>
+<button class="mbtn mbtn-p" id="mReplay" data-i18n="replay">Play Again</button>
+<button class="mbtn mbtn-s" id="mShare" data-i18n="share">Share</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{score:'점수',best:'최고',tapBlack:'검은 타일만 터치하세요!',start:'시작',gameOver:'게임 오버',replay:'다시하기',share:'공유',newBest:'🏆 새 최고기록!',speed:'속도',combo:'콤보',missed:'놓침!',wrong:'잘못 터치!'},
+en:{score:'SCORE',best:'BEST',tapBlack:'Tap the black tiles!',start:'START',gameOver:'Game Over',replay:'Play Again',share:'Share',newBest:'🏆 New Best!',speed:'Speed',combo:'Combo',missed:'Missed!',wrong:'Wrong tile!'},
+ja:{score:'スコア',best:'ベスト',tapBlack:'黒いタイルをタップ！',start:'スタート',gameOver:'ゲームオーバー',replay:'もう一度',share:'シェア',newBest:'🏆 新記録！',speed:'スピード',combo:'コンボ',missed:'ミス！',wrong:'お手つき！'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+
+const gameArea=document.getElementById('gameArea');
+const LANES=4;
+const TILE_H_RATIO=0.22;
+let areaW,areaH,laneW,tileH;
+let tiles=[],score=0,best=0,combo=0,maxCombo=0,speed=3,gameActive=false;
+let animId=null,lastTime=0;
+
+// Audio context for piano sounds
+let audioCtx=null;
+const NOTES=[261.63,293.66,329.63,349.23]; // C4,D4,E4,F4
+
+function playNote(lane){
+if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+const osc=audioCtx.createOscillator();
+const gain=audioCtx.createGain();
+osc.connect(gain);gain.connect(audioCtx.destination);
+osc.type='sine';
+osc.frequency.value=NOTES[lane%NOTES.length];
+gain.gain.setValueAtTime(0.3,audioCtx.currentTime);
+gain.gain.exponentialRampToValueAtTime(0.01,audioCtx.currentTime+0.3);
+osc.start();osc.stop(audioCtx.currentTime+0.3);
+}
+
+function resize(){
+const rect=gameArea.getBoundingClientRect();
+areaW=rect.width;areaH=rect.height;
+laneW=areaW/LANES;
+tileH=areaH*TILE_H_RATIO;
+}
+
+function spawnTile(){
+const lane=Math.floor(Math.random()*LANES);
+const el=document.createElement('div');
+el.className='tile tile-black';
+el.style.width=laneW-4+'px';
+el.style.height=tileH+'px';
+el.style.left=lane*laneW+2+'px';
+el.style.top=-tileH+'px';
+gameArea.appendChild(el);
+const tile={el,lane,y:-tileH,tapped:false};
+el.addEventListener('touchstart',e=>{e.preventDefault();tapTile(tile)},{passive:false});
+el.addEventListener('mousedown',e=>{e.preventDefault();tapTile(tile)});
+tiles.push(tile);
+}
+
+function tapTile(tile){
+if(!gameActive||tile.tapped)return;
+tile.tapped=true;
+tile.el.className='tile tile-tapped';
+score++;combo++;
+if(combo>maxCombo)maxCombo=combo;
+document.getElementById('scoreVal').textContent=score;
+playNote(tile.lane);
+window.TG?.haptic?.('impact','light');
+// Speed up
+speed=3+score*0.05;
+// Combo display
+if(combo>0&&combo%10===0){
+showCombo(combo);
+}
+setTimeout(()=>{
+if(tile.el.parentNode)tile.el.remove();
+tiles=tiles.filter(t=>t!==tile);
+},150);
+}
+
+function showCombo(n){
+const cd=document.getElementById('comboDisplay');
+cd.textContent=n+'🔥';
+cd.style.opacity='1';
+cd.style.transition='none';
+cd.style.transform='translate(-50%,-50%) scale(0.5)';
+requestAnimationFrame(()=>{
+cd.style.transition='all 0.5s ease-out';
+cd.style.transform='translate(-50%,-50%) scale(1.5)';
+cd.style.opacity='0';
+});
+}
+
+function tapWrong(x,y){
+if(!gameActive)return;
+const wr=document.createElement('div');
+wr.className='tile-wrong';
+wr.style.left=x-15+'px';
+wr.style.top=y-15+'px';
+gameArea.appendChild(wr);
+setTimeout(()=>wr.remove(),400);
+combo=0;
+window.TG?.haptic?.('notification','error');
+endGame(t('wrong'));
+}
+
+// Handle tapping empty space
+gameArea.addEventListener('touchstart',e=>{
+if(!gameActive)return;
+const touch=e.touches[0];
+const rect=gameArea.getBoundingClientRect();
+const x=touch.clientX-rect.left;
+const y=touch.clientY-rect.top;
+// Check if any tile was hit
+let hitTile=false;
+tiles.forEach(tile=>{
+if(!tile.tapped&&x>=tile.lane*laneW&&x<(tile.lane+1)*laneW&&y>=tile.y&&y<=tile.y+tileH)hitTile=true;
+});
+if(!hitTile){
+tapWrong(x,y);
+}
+},{passive:true});
+
+gameArea.addEventListener('mousedown',e=>{
+if(!gameActive)return;
+const rect=gameArea.getBoundingClientRect();
+const x=e.clientX-rect.left;
+const y=e.clientY-rect.top;
+let hitTile=false;
+tiles.forEach(tile=>{
+if(!tile.tapped&&x>=tile.lane*laneW&&x<(tile.lane+1)*laneW&&y>=tile.y&&y<=tile.y+tileH)hitTile=true;
+});
+if(!hitTile)tapWrong(x,y);
+});
+
+let spawnTimer=0;
+function update(dt){
+if(!gameActive)return;
+spawnTimer+=dt;
+const interval=Math.max(300,800-score*5);
+if(spawnTimer>=interval){
+spawnTile();
+spawnTimer=0;
+}
+tiles.forEach(tile=>{
+tile.y+=speed*dt*0.06;
+tile.el.style.top=tile.y+'px';
+// Missed
+if(!tile.tapped&&tile.y>areaH){
+tile.el.className='tile tile-missed';
+combo=0;
+endGame(t('missed'));
+}
+});
+tiles=tiles.filter(t=>{
+if(t.y>areaH+50){t.el.remove();return false}
+return true;
+});
+}
+
+function gameLoop(ts){
+if(!gameActive)return;
+const dt=lastTime?ts-lastTime:16;
+lastTime=ts;
+update(dt);
+animId=requestAnimationFrame(gameLoop);
+}
+
+function startGame(){
+document.getElementById('startOverlay').style.display='none';
+resize();
+tiles.forEach(t=>t.el.remove());
+tiles=[];score=0;combo=0;maxCombo=0;speed=3;spawnTimer=0;gameActive=true;lastTime=0;
+document.getElementById('scoreVal').textContent='0';
+best=window.TG?.load?.('ptiles_best',0)||parseInt(localStorage.getItem('ptiles_best')||'0');
+document.getElementById('bestVal').textContent=best;
+// Draw lanes
+document.querySelectorAll('.lane').forEach(l=>l.remove());
+for(let i=1;i<LANES;i++){
+const lane=document.createElement('div');
+lane.className='lane';
+lane.style.left=i*laneW+'px';
+gameArea.appendChild(lane);
+}
+spawnTile();
+animId=requestAnimationFrame(gameLoop);
+}
+
+function endGame(reason){
+gameActive=false;
+if(animId)cancelAnimationFrame(animId);
+const isNew=score>best;
+if(isNew){
+best=score;
+window.TG?.save?.('ptiles_best',best);
+localStorage.setItem('ptiles_best',best.toString());
+}
+document.getElementById('bestVal').textContent=best;
+document.getElementById('mTitle').textContent=t('gameOver');
+document.getElementById('mScore').textContent=score;
+document.getElementById('mSub').textContent=reason+' | '+t('combo')+': '+maxCombo;
+const bestDiv=document.getElementById('mBest');
+if(isNew&&score>0){bestDiv.textContent=t('newBest');bestDiv.style.display='block'}else{bestDiv.style.display='none'}
+document.getElementById('modalBg').style.display='flex';
+window.TG?.haptic?.('notification','error');
+}
+
+document.getElementById('startBtn').addEventListener('click',startGame);
+document.getElementById('mReplay').addEventListener('click',()=>{
+document.getElementById('modalBg').style.display='none';
+startGame();
+});
+document.getElementById('mShare').addEventListener('click',()=>{window.TG?.shareScore?.(score,'Piano Tiles','piano-tiles')});
+
+window.addEventListener('resize',resize);
+resize();
+best=window.TG?.load?.('ptiles_best',0)||parseInt(localStorage.getItem('ptiles_best')||'0');
+document.getElementById('bestVal').textContent=best;
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

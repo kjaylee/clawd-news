@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Reversi ⚫⚪</title>
+<meta name="description" content="오셀로(리버시) AI 대전! 상대 돌을 뒤집어 보드를 지배하세요.">
+<meta property="og:title" content="Reversi ⚫⚪ — East Sea Games">
+<meta property="og:description" content="클래식 오셀로 전략 보드 게임! AI와 대결하세요.">
+<meta property="og:image" content="https://eastsea.monster/games/reversi/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/reversi/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/reversi/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Reversi",
+"url":"https://eastsea.monster/games/reversi/",
+"description":"오셀로 리버시 AI 대전 보드 게임",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Board Game","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a472a;color:#e0e0e0;user-select:none}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top,0px);padding-bottom:var(--safe-bottom,0px)}
+#app{width:100%;max-width:500px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:rgba(0,0,0,0.3)}
+.header .title{font-size:16px;font-weight:700;color:#66bb6a}
+.player-info{display:flex;gap:16px;align-items:center}
+.player{display:flex;align-items:center;gap:6px;padding:4px 10px;border-radius:16px;font-size:14px;font-weight:700}
+.player.active{background:rgba(255,255,255,0.15);box-shadow:0 0 0 2px rgba(102,187,106,0.5)}
+.player .disc{width:20px;height:20px;border-radius:50%}
+.disc-black{background:radial-gradient(circle at 35% 35%,#555,#111);border:1px solid #333}
+.disc-white{background:radial-gradient(circle at 35% 35%,#fff,#ccc);border:1px solid #aaa}
+.turn-text{text-align:center;padding:6px;font-size:14px;color:#aaa;min-height:28px}
+.board-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:8px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:#0d5016;padding:4px;border-radius:8px;box-shadow:0 4px 20px rgba(0,0,0,0.5);width:min(calc(100vw - 24px),400px);height:min(calc(100vw - 24px),400px)}
+.cell{background:#1e7a34;border-radius:2px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:background 0.1s}
+.cell:hover{background:#2a8e42}
+.cell .piece{width:80%;height:80%;border-radius:50%;transition:all 0.3s;transform:rotateY(0deg)}
+.cell .piece.black{background:radial-gradient(circle at 35% 35%,#555,#111);box-shadow:0 2px 4px rgba(0,0,0,0.5)}
+.cell .piece.white{background:radial-gradient(circle at 35% 35%,#fff,#ddd);box-shadow:0 2px 4px rgba(0,0,0,0.3)}
+.cell .piece.flip{animation:flip 0.4s ease-in-out}
+.cell.valid::after{content:'';position:absolute;width:20%;height:20%;border-radius:50%;background:rgba(255,255,255,0.25)}
+.cell.last-move{box-shadow:inset 0 0 0 2px rgba(255,255,0,0.4)}
+.score-bar{display:flex;justify-content:center;align-items:center;gap:20px;padding:10px}
+.score-item{display:flex;align-items:center;gap:8px;font-size:20px;font-weight:800}
+.controls{display:flex;justify-content:center;gap:12px;padding:8px 14px}
+.ctrl-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;cursor:pointer;min-height:44px;font-weight:600}
+.ctrl-btn:active{transform:scale(0.95)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:#16213e;border-radius:20px;padding:28px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:#66bb6a;margin-bottom:8px}
+.modal .big{font-size:36px;margin:12px 0}
+.modal .sub{font-size:14px;color:#aaa;margin-bottom:12px}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;min-height:48px;width:100%;margin-top:8px}
+.btn-primary{background:#66bb6a;color:#1a1a2e}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+@keyframes flip{0%{transform:rotateY(0)}50%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">⚫ Reversi</div>
+<div class="player-info">
+<div class="player" id="playerBlack"><div class="disc disc-black"></div><span id="blackCount">2</span></div>
+<div class="player" id="playerWhite"><div class="disc disc-white"></div><span id="whiteCount">2</span></div>
+</div>
+</div>
+<div class="turn-text" id="turnText"></div>
+<div class="board-wrap"><div class="board" id="board"></div></div>
+<div class="score-bar">
+<div class="score-item"><div class="disc disc-black" style="width:24px;height:24px"></div><span id="scoreBlack">2</span></div>
+<span style="color:#555">vs</span>
+<div class="score-item"><span id="scoreWhite">2</span><div class="disc disc-white" style="width:24px;height:24px"></div></div>
+</div>
+<div class="controls">
+<button class="ctrl-btn" id="btnNew" data-i18n="newGame">New Game</button>
+<button class="ctrl-btn" id="btnUndo" data-i18n="undo">Undo</button>
+</div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="modalTitle"></h2>
+<div class="big" id="modalEmoji"></div>
+<div class="sub" id="modalSub"></div>
+<button class="btn btn-primary" id="modalReplay" data-i18n="newGame">New Game</button>
+<button class="btn btn-secondary" id="modalShare" data-i18n="share">Share</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{newGame:'새 게임',undo:'되돌리기',share:'공유',yourTurn:'당신 차례 (흑)',aiTurn:'AI 생각 중...',youWin:'승리!',youLose:'패배',draw:'무승부',noMoves:'놓을 곳 없음 — 패스',black:'흑',white:'백'},
+en:{newGame:'New Game',undo:'Undo',share:'Share',yourTurn:'Your turn (Black)',aiTurn:'AI thinking...',youWin:'You Win!',youLose:'You Lose',draw:'Draw!',noMoves:'No moves — Pass',black:'Black',white:'White'},
+ja:{newGame:'新規',undo:'戻す',share:'シェア',yourTurn:'あなたの番（黒）',aiTurn:'AI思考中...',youWin:'勝利！',youLose:'敗北',draw:'引分け！',noMoves:'パス',black:'黒',white:'白'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+
+const B=1,W=2,E=0,SIZE=8;
+const DIRS=[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]];
+let board=[],turn=B,history=[],lastMove=null,gameOver=false;
+
+function init(){
+board=Array.from({length:SIZE},()=>Array(SIZE).fill(E));
+board[3][3]=W;board[3][4]=B;board[4][3]=B;board[4][4]=W;
+turn=B;history=[];lastMove=null;gameOver=false;
+render();
+document.getElementById('turnText').textContent=t('yourTurn');
+}
+
+function clone(b){return b.map(r=>[...r])}
+
+function getFlips(b,r,c,player){
+if(b[r][c]!==E)return[];
+const opp=player===B?W:B;
+let flips=[];
+for(const[dr,dc]of DIRS){
+let nr=r+dr,nc=c+dc;
+const line=[];
+while(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&b[nr][nc]===opp){
+line.push([nr,nc]);nr+=dr;nc+=dc;
+}
+if(line.length>0&&nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&b[nr][nc]===player){
+flips.push(...line);
+}
+}
+return flips;
+}
+
+function getValidMoves(b,player){
+const moves=[];
+for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+if(getFlips(b,r,c,player).length>0)moves.push({r,c});
+}
+return moves;
+}
+
+function makeMove(b,r,c,player){
+const flips=getFlips(b,r,c,player);
+if(flips.length===0)return false;
+const nb=clone(b);
+nb[r][c]=player;
+flips.forEach(([fr,fc])=>nb[fr][fc]=player);
+return nb;
+}
+
+function countPieces(b){
+let black=0,white=0;
+for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+if(b[r][c]===B)black++;else if(b[r][c]===W)white++;
+}
+return{black,white};
+}
+
+function render(){
+const boardEl=document.getElementById('board');
+boardEl.innerHTML='';
+const validMoves=turn===B?getValidMoves(board,B):[];
+for(let r=0;r<SIZE;r++)for(let c=0;c<SIZE;c++){
+const cell=document.createElement('div');
+cell.className='cell';
+if(lastMove&&lastMove.r===r&&lastMove.c===c)cell.classList.add('last-move');
+if(board[r][c]!==E){
+const piece=document.createElement('div');
+piece.className='piece '+(board[r][c]===B?'black':'white');
+cell.appendChild(piece);
+}
+if(validMoves.some(m=>m.r===r&&m.c===c)){
+cell.classList.add('valid');
+cell.addEventListener('click',()=>playerMove(r,c));
+}
+boardEl.appendChild(cell);
+}
+const{black,white}=countPieces(board);
+document.getElementById('blackCount').textContent=black;
+document.getElementById('whiteCount').textContent=white;
+document.getElementById('scoreBlack').textContent=black;
+document.getElementById('scoreWhite').textContent=white;
+document.getElementById('playerBlack').classList.toggle('active',turn===B);
+document.getElementById('playerWhite').classList.toggle('active',turn===W);
+}
+
+function playerMove(r,c){
+if(turn!==B||gameOver)return;
+const newBoard=makeMove(board,r,c,B);
+if(!newBoard)return;
+history.push({board:clone(board),turn:B});
+board=newBoard;lastMove={r,c};turn=W;
+render();
+window.TG?.haptic?.('impact','medium');
+document.getElementById('turnText').textContent=t('aiTurn');
+setTimeout(aiMove,500);
+}
+
+function aiMove(){
+if(gameOver)return;
+const moves=getValidMoves(board,W);
+if(moves.length===0){
+// AI passes
+turn=B;
+const playerMoves=getValidMoves(board,B);
+if(playerMoves.length===0){endGame();return}
+document.getElementById('turnText').textContent=t('yourTurn');
+render();return;
+}
+// AI: greedy + positional
+const best=aiSelectMove(board,W,moves);
+const newBoard=makeMove(board,best.r,best.c,W);
+if(newBoard){
+history.push({board:clone(board),turn:W});
+board=newBoard;lastMove=best;
+}
+turn=B;
+const playerMoves=getValidMoves(board,B);
+if(playerMoves.length===0){
+const aiMoves2=getValidMoves(board,W);
+if(aiMoves2.length===0){endGame();return}
+document.getElementById('turnText').textContent=t('noMoves');
+turn=W;
+render();
+setTimeout(aiMove,800);return;
+}
+document.getElementById('turnText').textContent=t('yourTurn');
+render();
+}
+
+// Positional weights for AI
+const POS_WEIGHT=[
+[100,-20,10,5,5,10,-20,100],
+[-20,-50,-2,-2,-2,-2,-50,-20],
+[10,-2,1,1,1,1,-2,10],
+[5,-2,1,0,0,1,-2,5],
+[5,-2,1,0,0,1,-2,5],
+[10,-2,1,1,1,1,-2,10],
+[-20,-50,-2,-2,-2,-2,-50,-20],
+[100,-20,10,5,5,10,-20,100]
+];
+
+function aiSelectMove(b,player,moves){
+let bestScore=-Infinity,bestMove=moves[0];
+for(const m of moves){
+const nb=makeMove(b,m.r,m.c,player);
+if(!nb)continue;
+const{black:nb_b,white:nb_w}=countPieces(nb);
+let score=(player===W?nb_w-nb_b:nb_b-nb_w)*2;
+score+=POS_WEIGHT[m.r][m.c]*3;
+// Look one move ahead
+const oppMoves=getValidMoves(nb,player===W?B:W);
+score-=oppMoves.length*2;
+if(score>bestScore){bestScore=score;bestMove=m}
+}
+return bestMove;
+}
+
+function endGame(){
+gameOver=true;
+const{black,white}=countPieces(board);
+let title,emoji;
+if(black>white){title=t('youWin');emoji='🎉'}
+else if(white>black){title=t('youLose');emoji='😢'}
+else{title=t('draw');emoji='🤝'}
+document.getElementById('modalTitle').textContent=title;
+document.getElementById('modalEmoji').textContent=emoji;
+document.getElementById('modalSub').textContent=`⚫ ${black} : ${white} ⚪`;
+document.getElementById('modalBg').style.display='flex';
+window.TG?.haptic?.('notification',black>white?'success':'error');
+if(window.GameScore)GameScore.save('reversi',black>white?black*10:0);
+}
+
+document.getElementById('btnNew').addEventListener('click',init);
+document.getElementById('btnUndo').addEventListener('click',()=>{
+if(history.length<2)return;
+// Undo both AI and player move
+history.pop();const prev=history.pop();
+board=prev.board;turn=B;lastMove=null;
+render();
+document.getElementById('turnText').textContent=t('yourTurn');
+});
+document.getElementById('modalReplay').addEventListener('click',()=>{document.getElementById('modalBg').style.display='none';init()});
+document.getElementById('modalShare').addEventListener('click',()=>{
+const{black}=countPieces(board);
+window.TG?.shareScore?.(black*10,'Reversi','reversi');
+});
+
+init();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

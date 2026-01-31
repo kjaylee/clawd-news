@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Water Pour 💧</title>
+<meta name="description" content="물을 부어 같은 색으로 정렬하세요! 물 붓기 퍼즐 ASMR 게임.">
+<meta property="og:title" content="Water Pour 💧 — East Sea Games">
+<meta property="og:description" content="물을 부어 같은 색으로 정렬하세요! ASMR 퍼즐">
+<meta property="og:image" content="https://eastsea.monster/games/water-pour/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/water-pour/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/water-pour/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Water Pour",
+"url":"https://eastsea.monster/games/water-pour/",
+"description":"물을 부어 같은 색으로 정렬하세요! ASMR 퍼즐",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Puzzle","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0a1628;color:#e0e0e0;user-select:none}
+:root{--bg:#0a1628;--card:#16213e;--accent:#4ea8ff;--safe-top:0px;--safe-bottom:0px}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px}
+.title{font-size:18px;font-weight:700;color:var(--accent)}
+.hdr-info{display:flex;gap:12px}
+.score-box{text-align:center;min-width:50px}
+.score-label{font-size:9px;opacity:0.6;text-transform:uppercase}
+.score-value{font-size:18px;font-weight:800;color:#fff}
+.tubes-area{flex:1;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;padding:12px}
+.tube{width:48px;cursor:pointer;transition:all 0.2s;position:relative}
+.tube.selected{transform:translateY(-12px)}
+.tube.complete{opacity:0.7}
+.tube-svg{width:100%;display:block}
+.tube-label{text-align:center;font-size:10px;color:#666;margin-top:2px}
+.controls{display:flex;gap:8px;padding:8px 16px 16px;justify-content:center}
+.ctrl-btn{padding:10px 20px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;background:rgba(255,255,255,0.1);color:#fff;transition:all 0.15s;min-height:40px}
+.ctrl-btn:active{transform:scale(0.95)}
+.ctrl-btn.primary{background:var(--accent);color:#fff}
+.moves-display{text-align:center;font-size:12px;color:#888;padding:2px}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:var(--card);border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:var(--accent);margin-bottom:8px}
+.modal .big{font-size:48px;font-weight:800;color:#fff;margin:12px 0}
+.modal .sub{font-size:14px;opacity:0.7;margin-bottom:16px}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;min-height:48px}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+.pour-anim{position:absolute;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">💧 Water Pour</div>
+<div class="hdr-info">
+<div class="score-box"><div class="score-label" data-i18n="level">LEVEL</div><div class="score-value" id="levelVal">1</div></div>
+<div class="score-box"><div class="score-label" data-i18n="moves">MOVES</div><div class="score-value" id="movesVal">0</div></div>
+</div>
+</div>
+<div class="moves-display" id="movesInfo"></div>
+<div class="tubes-area" id="tubesArea"></div>
+<div class="controls">
+<button class="ctrl-btn" id="undoBtn">↩ Undo</button>
+<button class="ctrl-btn" id="resetBtn">🔄 Reset</button>
+<button class="ctrl-btn" id="addTubeBtn">➕ Tube</button>
+</div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="modalTitle"></h2>
+<div class="big" id="modalScore"></div>
+<div class="sub" id="modalSub"></div>
+<button class="btn btn-primary" id="modalNext" data-i18n="nextLevel">Next Level</button>
+<button class="btn btn-secondary" id="modalShare" data-i18n="share">Share</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{level:'레벨',moves:'이동',nextLevel:'다음 레벨',share:'공유',complete:'클리어!',perfect:'완벽!',great:'잘했어요!',good:'괜찮아요'},
+en:{level:'LEVEL',moves:'MOVES',nextLevel:'Next Level',share:'Share',complete:'Complete!',perfect:'Perfect!',great:'Great!',good:'Good!'},
+ja:{level:'レベル',moves:'移動',nextLevel:'次のレベル',share:'シェア',complete:'クリア！',perfect:'完璧！',great:'よくできた！',good:'まあまあ！'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+
+const WATER_COLORS=['#e94560','#4ea8ff','#50c878','#ffd700','#e070d0','#ff8c42','#00d2d3','#a29bfe','#fd79a8','#55efc4'];
+const TUBE_CAP=4;
+
+let level=1,moves=0,selected=-1;
+let tubes=[],history=[],initialState=[];
+let extraTubesUsed=0;
+
+function generateLevel(){
+const numColors=Math.min(2+Math.floor(level/2),8);
+const numTubes=numColors+2;
+// Create colors
+const colors=[];
+for(let i=0;i<numColors;i++){
+for(let j=0;j<TUBE_CAP;j++)colors.push(i);
+}
+// Shuffle
+for(let i=colors.length-1;i>0;i--){
+const j=Math.floor(Math.random()*(i+1));
+[colors[i],colors[j]]=[colors[j],colors[i]];
+}
+// Fill tubes
+tubes=[];
+let ci=0;
+for(let i=0;i<numColors;i++){
+const tube=[];
+for(let j=0;j<TUBE_CAP;j++)tube.push(colors[ci++]);
+tubes.push(tube);
+}
+// Add empty tubes
+for(let i=0;i<2;i++)tubes.push([]);
+moves=0;selected=-1;history=[];extraTubesUsed=0;
+initialState=tubes.map(t=>[...t]);
+render();
+}
+
+function render(){
+const area=document.getElementById('tubesArea');
+area.innerHTML='';
+document.getElementById('movesVal').textContent=moves;
+document.getElementById('levelVal').textContent=level;
+tubes.forEach((tube,i)=>{
+const div=document.createElement('div');
+div.className='tube'+(i===selected?' selected':'')+(isComplete(tube)?' complete':'');
+// Draw tube as SVG
+const svgH=120;
+const svgW=48;
+let svg=`<svg class="tube-svg" viewBox="0 0 ${svgW} ${svgH}" xmlns="http://www.w3.org/2000/svg">`;
+// Tube glass
+svg+=`<rect x="6" y="8" width="36" height="104" rx="6" fill="none" stroke="rgba(78,168,255,0.3)" stroke-width="2"/>`;
+svg+=`<rect x="8" y="10" width="32" height="100" rx="5" fill="rgba(78,168,255,0.05)"/>`;
+// Water layers
+for(let j=0;j<tube.length;j++){
+const y=10+100-25*(j+1);
+const color=WATER_COLORS[tube[j]];
+svg+=`<rect x="9" y="${y}" width="30" height="24" rx="2" fill="${color}" opacity="0.85"/>`;
+// Water shine
+svg+=`<rect x="12" y="${y+2}" width="8" height="20" rx="2" fill="rgba(255,255,255,0.15)"/>`;
+}
+// Top marker for selected
+if(i===selected){
+svg+=`<polygon points="24,0 18,6 30,6" fill="#4ea8ff"/>`;
+}
+// Complete check
+if(isComplete(tube)&&tube.length===TUBE_CAP){
+svg+=`<text x="24" y="${svgH/2}" text-anchor="middle" font-size="24" fill="rgba(255,255,255,0.4)">✓</text>`;
+}
+svg+=`</svg>`;
+div.innerHTML=svg;
+div.addEventListener('click',()=>handleTubeClick(i));
+area.appendChild(div);
+});
+// Check win
+if(checkWin()){
+setTimeout(()=>showWin(),400);
+}
+}
+
+function handleTubeClick(i){
+if(selected<0){
+if(tubes[i].length>0){
+selected=i;
+window.TG?.haptic?.('selection');
+}
+}else if(selected===i){
+selected=-1;
+}else{
+if(canPour(selected,i)){
+pour(selected,i);
+selected=-1;
+moves++;
+window.TG?.haptic?.('impact','light');
+}else{
+selected=i;
+window.TG?.haptic?.('notification','error');
+}
+}
+render();
+}
+
+function canPour(from,to){
+if(tubes[from].length===0)return false;
+if(tubes[to].length>=TUBE_CAP)return false;
+if(tubes[to].length===0)return true;
+return tubes[to][tubes[to].length-1]===tubes[from][tubes[from].length-1];
+}
+
+function pour(from,to){
+const color=tubes[from][tubes[from].length-1];
+history.push({from,to,count:0});
+let count=0;
+while(tubes[from].length>0&&tubes[to].length<TUBE_CAP&&
+tubes[from][tubes[from].length-1]===color){
+tubes[to].push(tubes[from].pop());
+count++;
+}
+history[history.length-1].count=count;
+}
+
+function isComplete(tube){
+if(tube.length===0)return true;
+if(tube.length!==TUBE_CAP)return false;
+return tube.every(c=>c===tube[0]);
+}
+
+function checkWin(){
+return tubes.every(t=>isComplete(t));
+}
+
+function showWin(){
+const stars=extraTubesUsed===0?3:extraTubesUsed===1?2:1;
+document.getElementById('modalTitle').textContent=t('complete');
+document.getElementById('modalScore').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);
+document.getElementById('modalSub').textContent=t('moves')+': '+moves;
+document.getElementById('modalBg').style.display='flex';
+window.TG?.haptic?.('notification','success');
+if(window.GameScore)GameScore.save('water-pour',level*1000-moves*10);
+}
+
+document.getElementById('undoBtn').addEventListener('click',()=>{
+if(history.length===0)return;
+const action=history.pop();
+for(let i=0;i<action.count;i++){
+tubes[action.from].push(tubes[action.to].pop());
+}
+moves--;selected=-1;
+render();
+});
+
+document.getElementById('resetBtn').addEventListener('click',()=>{
+tubes=initialState.map(t=>[...t]);
+moves=0;selected=-1;history=[];
+render();
+});
+
+document.getElementById('addTubeBtn').addEventListener('click',()=>{
+if(extraTubesUsed<2){
+tubes.push([]);
+extraTubesUsed++;
+render();
+window.TG?.haptic?.('impact','medium');
+}
+});
+
+document.getElementById('modalNext').addEventListener('click',()=>{
+level++;
+document.getElementById('modalBg').style.display='none';
+generateLevel();
+});
+document.getElementById('modalShare').addEventListener('click',()=>{
+window.TG?.shareScore?.(level,'Water Pour','water-pour');
+});
+
+generateLevel();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Cookie Clicker 🍪</title>
+<meta name="description" content="쿠키를 클릭하고 공장을 세워 쿠키 제국을 건설하세요! 인크레멘탈 게임.">
+<meta property="og:title" content="Cookie Clicker 🍪 — East Sea Games">
+<meta property="og:description" content="쿠키를 클릭! 오토클리커를 사고 공장을 세워 쿠키 제국을 건설!">
+<meta property="og:image" content="https://eastsea.monster/games/cookie-clicker/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/cookie-clicker/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/cookie-clicker/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Cookie Clicker",
+"url":"https://eastsea.monster/games/cookie-clicker/",
+"description":"쿠키를 클릭하고 공장을 세워 쿠키 제국을 건설하세요!",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Incremental","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#2c1810;color:#e0e0e0;user-select:none}
+:root{--safe-top:0px;--safe-bottom:0px;--cookie:#d4a574;--gold:#ffd700;--bg:#2c1810;--card:#3d2317}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.top-bar{text-align:center;padding:10px 16px;background:rgba(0,0,0,0.2)}
+.cookie-count{font-size:28px;font-weight:800;color:var(--gold)}
+.cps{font-size:12px;color:var(--cookie);opacity:0.8}
+.cookie-area{flex:0 0 auto;display:flex;align-items:center;justify-content:center;padding:20px;position:relative}
+.cookie-btn{width:160px;height:160px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#e8c89e,#a0754a 60%,#7a5833);border:4px solid #8b6914;cursor:pointer;font-size:80px;display:flex;align-items:center;justify-content:center;transition:transform 0.1s;box-shadow:0 8px 30px rgba(0,0,0,0.4),inset 0 -4px 8px rgba(0,0,0,0.3);position:relative}
+.cookie-btn:active{transform:scale(0.92)}
+.cookie-btn::after{content:'';position:absolute;top:15%;left:20%;width:12px;height:12px;background:#5a3810;border-radius:50%;box-shadow:30px 10px 0 #5a3810,15px 30px 0 #5a3810,40px 35px 0 #5a3810,-5px 25px 0 #5a3810,25px -5px 0 #5a3810}
+.float-text{position:absolute;pointer-events:none;font-size:20px;font-weight:800;color:var(--gold);animation:floatUp 0.8s ease-out forwards;z-index:10}
+@keyframes floatUp{0%{transform:translateY(0) scale(0.5);opacity:1}100%{transform:translateY(-80px) scale(1.2);opacity:0}}
+.golden{position:absolute;font-size:40px;cursor:pointer;animation:goldenPulse 1s ease-in-out infinite;z-index:5}
+@keyframes goldenPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.2)}}
+.shop{flex:1;overflow-y:auto;padding:8px 12px;-webkit-overflow-scrolling:touch}
+.shop-title{font-size:14px;font-weight:700;color:var(--gold);padding:6px 0;text-transform:uppercase;letter-spacing:1px}
+.shop-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--card);border-radius:10px;margin-bottom:6px;cursor:pointer;transition:all 0.15s;border:1px solid rgba(255,255,255,0.05)}
+.shop-item:active{transform:scale(0.98)}
+.shop-item.locked{opacity:0.4;pointer-events:none}
+.shop-item .icon{font-size:28px;width:40px;text-align:center}
+.shop-item .info{flex:1}
+.shop-item .name{font-size:13px;font-weight:600;color:#fff}
+.shop-item .desc{font-size:10px;opacity:0.6}
+.shop-item .cost{font-size:13px;font-weight:700;color:var(--gold);white-space:nowrap}
+.shop-item .owned{font-size:11px;color:var(--cookie);margin-left:4px}
+.prestige-bar{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px;background:rgba(0,0,0,0.3)}
+.prestige-btn{padding:8px 16px;background:#7c3aed;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+.prestige-btn:active{transform:scale(0.95)}
+.prestige-info{font-size:11px;opacity:0.6}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="top-bar">
+<div class="cookie-count" id="cookieCount">0 🍪</div>
+<div class="cps" id="cps"></div>
+</div>
+<div class="cookie-area" id="cookieArea">
+<div class="cookie-btn" id="cookieBtn">🍪</div>
+</div>
+<div class="prestige-bar">
+<span class="prestige-info" id="prestigeInfo"></span>
+<button class="prestige-btn" id="prestigeBtn" data-i18n="prestige">⭐ Prestige</button>
+</div>
+<div class="shop" id="shop">
+<div class="shop-title" data-i18n="upgrades">Upgrades</div>
+<div id="shopItems"></div>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{upgrades:'업그레이드',prestige:'⭐ 프레스티지',cps:'초당',perClick:'클릭당',cost:'비용',owned:'보유',cursor:'커서',grandma:'할머니',farm:'농장',mine:'광산',factory:'공장',bank:'은행',temple:'신전',wizard:'마법사',ship:'우주선',alchemy:'연금술',portal:'포탈',timeMachine:'타임머신',cursorDesc:'자동 클릭 +0.1/초',grandmaDesc:'쿠키를 구워줌 +1/초',farmDesc:'쿠키 농장 +8/초',mineDesc:'쿠키 광산 +47/초',factoryDesc:'대량 생산 +260/초',bankDesc:'쿠키 이자 +1.4K/초',templeDesc:'신성한 쿠키 +7.8K/초',wizardDesc:'마법 쿠키 +44K/초',shipDesc:'우주 쿠키 +260K/초',alchemyDesc:'쿠키 변환 +1.6M/초',portalDesc:'다른 차원 쿠키 +10M/초',timeMachineDesc:'과거에서 쿠키 +65M/초',prestigeDesc:'리셋하고 영구 보너스 획득',clickPower:'클릭력',clickPowerDesc:'클릭당 +1 쿠키',doubleDesc:'생산량 2배'},
+en:{upgrades:'Upgrades',prestige:'⭐ Prestige',cps:'/sec',perClick:'/click',cost:'Cost',owned:'Owned',cursor:'Cursor',grandma:'Grandma',farm:'Farm',mine:'Mine',factory:'Factory',bank:'Bank',temple:'Temple',wizard:'Wizard',ship:'Spaceship',alchemy:'Alchemy',portal:'Portal',timeMachine:'Time Machine',cursorDesc:'Auto-click +0.1/s',grandmaDesc:'Bakes cookies +1/s',farmDesc:'Cookie farm +8/s',mineDesc:'Cookie mine +47/s',factoryDesc:'Mass production +260/s',bankDesc:'Cookie interest +1.4K/s',templeDesc:'Holy cookies +7.8K/s',wizardDesc:'Magic cookies +44K/s',shipDesc:'Space cookies +260K/s',alchemyDesc:'Transmute cookies +1.6M/s',portalDesc:'Dimensional cookies +10M/s',timeMachineDesc:'Past cookies +65M/s',prestigeDesc:'Reset for permanent bonus',clickPower:'Click Power',clickPowerDesc:'+1 cookie per click',doubleDesc:'2x production'},
+ja:{upgrades:'アップグレード',prestige:'⭐ プレステージ',cps:'/秒',perClick:'/クリック',cost:'コスト',owned:'所持',cursor:'カーソル',grandma:'おばあちゃん',farm:'農場',mine:'鉱山',factory:'工場',bank:'銀行',temple:'神殿',wizard:'魔法使い',ship:'宇宙船',alchemy:'錬金術',portal:'ポータル',timeMachine:'タイムマシン',cursorDesc:'自動クリック +0.1/秒',grandmaDesc:'クッキーを焼く +1/秒',farmDesc:'クッキー農場 +8/秒',mineDesc:'クッキー鉱山 +47/秒',factoryDesc:'大量生産 +260/秒',bankDesc:'クッキー利子 +1.4K/秒',templeDesc:'聖なるクッキー +7.8K/秒',wizardDesc:'魔法クッキー +44K/秒',shipDesc:'宇宙クッキー +260K/秒',alchemyDesc:'クッキー変換 +1.6M/秒',portalDesc:'異次元クッキー +10M/秒',timeMachineDesc:'過去のクッキー +65M/秒',prestigeDesc:'リセットして永久ボーナス獲得',clickPower:'クリック力',clickPowerDesc:'+1クッキー/クリック',doubleDesc:'生産量2倍'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+
+const BUILDINGS=[
+{key:'cursor',icon:'👆',baseCost:15,baseCps:0.1},
+{key:'grandma',icon:'👵',baseCost:100,baseCps:1},
+{key:'farm',icon:'🌾',baseCost:1100,baseCps:8},
+{key:'mine',icon:'⛏️',baseCost:12000,baseCps:47},
+{key:'factory',icon:'🏭',baseCost:130000,baseCps:260},
+{key:'bank',icon:'🏦',baseCost:1400000,baseCps:1400},
+{key:'temple',icon:'⛪',baseCost:20000000,baseCps:7800},
+{key:'wizard',icon:'🧙',baseCost:330000000,baseCps:44000},
+{key:'ship',icon:'🚀',baseCost:5100000000,baseCps:260000},
+{key:'alchemy',icon:'⚗️',baseCost:75000000000,baseCps:1600000},
+{key:'portal',icon:'🌀',baseCost:1000000000000,baseCps:10000000},
+{key:'timeMachine',icon:'⏰',baseCost:14000000000000,baseCps:65000000}
+];
+
+let cookies=0,totalCookies=0,clickPower=1,cpsTotal=0;
+let prestigeLevel=0,prestigeMulti=1;
+let owned={};
+let goldenTimer=null;
+let goldenActive=false;
+let goldenMulti=1;
+
+function loadGame(){
+const data=window.TG?.load?.('cookie_save',null)||JSON.parse(localStorage.getItem('cookie_save')||'null');
+if(data){
+cookies=data.cookies||0;totalCookies=data.totalCookies||0;
+clickPower=data.clickPower||1;
+prestigeLevel=data.prestigeLevel||0;
+prestigeMulti=1+prestigeLevel*0.1;
+owned=data.owned||{};
+}
+BUILDINGS.forEach(b=>{if(!owned[b.key])owned[b.key]=0});
+}
+
+function saveGame(){
+const data={cookies,totalCookies,clickPower,prestigeLevel,owned};
+window.TG?.save?.('cookie_save',data);
+localStorage.setItem('cookie_save',JSON.stringify(data));
+}
+
+function formatNum(n){
+if(n>=1e15)return(n/1e15).toFixed(1)+'Q';
+if(n>=1e12)return(n/1e12).toFixed(1)+'T';
+if(n>=1e9)return(n/1e9).toFixed(1)+'B';
+if(n>=1e6)return(n/1e6).toFixed(1)+'M';
+if(n>=1e3)return(n/1e3).toFixed(1)+'K';
+return Math.floor(n).toString();
+}
+
+function getCost(b){return Math.ceil(b.baseCost*Math.pow(1.15,owned[b.key]))}
+
+function calcCps(){
+cpsTotal=0;
+BUILDINGS.forEach(b=>{cpsTotal+=owned[b.key]*b.baseCps});
+cpsTotal*=prestigeMulti*goldenMulti;
+return cpsTotal;
+}
+
+function updateDisplay(){
+document.getElementById('cookieCount').textContent=formatNum(cookies)+' 🍪';
+const cps=calcCps();
+document.getElementById('cps').textContent=formatNum(cps)+' '+t('cps')+' | '+clickPower+' '+t('perClick');
+const pLvl=Math.floor(Math.pow(totalCookies/1e6,0.5));
+document.getElementById('prestigeInfo').textContent='⭐ '+prestigeLevel+' (+'+(prestigeLevel*10)+'%) → '+(pLvl>prestigeLevel?'+'+((pLvl-prestigeLevel)*10)+'%':'—');
+document.getElementById('prestigeBtn').disabled=pLvl<=prestigeLevel;
+}
+
+function renderShop(){
+const el=document.getElementById('shopItems');
+el.innerHTML='';
+BUILDINGS.forEach(b=>{
+const cost=getCost(b);
+const item=document.createElement('div');
+item.className='shop-item'+(cookies>=cost?'':' locked');
+item.innerHTML=`
+<div class="icon">${b.icon}</div>
+<div class="info">
+<div class="name">${t(b.key)}</div>
+<div class="desc">${t(b.key+'Desc')}</div>
+</div>
+<div>
+<div class="cost">${formatNum(cost)} 🍪</div>
+<div class="owned">${t('owned')}: ${owned[b.key]}</div>
+</div>`;
+item.addEventListener('click',()=>buyBuilding(b));
+el.appendChild(item);
+});
+}
+
+function buyBuilding(b){
+const cost=getCost(b);
+if(cookies<cost)return;
+cookies-=cost;
+owned[b.key]++;
+window.TG?.haptic?.('impact','medium');
+calcCps();updateDisplay();renderShop();saveGame();
+}
+
+// Cookie click
+const cookieBtn=document.getElementById('cookieBtn');
+const cookieArea=document.getElementById('cookieArea');
+
+function onCookieClick(e){
+e.preventDefault();
+const add=clickPower*prestigeMulti*goldenMulti;
+cookies+=add;totalCookies+=add;
+window.TG?.haptic?.('impact','light');
+// Float text
+const rect=cookieArea.getBoundingClientRect();
+const x=(e.touches?e.touches[0]:e).clientX-rect.left;
+const y=(e.touches?e.touches[0]:e).clientY-rect.top;
+const ft=document.createElement('div');
+ft.className='float-text';
+ft.textContent='+'+formatNum(add);
+ft.style.left=x+'px';ft.style.top=y+'px';
+cookieArea.appendChild(ft);
+setTimeout(()=>ft.remove(),800);
+updateDisplay();renderShop();
+}
+cookieBtn.addEventListener('click',onCookieClick);
+cookieBtn.addEventListener('touchstart',e=>{e.preventDefault();onCookieClick(e)},{passive:false});
+
+// Golden cookie
+function spawnGolden(){
+if(goldenActive)return;
+const area=cookieArea;
+const rect=area.getBoundingClientRect();
+const g=document.createElement('div');
+g.className='golden';
+g.textContent='🌟';
+g.style.left=Math.random()*(rect.width-50)+'px';
+g.style.top=Math.random()*(rect.height-50)+'px';
+goldenActive=true;
+g.addEventListener('click',()=>{
+g.remove();goldenActive=false;
+// Random bonus
+const r=Math.random();
+if(r<0.4){
+// Frenzy: 7x production for 10s
+goldenMulti=7;
+setTimeout(()=>{goldenMulti=1},10000);
+}else if(r<0.7){
+// Click frenzy
+const bonus=cpsTotal*60;
+cookies+=bonus;totalCookies+=bonus;
+}else{
+// Lucky: 10% of cookies
+const bonus=cookies*0.1+13;
+cookies+=bonus;totalCookies+=bonus;
+}
+window.TG?.haptic?.('notification','success');
+updateDisplay();
+});
+area.appendChild(g);
+setTimeout(()=>{
+if(g.parentNode){g.remove();goldenActive=false}
+},8000);
+}
+
+// Prestige
+document.getElementById('prestigeBtn').addEventListener('click',()=>{
+const newLevel=Math.floor(Math.pow(totalCookies/1e6,0.5));
+if(newLevel<=prestigeLevel)return;
+prestigeLevel=newLevel;
+prestigeMulti=1+prestigeLevel*0.1;
+cookies=0;totalCookies=0;clickPower=1;
+BUILDINGS.forEach(b=>owned[b.key]=0);
+window.TG?.haptic?.('notification','success');
+calcCps();updateDisplay();renderShop();saveGame();
+});
+
+// Game loop
+function tick(){
+const add=cpsTotal/10; // 100ms intervals
+cookies+=add;totalCookies+=add;
+updateDisplay();renderShop();
+}
+
+loadGame();calcCps();updateDisplay();renderShop();
+setInterval(tick,100);
+setInterval(saveGame,10000);
+setInterval(()=>{if(Math.random()<0.05)spawnGolden()},5000);
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

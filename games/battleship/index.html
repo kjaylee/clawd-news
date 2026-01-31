@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Battleship 🚢</title>
+<meta name="description" content="좌표를 추리해 적 함대를 격침하라! 클래식 해전 전략 게임.">
+<meta property="og:title" content="Battleship 🚢 — East Sea Games">
+<meta property="og:description" content="10×10 바다에서 적 함대를 찾아 격침하라! 전략적 좌표 추리 게임.">
+<meta property="og:image" content="https://eastsea.monster/games/battleship/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/battleship/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/battleship/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Battleship",
+"url":"https://eastsea.monster/games/battleship/",
+"description":"좌표를 추리해 적 함대를 격침하라! 클래식 해전 전략 게임.",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Strategy","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#0a1628;color:#e0e0e0;user-select:none}
+:root{--safe-top:0px;--safe-bottom:0px;--accent:#4ea8ff;--hit:#e94560;--miss:#334155}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column;overflow:auto}
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 16px}
+.title{font-size:16px;font-weight:700;color:var(--accent)}
+.stats{display:flex;gap:12px}
+.stat{text-align:center}
+.stat-label{font-size:9px;opacity:0.5;text-transform:uppercase;letter-spacing:1px}
+.stat-val{font-size:16px;font-weight:700;color:#fff}
+.section-label{font-size:12px;font-weight:600;padding:4px 16px;opacity:0.5;text-align:center}
+.grid-container{display:flex;justify-content:center;padding:2px 8px}
+.grid{display:grid;gap:1px;background:rgba(255,255,255,0.05);padding:1px;border-radius:8px}
+.cell{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;transition:all 0.15s;position:relative}
+.cell:active{transform:scale(0.9)}
+.cell-water{background:rgba(30,60,114,0.6)}
+.cell-water:hover{background:rgba(78,168,255,0.2)}
+.cell-hit{background:var(--hit);animation:hitAnim 0.3s ease-out}
+.cell-miss{background:var(--miss)}
+.cell-ship{background:rgba(78,168,255,0.4)}
+.cell-sunk{background:#991b1b}
+.cell-hit::after{content:'✕';color:#fff;font-weight:800;font-size:14px}
+.cell-miss::after{content:'•';color:rgba(255,255,255,0.3);font-size:18px}
+.cell-sunk::after{content:'✕';color:#fca5a5;font-weight:800;font-size:14px}
+@keyframes hitAnim{0%{transform:scale(1.3);opacity:0.5}100%{transform:scale(1);opacity:1}}
+.coord-h,.coord-v{font-size:8px;opacity:0.35;display:flex;align-items:center;justify-content:center}
+.msg{text-align:center;padding:6px;font-size:13px;font-weight:600;min-height:26px;color:#ffd700}
+.fleet{display:flex;justify-content:center;gap:6px;padding:4px 16px;flex-wrap:wrap}
+.ship-ind{padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;background:rgba(78,168,255,0.15);border:1px solid rgba(78,168,255,0.3);color:var(--accent);transition:all 0.2s}
+.ship-ind.sunk{background:rgba(233,69,96,0.15);border-color:rgba(233,69,96,0.3);color:var(--hit);text-decoration:line-through}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal{background:#16213e;border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:22px;margin-bottom:8px}
+.modal .big{font-size:48px;font-weight:800;color:#fff;margin:10px 0}
+.modal .sub{font-size:13px;opacity:0.7;margin-bottom:14px}
+.mbtn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-top:8px;min-height:44px}
+.mbtn:active{transform:scale(0.95)}
+.mbtn-p{background:var(--accent);color:#fff}
+.mbtn-s{background:rgba(255,255,255,0.1);color:#e0e0e0;border:1px solid rgba(255,255,255,0.15)}
+.turn-indicator{text-align:center;padding:2px;font-size:11px;font-weight:700;color:var(--accent)}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">🚢 Battleship</div>
+<div class="stats">
+<div class="stat"><div class="stat-label" data-i18n="shots">SHOTS</div><div class="stat-val" id="shots">0</div></div>
+<div class="stat"><div class="stat-label" data-i18n="hits">HITS</div><div class="stat-val" id="hits">0</div></div>
+<div class="stat"><div class="stat-label" data-i18n="sunk">SUNK</div><div class="stat-val" id="sunk">0</div></div>
+</div>
+</div>
+<div class="turn-indicator" id="turnInd"></div>
+<div class="section-label" data-i18n="enemySea">Enemy Sea</div>
+<div class="grid-container"><div class="grid" id="enemyGrid"></div></div>
+<div class="msg" id="msg"></div>
+<div class="fleet" id="enemyFleet"></div>
+<div class="section-label" data-i18n="mySea">My Sea</div>
+<div class="grid-container"><div class="grid" id="myGrid"></div></div>
+<div class="fleet" id="myFleet"></div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="mTitle"></h2>
+<div class="big" id="mScore"></div>
+<div class="sub" id="mSub"></div>
+<button class="mbtn mbtn-p" id="mReplay" data-i18n="replay">Play Again</button>
+<button class="mbtn mbtn-s" id="mShare" data-i18n="share">Share</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{shots:'발사',hits:'적중',sunk:'격침',enemySea:'적 바다',mySea:'내 바다',hit:'적중!',miss:'빗나감',youSunk:'격침!',enemyHit:'피격!',enemyMiss:'회피!',win:'승리!',lose:'패배...',replay:'다시하기',share:'공유',yourTurn:'당신의 차례',enemyTurn:'적의 차례...',accuracy:'정확도',wonMsg:'적 함대를 전멸시켰습니다!',lostMsg:'아군 함대가 전멸했습니다...'},
+en:{shots:'SHOTS',hits:'HITS',sunk:'SUNK',enemySea:'Enemy Sea',mySea:'My Sea',hit:'Hit!',miss:'Miss',youSunk:'Sunk!',enemyHit:'Hit!',enemyMiss:'Missed!',win:'Victory!',lose:'Defeat...',replay:'Play Again',share:'Share',yourTurn:'Your Turn',enemyTurn:'Enemy Turn...',accuracy:'Accuracy',wonMsg:'Enemy fleet destroyed!',lostMsg:'Your fleet destroyed...'},
+ja:{shots:'発射',hits:'命中',sunk:'撃沈',enemySea:'敵の海',mySea:'自分の海',hit:'命中！',miss:'外れ',youSunk:'撃沈！',enemyHit:'被弾！',enemyMiss:'回避！',win:'勝利！',lose:'敗北…',replay:'もう一度',share:'シェア',yourTurn:'あなたの番',enemyTurn:'敵の番…',accuracy:'命中率',wonMsg:'敵艦隊を全滅させた！',lostMsg:'味方艦隊が全滅…'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+
+const SIZE=10;
+const SHIPS=[{name:'Carrier',len:5},{name:'Battleship',len:4},{name:'Cruiser',len:3},{name:'Submarine',len:3},{name:'Destroyer',len:2}];
+const cellSize=Math.floor((Math.min(window.innerWidth,420)-40)/SIZE);
+const gridTemp=`repeat(${SIZE},${cellSize}px)`;
+
+let enemyBoard=[],myBoard=[],enemyShips=[],myShips=[];
+let enemyRevealed=[],myRevealed=[];
+let shotCount=0,hitCount=0,sunkCount=0,myTurn=true,gameActive=true;
+let aiHits=[],aiMode='hunt',aiDir=null,aiOrigin=null;
+
+function createBoard(){return Array.from({length:SIZE},()=>Array(SIZE).fill(0))}
+function createRevealed(){return Array.from({length:SIZE},()=>Array(SIZE).fill(false))}
+
+function placeShips(board){
+const ships=[];
+SHIPS.forEach(ship=>{
+let placed=false;
+while(!placed){
+const horiz=Math.random()>0.5;
+const r=Math.floor(Math.random()*(horiz?SIZE:SIZE-ship.len));
+const c=Math.floor(Math.random()*(horiz?SIZE-ship.len:SIZE));
+let ok=true;
+const cells=[];
+for(let i=0;i<ship.len;i++){
+const rr=horiz?r:r+i;
+const cc=horiz?c+i:c;
+if(board[rr][cc]!==0){ok=false;break}
+cells.push([rr,cc]);
+}
+if(ok){
+cells.forEach(([rr,cc])=>board[rr][cc]=ships.length+1);
+ships.push({...ship,cells,sunk:false});
+placed=true;
+}
+}
+});
+return ships;
+}
+
+function renderGrid(gridEl,board,revealed,isEnemy){
+gridEl.innerHTML='';
+gridEl.style.gridTemplateColumns=gridTemp;
+gridEl.style.gridTemplateRows=gridTemp;
+for(let r=0;r<SIZE;r++){
+for(let c=0;c<SIZE;c++){
+const cell=document.createElement('div');
+cell.className='cell';
+if(revealed[r][c]){
+if(board[r][c]>0){
+const shipIdx=board[r][c]-1;
+const ships=isEnemy?enemyShips:myShips;
+cell.className='cell '+(ships[shipIdx]?.sunk?'cell-sunk':'cell-hit');
+}else{
+cell.className='cell cell-miss';
+}
+}else if(!isEnemy&&board[r][c]>0){
+cell.className='cell cell-ship';
+}else{
+cell.className='cell cell-water';
+}
+if(isEnemy&&!revealed[r][c]&&gameActive){
+cell.addEventListener('click',()=>playerShoot(r,c));
+}
+gridEl.appendChild(cell);
+}
+}
+}
+
+function renderFleet(fleetEl,ships){
+fleetEl.innerHTML='';
+ships.forEach(s=>{
+const el=document.createElement('span');
+el.className='ship-ind'+(s.sunk?' sunk':'');
+el.textContent=s.name+' ('+s.len+')';
+fleetEl.appendChild(el);
+});
+}
+
+function playerShoot(r,c){
+if(!myTurn||!gameActive||enemyRevealed[r][c])return;
+myTurn=false;
+enemyRevealed[r][c]=true;
+shotCount++;
+document.getElementById('shots').textContent=shotCount;
+const val=enemyBoard[r][c];
+if(val>0){
+hitCount++;
+document.getElementById('hits').textContent=hitCount;
+const ship=enemyShips[val-1];
+if(ship.cells.every(([rr,cc])=>enemyRevealed[rr][cc])){
+ship.sunk=true;
+sunkCount++;
+document.getElementById('sunk').textContent=sunkCount;
+document.getElementById('msg').textContent='💥 '+ship.name+' '+t('youSunk');
+window.TG?.haptic?.('notification','success');
+}else{
+document.getElementById('msg').textContent='🔥 '+t('hit');
+window.TG?.haptic?.('impact','heavy');
+}
+}else{
+document.getElementById('msg').textContent='💨 '+t('miss');
+window.TG?.haptic?.('impact','light');
+}
+renderGrid(document.getElementById('enemyGrid'),enemyBoard,enemyRevealed,true);
+renderFleet(document.getElementById('enemyFleet'),enemyShips);
+if(enemyShips.every(s=>s.sunk)){endGame(true);return}
+document.getElementById('turnInd').textContent=t('enemyTurn');
+setTimeout(aiShoot,600+Math.random()*400);
+}
+
+function aiShoot(){
+if(!gameActive)return;
+let r,c;
+if(aiMode==='target'&&aiHits.length>0){
+const tries=getTargetCells();
+if(tries.length>0){
+[r,c]=tries[Math.floor(Math.random()*tries.length)];
+}else{
+aiMode='hunt';
+aiHits=[];
+aiDir=null;
+}
+}
+if(aiMode==='hunt'||r===undefined){
+const options=[];
+for(let rr=0;rr<SIZE;rr++)for(let cc=0;cc<SIZE;cc++){
+if(!myRevealed[rr][cc])options.push([rr,cc]);
+}
+// Checkerboard pattern for smarter hunting
+const parity=options.filter(([rr,cc])=>(rr+cc)%2===0);
+const pool=parity.length>0?parity:options;
+[r,c]=pool[Math.floor(Math.random()*pool.length)];
+}
+myRevealed[r][c]=true;
+const val=myBoard[r][c];
+if(val>0){
+aiHits.push([r,c]);
+aiMode='target';
+const ship=myShips[val-1];
+if(ship.cells.every(([rr,cc])=>myRevealed[rr][cc])){
+ship.sunk=true;
+document.getElementById('msg').textContent='⚠️ '+ship.name+' '+t('enemyHit');
+aiHits=aiHits.filter(([hr,hc])=>!ship.cells.some(([sr,sc])=>sr===hr&&sc===hc));
+if(aiHits.length===0)aiMode='hunt';
+}else{
+document.getElementById('msg').textContent='⚠️ '+t('enemyHit');
+}
+}else{
+document.getElementById('msg').textContent='✓ '+t('enemyMiss');
+}
+renderGrid(document.getElementById('myGrid'),myBoard,myRevealed,false);
+renderFleet(document.getElementById('myFleet'),myShips);
+if(myShips.every(s=>s.sunk)){endGame(false);return}
+myTurn=true;
+document.getElementById('turnInd').textContent=t('yourTurn');
+}
+
+function getTargetCells(){
+const dirs=[[0,1],[0,-1],[1,0],[-1,0]];
+const targets=[];
+aiHits.forEach(([hr,hc])=>{
+dirs.forEach(([dr,dc])=>{
+const nr=hr+dr,nc=hc+dc;
+if(nr>=0&&nr<SIZE&&nc>=0&&nc<SIZE&&!myRevealed[nr][nc])targets.push([nr,nc]);
+});
+});
+return targets;
+}
+
+function endGame(won){
+gameActive=false;
+const acc=shotCount>0?Math.round(hitCount/shotCount*100):0;
+document.getElementById('mTitle').textContent=won?t('win'):t('lose');
+document.getElementById('mTitle').style.color=won?'#4ea8ff':'#e94560';
+document.getElementById('mScore').textContent=won?'🎉':'💀';
+document.getElementById('mSub').textContent=(won?t('wonMsg'):t('lostMsg'))+'\n'+t('accuracy')+': '+acc+'% ('+shotCount+' '+t('shots').toLowerCase()+')';
+document.getElementById('modalBg').style.display='flex';
+window.TG?.haptic?.(won?'notification':'notification',won?'success':'error');
+const score=won?Math.max(0,1000-shotCount*10):0;
+window.TG?.save?.('battleship_best',Math.max(score,window.TG?.load?.('battleship_best',0)||0));
+}
+
+document.getElementById('mReplay').addEventListener('click',()=>{document.getElementById('modalBg').style.display='none';init()});
+document.getElementById('mShare').addEventListener('click',()=>{window.TG?.shareScore?.(1000-shotCount*10,'Battleship','battleship')});
+
+function init(){
+enemyBoard=createBoard();myBoard=createBoard();
+enemyRevealed=createRevealed();myRevealed=createRevealed();
+enemyShips=placeShips(enemyBoard);myShips=placeShips(myBoard);
+shotCount=0;hitCount=0;sunkCount=0;myTurn=true;gameActive=true;
+aiHits=[];aiMode='hunt';aiDir=null;
+document.getElementById('shots').textContent='0';
+document.getElementById('hits').textContent='0';
+document.getElementById('sunk').textContent='0';
+document.getElementById('msg').textContent='';
+document.getElementById('turnInd').textContent=t('yourTurn');
+renderGrid(document.getElementById('enemyGrid'),enemyBoard,enemyRevealed,true);
+renderGrid(document.getElementById('myGrid'),myBoard,myRevealed,false);
+renderFleet(document.getElementById('enemyFleet'),enemyShips);
+renderFleet(document.getElementById('myFleet'),myShips);
+}
+init();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>
