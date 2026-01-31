@@ -1,16 +1,28 @@
 ---
 layout: default
-title: Unity 에셋
+title: 게임 에셋
 permalink: /assets/
 ---
 
-# 📦 Unity 에셋 라이브러리
+# 📦 게임 에셋 라이브러리
 
-> 보유 Unity Asset Store 에셋 **268개** — 2D, 3D, VFX, 오디오, 도구, GUI/아이콘
+> **426개** 게임 에셋 — Unity Asset Store 268개 + 게임마당 158개
 
 ---
 
-## 📊 카테고리별 요약
+## 📊 출처별 요약
+
+| 출처 | 수량 | 용량 | 특징 |
+|------|:----:|:----:|------|
+| 🏪 **Unity Asset Store** | 268개 | ~35GB | 2D/3D/VFX/오디오/도구/GUI |
+| 🎪 **게임마당** | 158개 | ~432GB | 2D 그래픽 150개 + 3D 8개 (상용 게임급) |
+| **합계** | **426개** | **~467GB** | |
+
+---
+
+## 🏪 Unity Asset Store (268개)
+
+### 카테고리별
 
 | 카테고리 | 수량 | 주요 에셋 | 링크 |
 |---------|:----:|----------|:----:|
@@ -20,11 +32,9 @@ permalink: /assets/
 | 🔊 오디오 | 17개 | Ultimate SFX (5.9GB), Fantasy BGM | [보기](/assets/unity-assets-audio/) |
 | 🛠️ 도구/플러그인 | 55개 | Feel, DOTween, Odin, Corgi Engine | [보기](/assets/unity-assets-tools/) |
 | 🖼️ GUI/아이콘 | 96개 | LAYERLAB GUI 13종, 2000+ 아이콘 | [보기](/assets/unity-assets-etc/) |
-| **합계** | **268개** | | [전체](/assets/unity-assets-all/) |
+| | **268개** | | [전체](/assets/unity-assets-all/) |
 
----
-
-## 🔧 핵심 도구 TOP 10
+### 🔧 핵심 도구 TOP 10
 
 | # | 에셋 | 용도 | 퍼블리셔 | 추천 |
 |:-:|------|------|---------|:----:|
@@ -41,15 +51,44 @@ permalink: /assets/
 
 ---
 
+## 🎪 게임마당 에셋 (158개)
+
+> NAS 보관 · 2D 150개 + 3D 8개 · 총 432GB · PNG 187,014개 · PSD 11,874개 · Spine 649개
+
+### 장르별 대표 에셋
+
+| 장르 | 에셋 예시 | 용량 | 활용 |
+|------|----------|:----:|------|
+| 🧩 매치3/퍼즐 | 쓰리매치퍼즐프로젝트 3종, 캔디코스터, 쥬얼캐슬 | ~40GB | Merge Bloom, 퍼즐 게임 |
+| ⚔️ 액션/서바이벌 | 인섹트서바이벌, 보스러쉬히어로즈, 닌자뱀파이어헌터 | ~25GB | Slime Survivor |
+| 🐾 방치/육성 | 젤리몬스터온더락 (8.5GB), 몬스터디펜스워 | ~15GB | 아이들 게임 |
+| 🏰 전략/디펜스 | 몬스터디펜스워, 슈퍼나이트 | ~10GB | 타워디펜스 |
+| 🎰 캐주얼 | 캐주얼 UI 5종, 도시만들기퍼즐 | ~20GB | 캐주얼 전반 |
+| 🌾 시뮬레이션 | 베지파밍팝, 농장 테마 에셋 | ~8GB | 시뮬레이션 |
+
+### 파일 구성
+
+| 포맷 | 파일 수 | 용도 |
+|------|--------:|------|
+| PNG | 187,014 | 스프라이트, UI, 배경 |
+| PSD | 11,874 | 편집 가능 원본 |
+| GIF | 3,777 | 애니메이션 프리뷰 |
+| Spine JSON | 649 | 스켈레톤 애니메이션 |
+| 기타 JSON | 998 | 설정, 메타데이터 |
+
+---
+
 ## 🎮 게임별 추천 에셋 조합
 
+> Unity + 게임마당 통합 추천
+
 ### 🗡️ 뱀서라이크 / 로그라이크
-- **캐릭터:** SPUM 2D Pixel Unit Maker + Luiz Melo 중세 캐릭터 시리즈
+- **캐릭터:** SPUM 2D Pixel Unit Maker + Luiz Melo 중세 시리즈
 - **환경:** 2D RPG Topdown Tilesets, Tiny Swords
 - **VFX:** 100 Special Skills Effects, RPG VFX Bundle
 - **UI:** Fantasy RPG GUI, GUI Pro - Fantasy RPG
 - **사운드:** Medieval Fantasy SFX, Fantasy Music Pack 2
-- **엔진:** Feel + DOTween + Monster Survivors (참고용)
+- **🎪 게임마당:** 인섹트서바이벌 (캐릭터+몬스터+VFX), 보스러쉬히어로즈
 
 ### 🏰 타워 디펜스
 - **캐릭터:** RPG Monster BUNDLE Polyart, Pixel Hero Maker
@@ -57,6 +96,7 @@ permalink: /assets/
 - **VFX:** Epic Toon FX, Cartoon FX Remaster
 - **UI:** GUI Pro - Casual Game, Damage Numbers Pro
 - **사운드:** Fantasy Game Sound Effects, General RPG SFX
+- **🎪 게임마당:** 몬스터디펜스워, 슈퍼나이트
 
 ### 🎲 캐주얼 3D
 - **캐릭터:** Beach Bundle Boys and Girls, Anime Girls Pack
@@ -71,7 +111,13 @@ permalink: /assets/
 - **UI:** GUI Pro - Casual Game, Card Shirts Lite, TCG Cards Pack
 - **아이콘:** 2000 Fantasy Icons, Fantasy Inventory Icons
 - **사운드:** UI SFX Mega Pack, Cute UI SFX
-- **참고:** MK Slot Bundle (카지노 템플릿)
+
+### 🧩 매치3 / 머지 퍼즐
+- **UI:** GUI Pro - Casual Game, Cartoon GUI Pack
+- **VFX:** Hyper Casual FX, Collectable Item VFX, Break Items VFX
+- **아이콘:** Sweet Cakes Icon Pack, 150 Food Icon Pack, Pixel Art Gem Pack
+- **사운드:** Casual Game SFX, Cute UI SFX
+- **🎪 게임마당:** 쓰리매치퍼즐프로젝트 3종, Fruit pop, Jelly pop, 캔디코스터
 
 ### 🔫 2D 플랫포머 / 액션
 - **캐릭터:** SPUM, Metroidvania Controller, Pixel Soldier
@@ -113,8 +159,7 @@ permalink: /assets/
 | Cartoon FX Remaster / Cartoon FX 2 | VFX |
 | Toony Colors Pro 2 | 셰이더 |
 | Cartoon GUI Pack, GUI - Yellow Kid | UI |
-| Hyper Casual FX Pack Vol1/2 | VFX |
-| Epic Toon FX | VFX |
+| 🎪 게임마당 캐주얼 에셋 다수 | 캐주얼 UI/캐릭터 |
 
 ### 🟩 로우폴리
 | 에셋 | 카테고리 |
@@ -124,16 +169,15 @@ permalink: /assets/
 | POLYGON Casino Pack, City Zombies | 3D 모델 |
 | Polyquest Heroes / Islands Full Pack | 3D 세트 |
 | Micro Monster Heroes Pack | 3D 캐릭터 |
-| Low Poly Icon Pack / Coffee Icons | 아이콘 |
 
-### 🟥 리얼리스틱 / 고퀄리티
-| 에셋 | 카테고리 |
-|------|---------|
-| Beach Bundle Boys and Girls (3.7GB) | 3D 캐릭터 |
-| Techwear Girls / Gamer Girl / Dress Up Maids | 3D 캐릭터 (Ida Faber) |
-| Anime Shading Plus | 셰이더 |
-| Nebula Skyboxes (866MB) | 스카이박스 |
-| Sci-Fi Turret Constructor | 3D 프롭 |
+### 🟥 상용 게임급 (게임마당)
+| 에셋 | 용량 |
+|------|:----:|
+| 젤리몬스터온더락 — 젤리/슬라임 테마 | 8.5GB |
+| 인섹트서바이벌 — 서바이벌 장르 풀셋 | ~5GB |
+| 쓰리매치퍼즐프로젝트 — 매치3 풀셋 3종 | ~12GB |
+| 보스러쉬히어로즈 — 보스전 액션 | ~4GB |
+| 캐주얼 UI 5종 세트 | ~20GB |
 
 ---
 

@@ -243,17 +243,19 @@
                 </ul>
             </div>
             
-            <!-- Unity 에셋 -->
+            <!-- 게임 에셋 -->
             <div class="sidebar-section">
-                <div class="sidebar-title">🎨 Unity 에셋</div>
+                <div class="sidebar-title">🎨 게임 에셋</div>
                 <ul class="sidebar-nav">
-                    {% if site.assets %}
-                    {% for asset in site.assets %}
+                    {% assign sorted_assets = site.assets | sort: "order" %}
+                    {% for asset in sorted_assets %}
+                    {% if asset.category %}
                     <li><a href="{{ asset.url | relative_url }}" {% if page.url == asset.url %}class="active"{% endif %}>
-                        {{ asset.title | default: asset.name }}
+                        {{ asset.icon | default: "📄" }} {{ asset.title | default: asset.name }}
+                        {% if asset.count %}<div class="sub">{{ asset.count }}개</div>{% endif %}
                     </a></li>
-                    {% endfor %}
                     {% endif %}
+                    {% endfor %}
                 </ul>
             </div>
         </aside>

@@ -4,7 +4,7 @@ title: 홈
 ---
 
 <h1 class="page-title">🚀 Jay의 프로젝트 허브</h1>
-<p class="page-meta">데일리 브리핑 · 게임 데모 · AI 비서 일기 · Unity 에셋</p>
+<p class="page-meta">데일리 브리핑 · 게임 데모 · AI 비서 일기 · 게임 에셋</p>
 
 ---
 
@@ -104,9 +104,21 @@ title: 홈
 
 ---
 
-## 🎨 Unity 에셋 (268개)
+## 🎨 게임 에셋 (426개)
 
 <div class="card-grid">
+<div class="card" style="border-color: #f59e0b;">
+    <a href="{{ '/assets/' | relative_url }}">
+        <h3>🏪 Unity Asset Store — 268개</h3>
+        <p>2D · 3D · VFX · 오디오 · 도구 · GUI/아이콘</p>
+    </a>
+</div>
+<div class="card" style="border-color: #10b981;">
+    <a href="{{ '/assets/' | relative_url }}#-게임마당-에셋-158개">
+        <h3>🎪 게임마당 — 158개</h3>
+        <p>2D 그래픽 150개 · 3D 모델 8개 (432GB)</p>
+    </a>
+</div>
 {% assign sorted_assets = site.assets | sort: "order" %}
 {% for asset in sorted_assets %}
 {% if asset.category and asset.category != "All" %}
