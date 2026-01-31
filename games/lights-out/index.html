@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>💡 Lights Out — East Sea Games</title>
+<meta name="description" content="Classic Lights Out puzzle with neon visuals. Toggle lights to turn them all off! Touch-friendly, free to play.">
+<link rel="canonical" href="https://eastsea.monster/games/lights-out/">
+<meta property="og:title" content="💡 Lights Out — East Sea Games">
+<meta property="og:description" content="Classic Lights Out logic puzzle. Toggle lights to turn them all off! Neon theme, touch-friendly.">
+<meta property="og:image" content="https://eastsea.monster/games/lights-out/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/lights-out/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="East Sea Games">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="💡 Lights Out — East Sea Games">
+<meta name="twitter:image" content="https://eastsea.monster/games/lights-out/og.png">
+<link rel="manifest" href="/games/manifest.json">
+<meta name="theme-color" content="#0a0a12">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+/* ═══ tg-sdk-wrapper (inline) ═══ */
+(function(){'use strict';const TG={app:window.Telegram?.WebApp,user:null,isReady:false,_backHandlers:[],init(){if(!this.app){this.isReady=true;this._injectStandaloneCSS();return false}this.app.ready();this.app.expand();this.user=this.app.initDataUnsafe?.user||null;this._applyTheme();this._setupSafeArea();this._setupBackButton();this.app.onEvent('viewportChanged',({isStateStable})=>{if(isStateStable)this._updateViewport()});this.app.onEvent('themeChanged',()=>this._applyTheme());this.isReady=true;return true},_applyTheme(){const tp=this.app?.themeParams;if(!tp)return;const r=document.documentElement.style;const m={'--tg-bg':tp.bg_color,'--tg-text':tp.text_color,'--tg-hint':tp.hint_color,'--tg-link':tp.link_color,'--tg-button':tp.button_color,'--tg-button-text':tp.button_text_color,'--tg-secondary-bg':tp.secondary_bg_color,'--tg-header-bg':tp.header_bg_color};for(const[p,v]of Object.entries(m)){if(v)r.setProperty(p,v)}},_setupSafeArea(){this._applySafeAreaValues();if(this.app?.onEvent){this.app.onEvent('safeAreaChanged',()=>this._applySafeAreaValues());this.app.onEvent('contentSafeAreaChanged',()=>this._applySafeAreaValues())}this._updateViewport()},_applySafeAreaValues(){const r=document.documentElement.style;const sa=this.app?.safeAreaInset||{top:0,bottom:0,left:0,right:0};const csa=this.app?.contentSafeAreaInset||{top:0,bottom:0,left:0,right:0};const totalTop=sa.top+csa.top;const totalBottom=sa.bottom+csa.bottom;r.setProperty('--safe-top',`${totalTop}px`);r.setProperty('--safe-bottom',`${totalBottom}px`);r.setProperty('--safe-left',`${sa.left}px`);r.setProperty('--safe-right',`${sa.right}px`);document.body.style.paddingTop=`${totalTop}px`;document.body.style.paddingBottom=`${totalBottom}px`;document.body.style.boxSizing='border-box'},_updateViewport(){const vh=this.app?.viewportStableHeight||window.innerHeight;document.documentElement.style.setProperty('--tg-viewport-height',`${vh}px`)},_setupBackButton(){if(!this.app?.BackButton)return;this.app.BackButton.show();this.app.BackButton.onClick(()=>{for(let i=this._backHandlers.length-1;i>=0;i--){if(this._backHandlers[i]())return}this.app.close()})},_injectStandaloneCSS(){const r=document.documentElement.style;r.setProperty('--tg-bg','#0a0a12');r.setProperty('--tg-text','#ffffff');r.setProperty('--tg-hint','#888');r.setProperty('--tg-button','#3390ec');r.setProperty('--tg-button-text','#fff');r.setProperty('--tg-secondary-bg','#10101e');r.setProperty('--tg-viewport-height',`${window.innerHeight}px`);r.setProperty('--safe-top','0px');r.setProperty('--safe-bottom','0px')},getUserId(){return this.user?.id||'anonymous'},getUserName(){return this.user?.first_name||'Player'},getLang(){return this.user?.language_code||'en'},isTelegram(){return!!this.app},save(k,v){try{localStorage.setItem(`tg_${this.getUserId()}_${k}`,JSON.stringify(v))}catch(e){}},load(k,fb=null){try{const r=localStorage.getItem(`tg_${this.getUserId()}_${k}`);return r?JSON.parse(r):fb}catch{return fb}},onBack(h){this._backHandlers.push(h)},haptic(t='impact',s='medium'){if(!this.app?.HapticFeedback)return;try{switch(t){case'impact':this.app.HapticFeedback.impactOccurred(s);break;case'notification':this.app.HapticFeedback.notificationOccurred(s);break;case'selection':this.app.HapticFeedback.selectionChanged();break}}catch{}},shareScore(score,gameName,gameId){const text=`💡 ${gameName}: ${score} moves!\nCan you do better? 👇`;const url=`https://t.me/eastsea_games_bot?startapp=game_${gameId}`;if(this.app){this.app.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`)}},popup(title,message,buttons){return new Promise(r=>{if(this.app?.showPopup)this.app.showPopup({title,message,buttons},r);else{alert(`${title}\n${message}`);r('ok')}})},alert(m){return new Promise(r=>{if(this.app?.showAlert)this.app.showAlert(m,r);else{alert(m);r()}})}};window.TG=TG;function autoInit(){TG.init()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',autoInit);else autoInit()})();
+</script>
+<style>
+/* ═══ Reset & Root ═══ */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a12;--card:#111120;--border:#1a1a30;--text:#e8e8f0;--muted:#666680;
+  --neon:#00ffcc;--neon-mid:#00ddaa;--neon-dim:rgba(0,255,204,0.12);--neon-glow:rgba(0,255,204,0.5);
+  --off-bg:#0e0e1a;--off-border:#1a1a2a;
+  --accent:#ff6b9d;--accent-glow:rgba(255,107,157,0.4);
+  --safe-top:0px;--safe-bottom:0px;
+}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:manipulation}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;
+  background:var(--bg);color:var(--text);display:flex;flex-direction:column;align-items:center;
+  user-select:none;-webkit-user-select:none;position:relative;
+}
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse at 50% 20%,rgba(0,255,204,0.03),transparent 60%),
+  radial-gradient(ellipse at 70% 80%,rgba(0,100,255,0.02),transparent 50%);
+}
+
+/* ═══ Screens ═══ */
+.screen{display:none;width:100%;max-width:480px;flex-direction:column;align-items:center;
+  padding:16px 20px;position:relative;z-index:1;flex:1;overflow-y:auto}
+.screen.active{display:flex}
+
+/* ═══ Menu ═══ */
+.title{
+  font-size:2.4rem;font-weight:900;letter-spacing:3px;margin:32px 0 4px;
+  background:linear-gradient(135deg,var(--neon),#00aaff);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  animation:titleGlow 3s ease-in-out infinite;text-align:center;
+}
+.subtitle{color:var(--muted);font-size:0.82rem;margin-bottom:28px;letter-spacing:1px}
+@keyframes titleGlow{
+  0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}
+}
+.title-icon{font-size:3.2rem;margin-top:20px;animation:bulbFloat 2s ease-in-out infinite}
+@keyframes bulbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+.menu-btn{
+  width:100%;max-width:300px;padding:16px 20px;margin:7px 0;
+  background:var(--card);border:1px solid var(--border);border-radius:14px;
+  color:var(--text);font-size:1rem;font-weight:600;cursor:pointer;
+  transition:all 0.25s;text-align:left;display:flex;align-items:center;gap:14px;
+}
+.menu-btn:active{transform:scale(0.97);border-color:var(--neon)}
+.menu-btn:hover{border-color:var(--neon);box-shadow:0 0 15px var(--neon-dim)}
+.menu-btn .icon{font-size:1.3rem;width:28px;text-align:center}
+.menu-btn .label{flex:1}
+.menu-btn .info{color:var(--muted);font-size:0.8rem}
+
+/* ═══ Top Bar ═══ */
+.top-bar{display:flex;justify-content:space-between;align-items:center;width:100%;padding:8px 0;margin-bottom:6px}
+.top-bar .back{background:none;border:none;color:var(--muted);font-size:0.95rem;cursor:pointer;padding:8px;transition:color 0.2s}
+.top-bar .back:active{color:var(--neon)}
+.top-bar .level-info{text-align:center;flex:1}
+.top-bar .level-info .lv{font-weight:700;font-size:1.15rem}
+.top-bar .level-info .sub{color:var(--muted);font-size:0.78rem;margin-top:2px}
+.top-bar .spacer{width:60px}
+
+/* ═══ Grid ═══ */
+.grid-wrapper{position:relative;display:flex;align-items:center;justify-content:center;flex:1;width:100%;min-height:0}
+.grid{
+  display:grid;grid-template-columns:repeat(5,1fr);gap:6px;padding:4px;
+  max-width:340px;width:90%;aspect-ratio:1;
+}
+.cell{
+  position:relative;border-radius:10px;cursor:pointer;
+  transition:background 0.2s,box-shadow 0.3s,transform 0.12s;
+  background:var(--off-bg);border:2px solid var(--off-border);
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
+  aspect-ratio:1;
+}
+.cell:active{transform:scale(0.9)}
+
+/* ═══ Cell ON — Neon Glow ═══ */
+.cell.on{
+  background:linear-gradient(135deg,#00eebb,#00ccdd);
+  border-color:var(--neon);
+  box-shadow:
+    0 0 10px var(--neon-glow),
+    0 0 25px rgba(0,255,204,0.3),
+    0 0 50px rgba(0,255,204,0.1),
+    inset 0 0 10px rgba(255,255,255,0.2);
+}
+.cell.on .cell-glow{opacity:1}
+.cell-glow{
+  position:absolute;inset:-30%;
+  background:radial-gradient(circle,rgba(0,255,204,0.5) 0%,rgba(0,255,204,0.15) 35%,transparent 65%);
+  opacity:0;transition:opacity 0.3s;pointer-events:none;
+}
+
+/* ═══ Cell OFF — Dark ═══ */
+.cell:not(.on){
+  background:var(--off-bg);
+  box-shadow:inset 0 2px 8px rgba(0,0,0,0.4);
+}
+
+/* ═══ Ripple Effect ═══ */
+.ripple{
+  position:absolute;border-radius:50%;
+  background:radial-gradient(circle,rgba(0,255,204,0.7),transparent 70%);
+  transform:scale(0);animation:rippleAnim 0.55s ease-out forwards;
+  pointer-events:none;z-index:5;
+}
+@keyframes rippleAnim{
+  0%{transform:scale(0);opacity:1}
+  100%{transform:scale(3);opacity:0}
+}
+
+/* ═══ Toggle Ripple (neighbors) ═══ */
+.cell.toggle-flash{
+  animation:toggleFlash 0.35s ease-out;
+}
+@keyframes toggleFlash{
+  0%{filter:brightness(2)}
+  100%{filter:brightness(1)}
+}
+
+/* ═══ Win Animations ═══ */
+.cell.win-pulse{animation:winPulse 0.6s ease-in-out}
+@keyframes winPulse{
+  0%{transform:scale(1)}30%{transform:scale(1.15)}60%{transform:scale(0.95)}100%{transform:scale(1)}
+}
+
+/* ═══ Actions Bar ═══ */
+.actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;justify-content:center}
+.act-btn{
+  background:var(--card);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);padding:10px 18px;cursor:pointer;font-size:0.85rem;
+  transition:all 0.2s;display:flex;align-items:center;gap:6px;
+}
+.act-btn:active{transform:scale(0.95);border-color:var(--neon)}
+.act-btn.disabled{opacity:0.3;pointer-events:none}
+.act-btn .badge{
+  background:var(--accent);color:#fff;font-size:0.7rem;padding:1px 6px;
+  border-radius:8px;font-weight:700;
+}
+
+/* ═══ Moves Counter ═══ */
+.move-counter{
+  font-size:1.1rem;font-weight:700;letter-spacing:1px;margin:10px 0 4px;
+  display:flex;align-items:center;gap:8px;
+}
+.move-counter .val{color:var(--neon);font-size:1.4rem}
+.move-counter .best-tag{color:var(--muted);font-size:0.78rem}
+
+/* ═══ Modal ═══ */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,0.8);
+  display:flex;align-items:center;justify-content:center;
+  z-index:200;opacity:0;pointer-events:none;transition:opacity 0.35s;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+}
+.modal.show{opacity:1;pointer-events:all}
+.modal-content{
+  background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:32px 28px;text-align:center;max-width:320px;width:90%;
+  transform:scale(0.85);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+}
+.modal.show .modal-content{transform:scale(1)}
+.modal-icon{font-size:3rem;margin-bottom:8px}
+.modal-title{font-size:1.3rem;font-weight:700;margin-bottom:4px}
+.modal-sub{color:var(--muted);font-size:0.88rem;margin-bottom:6px;line-height:1.5}
+.modal-stat{
+  display:flex;justify-content:center;gap:20px;margin:14px 0;
+}
+.modal-stat .st{text-align:center}
+.modal-stat .st .sv{font-size:1.6rem;font-weight:800;color:var(--neon)}
+.modal-stat .st .sl{font-size:0.72rem;color:var(--muted);margin-top:2px}
+.modal-stars{font-size:2rem;letter-spacing:6px;margin:10px 0}
+.modal-actions{display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.modal-btn{
+  padding:14px;border-radius:12px;border:none;font-size:1rem;font-weight:600;
+  cursor:pointer;transition:all 0.2s;
+}
+.modal-btn:active{transform:scale(0.97)}
+.modal-btn.primary{background:linear-gradient(135deg,var(--neon-mid),#00aaff);color:#000;font-weight:700}
+.modal-btn.secondary{background:var(--bg);border:1px solid var(--border);color:var(--text)}
+.modal-btn.share{background:linear-gradient(135deg,#27ae60,#2ecc71);color:#fff}
+
+/* ═══ Stats Screen ═══ */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;margin:16px 0}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 12px;text-align:center}
+.stat-val{font-size:1.5rem;font-weight:800;color:var(--neon)}
+.stat-label{font-size:0.75rem;color:var(--muted);margin-top:4px}
+.level-history{width:100%;margin-top:12px}
+.level-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 12px;border-bottom:1px solid var(--border);font-size:0.88rem;
+}
+.level-row .lr-lv{font-weight:600}
+.level-row .lr-moves{color:var(--neon);font-weight:700}
+.level-row .lr-stars{color:#ffd700;font-size:0.8rem}
+
+/* ═══ Settings ═══ */
+.setting-row{
+  display:flex;justify-content:space-between;align-items:center;
+  width:100%;padding:14px 0;border-bottom:1px solid var(--border);
+}
+.setting-row .label{font-size:0.95rem}
+.toggle{
+  width:48px;height:26px;border-radius:13px;background:var(--border);
+  position:relative;cursor:pointer;transition:background 0.3s;border:none;
+}
+.toggle.on{background:var(--neon-mid)}
+.toggle::after{
+  content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;
+  border-radius:50%;background:#fff;transition:transform 0.3s;
+}
+.toggle.on::after{transform:translateX(22px)}
+
+/* ═══ Particles ═══ */
+#particles{position:fixed;inset:0;z-index:10;pointer-events:none}
+
+/* ═══ Responsive ═══ */
+@media(max-height:600px){
+  .title{font-size:1.8rem;margin:16px 0 2px}
+  .title-icon{font-size:2.2rem;margin-top:10px}
+  .subtitle{margin-bottom:16px}
+  .grid{max-width:280px}
+}
+@media(min-width:500px){
+  .grid{max-width:380px}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ MENU SCREEN ═══ -->
+<div class="screen active" id="menuScreen">
+  <div class="title-icon">💡</div>
+  <div class="title">LIGHTS OUT</div>
+  <div class="subtitle" data-i18n="subtitle">NEON LOGIC PUZZLE</div>
+
+  <button class="menu-btn" id="btnPlay">
+    <span class="icon">▶️</span>
+    <span class="label" data-i18n="play">Play</span>
+    <span class="info" id="levelDisplay">Lv.1</span>
+  </button>
+  <button class="menu-btn" id="btnFreePlay">
+    <span class="icon">🎲</span>
+    <span class="label" data-i18n="freePlay">Free Play</span>
+    <span class="info" data-i18n="random">Random</span>
+  </button>
+  <button class="menu-btn" id="btnStats">
+    <span class="icon">🏆</span>
+    <span class="label" data-i18n="stats">Stats</span>
+    <span class="info" id="clearCountDisplay">0</span>
+  </button>
+  <button class="menu-btn" id="btnSettings">
+    <span class="icon">⚙️</span>
+    <span class="label" data-i18n="settings">Settings</span>
+  </button>
+</div>
+
+<!-- ═══ GAME SCREEN ═══ -->
+<div class="screen" id="gameScreen">
+  <div class="top-bar">
+    <button class="back" id="btnBack" data-i18n="back">← Back</button>
+    <div class="level-info">
+      <div class="lv" id="gameLevelLabel">Level 1</div>
+      <div class="sub" id="gameOptimalLabel"></div>
+    </div>
+    <div class="spacer"></div>
+  </div>
+
+  <div class="move-counter">
+    <span data-i18n="moves">Moves</span>:
+    <span class="val" id="moveCount">0</span>
+    <span class="best-tag" id="bestMoveTag"></span>
+  </div>
+
+  <div class="grid-wrapper">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="actions">
+    <button class="act-btn" id="btnUndo">↩️ <span data-i18n="undo">Undo</span></button>
+    <button class="act-btn" id="btnHint">💡 <span data-i18n="hint">Hint</span> <span class="badge" id="hintBadge">3</span></button>
+    <button class="act-btn" id="btnRestart">🔄 <span data-i18n="restart">Restart</span></button>
+  </div>
+</div>
+
+<!-- ═══ STATS SCREEN ═══ -->
+<div class="screen" id="statsScreen">
+  <div class="top-bar">
+    <button class="back" id="btnStatsBack" data-i18n="back">← Back</button>
+    <div class="level-info"><div class="lv" data-i18n="stats">Stats</div></div>
+    <div class="spacer"></div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card"><div class="stat-val" id="statClears">0</div><div class="stat-label" data-i18n="totalClears">Total Clears</div></div>
+    <div class="stat-card"><div class="stat-val" id="statLevel">1</div><div class="stat-label" data-i18n="currentLevel">Current Level</div></div>
+    <div class="stat-card"><div class="stat-val" id="statBestMoves">-</div><div class="stat-label" data-i18n="bestMoves">Best Moves</div></div>
+    <div class="stat-card"><div class="stat-val" id="statPerfect">0</div><div class="stat-label" data-i18n="perfectClears">Perfect Clears</div></div>
+  </div>
+  <div class="level-history" id="levelHistory"></div>
+</div>
+
+<!-- ═══ SETTINGS SCREEN ═══ -->
+<div class="screen" id="settingsScreen">
+  <div class="top-bar">
+    <button class="back" id="btnSettingsBack" data-i18n="back">← Back</button>
+    <div class="level-info"><div class="lv" data-i18n="settings">Settings</div></div>
+    <div class="spacer"></div>
+  </div>
+  <div class="setting-row">
+    <span class="label" data-i18n="sound">Sound</span>
+    <button class="toggle on" id="toggleSound"></button>
+  </div>
+  <div class="setting-row">
+    <span class="label" data-i18n="haptics">Haptics</span>
+    <button class="toggle on" id="toggleHaptic"></button>
+  </div>
+  <div class="setting-row">
+    <span class="label" data-i18n="english">English</span>
+    <button class="toggle" id="toggleLang"></button>
+  </div>
+  <div class="setting-row">
+    <span class="label" data-i18n="resetData">Reset Data</span>
+    <button class="act-btn" id="btnReset" style="padding:8px 16px;font-size:0.82rem">🗑️</button>
+  </div>
+</div>
+
+<!-- ═══ WIN MODAL ═══ -->
+<div class="modal" id="winModal">
+  <div class="modal-content">
+    <div class="modal-icon">🎉</div>
+    <div class="modal-title" id="winTitle" data-i18n="cleared">Level Cleared!</div>
+    <div class="modal-stars" id="winStars">⭐⭐⭐</div>
+    <div class="modal-stat">
+      <div class="st"><div class="sv" id="winMoves">0</div><div class="sl" data-i18n="moves">Moves</div></div>
+      <div class="st"><div class="sv" id="winOptimal">0</div><div class="sl" data-i18n="optimal">Optimal</div></div>
+    </div>
+    <div class="modal-sub" id="winMsg"></div>
+    <div class="modal-actions">
+      <button class="modal-btn primary" id="btnNextLevel" data-i18n="nextLevel">Next Level →</button>
+      <button class="modal-btn share" id="btnShare">📢 <span data-i18n="share">Share</span></button>
+      <button class="modal-btn secondary" id="btnWinMenu" data-i18n="menu">Menu</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Particle Canvas ═══ -->
+<canvas id="particles"></canvas>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════
+   1. I18N
+   ═══════════════════════════════════════ */
+const I18N = {
+  ko: {
+    subtitle: '네온 로직 퍼즐',
+    play: '플레이', freePlay: '프리 플레이', random: '랜덤',
+    stats: '통계', settings: '설정',
+    back: '← 뒤로', moves: '이동', undo: '되돌리기',
+    hint: '힌트', restart: '재시작',
+    cleared: '레벨 클리어!', optimal: '최적',
+    nextLevel: '다음 레벨 →', share: '공유하기', menu: '메뉴',
+    totalClears: '총 클리어', currentLevel: '현재 레벨',
+    bestMoves: '최소 이동', perfectClears: '퍼펙트',
+    sound: '사운드', haptics: '진동', english: 'English',
+    resetData: '데이터 초기화',
+    perfect: '퍼펙트! 최적의 풀이! 🏆',
+    great: '훌륭해요! 거의 완벽! ✨',
+    good: '잘했어요! 👍',
+    noHints: '힌트 없음',
+    confirmReset: '모든 데이터를 초기화할까요?',
+    level: '레벨',
+    freePlayLabel: '프리 플레이',
+    bestLabel: '최고',
+  },
+  en: {
+    subtitle: 'NEON LOGIC PUZZLE',
+    play: 'Play', freePlay: 'Free Play', random: 'Random',
+    stats: 'Stats', settings: 'Settings',
+    back: '← Back', moves: 'Moves', undo: 'Undo',
+    hint: 'Hint', restart: 'Restart',
+    cleared: 'Level Cleared!', optimal: 'Optimal',
+    nextLevel: 'Next Level →', share: 'Share', menu: 'Menu',
+    totalClears: 'Total Clears', currentLevel: 'Current Level',
+    bestMoves: 'Best Moves', perfectClears: 'Perfect Clears',
+    sound: 'Sound', haptics: 'Haptics', english: 'English',
+    resetData: 'Reset Data',
+    perfect: 'Perfect! Optimal solution! 🏆',
+    great: 'Great! Almost perfect! ✨',
+    good: 'Well done! 👍',
+    noHints: 'No hints left',
+    confirmReset: 'Reset all data?',
+    level: 'Level',
+    freePlayLabel: 'Free Play',
+    bestLabel: 'Best',
+  }
+};
+
+let lang = 'ko';
+function t(k) { return (I18N[lang] && I18N[lang][k]) || k; }
+
+function applyI18N() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (I18N[lang] && I18N[lang][k]) el.textContent = I18N[lang][k];
+  });
+}
+
+/* ═══════════════════════════════════════
+   2. AUDIO (Procedural)
+   ═══════════════════════════════════════ */
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+  return audioCtx;
+}
+
+function playToggle() {
+  if (!settings.sound) return;
+  const ctx = getAudio(); if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + 0.08);
+  gain.gain.setValueAtTime(0.12, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(); osc.stop(ctx.currentTime + 0.15);
+}
+
+function playWin() {
+  if (!settings.sound) return;
+  const ctx = getAudio(); if (!ctx) return;
+  const notes = [523, 659, 784, 1047];
+  notes.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.1, ctx.currentTime + i * 0.12);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.12 + 0.3);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(ctx.currentTime + i * 0.12);
+    osc.stop(ctx.currentTime + i * 0.12 + 0.3);
+  });
+}
+
+function playUndo() {
+  if (!settings.sound) return;
+  const ctx = getAudio(); if (!ctx) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(500, ctx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.1);
+  gain.gain.setValueAtTime(0.08, ctx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(); osc.stop(ctx.currentTime + 0.12);
+}
+
+/* ═══════════════════════════════════════
+   3. LIGHTS OUT SOLVER (GF(2) Gaussian Elimination)
+   ═══════════════════════════════════════ */
+
+// Build the 25x25 toggle matrix over GF(2)
+function buildToggleMatrix() {
+  const N = 5;
+  const size = N * N;
+  const mat = [];
+  for (let i = 0; i < size; i++) {
+    const row = new Uint8Array(size);
+    const r = Math.floor(i / N), c = i % N;
+    row[i] = 1;
+    if (r > 0) row[(r - 1) * N + c] = 1;
+    if (r < N - 1) row[(r + 1) * N + c] = 1;
+    if (c > 0) row[r * N + c - 1] = 1;
+    if (c < N - 1) row[r * N + c + 1] = 1;
+    mat.push(row);
+  }
+  return mat;
+}
+
+// Solve: given board state, find which cells to press (GF(2))
+function solveBoard(board) {
+  const N = 5;
+  const size = N * N;
+  // Augmented matrix [A | b]
+  const aug = [];
+  const toggleMat = buildToggleMatrix();
+  for (let i = 0; i < size; i++) {
+    const row = new Uint8Array(size + 1);
+    for (let j = 0; j < size; j++) row[j] = toggleMat[j][i]; // Transpose
+    row[size] = board[Math.floor(i / N)][i % N] ? 1 : 0;
+    aug.push(row);
+  }
+
+  // Gaussian elimination over GF(2)
+  const pivotCol = new Array(size).fill(-1);
+  let col = 0;
+  for (let row = 0; row < size && col < size; col++) {
+    let pivotRow = -1;
+    for (let r = row; r < size; r++) {
+      if (aug[r][col]) { pivotRow = r; break; }
+    }
+    if (pivotRow === -1) continue;
+    [aug[row], aug[pivotRow]] = [aug[pivotRow], aug[row]];
+    pivotCol[col] = row;
+    for (let r = 0; r < size; r++) {
+      if (r !== row && aug[r][col]) {
+        for (let c = 0; c <= size; c++) aug[r][c] ^= aug[row][c];
+      }
+    }
+    row++;
+  }
+
+  // Check consistency
+  for (let r = 0; r < size; r++) {
+    let allZero = true;
+    for (let c = 0; c < size; c++) { if (aug[r][c]) { allZero = false; break; } }
+    if (allZero && aug[r][size]) return null; // No solution
+  }
+
+  // Extract solution
+  const solution = new Uint8Array(size);
+  for (let c = 0; c < size; c++) {
+    if (pivotCol[c] !== -1) solution[c] = aug[pivotCol[c]][size];
+  }
+  return solution;
+}
+
+// Count minimum moves (number of 1s in solution)
+function countOptimal(board) {
+  const sol = solveBoard(board);
+  if (!sol) return -1;
+  let count = 0;
+  for (let i = 0; i < sol.length; i++) count += sol[i];
+  return count;
+}
+
+/* ═══════════════════════════════════════
+   4. PUZZLE GENERATION (guaranteed solvable)
+   ═══════════════════════════════════════ */
+
+// Seeded RNG (Mulberry32)
+function mulberry32(seed) {
+  return function() {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function generatePuzzle(level) {
+  const N = 5;
+  const rng = mulberry32(level * 7919 + 42);
+
+  // Start from all-off, apply random presses → guaranteed solvable
+  const board = Array.from({ length: N }, () => Array(N).fill(0));
+
+  // More presses for higher levels
+  const minPresses = Math.min(3 + Math.floor(level / 2), 15);
+  const maxPresses = Math.min(5 + level, 25);
+  const numPresses = minPresses + Math.floor(rng() * (maxPresses - minPresses + 1));
+
+  const pressed = new Set();
+  let attempts = 0;
+  while (pressed.size < numPresses && attempts < 100) {
+    const idx = Math.floor(rng() * 25);
+    if (!pressed.has(idx)) {
+      pressed.add(idx);
+      const r = Math.floor(idx / N), c = idx % N;
+      // Toggle self + neighbors
+      board[r][c] ^= 1;
+      if (r > 0) board[r - 1][c] ^= 1;
+      if (r < N - 1) board[r + 1][c] ^= 1;
+      if (c > 0) board[r][c - 1] ^= 1;
+      if (c < N - 1) board[r][c + 1] ^= 1;
+    }
+    attempts++;
+  }
+
+  // Make sure at least some lights are on
+  let litCount = 0;
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) litCount += board[r][c];
+  if (litCount === 0) {
+    // Force at least one press
+    const idx = Math.floor(rng() * 25);
+    const r = Math.floor(idx / N), c = idx % N;
+    board[r][c] ^= 1;
+    if (r > 0) board[r - 1][c] ^= 1;
+    if (r < N - 1) board[r + 1][c] ^= 1;
+    if (c > 0) board[r][c - 1] ^= 1;
+    if (c < N - 1) board[r][c + 1] ^= 1;
+  }
+
+  return board;
+}
+
+function generateFreePlayPuzzle() {
+  const N = 5;
+  const seed = Date.now() ^ (Math.random() * 0xFFFFFFFF >>> 0);
+  const rng = mulberry32(seed);
+  const board = Array.from({ length: N }, () => Array(N).fill(0));
+  const numPresses = 5 + Math.floor(rng() * 12);
+
+  for (let p = 0; p < numPresses; p++) {
+    const idx = Math.floor(rng() * 25);
+    const r = Math.floor(idx / N), c = idx % N;
+    board[r][c] ^= 1;
+    if (r > 0) board[r - 1][c] ^= 1;
+    if (r < N - 1) board[r + 1][c] ^= 1;
+    if (c > 0) board[r][c - 1] ^= 1;
+    if (c < N - 1) board[r][c + 1] ^= 1;
+  }
+
+  // Ensure some lights are on
+  let litCount = 0;
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) litCount += board[r][c];
+  if (litCount === 0) return generateFreePlayPuzzle();
+
+  return board;
+}
+
+/* ═══════════════════════════════════════
+   5. GAME STATE
+   ═══════════════════════════════════════ */
+
+let settings = { sound: true, haptic: true, lang: 'ko' };
+let save = { level: 1, clears: 0, perfect: 0, hints: 3, history: {} };
+
+let board = [];
+let initialBoard = [];
+let moveHistory = [];
+let moveCount = 0;
+let optimalMoves = 0;
+let isPlaying = false;
+let isFreePlay = false;
+let hintsLeft = 3;
+
+function loadSave() {
+  const s = TG.load('lightsout_save');
+  if (s) save = { ...save, ...s };
+  const st = TG.load('lightsout_settings');
+  if (st) settings = { ...settings, ...st };
+
+  // Detect language
+  const tgLang = TG.getLang();
+  if (!st) settings.lang = (tgLang === 'ko') ? 'ko' : 'en';
+  lang = settings.lang;
+}
+
+function writeSave() {
+  TG.save('lightsout_save', save);
+  TG.save('lightsout_settings', settings);
+}
+
+/* ═══════════════════════════════════════
+   6. SCREENS
+   ═══════════════════════════════════════ */
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function showMenu() {
+  showScreen('menuScreen');
+  document.getElementById('levelDisplay').textContent = `Lv.${save.level}`;
+  document.getElementById('clearCountDisplay').textContent = save.clears;
+  applyI18N();
+}
+
+function showStats() {
+  showScreen('statsScreen');
+  document.getElementById('statClears').textContent = save.clears;
+  document.getElementById('statLevel').textContent = save.level;
+  document.getElementById('statPerfect').textContent = save.perfect;
+
+  // Best moves across all levels
+  let bestAll = Infinity;
+  for (const lv in save.history) {
+    if (save.history[lv].best < bestAll) bestAll = save.history[lv].best;
+  }
+  document.getElementById('statBestMoves').textContent = bestAll === Infinity ? '-' : bestAll;
+
+  // Level history
+  const container = document.getElementById('levelHistory');
+  container.innerHTML = '';
+  const entries = Object.entries(save.history).sort((a, b) => parseInt(a[0]) - parseInt(b[0]));
+  entries.slice(-20).forEach(([lv, data]) => {
+    const row = document.createElement('div');
+    row.className = 'level-row';
+    const stars = data.stars || 0;
+    row.innerHTML = `
+      <span class="lr-lv">${t('level')} ${lv}</span>
+      <span class="lr-stars">${'⭐'.repeat(stars)}${'☆'.repeat(3 - stars)}</span>
+      <span class="lr-moves">${data.best} ${t('moves').toLowerCase()}</span>
+    `;
+    container.appendChild(row);
+  });
+  applyI18N();
+}
+
+function showSettings() {
+  showScreen('settingsScreen');
+  document.getElementById('toggleSound').className = 'toggle' + (settings.sound ? ' on' : '');
+  document.getElementById('toggleHaptic').className = 'toggle' + (settings.haptic ? ' on' : '');
+  document.getElementById('toggleLang').className = 'toggle' + (lang === 'en' ? ' on' : '');
+  applyI18N();
+}
+
+/* ═══════════════════════════════════════
+   7. GAME LOGIC
+   ═══════════════════════════════════════ */
+
+function startGame(level, freePlay = false) {
+  isFreePlay = freePlay;
+  isPlaying = true;
+  moveCount = 0;
+  moveHistory = [];
+  hintsLeft = 3;
+
+  if (freePlay) {
+    board = generateFreePlayPuzzle();
+  } else {
+    board = generatePuzzle(level);
+  }
+
+  // Deep copy initial state
+  initialBoard = board.map(r => [...r]);
+
+  // Calculate optimal
+  optimalMoves = countOptimal(board);
+
+  showScreen('gameScreen');
+  updateGameUI();
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (board[r][c] ? ' on' : '');
+      cell.dataset.row = r;
+      cell.dataset.col = c;
+
+      const glow = document.createElement('div');
+      glow.className = 'cell-glow';
+      cell.appendChild(glow);
+
+      cell.addEventListener('pointerdown', onCellTap);
+      grid.appendChild(cell);
+    }
+  }
+}
+
+function updateCellVisuals() {
+  const cells = document.querySelectorAll('#grid .cell');
+  cells.forEach(cell => {
+    const r = parseInt(cell.dataset.row);
+    const c = parseInt(cell.dataset.col);
+    if (board[r][c]) {
+      cell.classList.add('on');
+    } else {
+      cell.classList.remove('on');
+    }
+  });
+}
+
+function onCellTap(e) {
+  if (!isPlaying) return;
+  e.preventDefault();
+
+  const cell = e.currentTarget;
+  const r = parseInt(cell.dataset.row);
+  const c = parseInt(cell.dataset.col);
+
+  // Save for undo
+  moveHistory.push(board.map(row => [...row]));
+
+  // Toggle self + neighbors
+  toggleCell(r, c);
+
+  moveCount++;
+
+  // Sound + haptic
+  playToggle();
+  if (settings.haptic) TG.haptic('impact', 'light');
+
+  // Ripple effect on tapped cell
+  spawnRipple(cell);
+
+  // Flash animation on toggled cells
+  flashToggledCells(r, c);
+
+  updateCellVisuals();
+  updateMoveDisplay();
+
+  // Check win
+  if (checkWin()) {
+    isPlaying = false;
+    setTimeout(() => onWin(), 400);
+  }
+}
+
+function toggleCell(r, c) {
+  const N = 5;
+  board[r][c] ^= 1;
+  if (r > 0) board[r - 1][c] ^= 1;
+  if (r < N - 1) board[r + 1][c] ^= 1;
+  if (c > 0) board[r][c - 1] ^= 1;
+  if (c < N - 1) board[r][c + 1] ^= 1;
+}
+
+function flashToggledCells(r, c) {
+  const N = 5;
+  const coords = [[r, c]];
+  if (r > 0) coords.push([r - 1, c]);
+  if (r < N - 1) coords.push([r + 1, c]);
+  if (c > 0) coords.push([r, c - 1]);
+  if (c < N - 1) coords.push([r, c + 1]);
+
+  coords.forEach(([cr, cc], i) => {
+    const cell = document.querySelector(`.cell[data-row="${cr}"][data-col="${cc}"]`);
+    if (cell) {
+      setTimeout(() => {
+        cell.classList.add('toggle-flash');
+        cell.addEventListener('animationend', () => cell.classList.remove('toggle-flash'), { once: true });
+      }, i * 30);
+    }
+  });
+}
+
+function spawnRipple(cell) {
+  const ripple = document.createElement('div');
+  ripple.className = 'ripple';
+  const size = cell.offsetWidth * 1.2;
+  ripple.style.width = ripple.style.height = size + 'px';
+  ripple.style.left = (cell.offsetWidth / 2 - size / 2) + 'px';
+  ripple.style.top = (cell.offsetHeight / 2 - size / 2) + 'px';
+  cell.appendChild(ripple);
+  ripple.addEventListener('animationend', () => ripple.remove());
+}
+
+function checkWin() {
+  for (let r = 0; r < 5; r++)
+    for (let c = 0; c < 5; c++)
+      if (board[r][c]) return false;
+  return true;
+}
+
+function onWin() {
+  playWin();
+  if (settings.haptic) TG.haptic('notification', 'success');
+
+  // Win animation on cells
+  const cells = document.querySelectorAll('#grid .cell');
+  cells.forEach((cell, i) => {
+    setTimeout(() => {
+      cell.classList.add('win-pulse');
+      cell.addEventListener('animationend', () => cell.classList.remove('win-pulse'), { once: true });
+    }, i * 40);
+  });
+
+  // Particles
+  spawnWinParticles();
+
+  // Calculate stars
+  let stars = 1;
+  if (optimalMoves > 0) {
+    const ratio = moveCount / optimalMoves;
+    if (ratio <= 1) stars = 3;
+    else if (ratio <= 1.5) stars = 2;
+  }
+
+  // Save record
+  if (!isFreePlay) {
+    const lvKey = save.level;
+    if (!save.history[lvKey] || moveCount < save.history[lvKey].best) {
+      save.history[lvKey] = { best: moveCount, stars, optimal: optimalMoves };
+    } else if (stars > (save.history[lvKey].stars || 0)) {
+      save.history[lvKey].stars = stars;
+    }
+    save.clears++;
+    if (stars === 3) save.perfect++;
+    save.level++;
+  } else {
+    save.clears++;
+    if (stars === 3) save.perfect++;
+  }
+  writeSave();
+
+  // Show modal
+  setTimeout(() => showWinModal(stars), 500);
+}
+
+function showWinModal(stars) {
+  const modal = document.getElementById('winModal');
+  document.getElementById('winMoves').textContent = moveCount;
+  document.getElementById('winOptimal').textContent = optimalMoves;
+  document.getElementById('winStars').textContent = '⭐'.repeat(stars) + '☆'.repeat(3 - stars);
+
+  let msg = t('good');
+  if (stars === 3) msg = t('perfect');
+  else if (stars === 2) msg = t('great');
+  document.getElementById('winMsg').textContent = msg;
+
+  document.getElementById('btnNextLevel').style.display = isFreePlay ? 'none' : '';
+
+  modal.classList.add('show');
+  applyI18N();
+}
+
+function hideWinModal() {
+  document.getElementById('winModal').classList.remove('show');
+}
+
+function updateGameUI() {
+  const lvLabel = isFreePlay ? t('freePlayLabel') : `${t('level')} ${save.level}`;
+  document.getElementById('gameLevelLabel').textContent = lvLabel;
+
+  if (optimalMoves > 0) {
+    document.getElementById('gameOptimalLabel').textContent = `${t('optimal')}: ${optimalMoves}`;
+  } else {
+    document.getElementById('gameOptimalLabel').textContent = '';
+  }
+
+  updateMoveDisplay();
+  document.getElementById('hintBadge').textContent = hintsLeft;
+  applyI18N();
+}
+
+function updateMoveDisplay() {
+  document.getElementById('moveCount').textContent = moveCount;
+
+  // Show best for current level
+  const lvKey = isFreePlay ? null : save.level;
+  const best = lvKey && save.history[lvKey] ? save.history[lvKey].best : null;
+  document.getElementById('bestMoveTag').textContent = best ? `(${t('bestLabel')}: ${best})` : '';
+
+  // Undo button state
+  document.getElementById('btnUndo').classList.toggle('disabled', moveHistory.length === 0);
+}
+
+/* ═══════════════════════════════════════
+   8. UNDO
+   ═══════════════════════════════════════ */
+
+function undo() {
+  if (moveHistory.length === 0 || !isPlaying) return;
+  board = moveHistory.pop();
+  moveCount = Math.max(0, moveCount - 1);
+  playUndo();
+  if (settings.haptic) TG.haptic('selection');
+  updateCellVisuals();
+  updateMoveDisplay();
+}
+
+/* ═══════════════════════════════════════
+   9. HINT (solve and highlight one cell)
+   ═══════════════════════════════════════ */
+
+function showHint() {
+  if (!isPlaying || hintsLeft <= 0) {
+    if (hintsLeft <= 0) TG.alert(t('noHints'));
+    return;
+  }
+
+  const sol = solveBoard(board);
+  if (!sol) return;
+
+  // Find first cell to press
+  for (let i = 0; i < sol.length; i++) {
+    if (sol[i]) {
+      const r = Math.floor(i / 5), c = i % 5;
+      const cell = document.querySelector(`.cell[data-row="${r}"][data-col="${c}"]`);
+      if (cell) {
+        // Remove old hints
+        document.querySelectorAll('.cell.hint-glow').forEach(c => c.classList.remove('hint-glow'));
+
+        cell.classList.add('hint-glow');
+        cell.style.boxShadow = '0 0 15px var(--accent), 0 0 30px var(--accent-glow), 0 0 50px rgba(255,107,157,0.2)';
+        cell.style.borderColor = 'var(--accent)';
+
+        setTimeout(() => {
+          cell.style.boxShadow = '';
+          cell.style.borderColor = '';
+          cell.classList.remove('hint-glow');
+        }, 2000);
+
+        hintsLeft--;
+        document.getElementById('hintBadge').textContent = hintsLeft;
+        if (settings.haptic) TG.haptic('notification', 'warning');
+        break;
+      }
+    }
+  }
+}
+
+/* ═══════════════════════════════════════
+   10. PARTICLES (win celebration)
+   ═══════════════════════════════════════ */
+
+function spawnWinParticles() {
+  const canvas = document.getElementById('particles');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const particles = [];
+  const colors = ['#00ffcc', '#00aaff', '#ff6b9d', '#ffd700', '#aa55ff'];
+
+  for (let i = 0; i < 60; i++) {
+    particles.push({
+      x: canvas.width / 2 + (Math.random() - 0.5) * 100,
+      y: canvas.height / 2,
+      vx: (Math.random() - 0.5) * 12,
+      vy: (Math.random() - 0.5) * 12 - 4,
+      r: 2 + Math.random() * 4,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      life: 1,
+      decay: 0.01 + Math.random() * 0.02,
+    });
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+
+    particles.forEach(p => {
+      if (p.life <= 0) return;
+      alive = true;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.vy += 0.15; // gravity
+      p.life -= p.decay;
+
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Glow
+      ctx.globalAlpha = Math.max(0, p.life * 0.3);
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r * 3, 0, Math.PI * 2);
+      ctx.fill();
+    });
+
+    ctx.globalAlpha = 1;
+    if (alive) requestAnimationFrame(animate);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  requestAnimationFrame(animate);
+}
+
+/* ═══════════════════════════════════════
+   11. EVENT HANDLERS
+   ═══════════════════════════════════════ */
+
+function setupEvents() {
+  // Menu
+  document.getElementById('btnPlay').addEventListener('click', () => startGame(save.level, false));
+  document.getElementById('btnFreePlay').addEventListener('click', () => startGame(0, true));
+  document.getElementById('btnStats').addEventListener('click', showStats);
+  document.getElementById('btnSettings').addEventListener('click', showSettings);
+
+  // Game
+  document.getElementById('btnBack').addEventListener('click', () => { isPlaying = false; showMenu(); });
+  document.getElementById('btnUndo').addEventListener('click', undo);
+  document.getElementById('btnHint').addEventListener('click', showHint);
+  document.getElementById('btnRestart').addEventListener('click', () => {
+    board = initialBoard.map(r => [...r]);
+    moveCount = 0;
+    moveHistory = [];
+    hintsLeft = 3;
+    updateCellVisuals();
+    updateGameUI();
+    if (settings.haptic) TG.haptic('impact', 'medium');
+  });
+
+  // Win modal
+  document.getElementById('btnNextLevel').addEventListener('click', () => {
+    hideWinModal();
+    startGame(save.level, false);
+  });
+  document.getElementById('btnShare').addEventListener('click', () => {
+    TG.shareScore(moveCount, 'Lights Out', 'lights-out');
+  });
+  document.getElementById('btnWinMenu').addEventListener('click', () => {
+    hideWinModal();
+    showMenu();
+  });
+
+  // Stats
+  document.getElementById('btnStatsBack').addEventListener('click', showMenu);
+
+  // Settings
+  document.getElementById('btnSettingsBack').addEventListener('click', showMenu);
+  document.getElementById('toggleSound').addEventListener('click', function() {
+    settings.sound = !settings.sound;
+    this.className = 'toggle' + (settings.sound ? ' on' : '');
+    writeSave();
+  });
+  document.getElementById('toggleHaptic').addEventListener('click', function() {
+    settings.haptic = !settings.haptic;
+    this.className = 'toggle' + (settings.haptic ? ' on' : '');
+    writeSave();
+  });
+  document.getElementById('toggleLang').addEventListener('click', function() {
+    lang = lang === 'ko' ? 'en' : 'ko';
+    settings.lang = lang;
+    this.className = 'toggle' + (lang === 'en' ? ' on' : '');
+    writeSave();
+    applyI18N();
+    showSettings();
+  });
+  document.getElementById('btnReset').addEventListener('click', () => {
+    if (confirm(t('confirmReset'))) {
+      save = { level: 1, clears: 0, perfect: 0, hints: 3, history: {} };
+      writeSave();
+      showMenu();
+    }
+  });
+
+  // Back button (TG)
+  TG.onBack(() => {
+    const gameScreen = document.getElementById('gameScreen');
+    if (gameScreen.classList.contains('active')) {
+      isPlaying = false;
+      showMenu();
+      return true;
+    }
+    const modal = document.getElementById('winModal');
+    if (modal.classList.contains('show')) {
+      hideWinModal();
+      showMenu();
+      return true;
+    }
+    if (document.getElementById('statsScreen').classList.contains('active') ||
+        document.getElementById('settingsScreen').classList.contains('active')) {
+      showMenu();
+      return true;
+    }
+    return false;
+  });
+}
+
+/* ═══════════════════════════════════════
+   12. INIT
+   ═══════════════════════════════════════ */
+
+loadSave();
+applyI18N();
+setupEvents();
+showMenu();
+
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>
