@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Word Search 🔍</title>
+<meta name="description" content="숨겨진 단어를 찾아보세요! 글자 그리드에서 단어를 검색하는 퍼즐 게임.">
+<meta property="og:title" content="Word Search 🔍 — East Sea Games">
+<meta property="og:description" content="글자 그리드에서 숨겨진 단어를 찾는 워드서치 퍼즐!">
+<meta property="og:image" content="https://eastsea.monster/games/word-search/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/word-search/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/word-search/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Word Search",
+"url":"https://eastsea.monster/games/word-search/",
+"description":"워드서치 퍼즐 — 글자 그리드에서 숨겨진 단어를 찾으세요",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Puzzle","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a1a2e;color:#e0e0e0;user-select:none}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top,0px);padding-bottom:var(--safe-bottom,0px)}
+#app{width:100%;max-width:500px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:rgba(0,0,0,0.3)}
+.header .title{font-size:16px;font-weight:700;color:#4fc3f7}
+.stats{display:flex;gap:12px;font-size:13px;color:#aaa}
+.theme-label{text-align:center;padding:6px;font-size:14px;color:#4fc3f7;font-weight:600}
+.grid-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:8px;position:relative}
+.grid{display:grid;gap:2px;padding:4px;background:rgba(0,0,0,0.3);border-radius:12px}
+.letter{display:flex;align-items:center;justify-content:center;font-size:min(4.5vw,22px);font-weight:700;background:rgba(255,255,255,0.06);border-radius:4px;cursor:pointer;transition:all 0.15s;position:relative;text-transform:uppercase}
+.letter:hover{background:rgba(255,255,255,0.12)}
+.letter.selecting{background:rgba(79,195,247,0.3);color:#fff;transform:scale(1.05)}
+.letter.found{background:rgba(79,195,247,0.15);color:#4fc3f7}
+.letter.found-flash{animation:found-flash 0.6s ease}
+.selection-line{position:absolute;pointer-events:none;z-index:10}
+.words-panel{padding:10px 14px;max-height:140px;overflow-y:auto}
+.words-grid{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.word-tag{padding:5px 10px;border-radius:16px;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);color:#ccc;transition:all 0.3s}
+.word-tag.found{background:rgba(79,195,247,0.15);color:#4fc3f7;text-decoration:line-through;opacity:0.6}
+.controls{display:flex;justify-content:center;gap:12px;padding:8px 14px}
+.ctrl-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;cursor:pointer;min-height:44px}
+.ctrl-btn:active{transform:scale(0.95)}
+.ctrl-btn.primary{background:#4fc3f7;color:#1a1a2e}
+.timer{font-variant-numeric:tabular-nums}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:#16213e;border-radius:20px;padding:28px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:#4fc3f7;margin-bottom:8px}
+.modal .big{font-size:36px;margin:12px 0}
+.modal .sub{font-size:14px;color:#aaa;margin-bottom:12px}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;min-height:48px;width:100%;margin-top:8px}
+.btn-primary{background:#4fc3f7;color:#1a1a2e}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+@keyframes found-flash{0%{transform:scale(1);background:rgba(79,195,247,0.3)}50%{transform:scale(1.15);background:rgba(79,195,247,0.5)}100%{transform:scale(1);background:rgba(79,195,247,0.15)}}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">🔍 Word Search</div>
+<div class="stats">
+<span id="foundCount">0/0</span>
+<span class="timer" id="timer">0:00</span>
+</div>
+</div>
+<div class="theme-label" id="themeLabel"></div>
+<div class="grid-wrap"><div class="grid" id="grid"></div></div>
+<div class="words-panel"><div class="words-grid" id="wordsList"></div></div>
+<div class="controls">
+<button class="ctrl-btn primary" id="btnNew" data-i18n="newPuzzle">New Puzzle</button>
+</div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="modalTitle">🎉</h2>
+<div class="big" id="modalEmoji">🏆</div>
+<div class="sub" id="modalSub"></div>
+<button class="btn btn-primary" id="modalNext" data-i18n="next">Next</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{newPuzzle:'새 퍼즐',next:'다음',complete:'완성!',time:'시간',found:'발견'},
+en:{newPuzzle:'New Puzzle',next:'Next',complete:'Complete!',time:'Time',found:'Found'},
+ja:{newPuzzle:'新パズル',next:'次へ',complete:'クリア！',time:'時間',found:'発見'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+
+const THEMES=[
+{name:'🍎 Fruits',words:['APPLE','MANGO','GRAPE','PEACH','LEMON','MELON','BERRY','PLUM','PEAR','KIWI']},
+{name:'🐾 Animals',words:['TIGER','EAGLE','SHARK','WHALE','PANDA','HORSE','SNAKE','MOUSE','ZEBRA','KOALA']},
+{name:'🌍 Countries',words:['JAPAN','KOREA','CHINA','INDIA','SPAIN','ITALY','EGYPT','CHILE','NEPAL','PERU']},
+{name:'⚽ Sports',words:['GOLF','SWIM','SURF','YOGA','JUDO','POLO','DIVE','SAIL','HIKE','SLED']},
+{name:'🎵 Music',words:['PIANO','DRUMS','FLUTE','VIOLA','BANJO','ORGAN','OBOE','HARP','TUBA','CELLO']},
+{name:'🌸 Nature',words:['RIVER','OCEAN','CLOUD','STORM','FROST','FLAME','STONE','CREEK','BLOOM','GROVE']},
+{name:'💻 Tech',words:['PIXEL','CLOUD','CACHE','VIRUS','QUERY','STACK','PARSE','ARRAY','DEBUG','LOGIC']},
+{name:'🍕 Food',words:['PIZZA','PASTA','SALAD','BREAD','STEAK','TOAST','CREAM','BACON','CURRY','CHIPS']}
+];
+const DIRS=[[0,1],[1,0],[1,1],[-1,1],[0,-1],[-1,0],[-1,-1],[1,-1]];
+const GRID_SIZE=10;
+
+let grid=[],words=[],foundWords=new Set(),selecting=false,selectStart=null,selectEnd=null;
+let wordPositions={},timerInterval=null,seconds=0,currentTheme=0,level=0;
+
+function generatePuzzle(){
+const theme=THEMES[currentTheme%THEMES.length];
+const selectedWords=shuffleArray([...theme.words]).slice(0,6);
+grid=Array.from({length:GRID_SIZE},()=>Array(GRID_SIZE).fill(''));
+wordPositions={};
+words=[];
+
+for(const word of selectedWords){
+if(placeWord(word)){words.push(word);wordPositions[word]=getWordCells(word)}
+}
+
+// Fill empty cells
+const alpha='ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+for(let r=0;r<GRID_SIZE;r++)for(let c=0;c<GRID_SIZE;c++){
+if(!grid[r][c])grid[r][c]=alpha[Math.floor(Math.random()*26)];
+}
+
+foundWords=new Set();seconds=0;
+clearInterval(timerInterval);
+timerInterval=setInterval(()=>{seconds++;document.getElementById('timer').textContent=formatTime(seconds)},1000);
+document.getElementById('themeLabel').textContent=theme.name;
+document.getElementById('timer').textContent='0:00';
+render();
+}
+
+function placeWord(word){
+const attempts=100;
+for(let a=0;a<attempts;a++){
+const dir=DIRS[Math.floor(Math.random()*DIRS.length)];
+const maxR=dir[0]===0?GRID_SIZE:dir[0]>0?GRID_SIZE-word.length:GRID_SIZE;
+const maxC=dir[1]===0?GRID_SIZE:dir[1]>0?GRID_SIZE-word.length:GRID_SIZE;
+const minR=dir[0]<0?word.length-1:0;
+const minC=dir[1]<0?word.length-1:0;
+if(minR>=maxR||minC>=maxC)continue;
+const r=minR+Math.floor(Math.random()*(maxR-minR));
+const c=minC+Math.floor(Math.random()*(maxC-minC));
+let ok=true;
+for(let i=0;i<word.length;i++){
+const nr=r+dir[0]*i,nc=c+dir[1]*i;
+if(nr<0||nr>=GRID_SIZE||nc<0||nc>=GRID_SIZE){ok=false;break}
+if(grid[nr][nc]&&grid[nr][nc]!==word[i]){ok=false;break}
+}
+if(ok){
+for(let i=0;i<word.length;i++){
+grid[r+dir[0]*i][c+dir[1]*i]=word[i];
+}
+wordPositions[word]={cells:Array.from({length:word.length},(_,i)=>({r:r+dir[0]*i,c:c+dir[1]*i}))};
+return true;
+}
+}
+return false;
+}
+
+function getWordCells(word){return wordPositions[word]?.cells||[]}
+
+function render(){
+const gridEl=document.getElementById('grid');
+gridEl.innerHTML='';
+gridEl.style.gridTemplateColumns=`repeat(${GRID_SIZE},1fr)`;
+const cellSize=Math.min(Math.floor((Math.min(window.innerWidth,500)-32)/GRID_SIZE),38);
+for(let r=0;r<GRID_SIZE;r++)for(let c=0;c<GRID_SIZE;c++){
+const el=document.createElement('div');
+el.className='letter';
+el.style.width=cellSize+'px';
+el.style.height=cellSize+'px';
+el.textContent=grid[r][c];
+el.dataset.r=r;
+el.dataset.c=c;
+// Check if part of found word
+for(const w of foundWords){
+const cells=getWordCells(w);
+if(cells.some(cc=>cc.r===r&&cc.c===c))el.classList.add('found');
+}
+gridEl.appendChild(el);
+}
+// Setup touch/mouse
+setupInput();
+renderWords();
+document.getElementById('foundCount').textContent=`${foundWords.size}/${words.length}`;
+}
+
+function setupInput(){
+const gridEl=document.getElementById('grid');
+let dragging=false;
+
+function getCell(e){
+const touch=e.touches?e.touches[0]:e;
+const el=document.elementFromPoint(touch.clientX,touch.clientY);
+if(el&&el.dataset.r!==undefined)return{r:parseInt(el.dataset.r),c:parseInt(el.dataset.c)};
+return null;
+}
+
+gridEl.addEventListener('pointerdown',(e)=>{
+e.preventDefault();
+const cell=getCell(e);
+if(cell){dragging=true;selectStart=cell;selectEnd=cell;highlightSelection()}
+});
+gridEl.addEventListener('pointermove',(e)=>{
+if(!dragging)return;
+const cell=getCell(e);
+if(cell){selectEnd=cell;highlightSelection()}
+});
+gridEl.addEventListener('pointerup',()=>{
+if(dragging){checkSelection();dragging=false}
+});
+gridEl.addEventListener('pointerleave',()=>{
+if(dragging){checkSelection();dragging=false}
+});
+}
+
+function highlightSelection(){
+document.querySelectorAll('.letter.selecting').forEach(el=>el.classList.remove('selecting'));
+if(!selectStart||!selectEnd)return;
+const cells=getLineCells(selectStart,selectEnd);
+cells.forEach(({r,c})=>{
+const el=document.querySelector(`.letter[data-r="${r}"][data-c="${c}"]`);
+if(el)el.classList.add('selecting');
+});
+}
+
+function getLineCells(start,end){
+const dr=Math.sign(end.r-start.r);
+const dc=Math.sign(end.c-start.c);
+const len=Math.max(Math.abs(end.r-start.r),Math.abs(end.c-start.c))+1;
+// Validate direction
+if(dr===0&&dc===0)return[start];
+if(Math.abs(end.r-start.r)!==0&&Math.abs(end.c-start.c)!==0&&Math.abs(end.r-start.r)!==Math.abs(end.c-start.c))return[];
+const cells=[];
+for(let i=0;i<len;i++){
+const r=start.r+dr*i,c=start.c+dc*i;
+if(r>=0&&r<GRID_SIZE&&c>=0&&c<GRID_SIZE)cells.push({r,c});
+}
+return cells;
+}
+
+function checkSelection(){
+if(!selectStart||!selectEnd){clearSelection();return}
+const cells=getLineCells(selectStart,selectEnd);
+const word=cells.map(({r,c})=>grid[r][c]).join('');
+const wordRev=[...word].reverse().join('');
+let found=false;
+for(const w of words){
+if(!foundWords.has(w)&&(w===word||w===wordRev)){
+foundWords.add(w);
+found=true;
+cells.forEach(({r,c})=>{
+const el=document.querySelector(`.letter[data-r="${r}"][data-c="${c}"]`);
+if(el){el.classList.add('found','found-flash')}
+});
+window.TG?.haptic?.('notification','success');
+break;
+}
+}
+if(!found)window.TG?.haptic?.('impact','light');
+clearSelection();
+renderWords();
+document.getElementById('foundCount').textContent=`${foundWords.size}/${words.length}`;
+if(foundWords.size===words.length)onComplete();
+}
+
+function clearSelection(){
+document.querySelectorAll('.letter.selecting').forEach(el=>el.classList.remove('selecting'));
+selectStart=null;selectEnd=null;
+}
+
+function renderWords(){
+const list=document.getElementById('wordsList');
+list.innerHTML='';
+words.forEach(w=>{
+const tag=document.createElement('div');
+tag.className='word-tag'+(foundWords.has(w)?' found':'');
+tag.textContent=w;
+list.appendChild(tag);
+});
+}
+
+function onComplete(){
+clearInterval(timerInterval);
+const score=(words.length*500)-seconds*5;
+document.getElementById('modalTitle').textContent=t('complete');
+document.getElementById('modalSub').textContent=`${t('found')}: ${words.length} | ${t('time')}: ${formatTime(seconds)}`;
+document.getElementById('modalBg').style.display='flex';
+window.TG?.haptic?.('notification','success');
+if(window.GameScore)GameScore.save('word-search',Math.max(0,score));
+level++;
+}
+
+function formatTime(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
+function shuffleArray(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+document.getElementById('btnNew').addEventListener('click',()=>{currentTheme++;generatePuzzle()});
+document.getElementById('modalNext').addEventListener('click',()=>{
+document.getElementById('modalBg').style.display='none';
+currentTheme++;generatePuzzle();
+});
+
+generatePuzzle();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

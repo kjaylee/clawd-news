@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Chess Tactics ♟️</title>
+<meta name="description" content="체스 택틱 퍼즐! 1~3수 안에 최선의 수를 찾아보세요.">
+<meta property="og:title" content="Chess Tactics ♟️ — East Sea Games">
+<meta property="og:description" content="체스 두뇌 트레이닝! 택틱 퍼즐을 풀어보세요.">
+<meta property="og:image" content="https://eastsea.monster/games/chess-tactics/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/chess-tactics/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/chess-tactics/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Chess Tactics",
+"url":"https://eastsea.monster/games/chess-tactics/",
+"description":"체스 택틱 퍼즐 — 1~3수 안에 최선의 수를 찾으세요",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Puzzle","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#262421;color:#e0e0e0;user-select:none}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top,0px);padding-bottom:var(--safe-bottom,0px)}
+#app{width:100%;max-width:500px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:8px 14px;background:rgba(0,0,0,0.3)}
+.header .title{font-size:16px;font-weight:700;color:#e8a43a}
+.puzzle-info{display:flex;gap:12px;align-items:center}
+.puzzle-num{font-size:13px;color:#aaa}
+.rating{font-size:14px;font-weight:700;color:#8bc34a}
+.streak-bar{display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 14px;background:rgba(0,0,0,0.2)}
+.streak-dot{width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:12px}
+.streak-dot.correct{background:#4caf50;color:#fff}
+.streak-dot.wrong{background:#f44336;color:#fff}
+.streak-dot.current{border:2px solid #e8a43a}
+.hint-text{text-align:center;padding:8px;font-size:14px;color:#e8a43a;min-height:32px;font-weight:600}
+.board-wrap{display:flex;align-items:center;justify-content:center;padding:8px}
+.board{display:grid;grid-template-columns:repeat(8,1fr);border-radius:4px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.5);width:min(calc(100vw - 24px),400px);height:min(calc(100vw - 24px),400px)}
+.square{display:flex;align-items:center;justify-content:center;font-size:min(5vw,38px);cursor:pointer;position:relative;transition:background 0.1s}
+.square.light{background:#f0d9b5}
+.square.dark{background:#b58863}
+.square.selected{background:#829769!important}
+.square.highlight{background:rgba(255,255,0,0.4)!important}
+.square.move-hint::after{content:'';position:absolute;width:30%;height:30%;border-radius:50%;background:rgba(0,0,0,0.2)}
+.square.capture-hint{box-shadow:inset 0 0 0 3px rgba(0,0,0,0.2)}
+.square.last-move{background:rgba(255,255,0,0.2)!important}
+.square.correct-move{animation:flash-green 0.5s}
+.square.wrong-move{animation:flash-red 0.5s}
+.controls{display:flex;justify-content:center;gap:12px;padding:12px}
+.ctrl-btn{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;cursor:pointer;min-height:44px;font-weight:600}
+.ctrl-btn:active{transform:scale(0.95)}
+.ctrl-btn.primary{background:#e8a43a;color:#262421}
+.result-msg{text-align:center;padding:12px;font-size:18px;font-weight:700;min-height:40px}
+.result-msg.success{color:#4caf50}
+.result-msg.fail{color:#f44336}
+@keyframes flash-green{0%,100%{background:inherit}50%{background:#4caf50}}
+@keyframes flash-red{0%,100%{background:inherit}50%{background:#f44336}}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:#302e2b;border-radius:20px;padding:28px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:#e8a43a;margin-bottom:8px}
+.modal .big{font-size:40px;margin:12px 0}
+.modal .sub{font-size:14px;color:#aaa;margin-bottom:12px}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;min-height:48px;width:100%;margin-top:8px}
+.btn-primary{background:#e8a43a;color:#262421}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">♟️ Chess Tactics</div>
+<div class="puzzle-info">
+<span class="puzzle-num" id="puzzleNum">#1</span>
+<span class="rating" id="ratingVal">1200</span>
+</div>
+</div>
+<div class="streak-bar" id="streakBar"></div>
+<div class="hint-text" id="hintText"></div>
+<div class="board-wrap"><div class="board" id="board"></div></div>
+<div class="result-msg" id="resultMsg"></div>
+<div class="controls">
+<button class="ctrl-btn" id="btnHint" data-i18n="hint">💡 Hint</button>
+<button class="ctrl-btn" id="btnSkip" data-i18n="skip">⏭ Skip</button>
+<button class="ctrl-btn primary" id="btnNext" style="display:none" data-i18n="next">Next ➜</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{hint:'💡 힌트',skip:'⏭ 건너뛰기',next:'다음 ➜',yourTurn:'당신 차례',correct:'정답!',wrong:'틀렸습니다',findBest:'최선의 수를 찾으세요',white:'백',black:'흑',streak:'연속 정답',rating:'레이팅'},
+en:{hint:'💡 Hint',skip:'⏭ Skip',next:'Next ➜',yourTurn:'Your turn',correct:'Correct!',wrong:'Wrong!',findBest:'Find the best move',white:'White',black:'Black',streak:'Streak',rating:'Rating'},
+ja:{hint:'💡 ヒント',skip:'⏭ スキップ',next:'次 ➜',yourTurn:'あなたの番',correct:'正解！',wrong:'不正解',findBest:'最善手を見つけて',white:'白',black:'黒',streak:'連続正解',rating:'レーティング'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+
+const PIECES={K:'♔',Q:'♕',R:'♖',B:'♗',N:'♘',P:'♙',k:'♚',q:'♛',r:'♜',b:'♝',n:'♞',p:'♟'};
+const isWhite=p=>p&&p===p.toUpperCase();
+const isBlack=p=>p&&p===p.toLowerCase();
+
+// Tactical puzzles: FEN-like board state + solution moves
+const PUZZLES=[
+// Back rank mate
+{board:'...r..k./.pp..ppp/......../.....Q../......../.......P/.....PP./......K.',
+ playerIsWhite:true,solution:['f5-f8'],hint:'Back rank!',rating:800},
+// Fork
+{board:'r....rk./pp...ppp/..p...../.......Q/...Pn.../..N..N../.PP..PPP/R....RK.',
+ playerIsWhite:false,solution:['e4-f2'],hint:'Fork!',rating:900},
+// Pin
+{board:'r.b..rk./pppp.ppp/..n...../.......q/..B.P.../.....N../.PPP.PPP/RNBQ.RK.',
+ playerIsWhite:true,solution:['c4-f7'],hint:'Attack f7!',rating:1000},
+// Discovered attack
+{board:'r...k..r/pppp.ppp/..n..n../..b.N.../..B.P.../......../.PPP.PPP/RNBQK..R',
+ playerIsWhite:true,solution:['e5-f7'],hint:'Fork the king and rook!',rating:1100},
+// Sacrifice + mate
+{board:'r.....rk/pp...p.p/..p..Qp./......../.......b/.......P/PPP..PP./R.B..RK.',
+ playerIsWhite:true,solution:['f6-g7'],hint:'Deliver mate!',rating:1200},
+// Queen trap
+{board:'rnb.kbnr/pppppppp/......../.....q../.....P../...P..N./.PP..PPP/RNBQKB.R',
+ playerIsWhite:true,solution:['g3-f5'],hint:'Trap the queen!',rating:950},
+// Smothered mate
+{board:'.....rk./....Nppp/......../......../......../......../.....PPP/......K.',
+ playerIsWhite:true,solution:['e7-f5'],hint:'Knight check!',rating:1300},
+// Double attack
+{board:'r..qkb.r/ppp..ppp/..np.n../....p.../.......b/.....NP./PPPPPPBP/RNBQK..R',
+ playerIsWhite:false,solution:['h4-f2'],hint:'Attack two pieces!',rating:1050},
+// Clearance sacrifice
+{board:'...r..k./pp...ppp/....p.../.....n../.......Q/.....B../.....PPP/......K.',
+ playerIsWhite:true,solution:['h4-h7'],hint:'Checkmate attack!',rating:1150},
+// Deflection
+{board:'r..q.rk./pp...ppp/..pb..../..np..../...NP.../..PB..../PP...PPP/R..Q.RK.',
+ playerIsWhite:true,solution:['d4-f5'],hint:'Knight jump!',rating:1250}
+];
+
+let currentPuzzle=0,board=[],selectedSquare=null,streak=0,solved=false,moveIdx=0,rating=1200;
+
+function parseFEN(fen){
+const b=Array.from({length:8},()=>Array(8).fill(null));
+const rows=fen.split('/');
+for(let r=0;r<8;r++){
+let c=0;
+for(const ch of rows[r]){
+if(ch==='.'){b[r][c]=null;c++}
+else{b[r][c]=ch;c++}
+}
+}
+return b;
+}
+
+function renderBoard(){
+const boardEl=document.getElementById('board');
+boardEl.innerHTML='';
+const puzzle=PUZZLES[currentPuzzle%PUZZLES.length];
+const flipped=!puzzle.playerIsWhite;
+for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+const dr=flipped?7-r:r;
+const dc=flipped?7-c:c;
+const sq=document.createElement('div');
+sq.className='square '+((dr+dc)%2===0?'light':'dark');
+sq.dataset.r=dr;
+sq.dataset.c=dc;
+if(board[dr][dc])sq.textContent=PIECES[board[dr][dc]]||'';
+if(selectedSquare&&selectedSquare.r===dr&&selectedSquare.c===dc)sq.classList.add('selected');
+sq.addEventListener('click',()=>onSquareClick(dr,dc));
+boardEl.appendChild(sq);
+}
+showMoveHints();
+}
+
+function showMoveHints(){
+if(!selectedSquare)return;
+const{r,c}=selectedSquare;
+const piece=board[r][c];
+if(!piece)return;
+// Simple: just highlight the target square of the correct answer
+}
+
+function onSquareClick(r,c){
+if(solved)return;
+const puzzle=PUZZLES[currentPuzzle%PUZZLES.length];
+if(!selectedSquare){
+const piece=board[r][c];
+if(!piece)return;
+const isPlayerPiece=puzzle.playerIsWhite?isWhite(piece):isBlack(piece);
+if(!isPlayerPiece)return;
+selectedSquare={r,c};
+renderBoard();
+window.TG?.haptic?.('selection');
+}else{
+const from=selectedSquare;
+const to={r,c};
+// Check if clicking same square
+if(from.r===to.r&&from.c===to.c){selectedSquare=null;renderBoard();return}
+// Check if clicking own piece
+const targetPiece=board[to.r][to.c];
+if(targetPiece){
+const isPlayerPiece=puzzle.playerIsWhite?isWhite(targetPiece):isBlack(targetPiece);
+if(isPlayerPiece){selectedSquare=to;renderBoard();window.TG?.haptic?.('selection');return}
+}
+const moveStr=toMoveStr(from,to);
+const expected=puzzle.solution[moveIdx];
+if(moveStr===expected){
+// Correct move
+board[to.r][to.c]=board[from.r][from.c];
+board[from.r][from.c]=null;
+selectedSquare=null;
+moveIdx++;
+if(moveIdx>=puzzle.solution.length){
+solved=true;
+streak++;
+rating+=Math.floor(puzzle.rating/10);
+document.getElementById('resultMsg').textContent='✅ '+t('correct');
+document.getElementById('resultMsg').className='result-msg success';
+document.getElementById('btnNext').style.display='';
+document.getElementById('btnHint').style.display='none';
+document.getElementById('btnSkip').style.display='none';
+window.TG?.haptic?.('notification','success');
+if(window.GameScore)GameScore.save('chess-tactics',rating);
+}
+renderBoard();
+updateStreak();
+}else{
+// Wrong move
+streak=0;
+selectedSquare=null;
+document.getElementById('resultMsg').textContent='❌ '+t('wrong');
+document.getElementById('resultMsg').className='result-msg fail';
+window.TG?.haptic?.('notification','error');
+// Show correct move briefly
+const sol=puzzle.solution[moveIdx];
+const[fr,to2]=parseMoveStr(sol);
+setTimeout(()=>{
+board[to2.r][to2.c]=board[fr.r][fr.c];
+board[fr.r][fr.c]=null;
+solved=true;
+renderBoard();
+document.getElementById('btnNext').style.display='';
+document.getElementById('btnHint').style.display='none';
+document.getElementById('btnSkip').style.display='none';
+},1000);
+renderBoard();
+updateStreak();
+}
+}
+}
+
+function toMoveStr(from,to){
+const files='abcdefgh';
+return files[from.c]+(8-from.r)+'-'+files[to.c]+(8-to.r);
+}
+
+function parseMoveStr(str){
+const files='abcdefgh';
+const parts=str.split('-');
+return[
+{r:8-parseInt(parts[0][1]),c:files.indexOf(parts[0][0])},
+{r:8-parseInt(parts[1][1]),c:files.indexOf(parts[1][0])}
+];
+}
+
+function loadPuzzle(idx){
+currentPuzzle=idx;
+const puzzle=PUZZLES[idx%PUZZLES.length];
+board=parseFEN(puzzle.board);
+selectedSquare=null;solved=false;moveIdx=0;
+document.getElementById('puzzleNum').textContent='#'+(idx+1);
+document.getElementById('ratingVal').textContent=puzzle.rating;
+document.getElementById('hintText').textContent=(puzzle.playerIsWhite?'⬜ '+t('white'):'⬛ '+t('black'))+' — '+t('findBest');
+document.getElementById('resultMsg').textContent='';
+document.getElementById('resultMsg').className='result-msg';
+document.getElementById('btnNext').style.display='none';
+document.getElementById('btnHint').style.display='';
+document.getElementById('btnSkip').style.display='';
+renderBoard();
+updateStreak();
+}
+
+function updateStreak(){
+const bar=document.getElementById('streakBar');
+bar.innerHTML='';
+for(let i=0;i<5;i++){
+const dot=document.createElement('div');
+dot.className='streak-dot';
+if(i<streak){dot.classList.add('correct');dot.textContent='✓'}
+else if(i===streak){dot.classList.add('current')}
+bar.appendChild(dot);
+}
+const label=document.createElement('span');
+label.style.cssText='font-size:12px;color:#aaa;margin-left:8px';
+label.textContent=`${t('streak')}: ${streak}`;
+bar.appendChild(label);
+}
+
+document.getElementById('btnHint').addEventListener('click',()=>{
+const puzzle=PUZZLES[currentPuzzle%PUZZLES.length];
+document.getElementById('hintText').textContent='💡 '+puzzle.hint;
+window.TG?.haptic?.('impact','light');
+});
+
+document.getElementById('btnSkip').addEventListener('click',()=>{
+streak=0;
+updateStreak();
+loadPuzzle(currentPuzzle+1);
+});
+
+document.getElementById('btnNext').addEventListener('click',()=>{
+loadPuzzle(currentPuzzle+1);
+});
+
+document.getElementById('ratingVal').textContent=rating;
+loadPuzzle(0);
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

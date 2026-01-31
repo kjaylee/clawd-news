@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Solitaire Klondike ♠️</title>
+<meta name="description" content="클래식 클론다이크 솔리테어! 카드를 정리하고 모든 기초 더미를 완성하세요.">
+<meta property="og:title" content="Solitaire Klondike ♠️ — East Sea Games">
+<meta property="og:description" content="클래식 카드 게임의 정수. 전략과 인내로 모든 카드를 정리하세요!">
+<meta property="og:image" content="https://eastsea.monster/games/solitaire-klondike/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/solitaire-klondike/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/solitaire-klondike/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Solitaire Klondike",
+"url":"https://eastsea.monster/games/solitaire-klondike/",
+"description":"클래식 클론다이크 솔리테어 카드 게임",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Card","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a6b3c;color:#fff;user-select:none}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top,0px);padding-bottom:var(--safe-bottom,0px)}
+#app{width:100%;max-width:500px;height:100%;display:flex;flex-direction:column;overflow:hidden}
+.header{display:flex;justify-content:space-between;align-items:center;padding:6px 12px;background:rgba(0,0,0,0.2)}
+.header .title{font-size:16px;font-weight:700}
+.score-box{text-align:center}
+.score-label{font-size:9px;opacity:0.6;text-transform:uppercase;letter-spacing:1px}
+.score-value{font-size:18px;font-weight:800}
+.btn-new{background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.3);color:#fff;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-weight:600}
+.btn-new:active{transform:scale(0.95)}
+.game-area{flex:1;position:relative;padding:8px;overflow:hidden}
+.top-row{display:flex;gap:4px;margin-bottom:8px;justify-content:space-between}
+.stock-waste{display:flex;gap:4px}
+.foundations{display:flex;gap:4px}
+.card-slot{width:calc((100% - 24px)/7);aspect-ratio:5/7;border:2px dashed rgba(255,255,255,0.2);border-radius:6px;position:relative;min-width:44px}
+.top-row .card-slot{width:52px;min-width:44px}
+.tableau{display:flex;gap:4px;flex:1;position:relative}
+.tableau-col{flex:1;position:relative;min-height:200px}
+.card{position:absolute;width:100%;aspect-ratio:5/7;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;transition:box-shadow 0.15s;box-shadow:0 1px 3px rgba(0,0,0,0.3);z-index:1}
+.card:active{box-shadow:0 4px 12px rgba(0,0,0,0.5)}
+.card.face-up{background:#fff;color:#333}
+.card.face-down{background:linear-gradient(135deg,#1a3a6b,#2a5a9b);border:2px solid #4a7acb}
+.card.face-down::after{content:'♠';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:20px;color:rgba(255,255,255,0.3)}
+.card.red{color:#d32f2f}
+.card.selected{box-shadow:0 0 0 3px #ffd700,0 4px 12px rgba(0,0,0,0.5);z-index:50}
+.card .rank-top{position:absolute;top:3px;left:5px;line-height:1}
+.card .suit-top{position:absolute;top:16px;left:5px;font-size:11px;line-height:1}
+.card .rank-bot{position:absolute;bottom:3px;right:5px;transform:rotate(180deg);line-height:1}
+.card .suit-center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:24px}
+.card.dragging{opacity:0.8;z-index:100;transition:none}
+.stock-area{cursor:pointer}
+.stock-area .card-slot{border-color:rgba(255,255,255,0.4)}
+.empty-stock{display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(255,255,255,0.3)}
+.foundation .card-slot{border-color:rgba(255,215,0,0.3)}
+.moves-display{font-size:11px;opacity:0.7;text-align:center;padding:2px}
+.win-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(8px)}
+.win-card{background:linear-gradient(135deg,#1a3a1a,#2a5a2a);border-radius:20px;padding:30px;text-align:center;border:2px solid #ffd700}
+.win-card h2{font-size:28px;color:#ffd700;margin-bottom:10px}
+.win-card .stats{font-size:16px;margin:10px 0;color:#ccc}
+.win-card .btn-primary{background:#ffd700;color:#1a3a1a;border:none;padding:14px 28px;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;margin-top:12px;min-height:48px}
+.win-card .btn-primary:active{transform:scale(0.95)}
+@media(max-width:380px){.top-row .card-slot{width:44px}.card{font-size:11px}.card .suit-center{font-size:18px}}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">♠️ Solitaire</div>
+<div class="score-box"><span class="score-label" data-i18n="moves">MOVES</span><div class="score-value" id="movesVal">0</div></div>
+<div class="score-box"><span class="score-label" data-i18n="score">SCORE</span><div class="score-value" id="scoreVal">0</div></div>
+<button class="btn-new" id="btnNew" data-i18n="newGame">New</button>
+</div>
+<div class="game-area" id="gameArea"></div>
+</div>
+<div class="win-overlay" id="winOverlay" style="display:none">
+<div class="win-card">
+<h2 id="winTitle">🎉 You Win!</h2>
+<div class="stats" id="winStats"></div>
+<button class="btn-primary" id="winReplay" data-i18n="newGame">New Game</button>
+<button class="btn-primary" id="winShare" data-i18n="share" style="background:rgba(255,255,255,0.15);color:#fff;margin-top:8px">Share</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{moves:'이동',score:'점수',newGame:'새 게임',share:'공유',youWin:'🎉 축하합니다!',movesN:'이동 횟수',timeN:'소요 시간',scoreN:'점수'},
+en:{moves:'MOVES',score:'SCORE',newGame:'New',share:'Share',youWin:'🎉 You Win!',movesN:'Moves',timeN:'Time',scoreN:'Score'},
+ja:{moves:'手数',score:'スコア',newGame:'新規',share:'シェア',youWin:'🎉 おめでとう！',movesN:'手数',timeN:'時間',scoreN:'スコア'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+
+const SUITS=['♠','♥','♦','♣'];
+const RANKS=['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
+const RED_SUITS=new Set(['♥','♦']);
+
+let deck=[],tableau=[],foundations=[[],[],[],[]],stock=[],waste=[];
+let moves=0,score=0,selectedCard=null,startTime=0;
+const gameArea=document.getElementById('gameArea');
+const movesEl=document.getElementById('movesVal');
+const scoreEl=document.getElementById('scoreVal');
+
+function createDeck(){
+const d=[];
+for(const s of SUITS)for(let r=0;r<13;r++)d.push({suit:s,rank:r,faceUp:false});
+for(let i=d.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[d[i],d[j]]=[d[j],d[i]]}
+return d;
+}
+
+function isRed(card){return RED_SUITS.has(card.suit)}
+
+function rankLabel(r){return RANKS[r]}
+
+function deal(){
+deck=createDeck();
+tableau=[];foundations=[[],[],[],[]];stock=[];waste=[];
+moves=0;score=0;selectedCard=null;startTime=Date.now();
+movesEl.textContent='0';scoreEl.textContent='0';
+let idx=0;
+for(let col=0;col<7;col++){
+tableau[col]=[];
+for(let row=0;row<=col;row++){
+const card=deck[idx++];
+card.faceUp=(row===col);
+tableau[col].push(card);
+}
+}
+stock=deck.slice(idx);
+waste=[];
+render();
+}
+
+function addScore(pts){score+=pts;if(score<0)score=0;scoreEl.textContent=score}
+function addMove(){moves++;movesEl.textContent=moves}
+
+function render(){
+gameArea.innerHTML='';
+// Top row
+const topRow=document.createElement('div');
+topRow.className='top-row';
+// Stock + Waste
+const sw=document.createElement('div');
+sw.className='stock-waste';
+// Stock
+const stockSlot=document.createElement('div');
+stockSlot.className='card-slot stock-area';
+if(stock.length>0){
+const c=createCardEl(stock[stock.length-1],false);
+c.style.position='relative';
+stockSlot.appendChild(c);
+}else{
+stockSlot.innerHTML='<div class="empty-stock">↺</div>';
+}
+stockSlot.addEventListener('click',onStockClick);
+sw.appendChild(stockSlot);
+// Waste
+const wasteSlot=document.createElement('div');
+wasteSlot.className='card-slot';
+if(waste.length>0){
+const c=createCardEl(waste[waste.length-1],true);
+c.style.position='relative';
+c.dataset.source='waste';
+c.dataset.index=waste.length-1;
+c.addEventListener('click',()=>onCardClick('waste',waste.length-1));
+wasteSlot.appendChild(c);
+}
+sw.appendChild(wasteSlot);
+topRow.appendChild(sw);
+// Foundations
+const fDiv=document.createElement('div');
+fDiv.className='foundations';
+for(let i=0;i<4;i++){
+const fSlot=document.createElement('div');
+fSlot.className='card-slot foundation';
+fSlot.dataset.foundation=i;
+if(foundations[i].length>0){
+const card=foundations[i][foundations[i].length-1];
+const c=createCardEl(card,true);
+c.style.position='relative';
+fSlot.appendChild(c);
+}
+fSlot.addEventListener('click',()=>onFoundationClick(i));
+fDiv.appendChild(fSlot);
+}
+topRow.appendChild(fDiv);
+gameArea.appendChild(topRow);
+// Tableau
+const tabDiv=document.createElement('div');
+tabDiv.className='tableau';
+for(let col=0;col<7;col++){
+const colDiv=document.createElement('div');
+colDiv.className='tableau-col';
+colDiv.dataset.col=col;
+tableau[col].forEach((card,row)=>{
+const c=createCardEl(card,card.faceUp);
+c.style.top=(row*24)+'px';
+c.style.zIndex=row+1;
+if(card.faceUp){
+c.dataset.source='tableau';
+c.dataset.col=col;
+c.dataset.row=row;
+c.addEventListener('click',()=>onCardClick('tableau',col,row));
+}
+colDiv.appendChild(c);
+});
+colDiv.addEventListener('click',(e)=>{
+if(e.target===colDiv&&tableau[col].length===0)onEmptyTableau(col);
+});
+tabDiv.appendChild(colDiv);
+}
+gameArea.appendChild(tabDiv);
+highlightSelected();
+}
+
+function createCardEl(card,faceUp){
+const el=document.createElement('div');
+el.className='card'+(faceUp?' face-up':'face-down');
+if(faceUp&&isRed(card))el.classList.add('red');
+if(faceUp){
+el.innerHTML=`<span class="rank-top">${rankLabel(card.rank)}</span><span class="suit-top">${card.suit}</span><span class="suit-center">${card.suit}</span><span class="rank-bot">${rankLabel(card.rank)}</span>`;
+}
+return el;
+}
+
+function highlightSelected(){
+document.querySelectorAll('.card.selected').forEach(c=>c.classList.remove('selected'));
+if(!selectedCard)return;
+const{source,col,row}=selectedCard;
+if(source==='waste'){
+const wasteCards=document.querySelectorAll('.stock-waste .card-slot:last-child .card');
+if(wasteCards.length)wasteCards[wasteCards.length-1].classList.add('selected');
+}else if(source==='tableau'){
+const colDiv=document.querySelectorAll('.tableau-col')[col];
+if(colDiv){
+const cards=colDiv.querySelectorAll('.card');
+for(let i=row;i<cards.length;i++)cards[i].classList.add('selected');
+}
+}
+}
+
+function onStockClick(){
+if(stock.length>0){
+const card=stock.pop();
+card.faceUp=true;
+waste.push(card);
+addMove();
+}else if(waste.length>0){
+stock=waste.reverse().map(c=>{c.faceUp=false;return c});
+waste=[];
+addScore(-20);
+addMove();
+}
+selectedCard=null;
+render();
+window.TG?.haptic?.('impact','light');
+}
+
+function onCardClick(source,colOrIndex,row){
+if(source==='waste'){
+if(selectedCard&&selectedCard.source==='waste'){selectedCard=null;render();return}
+selectedCard={source:'waste',col:null,row:null};
+render();
+window.TG?.haptic?.('selection');
+return;
+}
+if(source==='tableau'){
+const card=tableau[colOrIndex][row];
+if(!card.faceUp)return;
+if(selectedCard){
+if(selectedCard.source==='tableau'&&selectedCard.col===colOrIndex&&selectedCard.row===row){
+// Double tap - try auto move to foundation
+if(row===tableau[colOrIndex].length-1){
+for(let f=0;f<4;f++){
+if(canMoveToFoundation(card,f)){
+foundations[f].push(card);
+tableau[colOrIndex].pop();
+flipTopCard(colOrIndex);
+addMove();addScore(15);
+selectedCard=null;render();checkWin();
+window.TG?.haptic?.('impact','medium');
+return;
+}
+}
+}
+selectedCard=null;render();return;
+}
+tryMove(colOrIndex,row);
+}else{
+selectedCard={source:'tableau',col:colOrIndex,row:row};
+render();
+window.TG?.haptic?.('selection');
+}
+}
+}
+
+function onFoundationClick(fIdx){
+if(!selectedCard){return}
+let card;
+if(selectedCard.source==='waste'){
+card=waste[waste.length-1];
+if(canMoveToFoundation(card,fIdx)){
+foundations[fIdx].push(waste.pop());
+addMove();addScore(15);
+selectedCard=null;render();checkWin();
+window.TG?.haptic?.('impact','medium');
+}
+}else if(selectedCard.source==='tableau'){
+const col=selectedCard.col;
+const row=selectedCard.row;
+if(row!==tableau[col].length-1)return;
+card=tableau[col][row];
+if(canMoveToFoundation(card,fIdx)){
+foundations[fIdx].push(tableau[col].pop());
+flipTopCard(col);
+addMove();addScore(15);
+selectedCard=null;render();checkWin();
+window.TG?.haptic?.('impact','medium');
+}
+}
+}
+
+function onEmptyTableau(col){
+if(!selectedCard)return;
+if(selectedCard.source==='waste'){
+const card=waste[waste.length-1];
+if(card.rank===12){
+tableau[col].push(waste.pop());
+addMove();addScore(5);
+selectedCard=null;render();
+window.TG?.haptic?.('impact','medium');
+}
+}else if(selectedCard.source==='tableau'){
+const srcCol=selectedCard.col;
+const srcRow=selectedCard.row;
+const card=tableau[srcCol][srcRow];
+if(card.rank===12){
+const moving=tableau[srcCol].splice(srcRow);
+tableau[col].push(...moving);
+flipTopCard(srcCol);
+addMove();addScore(5);
+selectedCard=null;render();
+window.TG?.haptic?.('impact','medium');
+}
+}
+}
+
+function tryMove(destCol,destRow){
+const destCard=tableau[destCol][destRow];
+if(selectedCard.source==='waste'){
+const card=waste[waste.length-1];
+if(destRow===tableau[destCol].length-1&&canStack(card,destCard)){
+tableau[destCol].push(waste.pop());
+addMove();addScore(5);
+selectedCard=null;render();
+window.TG?.haptic?.('impact','medium');
+}else{selectedCard=null;render()}
+}else if(selectedCard.source==='tableau'){
+const srcCol=selectedCard.col;
+const srcRow=selectedCard.row;
+if(srcCol===destCol){selectedCard=null;render();return}
+const card=tableau[srcCol][srcRow];
+if(destRow===tableau[destCol].length-1&&canStack(card,destCard)){
+const moving=tableau[srcCol].splice(srcRow);
+tableau[destCol].push(...moving);
+flipTopCard(srcCol);
+addMove();addScore(5);
+selectedCard=null;render();
+window.TG?.haptic?.('impact','medium');
+}else{selectedCard=null;render()}
+}
+}
+
+function canStack(card,target){
+return isRed(card)!==isRed(target)&&card.rank===target.rank-1;
+}
+
+function canMoveToFoundation(card,fIdx){
+if(foundations[fIdx].length===0)return card.rank===0;
+const top=foundations[fIdx][foundations[fIdx].length-1];
+return card.suit===top.suit&&card.rank===top.rank+1;
+}
+
+function flipTopCard(col){
+if(tableau[col].length>0){
+const top=tableau[col][tableau[col].length-1];
+if(!top.faceUp){top.faceUp=true;addScore(5)}
+}
+}
+
+function checkWin(){
+if(foundations.every(f=>f.length===13)){
+const elapsed=Math.floor((Date.now()-startTime)/1000);
+const mins=Math.floor(elapsed/60);
+const secs=elapsed%60;
+const bonus=Math.max(0,Math.floor(700000/elapsed));
+addScore(bonus);
+document.getElementById('winTitle').textContent=t('youWin');
+document.getElementById('winStats').innerHTML=`${t('movesN')}: ${moves}<br>${t('timeN')}: ${mins}:${secs.toString().padStart(2,'0')}<br>${t('scoreN')}: ${score}`;
+document.getElementById('winOverlay').style.display='flex';
+window.TG?.haptic?.('notification','success');
+if(window.GameScore)GameScore.save('solitaire-klondike',score);
+}
+}
+
+document.getElementById('btnNew').addEventListener('click',deal);
+document.getElementById('winReplay').addEventListener('click',()=>{document.getElementById('winOverlay').style.display='none';deal()});
+document.getElementById('winShare').addEventListener('click',()=>{window.TG?.shareScore?.(score,'Solitaire Klondike','solitaire-klondike')});
+deal();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>
