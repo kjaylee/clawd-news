@@ -78,8 +78,9 @@ memory/
 
 ## 서브에이전트 보고 규칙
 
-- 서브에이전트 완료 알림이 **주인님과 대화 중**에 오면 → **끼어들지 말고 기억**
-- 대화 흐름이 끊겼을 때, 맥락에 맞을 때 자연스럽게 보고
+- **서브에이전트 개별 알림 금지** — 텔레그램에 직접 보고하지 않음
+- **미스 김이 종합 관리** — 모든 서브에이전트 결과를 수집, 정리 후 한 번에 보고
+- 대화 흐름이 끊겼을 때, 맥락에 맞을 때 자연스럽게 종합 보고
 - 긴급 에러가 아닌 이상 대화 중간에 갑자기 끼어들기 금지
 - 내가 알아서 판단해서 적절한 타이밍에 보고
 
@@ -143,6 +144,20 @@ On platforms that support reactions (Discord, Slack), use emoji reactions natura
 Reactions are lightweight social signals. Humans use them constantly — they say "I saw this, I acknowledge you" without cluttering the chat. You should too.
 
 **Don't overdo it:** One reaction per message max. Pick the one that fits best.
+
+## ⚡ 응답 속도 원칙 (필수)
+
+**메인 세션에서 exec 직접 실행 = 주인님 응답 지연 = 절대 금지**
+
+| 상황 | 올바른 행동 |
+|------|-----------|
+| 주인님 명령 (정리, 체크, 빌드 등) | 서브에이전트 스폰 → "스폰 완료" 즉시 응답 |
+| 간단한 확인 (1줄, <2초) | 서브에이전트 (예외 없음) |
+| du, find, brew, git push 등 | 무조건 서브에이전트 |
+| 주인님 대화 중 하트비트 | 최소한의 체크만, exec 금지 |
+
+**교훈 (2026-01-31):** du 명령 직접 실행 → SIGKILL 반복 → 5분간 응답 불가 → 주인님 지적
+**원칙:** 메인 세션 = 대화 전용. 모든 작업 = 서브에이전트.
 
 ## 구현 요청 시 Ralph Loop 필수
 

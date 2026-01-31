@@ -124,6 +124,13 @@ clawdbot nodes invoke --node MiniPC --command "system.execApprovals.set" \
 
 ---
 
+## 🎮 Unity Asset Store 저장 위치
+- **활성 저장소:** `/Volumes/workspace/Asset Store-5.x/` — 83 packages (15GB) ← **여기만 확인!**
+- **설정:** `AssetStoreCacheRootPath = "/Volumes/workspace"` (plist)
+- **구버전(무시):** `~/Library/Unity/Asset Store-5.x/` — 76 packages (13GB, 옛날 것)
+- **프로젝트:** `/Volumes/workspace/` 에 12개 Unity 프로젝트
+- **에디터:** `/Volumes/workspace/6000.3.2f1/` — Unity 6 (21GB)
+
 ## 🧠 RAG 시맨틱 검색
 - **경로:** `/Users/kjaylee/clawd/rag/`
 - **DB:** LanceDB (로컬 벡터 DB, 서버 불필요)
@@ -167,6 +174,38 @@ clawdbot nodes invoke --node MiniPC --command "system.execApprovals.set" \
 - **Jekyll 기반** 사이트
 
 ---
+
+---
+
+## GCP VM (eastsea.xyz)
+- **프로젝트:** solforest
+- **인스턴스:** instance-20250423-131130
+- **존:** us-west1-a
+- **머신:** e2-micro (1GB RAM)
+- **IP:** 34.19.69.41
+- **SSH:** `gcloud compute ssh instance-20250423-131130 --zone=us-west1-a`
+- **도메인:** eastsea.xyz (Cloudflare 관리)
+- **Cloudflare Zone:** d03d88bf873f23233ff20d751d02a7e6
+- **Cloudflare API Token:** Traefik docker-compose.yml에 저장
+- **Traefik:** v3.6.1 (Docker), Let's Encrypt (HTTP-01 + Cloudflare DNS-01)
+- **라우팅 설정:** `/home/k_jaylee/spritz/dynamic/` (watch)
+- **컴포즈:** `/home/k_jaylee/spritz/docker-compose.yml`
+- **서브도메인:** screen, tools, api, app, traefik — 전부 VM IP로 연결
+- **미스 김 전권 관리** — DNS, Traefik, 배포 모두 자율
+
+### 관리 범위
+- Cloudflare DNS 레코드 추가/삭제
+- Traefik 다이나믹 라우팅 설정
+- Docker 컨테이너 배포/관리
+- SSL 인증서 자동 갱신
+- 서비스 모니터링
+
+### ⚠️ 주의
+- **VM에 직접 서비스 금지** — Traefik 프록시만! 도커 컨테이너 추가 올리지 말 것
+- **모든 서비스는 MiniPC에서** → Traefik이 Tailscale(100.80.169.94)로 프록시
+- e2-micro = 메모리 1GB → Traefik + nginx(static-site)만 유지
+- sudo 필요 (docker 명령)
+- pipln.com은 주인님 수동 관리 (미스 김 손대지 않음)
 
 ---
 
@@ -267,6 +306,27 @@ clawdbot nodes invoke --node MiniPC --command "system.execApprovals.set" \
 - 서브에이전트 보고 → 대화 중 끼어들기 금지
 - 게임 QA → 코드 리뷰만으론 부족, 실제 플레이 필수
 - 양보다 질
+- **폴리싱 = 실제 에셋! 모든 수단 동원!**
+  1. 🎮 게임마당 에셋 (NAS 161GB) → 우선 탐색, 맞는 거 있으면 즉시 사용
+  2. 🤖 MiniPC Gemini → 게임마당에 없는 커스텀 에셋 AI 생성 (browser.proxy, 무료)
+  3. 🌐 웹 무료 → kenney.nl(CC0), opengameart.org, freesound.org, itch.io 무료 에셋
+  4. 🎨 Blender (MiniPC) → 3D→2D 렌더링 에셋
+  5. 🎬 Remotion (MiniPC) → 애니메이션/모션 그래픽
+  6. 🕷️ Playwright (MiniPC) → 에셋 자동 다운로드
+  **oscillator/프로시저럴로 때우기 절대 금지. 상용 수준이 목표.**
+- **크론잡 실패 = 즉시 서브에이전트로 재실행** — 다음 스케줄까지 기다리지 않음. 감지 즉시 복구가 내 일. [i5 — 주인님 직접 지시 2026-02-01]
+- **트러블슈팅 → `docs/troubleshooting-runbook.md` 먼저 참조** — 매번 처음부터 진단하지 말 것. 런북 보고 따라할 것. 새 장애 해결 시 런북에 추가. [i5 — 주인님 직접 지시 2026-02-01]
+
+### 🔐 외부 도구/스킬 흡수 원칙 [i5 — 주인님 직접 지시 2026-02-01]
+- **무비판적 설치 금지** — npm 패키지/ClawdHub 스킬 맹목 설치 = 보안 리스크
+- **ClawdHub 스킬도 예외 없음** — 설치 전 반드시:
+  1. ① 리서치 — 해당 스킬이 뭘 하는지, 어떤 코드가 들어있는지 분석
+  2. ② 보안 평가 — 외부 API 호출? 파일 접근? 데이터 유출 가능성?
+  3. ③ 자체 재작성 — 개념만 흡수, 미스 김이 안전하게 새로 작성
+  4. ④ 자체 레포 관리 — misskim-skills/에 저장
+- **외부 코드 그대로 갖다 쓰기 절대 금지** ❌ → 개념만 흡수해서 내 것으로 재작성 ✅
+- `clawdhub install` 직접 사용 금지 → `clawdhub search`로 조사만 → 내가 재작성
+- **자체 스킬 레포:** https://github.com/kjaylee/misskim-skills (로컬: misskim-skills/)
 
 Add whatever helps you do your job. This is your cheat sheet.
 

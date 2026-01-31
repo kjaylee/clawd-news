@@ -8,22 +8,23 @@
 - 3순위: Vercel 환경변수 (ContentForge)
 - 진짜 수익: 삼국지 앱스토어 출시 / 카메라 앱 프리미엄
 
-## 크론잡 실패 자동복구 (매 heartbeat)
-1. `cron` → `runs` 로 최근 실행 확인
-2. lastStatus가 error/terminated인 잡 → 즉시 서브에이전트로 재실행
-3. 보고 불필요, 알아서 복구. 복구 실패 시에만 주인님께 보고
+## 크론잡 실패 자동복구 (매 heartbeat) [i5 — 주인님 직접 지시 2026-02-01]
+1. `cron` → `list` 로 전체 잡 상태 확인
+2. lastStatus가 error/terminated인 잡 → **즉시 서브에이전트로 동일 작업 재실행** (다음 스케줄까지 기다리지 말 것!)
+3. "not-due"로 cron run 안 되면 → 서브에이전트 스폰해서 동일 task 직접 수행
+4. 보고 불필요, 알아서 복구. 복구 실패 시에만 주인님께 보고
+5. **크론잡 실패 = 미스 김 실패. 즉시 바로잡는 것이 내 일.**
 
 ## 서브에이전트 감독 (매 heartbeat)
 1. `sessions_list` 실행 — 활성 서브에이전트 확인
 2. 정지/에러 발생 시 → 즉시 주인님께 보고
 3. 완료된 작업 → `memory/subagent-log.md` 업데이트
 
-## 용량 체크 — 신뢰성 최우선 (매 heartbeat)
-1. **체크:** `scripts/disk-cleanup.sh --check` → JSON (df만, 초경량, 정리 없음)
-2. level `ok` → 끝
-3. level `warn`/`critical` → `scripts/disk-cleanup.sh --json` 실행 (자동 정리, 80%+ 방어)
-4. **critical 또는 exit 2 → 주인님께 경고**
-5. **교훈:** 디스크 풀(ENOSPC)이면 게이트웨이 크래시 → 신뢰성 붕괴
+## 용량 체크 (매 heartbeat)
+1. `scripts/disk-cleanup.sh --check` → 여유 용량 확인
+2. **여유 50GB 이하** → 주인님께 경고 + NAS/다른 볼륨(/Volumes/workspace)으로 이동 가능한 파일 자동 이전
+3. **여유 20GB 이하** → `scripts/disk-cleanup.sh --json` 캐시/임시파일 실제 삭제
+4. 그 외 → 끝 (정리 불필요)
 
 ## 🧠 자기 개선 (매 heartbeat 1회)
 매 heartbeat에서 아래 중 하나를 수행:
@@ -32,6 +33,18 @@
 3. **워크플로우 최적화** — 반복 작업을 자동화/크론잡화
 4. **지식 업데이트** — 게임 트렌드, 마케팅, 기술 변화 학습
 5. **교훈 기록** — 오늘 배운 것을 TOOLS.md/AGENTS.md/스킬에 반영
+
+## Unity 에셋 일일 체크 (1일 1회)
+1. `/Volumes/workspace/Asset Store-5.x/` 패키지 수 확인 (현재 265개 기준)
+2. 신규 추가분 있으면 → 서브에이전트로 분석/분류/카탈로그 업데이트
+3. 오디오 에셋 신규분 → unity-assets/audio/에 추출
+4. _assets/ 카탈로그 + 프로젝트 허브 업데이트
+5. git push
+
+## GCP VM 모니터링 (매 heartbeat)
+1. `curl -so/dev/null -w '%{http_code}' https://eastsea.xyz` → 응답 확인
+2. 비정상 시 → `gcloud compute ssh`로 docker 상태 체크 + 자동 복구
+3. Traefik/서비스 다운 시 → `sudo docker restart` 후 보고
 
 ## MiniPC 노드 자동복구 (매 heartbeat)
 1. `nodes status`로 MiniPC 연결 확인
