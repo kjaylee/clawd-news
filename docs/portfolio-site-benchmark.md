@@ -494,3 +494,1049 @@ pipln.com이 "서비스 수준"으로 인정받으려면 아래 항목 모두 �
 ---
 
 > **최종 한 줄 요약:** pipln.com은 콘텐츠는 훌륭하나 디자인이 2023년 수준. Framer/Awwwards급 기준으로 타이포그래피·여백·애니메이션 세 가지만 고치면 "서비스 수준"에 진입 가능.
+
+---
+
+## 8. 서비스별 구체적 디자인 요소 추출
+
+### 8-1. Framer (framer.com) — 디자인 요소
+
+#### 레이아웃
+- **그리드:** 12컬럼 기반, max-width: `1200px`, 중앙 정렬
+- **히어로:** 풀-width, 텍스트 중앙 정렬, 여백 상/하 `160px`+
+- **섹션 간격:** `120px` ~ `160px` (고급 사이트 표준)
+- **카드 그리드:** `grid-template-columns: repeat(auto-fit, minmax(320px, 1fr))`, gap: `24px`
+- **카드 비율:** 4:3 (가로형), 1:1 (정사각), 자유형 혼합
+
+#### 색상 (라이트 모드 — 현재 홈페이지)
+```
+배경:        #FFFFFF (주 배경)
+보조 배경:    #F7F7F7 (섹션 교차)
+카드 배경:    #FFFFFF (그림자로 구분)
+텍스트 주:    #000000
+텍스트 보조:  #666666
+액센트:      #0066FF (링크/버튼)
+```
+
+#### 폰트
+```css
+/* Framer 홈페이지 실제 사용 */
+font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+font-feature-settings: "salt", "kern", "cv05", "cv11", "ccmp";
+/* ↑ Inter의 스타일리스틱 대체 글리프 활성화 (Alt-a 등) */
+
+/* 히어로 헤딩 */
+font-size: 80px;      /* ≈ 5rem */
+font-weight: 600;     /* Semibold */
+line-height: 1.04;    /* 104% — 타이트 */
+letter-spacing: -0.02em;  /* 약간 좁힘 */
+
+/* 서브 헤딩 */
+font-size: 48px;      /* 3rem */
+font-weight: 600;
+line-height: 1.1;
+
+/* 본문 */
+font-size: 18px;      /* 1.125rem */
+font-weight: 400;
+line-height: 1.6;     /* 160% */
+color: #666666;
+```
+
+#### 스타일
+```css
+/* 카드 */
+border-radius: 16px;     /* 1rem */
+box-shadow: 0 2px 8px rgba(0,0,0,0.04), 0 8px 32px rgba(0,0,0,0.06);
+padding: 32px;           /* 2rem */
+
+/* 버튼 */
+border-radius: 8px;
+padding: 12px 24px;
+font-weight: 500;
+font-size: 15px;
+background: #000000;
+color: #FFFFFF;
+transition: all 0.2s ease;
+
+/* 호버 효과 */
+transform: translateY(-2px);
+box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+```
+
+#### 편의성/기능
+- **네비게이션:** 고정 상단 바, `backdrop-filter: blur(12px)`, 배경 반투명
+- **스크롤:** 부드러운 스크롤 (CSS `scroll-behavior: smooth`)
+- **호버:** 링크 컬러 전환 0.2s, 카드 미세 상승 + 그림자 증가
+- **모바일:** 햄버거 메뉴, 타이포 자동 축소 (clamp)
+- **다크/라이트:** 토글 없음 (라이트 기본)
+
+---
+
+### 8-2. Webflow (webflow.com) — 디자인 요소
+
+#### 레이아웃
+- **그리드:** Flexbox + CSS Grid 혼합, max-width: `1280px`
+- **히어로:** 풀-width, 왼쪽 정렬 + 우측 비주얼
+- **섹션 간격:** `160px` ~ `200px` (매우 넓음)
+- **카드 그리드:** `grid-template-columns: repeat(3, 1fr)`, gap: `32px`
+- **카드 비율:** 16:9 (와이드), 4:3 혼합
+
+#### 색상 (공식 브랜드 가이드)
+```
+/* 메인 팔레트 */
+Blue:       #146EF5    ← 시그니처 액센트
+Black:      #080808    ← 주 텍스트
+White:      #FFFFFF    ← 주 배경
+
+/* 그레이 스케일 (12단계) */
+Gray 900:   #171717
+Gray 800:   #222222
+Gray 700:   #363636
+Gray 600:   #5A5A5A
+Gray 500:   #757575
+Gray 400:   #898989
+Gray 300:   #ABABAB
+Gray 200:   #D8D8D8
+Gray 100:   #F0F0F0
+
+/* 세컨더리 */
+Purple:     #7A3DFF
+Pink:       #ED52CB
+Red:        #EE1D36
+Orange:     #FF6B00
+Green:      #00D722
+Yellow:     #FFAE13
+```
+
+#### 폰트 (공식 브랜드 가이드 — 정확한 수치)
+```css
+/* WF Visual Sans — Webflow 자체 Variable Font */
+/* Google Font 대안: Poppins (헤딩), Inter (본문) */
+
+/* h0 — 최대 히어로 */
+font-size: 8rem;        /* 128px */
+font-weight: 600;       /* Semibold */
+line-height: 1.04;      /* 104% */
+letter-spacing: 0.01em; /* 1% */
+
+/* h1 */
+font-size: 5.313rem;    /* 85px */
+font-weight: 600;
+line-height: 1.04;
+letter-spacing: 0.01em;
+
+/* h2 */
+font-size: 3.5rem;      /* 56px */
+font-weight: 600;
+line-height: 1.04;
+letter-spacing: 0.01em;
+
+/* h3 */
+font-size: 2.313rem;    /* 37px */
+font-weight: 600;
+line-height: 1.04;
+letter-spacing: 0.01em;
+
+/* h4 */
+font-size: 1.5rem;      /* 24px */
+font-weight: 600;
+line-height: 1.3;       /* 130% */
+letter-spacing: 0.02em;
+
+/* Paragraph L (주 본문) */
+font-size: 1.125rem;    /* 18px */
+font-weight: 400;
+line-height: 1.6;       /* 160% */
+
+/* Paragraph (기본) */
+font-size: 1rem;        /* 16px */
+font-weight: 400;
+line-height: 1.6;
+
+/* Eyebrow (카테고리 라벨) */
+font-size: 0.9375em;    /* 15px */
+font-weight: 500;       /* Medium */
+line-height: 1.3;
+letter-spacing: 0.01em;
+text-transform: uppercase; /* 대문자 */
+```
+
+#### 스타일
+```css
+/* 카드 */
+border-radius: 20px;     /* 1.25rem */
+box-shadow: none;         /* 플랫 디자인, 배경색으로 구분 */
+padding: 40px;            /* 2.5rem */
+background: #F0F0F0;      /* Gray 100 */
+
+/* 버튼 (Primary) */
+border-radius: 999px;     /* 완전 둥근 pill 형태 */
+padding: 14px 28px;
+font-weight: 600;
+font-size: 16px;
+background: #146EF5;
+color: #FFFFFF;
+transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+/* CTA 호버 */
+background: #0D5BD9;      /* 약간 어두운 블루 */
+transform: scale(1.02);
+```
+
+#### 편의성/기능
+- **네비게이션:** 메가 드롭다운 메뉴, 스크롤 시 배경 불투명도 변화
+- **스크롤:** 커스텀 scroll-driven 애니메이션 (3D 트랜스폼)
+- **호버:** 화살표 아이콘 회전/슬라이드, 카드 배경색 전환
+- **모바일:** 드로어 메뉴 + 스와이프 제스처
+- **다크/라이트:** 섹션별 교차 (다크 섹션 → 라이트 섹션)
+
+---
+
+### 8-3. Super.so — 디자인 요소
+
+#### 레이아웃
+- **그리드:** 단일 컬럼 중심, max-width: `720px` (Notion 기반)
+- **섹션 간격:** `80px` ~ `100px`
+- **카드:** Notion 블록 기반, 자유 배치 제한적
+
+#### 색상
+```
+배경:        #FFFFFF
+카드 배경:    #F7F7F8
+텍스트 주:    #191919
+텍스트 보조:  #6B6B6B
+액센트:      #2F81F7 (Notion 블루)
+보더:        #E8E8E8
+```
+
+#### 폰트
+```css
+font-family: "Inter", -apple-system, sans-serif;
+/* 또는 Notion 기본: ui-sans-serif, system-ui */
+font-size: 16px;       /* 기본 */
+line-height: 1.5;
+/* 커스텀 폰트는 Personal 플랜부터 */
+```
+
+#### 스타일
+```css
+border-radius: 8px;
+box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+padding: 16px ~ 24px;
+/* Notion 블록 느낌의 미니멀 스타일 */
+```
+
+---
+
+### 8-4. Bento.me — 디자인 요소
+
+#### 레이아웃
+- **그리드:** CSS Grid, `grid-template-columns: repeat(4, 1fr)`
+- **gap:** `16px` (모바일: `12px`)
+- **카드 크기:** 1x1 (정사각), 2x1 (와이드), 1x2 (세로) 혼합
+- **max-width:** `640px` (모바일 퍼스트)
+- **카드 비율:** aspect-ratio: 1/1 기본
+
+#### 색상 (다크 모드)
+```
+배경:        #0A0A0A ~ #111111
+카드 배경:    #1A1A1A ~ #1E1E1E
+텍스트 주:    #FFFFFF
+텍스트 보조:  #A0A0A0
+보더:        #2A2A2A
+호버:        #252525
+```
+
+#### 폰트
+```css
+font-family: "Inter", system-ui, sans-serif;
+font-size: 14px;       /* 카드 내 텍스트 — 작음 */
+font-weight: 500;      /* Medium */
+line-height: 1.4;
+```
+
+#### 스타일
+```css
+/* 벤토 카드 */
+border-radius: 16px;     /* 1rem */
+border: 1px solid #2A2A2A;
+padding: 16px;
+background: #1A1A1A;
+transition: background 0.2s ease;
+
+/* 호버 */
+background: #252525;
+border-color: #333333;
+
+/* 소셜 아이콘 카드 */
+display: flex;
+align-items: center;
+justify-content: center;
+aspect-ratio: 1;
+```
+
+---
+
+### 8-5. Read.cv — 디자인 요소
+
+#### 레이아웃
+- **그리드:** 단일 컬럼, max-width: `680px`
+- **섹션:** 타임라인형 (좌측 날짜/기간 + 우측 내용)
+- **프로필 상단:** 아바타(64px) + 이름 + 바이오 + 링크
+- **프로젝트:** 카드형, 이미지(16:9) + 설명
+
+#### 색상
+```
+배경:        #FFFFFF
+카드 배경:    #FAFAFA
+텍스트 주:    #111111
+텍스트 보조:  #666666
+텍스트 약한:  #999999
+액센트:      #0066CC
+보더:        #EEEEEE
+```
+
+#### 폰트
+```css
+font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+
+/* 이름 */
+font-size: 20px;
+font-weight: 700;
+
+/* 바이오 */
+font-size: 15px;
+font-weight: 400;
+line-height: 1.5;
+color: #666666;
+
+/* 프로젝트 제목 */
+font-size: 17px;
+font-weight: 600;
+
+/* 본문 */
+font-size: 15px;
+line-height: 1.6;
+```
+
+#### 스타일
+```css
+/* 프로젝트 카드 */
+border-radius: 12px;
+border: 1px solid #EEEEEE;
+padding: 20px;
+background: #FAFAFA;
+
+/* 프로필 아바타 */
+border-radius: 50%;    /* 원형 */
+width: 64px;
+height: 64px;
+
+/* 타임라인 도트 */
+width: 8px;
+height: 8px;
+border-radius: 50%;
+background: #CCCCCC;
+```
+
+---
+
+### 8-6. Carrd — 디자인 요소
+
+#### 레이아웃
+- **구조:** 단일 페이지, 풀-스크린 섹션 스택
+- **정렬:** 중앙 정렬 (텍스트 + CTA)
+- **max-width:** `800px` (콘텐츠 영역)
+- **섹션:** 100vh 풀-하이트 OR auto-height
+
+#### 색상
+```
+배경:        #2E3141 (다크 블루-그레이, 기본 템플릿)
+텍스트 주:    #FFFFFF
+텍스트 보조:  rgba(255,255,255,0.6)
+버튼:        #FFFFFF (반전 — 다크 배경 위 화이트)
+호버:        rgba(255,255,255,0.8)
+```
+
+#### 폰트
+```css
+/* 기본 템플릿 */
+font-family: "Helvetica Neue", Arial, sans-serif;
+
+/* 헤딩 */
+font-size: 48px;
+font-weight: 700;
+letter-spacing: -0.02em;
+text-transform: uppercase; /* 일부 템플릿 */
+
+/* 본문 */
+font-size: 16px;
+font-weight: 300;    /* Light */
+line-height: 1.8;
+```
+
+#### 스타일
+```css
+/* 버튼 */
+border-radius: 6px;
+padding: 12px 32px;
+border: 2px solid #FFFFFF;
+background: transparent;   /* 고스트 버튼 */
+font-weight: 600;
+text-transform: uppercase;
+letter-spacing: 0.1em;
+
+/* 구분선 */
+width: 40px;
+height: 2px;
+background: rgba(255,255,255,0.3);
+margin: 32px auto;
+```
+
+---
+
+### 8-7. 벤토 그리드 CSS 표준 사양 (Tailwind/모던 표준)
+
+```css
+/* === 벤토 그리드 마스터 스펙 === */
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);  /* 4컬럼 기본 */
+  grid-auto-rows: minmax(200px, auto);
+  gap: 1.5rem;                             /* 24px */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* 카드 기본 */
+.bento-card {
+  border-radius: 2.5rem;        /* 40px — Tailwind 표준 */
+  padding: 2rem;                /* 32px */
+  min-height: 15rem;            /* 240px */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  background-color: #fff;       /* 라이트 모드 */
+  color: #060633;
+  box-shadow: 0 20px 30px -10px rgb(16 16 39 / 7%);
+  text-wrap: balance;
+}
+
+/* 카드 크기 변형 */
+.bento-card--2x1 { grid-column: span 2; }
+.bento-card--1x2 { grid-row: span 2; }
+.bento-card--2x2 { grid-column: span 2; grid-row: span 2; }
+
+/* 카드 내 타이포 */
+.bento-card h2 {
+  font-weight: 700;
+  font-size: 3.8rem;            /* 61px */
+  line-height: 0.9;
+}
+.bento-card h3 {
+  font-weight: 600;
+  font-size: 2.6rem;            /* 42px */
+}
+.bento-card p {
+  font-weight: 500;
+  font-size: 1.2rem;            /* 19px */
+  line-height: 1.3;
+}
+
+/* 다크 모드 변형 */
+.bento-card--dark {
+  background-color: #1A1A1A;
+  color: #FAFAFA;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 20px 30px -10px rgba(0,0,0,0.3);
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .bento-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  .bento-card--2x1 { grid-column: span 2; }
+  .bento-card--2x2 { grid-column: span 2; }
+}
+
+@media (max-width: 480px) {
+  .bento-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  .bento-card--2x1,
+  .bento-card--2x2 { grid-column: span 1; }
+}
+```
+
+---
+
+## 9. 디자인 시스템 제안 — pipln.com 최적 조합
+
+> 각 서비스에서 추출한 베스트 요소를 조합하여 pipln.com 전용 디자인 시스템을 제안합니다.
+
+### 9-1. 최적 폰트 조합
+
+| 역할 | 폰트 | Weight | 출처/근거 |
+|------|------|--------|-----------|
+| **영문 헤딩** | **Satoshi** (Variable) | 700–900 | 2026 트렌드 #1 폰트. Framer 커뮤니티·Awwwards 수상작에서 가장 빈번 |
+| **영문 본문** | **Inter** | 400–500 | Framer·Read.cv·Bento.me 공통 사용. 가독성 최고. Variable Font |
+| **한글 헤딩** | **Pretendard** (Variable) | 700–900 | Inter와 메트릭 호환. 한글 Variable Font 표준 |
+| **한글 본문** | **Pretendard** | 400–500 | 영문 Inter와 자연스러운 블렌딩 |
+| **코드/기술** | **JetBrains Mono** | 400 | 인프라 섹션 터미널 느낌 (선택) |
+
+```css
+/* === pipln Design System: Typography === */
+
+:root {
+  /* 폰트 패밀리 */
+  --font-heading: "Satoshi", "Pretendard Variable", -apple-system, sans-serif;
+  --font-body: "Inter", "Pretendard Variable", -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
+
+  /* OpenType 최적화 (Inter) */
+  --font-features: "salt", "kern", "cv05", "cv11", "ccmp";
+
+  /* 타입 스케일 — Webflow 브랜드 가이드 기반 */
+  --text-hero:    clamp(3rem, 8vw, 5.5rem);     /* 48~88px */
+  --text-h1:      clamp(2.5rem, 6vw, 4rem);     /* 40~64px */
+  --text-h2:      clamp(1.75rem, 4vw, 2.5rem);  /* 28~40px */
+  --text-h3:      clamp(1.25rem, 2.5vw, 1.75rem); /* 20~28px */
+  --text-body:    clamp(1rem, 1.2vw, 1.125rem); /* 16~18px */
+  --text-small:   0.875rem;                      /* 14px */
+  --text-caption:  0.75rem;                      /* 12px */
+
+  /* 라인 하이트 */
+  --lh-tight:   1.04;   /* 헤딩 — Webflow 표준 */
+  --lh-snug:    1.2;    /* 서브 헤딩 */
+  --lh-normal:  1.6;    /* 본문 — Webflow/Framer 공통 */
+  --lh-relaxed: 1.8;    /* 장문 */
+
+  /* 레터 스페이싱 */
+  --ls-tight:   -0.02em;  /* 헤딩 */
+  --ls-normal:  0em;
+  --ls-wide:    0.02em;   /* 라벨/캡션 */
+  --ls-wider:   0.05em;   /* 뱃지/태그 */
+}
+
+/* 헤딩 기본 */
+h1, h2, h3, h4 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+}
+
+/* 본문 기본 */
+body {
+  font-family: var(--font-body);
+  font-feature-settings: var(--font-features);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: var(--lh-normal);
+}
+```
+
+---
+
+### 9-2. 최적 컬러 팔레트
+
+**컨셉: "Midnight Violet"** — AI 파이프라인의 자율·지능·미래 이미지
+
+| 역할 | 변수명 | HEX | HSL | 출처/근거 |
+|------|--------|-----|-----|-----------|
+| **배경 (주)** | `--bg-primary` | `#09090B` | 240 6% 4% | Tailwind Zinc-950 기반. 순수 블랙(#000)보다 미세 따뜻 |
+| **배경 (높은)** | `--bg-elevated` | `#18181B` | 240 6% 10% | 카드/모달 배경. Bento.me 추출 |
+| **배경 (최상)** | `--bg-surface` | `#27272A` | 240 4% 16% | 호버 상태, 활성 카드 |
+| **보더** | `--border` | `#3F3F46` | 240 5% 26% | 카드 구분선 |
+| **보더 (약)** | `--border-subtle` | `#27272A` | 240 4% 16% | 미세 구분 |
+| **텍스트 (주)** | `--text-primary` | `#FAFAFA` | 0 0% 98% | 최대 가독성 (순수 #FFF보다 부드러움) |
+| **텍스트 (보조)** | `--text-secondary` | `#A1A1AA` | 240 5% 65% | 설명, 부제 |
+| **텍스트 (약한)** | `--text-muted` | `#71717A` | 240 4% 46% | 날짜, 메타 |
+| **액센트 (주)** | `--accent` | `#8B5CF6` | 258 90% 66% | 보라. AI/자율 느낌. Webflow Purple #7A3DFF 참고 |
+| **액센트 (호버)** | `--accent-hover` | `#A78BFA` | 258 90% 76% | Lightness +10% |
+| **액센트 (배경)** | `--accent-bg` | `#8B5CF610` | — | 10% opacity, 은은한 글로우 |
+| **성공** | `--success` | `#22C55E` | 142 71% 45% | 운영 상태 표시 |
+| **경고** | `--warning` | `#F59E0B` | 38 92% 50% | — |
+| **위험** | `--danger` | `#EF4444` | 0 84% 60% | — |
+
+```css
+/* === pipln Design System: Colors === */
+
+:root {
+  /* 배경 */
+  --bg-primary:    #09090B;
+  --bg-elevated:   #18181B;
+  --bg-surface:    #27272A;
+
+  /* 보더 */
+  --border:        #3F3F46;
+  --border-subtle: #27272A;
+
+  /* 텍스트 */
+  --text-primary:   #FAFAFA;
+  --text-secondary: #A1A1AA;
+  --text-muted:     #71717A;
+
+  /* 액센트 — Violet (AI/자율 컨셉) */
+  --accent:         #8B5CF6;
+  --accent-hover:   #A78BFA;
+  --accent-subtle:  rgba(139, 92, 246, 0.1);
+  --accent-glow:    0 0 40px rgba(139, 92, 246, 0.15);
+
+  /* 시맨틱 */
+  --success:   #22C55E;
+  --warning:   #F59E0B;
+  --danger:    #EF4444;
+  --info:      #3B82F6;
+
+  /* 그라디언트 */
+  --gradient-hero: radial-gradient(
+    ellipse 80% 50% at 50% -20%,
+    rgba(139, 92, 246, 0.15) 0%,
+    transparent 70%
+  );
+  --gradient-card: linear-gradient(
+    135deg,
+    rgba(139, 92, 246, 0.05) 0%,
+    transparent 50%
+  );
+}
+```
+
+---
+
+### 9-3. 최적 레이아웃 구조
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  NAV (고정, blur 배경, h: 64px)                              │
+│  [pipln 로고]                    [Work] [Infra] [About] [→] │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  HERO (100vh, gradient-hero 배경)                            │
+│                                                             │
+│    [● Operational — pulse 애니메이션]                         │
+│                                                             │
+│    아이디어에서 실행까지,                                      │
+│    자율적으로.             ← var(--text-hero), Satoshi 900    │
+│                                                             │
+│    AI 에이전트가 24/7 자율적으로                               │
+│    게임과 서비스를 양산하는 파이프라인.                          │
+│                           ← var(--text-body), Inter 400     │
+│                              color: var(--text-secondary)   │
+│                                                             │
+│    ┌─────┐ ┌─────┐ ┌─────┐ ┌─────┐                        │
+│    │  5  │ │  0  │ │  0  │ │ 24/7│  ← 카운트업 애니메이션     │
+│    │Nodes│ │Games│ │ SaaS│ │Agent│     (IntersectionObserver)│
+│    └─────┘ └─────┘ └─────┘ └─────┘                        │
+│    stats gap: 32px, font-size: 2.5rem, font-weight: 700   │
+│    label: var(--text-muted), 12px, uppercase, ls: 0.05em   │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  WORK (섹션 padding: 120px 0)                                │
+│                                                             │
+│    [Eyebrow: "Work" — accent color, uppercase, ls: 0.05em]  │
+│    지금 돌리고 있는 것들      ← var(--text-h2)                │
+│                                                             │
+│    ┌──────────────────────┬───────────┐                     │
+│    │                      │           │                     │
+│    │   J&J Games          │  AI Auto  │  ← 벤토 그리드       │
+│    │   (2x2, 큰 카드)     │  (1x1)    │     gap: 24px       │
+│    │                      ├───────────┤     4컬럼            │
+│    │                      │ Dev Tools │                     │
+│    │                      │  (1x1)    │                     │
+│    ├───────────┬──────────┴───────────┤                     │
+│    │ Screenshot│   Camera App         │                     │
+│    │  (1x1)    │   (2x1, 와이드)      │                     │
+│    ├───────────┴──────────────────────┤                     │
+│    │      pipln Infra (4x1, 풀)       │                     │
+│    └──────────────────────────────────┘                     │
+│                                                             │
+│    카드 스펙:                                                │
+│    background: var(--bg-elevated)                           │
+│    border: 1px solid var(--border-subtle)                   │
+│    border-radius: 24px          ← 1.5rem                   │
+│    padding: 32px                ← 2rem                     │
+│    hover: border-color → var(--border)                     │
+│           background → var(--bg-surface)                   │
+│           transform: translateY(-2px)                      │
+│           transition: all 0.3s cubic-bezier(0.4,0,0.2,1)  │
+│                                                             │
+│    카드 내부:                                                │
+│    [아이콘 32px, accent-subtle 원형 배경]                     │
+│    [태그 — 12px, uppercase, border pill, accent color]       │
+│    [제목 — 20px, font-weight: 600]                          │
+│    [설명 — 15px, text-secondary, line-height: 1.6]          │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  INFRA (섹션 padding: 120px 0)                               │
+│                                                             │
+│    5-Node 분산 아키텍처    ← var(--text-h2)                   │
+│                                                             │
+│    ┌───────────────────────────────────────┐                │
+│    │                                       │                │
+│    │   [Mac Studio] ──── [MiniPC]          │  ← SVG path   │
+│    │       │                │              │    애니메이션    │
+│    │       │            [GCP VM]           │    stroke-     │
+│    │       │                │              │    dashoffset  │
+│    │   [MacBook] ──── [NAS]               │                │
+│    │                                       │                │
+│    │   노드 카드: 64x64px 아이콘 원형 배경    │                │
+│    │   연결선: 1px dashed var(--border)     │                │
+│    │   pulse: box-shadow 0 0 0 4px accent  │                │
+│    │                                       │                │
+│    └───────────────────────────────────────┘                │
+│                                                             │
+│    하단: 기술 스택 뱃지 (가로 무한 스크롤 marquee)              │
+│    배경: var(--bg-elevated), 높이: 48px                      │
+│    폰트: var(--font-mono), 14px, var(--text-muted)          │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  GOALS (섹션 padding: 120px 0)                               │
+│                                                             │
+│    현재 목표       ← var(--text-h2)                          │
+│                                                             │
+│    타임라인형 (Read.cv 스타일)                                │
+│    ┌─ ● 게임 100개 — 완료 ✅                                 │
+│    │    설명 텍스트...                                       │
+│    ├─ ● 서비스 100개 — 진행 중 [프로그레스 바]                 │
+│    │    설명 텍스트...                                       │
+│    ├─ ○ 불로소득 파이프라인 — 구축 중                         │
+│    │    설명 텍스트...                                       │
+│    └─ ○ 에이전트 고도화                                      │
+│         설명 텍스트...                                       │
+│                                                             │
+│    타임라인 도트: 10px, accent/muted, border-radius: 50%     │
+│    연결선: 2px solid var(--border-subtle)                    │
+│                                                             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  FOOTER (padding: 64px 0, border-top: 1px var(--border))    │
+│                                                             │
+│    pipln — Jay Lee                                          │
+│    [GitHub] [Twitter] [Email]   ← 16px 아이콘, gap: 16px   │
+│    © 2026              ← var(--text-muted), 14px            │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### 9-4. 스페이싱 시스템 (8pt 그리드)
+
+```css
+/* === pipln Design System: Spacing === */
+
+:root {
+  /* 8pt 그리드 기반 */
+  --space-1:   4px;     /* 0.25rem — 미세 간격 */
+  --space-2:   8px;     /* 0.5rem  — 인라인 요소 간 */
+  --space-3:   12px;    /* 0.75rem — 카드 내부 작은 간격 */
+  --space-4:   16px;    /* 1rem    — 카드 내부 기본 간격 */
+  --space-5:   20px;    /* 1.25rem */
+  --space-6:   24px;    /* 1.5rem  — 그리드 gap, 카드 간 */
+  --space-8:   32px;    /* 2rem    — 카드 패딩 */
+  --space-10:  40px;    /* 2.5rem */
+  --space-12:  48px;    /* 3rem    — 컴포넌트 그룹 간 */
+  --space-16:  64px;    /* 4rem    — 네비게이션 높이 */
+  --space-20:  80px;    /* 5rem */
+  --space-24:  96px;    /* 6rem */
+  --space-30: 120px;    /* 7.5rem  — 섹션 간 기본 */
+  --space-40: 160px;    /* 10rem   — 섹션 간 넓은 */
+
+  /* 시맨틱 스페이싱 */
+  --nav-height:       64px;
+  --section-padding:  var(--space-30);   /* 120px */
+  --card-padding:     var(--space-8);    /* 32px */
+  --card-gap:         var(--space-6);    /* 24px */
+  --content-max:      1200px;
+  --content-narrow:   800px;
+  --content-text:     680px;             /* 본문 최적 가독 폭 */
+}
+```
+
+---
+
+### 9-5. 컴포넌트 스타일
+
+```css
+/* === pipln Design System: Components === */
+
+/* 카드 (Bento.me + Tailwind Bento 하이브리드) */
+.card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 24px;                 /* 1.5rem */
+  padding: var(--card-padding);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.card:hover {
+  background: var(--bg-surface);
+  border-color: var(--border);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.4);
+}
+
+/* 버튼 — Primary (Webflow pill 스타일) */
+.btn-primary {
+  background: var(--accent);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 999px;               /* pill */
+  padding: 12px 28px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  transform: scale(1.03);
+  box-shadow: var(--accent-glow);
+}
+
+/* 버튼 — Ghost (Carrd 스타일) */
+.btn-ghost {
+  background: transparent;
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 12px 28px;
+  font-size: 15px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.btn-ghost:hover {
+  border-color: var(--text-secondary);
+  background: var(--bg-elevated);
+}
+
+/* 뱃지 (상태 표시) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+}
+.badge--live {
+  border-color: rgba(34, 197, 94, 0.3);
+  color: var(--success);
+}
+.badge--live::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  animation: pulse 2s infinite;
+}
+
+/* 태그 (기술 스택) */
+.tag {
+  display: inline-flex;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: var(--font-mono);
+  background: var(--accent-subtle);
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+/* 네비게이션 (Framer 스타일) */
+.nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: var(--nav-height);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-6);
+  background: rgba(9, 9, 11, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+  z-index: 100;
+}
+
+/* 통계 카운터 */
+.stat {
+  text-align: center;
+}
+.stat__number {
+  font-family: var(--font-heading);
+  font-size: var(--text-h1);
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1;
+  /* 카운트업은 JS: IntersectionObserver + requestAnimationFrame */
+}
+.stat__label {
+  font-size: var(--text-caption);
+  font-weight: 500;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wider);
+  margin-top: var(--space-2);
+}
+```
+
+---
+
+### 9-6. 필수 인터랙션 목록
+
+| 우선도 | 인터랙션 | CSS/JS | 적용 위치 | 참고 서비스 |
+|:---:|------|--------|-----------|------------|
+| ⭐⭐⭐⭐⭐ | **스크롤 등장 (Fade Up)** | IntersectionObserver + CSS `transform: translateY(20px) → 0`, `opacity: 0 → 1`, `transition: 0.6s ease-out` | 모든 섹션의 주요 요소 | Framer, Webflow |
+| ⭐⭐⭐⭐⭐ | **카드 호버** | CSS `transform: translateY(-2px)`, `box-shadow` 증가, `border-color` 변경, `background` 밝아짐 | Work 벤토 카드 | Bento.me |
+| ⭐⭐⭐⭐⭐ | **숫자 카운트업** | JS `requestAnimationFrame`, 스크롤 진입 시 0 → N (1.5초, easeOutCubic) | 히어로 통계 | Webflow |
+| ⭐⭐⭐⭐ | **Operational 뱃지 Pulse** | CSS `@keyframes pulse { 0%,100% { opacity:1 } 50% { opacity:0.5 } }`, 2s infinite | 히어로 상태 뱃지 | — |
+| ⭐⭐⭐⭐ | **Navbar Blur 전환** | CSS `backdrop-filter: blur(12px)`, scroll > 50px 시 `border-bottom` 표시 | 네비게이션 | Framer |
+| ⭐⭐⭐⭐ | **히어로 텍스트 등장** | CSS per-line `translateY(20px) → 0`, stagger delay 0.1s씩 | 히어로 제목 | Awwwards 수상작 |
+| ⭐⭐⭐ | **기술 스택 Marquee** | CSS `@keyframes scroll { 0% { transform: translateX(0) } 100% { transform: translateX(-50%) } }` | 인프라 하단 | — |
+| ⭐⭐⭐ | **노드 연결선 Draw** | SVG `stroke-dasharray` + `stroke-dashoffset` 애니메이션 (스크롤 진입 시) | 인프라 시각화 | — |
+| ⭐⭐⭐ | **부드러운 스크롤** | CSS `scroll-behavior: smooth` 또는 Lenis 라이브러리 (3.5KB) | 전체 | Awwwards 표준 |
+| ⭐⭐ | **커스텀 커서** | JS mousemove + CSS `mix-blend-mode: difference`, 링크 호버 시 커서 확대 | 전체 (데스크톱만) | Awwwards 수상작 |
+| ⭐⭐ | **마우스 패럴랙스** | JS `mousemove` → 히어로 배경 미세 이동 (1-3%) | 히어로 배경 | — |
+
+### 인터랙션 구현 (최소 JS)
+
+```javascript
+/* === 스크롤 등장 (Vanilla JS, 0 의존성) === */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('visible');
+      observer.unobserve(entry.target);
+    }
+  });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+document.querySelectorAll('[data-animate]').forEach(el => {
+  observer.observe(el);
+});
+
+/* === 숫자 카운트업 === */
+function countUp(el, target, duration = 1500) {
+  const start = performance.now();
+  const update = (now) => {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+    el.textContent = Math.round(target * eased);
+    if (progress < 1) requestAnimationFrame(update);
+  };
+  requestAnimationFrame(update);
+}
+
+/* CSS 대응 */
+/*
+[data-animate] {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+[data-animate].visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+[data-animate][data-delay="1"] { transition-delay: 0.1s; }
+[data-animate][data-delay="2"] { transition-delay: 0.2s; }
+[data-animate][data-delay="3"] { transition-delay: 0.3s; }
+*/
+```
+
+---
+
+### 9-7. 반응형 브레이크포인트
+
+```css
+/* === pipln Design System: Breakpoints === */
+
+/* Desktop First (pipln은 데스크톱 프레젠테이션 중심) */
+/* Large Desktop:  1440px+  — max-width: 1200px 유지 */
+/* Desktop:        1024px+  — 기본 4컬럼 그리드 */
+/* Tablet:         768px    — 2컬럼, 폰트 축소 */
+/* Mobile:         480px    — 1컬럼, 스택 */
+
+@media (max-width: 1024px) {
+  :root {
+    --section-padding: 80px;
+    --card-padding: 24px;
+  }
+  .bento-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --section-padding: 64px;
+    --card-gap: 16px;
+    --nav-height: 56px;
+  }
+  .bento-grid { grid-template-columns: repeat(2, 1fr); }
+  .bento-card--2x1 { grid-column: span 2; }
+  .hero__title { font-size: clamp(2rem, 10vw, 3.5rem); }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --section-padding: 48px;
+    --card-padding: 20px;
+    --card-gap: 12px;
+  }
+  .bento-grid { grid-template-columns: 1fr; }
+  .bento-card--2x1,
+  .bento-card--2x2 { grid-column: span 1; }
+  .stats { flex-direction: column; gap: 24px; }
+}
+```
+
+---
+
+### 9-8. 최종 디자인 체크리스트 (구현 순서)
+
+#### Phase 1: 기반 (Day 1-2)
+- [ ] 폰트 로드: Satoshi (CDN or self-host) + Inter (Google Fonts) + Pretendard (CDN)
+- [ ] CSS 변수 전체 선언 (colors, spacing, typography)
+- [ ] 기본 레이아웃 리셋 (max-width, section padding)
+- [ ] 히어로 100vh + 타이포 적용
+
+#### Phase 2: 컴포넌트 (Day 3-4)
+- [ ] 벤토 그리드 구현 (Work 섹션)
+- [ ] 카드 컴포넌트 (배경, 보더, 패딩, 호버)
+- [ ] 네비게이션 (고정, blur, 모바일 메뉴)
+- [ ] 뱃지, 태그, 버튼 컴포넌트
+
+#### Phase 3: 인터랙션 (Day 5-6)
+- [ ] 스크롤 등장 애니메이션 (IntersectionObserver)
+- [ ] 숫자 카운트업 (히어로 통계)
+- [ ] 카드 호버 효과
+- [ ] 히어로 텍스트 stagger 등장
+- [ ] Operational 뱃지 pulse
+
+#### Phase 4: 폴리시 (Day 7)
+- [ ] 기술 스택 marquee
+- [ ] 인프라 노드 SVG 시각화
+- [ ] 부드러운 스크롤 (Lenis)
+- [ ] 반응형 QA (모바일/태블릿)
+- [ ] OG 이미지, 파비콘
+- [ ] Lighthouse 성능 체크 (90+ 목표)
