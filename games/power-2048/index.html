@@ -74,24 +74,26 @@ body{
 }
 .menu-stats span{color:var(--gold);font-weight:700;}
 .menu-btn{
-    width:260px;padding:16px;border:none;border-radius:var(--radius);
+    width:260px;padding:16px;border:none;border-radius:16px;
     font-size:1.05rem;font-weight:700;cursor:pointer;
-    transition:transform .2s,box-shadow .2s;
+    transition:transform .15s,filter .15s;
     display:flex;align-items:center;justify-content:center;gap:10px;
-    color:#fff;
+    color:#fff;background-size:100% 100%;background-repeat:no-repeat;
+    text-shadow:0 1px 3px rgba(0,0,0,0.4);
 }
-.menu-btn:hover{transform:scale(1.03);}
-.menu-btn:active{transform:scale(.97);}
-.btn-classic{background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 4px 20px rgba(102,126,234,.4);}
-.btn-stage{background:linear-gradient(135deg,var(--green),#00aa66);box-shadow:0 4px 20px rgba(0,255,136,.3);}
-.btn-daily{background:linear-gradient(135deg,var(--pink),#cc4477);box-shadow:0 4px 20px rgba(255,107,157,.3);}
+.menu-btn:hover{transform:scale(1.04);filter:brightness(1.15);}
+.menu-btn:active{transform:scale(.96);filter:brightness(0.9);}
+.btn-classic{background-image:url('assets/ui/btn-blue.png');box-shadow:0 4px 20px rgba(102,126,234,.4);}
+.btn-stage{background-image:url('assets/ui/btn-green.png');box-shadow:0 4px 20px rgba(0,255,136,.3);}
+.btn-daily{background-image:url('assets/ui/btn-purple.png');box-shadow:0 4px 20px rgba(255,107,157,.3);}
 .menu-bottom{display:flex;gap:12px;margin-top:16px;}
 .menu-sm-btn{
-    padding:10px 20px;border:1px solid var(--border);border-radius:var(--radius);
-    background:var(--bg2);color:var(--muted);font-size:.85rem;cursor:pointer;
-    transition:border-color .2s;
+    padding:10px 20px;border:none;border-radius:12px;
+    background:url('assets/ui/btn-sm-gray.png') center/100% 100% no-repeat;
+    color:var(--muted);font-size:.85rem;cursor:pointer;
+    transition:filter .2s,transform .15s;
 }
-.menu-sm-btn:hover{border-color:var(--accent);color:var(--text);}
+.menu-sm-btn:hover{filter:brightness(1.3);color:var(--text);transform:scale(1.05);}
 
 /* ===== GAME SCREEN ===== */
 .game-screen{gap:8px;align-items:center;}
@@ -102,11 +104,12 @@ body{
 }
 .game-top-left{display:flex;gap:8px;align-items:center;}
 .back-btn{
-    width:36px;height:36px;border:1px solid var(--border);border-radius:8px;
-    background:var(--bg2);color:var(--muted);font-size:1.1rem;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;transition:all .2s;
+    width:36px;height:36px;border:none;border-radius:50%;
+    background:url('assets/ui/btn-circle-dark.png') center/100% 100% no-repeat;
+    color:#ccc;font-size:1.1rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:all .15s;
 }
-.back-btn:hover{border-color:var(--accent);color:var(--text);}
+.back-btn:hover{filter:brightness(1.3);transform:scale(1.1);color:#fff;}
 .mode-label{
     font-size:.75rem;color:var(--accent);font-weight:600;
     padding:4px 10px;background:rgba(102,126,234,.15);border-radius:6px;
@@ -114,7 +117,8 @@ body{
 .score-area{display:flex;gap:8px;}
 .score-box{
     text-align:center;padding:6px 14px;
-    background:var(--bg2);border-radius:8px;min-width:70px;
+    background:url('assets/ui/resbar-bg.png') center/100% 100% no-repeat;
+    border-radius:8px;min-width:70px;
 }
 .score-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
 .score-value{font-size:1.1rem;font-weight:800;color:var(--text);}
@@ -168,29 +172,43 @@ body{
 @keyframes tileRemove{to{opacity:0;transform:scale(0);}}
 
 .tile-frozen::after{
-    content:'❄️';position:absolute;top:-4px;right:-4px;font-size:.7rem;
-    background:rgba(0,200,255,.8);border-radius:50%;width:18px;height:18px;
-    display:flex;align-items:center;justify-content:center;
-    box-shadow:0 0 8px rgba(0,200,255,.6);
+    content:'';position:absolute;top:-4px;right:-4px;
+    width:22px;height:22px;
+    background:url('assets/icons/freeze-64.png') center/contain no-repeat;
+    border-radius:50%;
+    box-shadow:0 0 10px rgba(0,200,255,.8);
+    filter:brightness(1.6) drop-shadow(0 0 4px rgba(0,200,255,0.9));
 }
 .tile-stone{
-    background:#333350!important;color:#666!important;
-    box-shadow:none!important;
-    border:2px dashed #555!important;
+    background:#2a2a40!important;color:#666!important;
+    box-shadow:inset 0 0 15px rgba(0,0,0,0.5)!important;
+    border:2px solid #444!important;
 }
-.tile-stone .tile-inner::after{content:'🪨';position:absolute;font-size:1.5rem;}
+.tile-stone .tile-inner::after{
+    content:'';position:absolute;
+    width:60%;height:60%;
+    background:url('assets/icons/stone-block.png') center/contain no-repeat;
+    opacity:0.7;filter:brightness(0.8) grayscale(0.3);
+}
 
 /* Tile Colors - Pixel Art Gem Sprites (karsiori Gem Pack) */
 .tile-inner{position:relative;overflow:hidden;}
 .tile-inner::before{
     content:'';position:absolute;inset:0;
-    background-size:65% 65%;background-position:center;background-repeat:no-repeat;
-    opacity:0.85;pointer-events:none;z-index:0;
+    background-size:75% 75%;background-position:center;background-repeat:no-repeat;
+    opacity:1.0;pointer-events:none;z-index:0;
     image-rendering:pixelated;image-rendering:crisp-edges;
-    filter:brightness(1.3) drop-shadow(0 0 4px currentColor);
+    filter:brightness(1.4) drop-shadow(0 0 6px currentColor);
     transition:opacity .2s, transform .2s;
 }
-.tile-inner>span{position:relative;z-index:1;text-shadow:0 1px 3px rgba(0,0,0,0.7),0 0 6px rgba(0,0,0,0.4);}
+/* Number badge — small label at bottom-right */
+.tile-inner>span{
+    position:absolute;z-index:1;bottom:2px;right:4px;
+    font-size:0.65rem;font-weight:800;line-height:1;
+    background:rgba(0,0,0,0.55);padding:1px 4px;border-radius:4px;
+    text-shadow:0 1px 2px rgba(0,0,0,0.9),0 0 4px rgba(0,0,0,0.5);
+    color:inherit;
+}
 /* 2 - GEM 1 GOLD (simple, starter) */
 .tile-2{background:linear-gradient(135deg,#0d1b3e,#1a2a5e);color:#00d4ff;box-shadow:0 0 12px rgba(0,212,255,.25);}
 .tile-2 .tile-inner::before{background-image:url('assets/sprites/gem-2.png');}
@@ -220,10 +238,10 @@ body{
 .tile-512 .tile-inner::before{background-image:url('assets/sprites/gem-512.png');}
 /* 1024 - GEM 10 Cluster RED */
 .tile-1024{background:linear-gradient(135deg,#2e0d2e,#5a1a5a);color:#ff00ff;box-shadow:0 0 28px rgba(255,0,255,.5);font-size:1.2rem;}
-.tile-1024 .tile-inner::before{background-image:url('assets/sprites/gem-1024.png');background-size:75% 75%;opacity:0.9;}
+.tile-1024 .tile-inner::before{background-image:url('assets/sprites/gem-1024.png');background-size:80% 80%;opacity:1.0;}
 /* 2048 - GEM 10 Cluster GOLD (ultimate!) */
 .tile-2048{background:linear-gradient(135deg,#ffd700,#ff8800);color:#fff;box-shadow:0 0 35px rgba(255,215,0,.7);font-size:1.2rem;animation:glow2048 1.5s ease-in-out infinite;}
-.tile-2048 .tile-inner::before{background-image:url('assets/sprites/gem-2048.png');background-size:80% 80%;opacity:0.95;filter:brightness(1.5) drop-shadow(0 0 8px rgba(255,215,0,0.8));}
+.tile-2048 .tile-inner::before{background-image:url('assets/sprites/gem-2048.png');background-size:85% 85%;opacity:1.0;filter:brightness(1.5) drop-shadow(0 0 10px rgba(255,215,0,0.8));}
 @keyframes glow2048{0%,100%{box-shadow:0 0 35px rgba(255,215,0,.7);}50%{box-shadow:0 0 50px rgba(255,215,0,1);}}
 /* 4096 - GEM 10 Cluster TURQUOISE */
 .tile-4096{background:linear-gradient(135deg,#ff0080,#7b2ff7,#00d4ff);color:#fff;box-shadow:0 0 35px rgba(255,0,128,.5);font-size:1.1rem;}
@@ -243,17 +261,25 @@ body{
     padding:8px 0;
 }
 .pu-btn{
-    flex:1;max-width:68px;padding:8px 4px;
-    background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+    flex:1;max-width:68px;padding:6px 4px;
+    background:url('assets/ui/btn-sq-navy.png') center/100% 100% no-repeat;
+    border:none;border-radius:12px;
     cursor:pointer;text-align:center;transition:all .2s;
-    display:flex;flex-direction:column;align-items:center;gap:2px;
+    display:flex;flex-direction:column;align-items:center;gap:1px;
+    position:relative;
 }
-.pu-btn:hover:not(.disabled){border-color:var(--accent);background:var(--bg3);}
-.pu-btn.active{border-color:var(--gold);box-shadow:0 0 12px rgba(255,215,0,.4);background:rgba(255,215,0,.1);}
-.pu-btn.disabled{opacity:.35;cursor:default;}
-.pu-icon{font-size:1.3rem;}
-.pu-count{font-size:.65rem;color:var(--muted);font-weight:600;}
-.pu-name{font-size:.55rem;color:var(--dim);white-space:nowrap;}
+.pu-btn:hover:not(.disabled){filter:brightness(1.3);transform:scale(1.05);}
+.pu-btn.active{
+    background-image:url('assets/ui/item-frame-yellow.png');
+    background-size:100% 100%;
+    box-shadow:0 0 16px rgba(255,215,0,.5);
+    filter:brightness(1.1);
+}
+.pu-btn.disabled{opacity:.3;cursor:default;filter:grayscale(0.5);}
+.pu-icon{width:32px;height:32px;}
+.pu-icon img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 3px rgba(255,255,255,0.3));}
+.pu-count{font-size:.6rem;color:var(--muted);font-weight:700;}
+.pu-name{font-size:.5rem;color:var(--dim);white-space:nowrap;}
 
 .target-hint{
     width:100%;max-width:var(--grid-total);text-align:center;
@@ -271,9 +297,14 @@ body{
 }
 .overlay.show{opacity:1;pointer-events:auto;}
 .dialog{
-    background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+    background:url('assets/ui/popup-navy.png');
+    border-image:url('assets/ui/popup-navy.png') 20 fill / 20px / 0 stretch;
+    border-radius:20px;
     padding:30px;text-align:center;max-width:320px;width:90%;
     transform:scale(.9);transition:transform .3s;
+    box-shadow:0 8px 40px rgba(0,0,0,0.6),0 0 60px rgba(102,126,234,0.15);
+    background:linear-gradient(180deg,rgba(18,18,50,0.95),rgba(10,10,30,0.98));
+    border:2px solid rgba(102,126,234,0.3);
 }
 .overlay.show .dialog{transform:scale(1);}
 .dialog-icon{font-size:3rem;margin-bottom:12px;}
@@ -282,14 +313,17 @@ body{
 .dialog-score{font-size:2rem;font-weight:900;color:var(--gold);margin-bottom:16px;}
 .dialog-btns{display:flex;flex-direction:column;gap:10px;}
 .dlg-btn{
-    padding:14px;border:none;border-radius:var(--radius);
+    padding:14px;border:none;border-radius:14px;
     font-size:1rem;font-weight:700;cursor:pointer;color:#fff;
-    transition:transform .2s;
+    transition:transform .15s,filter .15s;
+    background-size:100% 100%;background-repeat:no-repeat;
+    text-shadow:0 1px 3px rgba(0,0,0,0.4);
 }
-.dlg-btn:active{transform:scale(.95);}
-.dlg-btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));}
-.dlg-btn-secondary{background:var(--bg3);border:1px solid var(--border);color:var(--muted);}
-.dlg-btn-gold{background:linear-gradient(135deg,var(--gold),#ff8800);}
+.dlg-btn:active{transform:scale(.95);filter:brightness(0.9);}
+.dlg-btn:hover{filter:brightness(1.15);}
+.dlg-btn-primary{background-image:url('assets/ui/btn-blue.png');}
+.dlg-btn-secondary{background-image:url('assets/ui/btn-gray.png');color:var(--muted);}
+.dlg-btn-gold{background-image:url('assets/ui/btn-yellow.png');}
 
 /* ===== STAGE SELECT ===== */
 .stage-screen{gap:12px;align-items:center;}
@@ -299,15 +333,16 @@ body{
     width:100%;max-width:var(--grid-total);
 }
 .stage-cell{
-    aspect-ratio:1;border-radius:10px;
-    background:var(--bg2);border:1px solid var(--border);
+    aspect-ratio:1;border-radius:12px;
+    background:url('assets/ui/btn-sq-navy.png') center/100% 100% no-repeat;
+    border:none;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    cursor:pointer;transition:all .2s;font-size:.9rem;font-weight:700;
+    cursor:pointer;transition:all .15s;font-size:.9rem;font-weight:700;
 }
-.stage-cell:hover{border-color:var(--accent);transform:scale(1.05);}
-.stage-cell.locked{opacity:.4;cursor:default;}
-.stage-cell.locked:hover{border-color:var(--border);transform:none;}
-.stage-cell.cleared{border-color:var(--green);color:var(--green);}
+.stage-cell:hover{filter:brightness(1.2);transform:scale(1.08);}
+.stage-cell.locked{opacity:.35;cursor:default;filter:grayscale(0.5);}
+.stage-cell.locked:hover{filter:grayscale(0.5);transform:none;}
+.stage-cell.cleared{background-image:url('assets/ui/btn-sq-white.png');color:var(--green);box-shadow:0 0 8px rgba(0,255,136,0.3);}
 .stage-cell .stars{font-size:.6rem;margin-top:2px;}
 
 /* ===== SETTINGS ===== */
@@ -315,41 +350,47 @@ body{
 .settings-title{font-size:1.3rem;font-weight:800;margin-bottom:4px;}
 .setting-group{
     width:100%;max-width:var(--grid-total);
-    background:var(--bg2);border-radius:var(--radius);padding:16px;
+    background:linear-gradient(180deg,rgba(18,18,50,0.9),rgba(12,12,35,0.95));
+    border:1px solid rgba(102,126,234,0.2);
+    border-radius:14px;padding:16px;
 }
 .setting-label{font-size:.85rem;color:var(--muted);margin-bottom:10px;}
 .setting-options{display:flex;gap:8px;flex-wrap:wrap;}
 .setting-opt{
-    padding:8px 16px;border:1px solid var(--border);border-radius:8px;
-    background:var(--bg3);color:var(--muted);font-size:.85rem;cursor:pointer;transition:all .2s;
+    padding:8px 16px;border:none;border-radius:10px;
+    background:url('assets/ui/btn-sm-gray.png') center/100% 100% no-repeat;
+    color:var(--muted);font-size:.85rem;cursor:pointer;transition:all .15s;
 }
-.setting-opt:hover{border-color:var(--accent);}
-.setting-opt.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+.setting-opt:hover{filter:brightness(1.2);}
+.setting-opt.active{
+    background-image:url('assets/ui/btn-sm-blue.png');color:#fff;font-weight:600;
+    box-shadow:0 0 8px rgba(102,126,234,0.4);
+}
 
 /* ===== POWER-UP GAINED TOAST ===== */
 .toast{
     position:absolute;top:40%;left:50%;transform:translate(-50%,-50%) scale(0);
-    background:rgba(0,0,0,.9);border:2px solid var(--gold);border-radius:16px;
-    padding:20px 30px;text-align:center;z-index:200;
+    background:linear-gradient(180deg,rgba(20,15,50,0.95),rgba(10,10,30,0.98));
+    border:2px solid var(--gold);border-radius:18px;
+    padding:16px 24px;text-align:center;z-index:200;
     transition:transform .3s cubic-bezier(.34,1.56,.64,1);
-    box-shadow:0 0 40px rgba(255,215,0,.3);
+    box-shadow:0 0 40px rgba(255,215,0,.3),0 8px 30px rgba(0,0,0,0.5);
 }
 .toast.show{transform:translate(-50%,-50%) scale(1);}
-.toast-icon{font-size:2.5rem;margin-bottom:6px;}
+.toast-icon{margin-bottom:6px;display:flex;justify-content:center;}
+.toast-icon img{width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,215,0,0.5));}
 .toast-text{font-size:1rem;font-weight:700;color:var(--gold);}
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:400px){
     :root{--cell-size:65px;--grid-gap:8px;}
-    .tile{font-size:1.3rem;}
-    .tile-128,.tile-256,.tile-512{font-size:1.15rem;}
-    .tile-1024,.tile-2048,.tile-4096,.tile-8192{font-size:1rem;}
+    .tile-inner>span{font-size:0.55rem;padding:1px 3px;}
     .menu-title{font-size:2rem;}
     .menu-btn{width:220px;padding:13px;font-size:.95rem;}
 }
 @media(max-width:340px){
     :root{--cell-size:58px;--grid-gap:7px;}
-    .tile{font-size:1.15rem;}
+    .tile-inner>span{font-size:0.5rem;}
 }
 @media(min-height:800px){
     .game-screen{gap:12px;}
@@ -494,12 +535,15 @@ body{
 
 /* Mute button */
 .mute-btn{
-    width:36px;height:36px;border:1px solid var(--border);border-radius:8px;
-    background:var(--bg2);color:var(--muted);font-size:1.1rem;cursor:pointer;
-    display:flex;align-items:center;justify-content:center;transition:all .2s;
+    width:36px;height:36px;border:none;border-radius:50%;
+    background:url('assets/ui/btn-circle-dark.png') center/100% 100% no-repeat;
+    color:#ccc;font-size:1rem;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:all .15s;
+    padding:0;overflow:hidden;
 }
-.mute-btn:hover{border-color:var(--accent);color:var(--text);}
-.mute-btn.muted{color:var(--red);border-color:var(--red);opacity:.6;}
+.mute-btn img{width:22px;height:22px;object-fit:contain;}
+.mute-btn:hover{filter:brightness(1.3);transform:scale(1.1);}
+.mute-btn.muted{filter:brightness(0.5) grayscale(0.5);}
 
 /* Power-up glow enhancements */
 .pu-btn:not(.disabled) .pu-icon{filter:drop-shadow(0 0 4px rgba(255,215,0,0.3));transition:filter .3s;}
@@ -531,7 +575,7 @@ body{transition:background 2s ease;}
   "@type": "VideoGame",
   "name": "Power 2048",
   "url": "https://eastsea.monster/games/power-2048/",
-  "description": "2048 + 파워업! 💣폭탄, ❄️동결, ⚡더블, 🔄되돌리기, 🎯스나이퍼. 클래식/스테이지/일일 챌린지 3모드! 네온 비주얼!",
+  "description": "2048 + 파워업! 폭탄, 동결, 더블, 되돌리기, 스나이퍼. 클래식/스테이지/일일 챌린지 3모드! 네온 비주얼!",
   "image": "https://eastsea.monster/games/power-2048/og.png",
   "gamePlatform": [
     "Web Browser",
@@ -579,12 +623,12 @@ body{transition:background 2s ease;}
         <div id="menuBest"></div>
         <div id="menuLevel"></div>
     </div>
-    <button class="menu-btn btn-classic" onclick="G.startGame('classic')"><span>▶</span><span id="btnClassic"></span></button>
-    <button class="menu-btn btn-stage" onclick="G.showStages()"><span>📋</span><span id="btnStage"></span></button>
-    <button class="menu-btn btn-daily" onclick="G.startGame('daily')"><span>📅</span><span id="btnDaily"></span></button>
+    <button class="menu-btn btn-classic" onclick="G.startGame('classic')"><img src="assets/ui/icon-play.png" style="width:20px;height:20px;filter:brightness(2)"><span id="btnClassic"></span></button>
+    <button class="menu-btn btn-stage" onclick="G.showStages()"><img src="assets/ui/icon-star-on.png" style="width:20px;height:20px;filter:brightness(2)"><span id="btnStage"></span></button>
+    <button class="menu-btn btn-daily" onclick="G.startGame('daily')"><img src="assets/ui/icon-trophy.png" style="width:22px;height:22px;filter:brightness(2)"><span id="btnDaily"></span></button>
     <div class="menu-bottom">
-        <button class="menu-sm-btn" onclick="G.showSettings()">⚙ <span id="btnSettings"></span></button>
-        <button class="menu-sm-btn" onclick="G.showHelp()">❓ <span id="btnHelp"></span></button>
+        <button class="menu-sm-btn" onclick="G.showSettings()"><img src="assets/ui/icon-setting.png" style="width:16px;height:16px;vertical-align:middle;filter:brightness(1.5)"> <span id="btnSettings"></span></button>
+        <button class="menu-sm-btn" onclick="G.showHelp()"><img src="assets/ui/icon-help.png" style="width:16px;height:16px;vertical-align:middle;filter:brightness(1.5)"> <span id="btnHelp"></span></button>
     </div>
     <div style="margin-top:16px;font-size:0.55rem;color:#444466;text-align:center;line-height:1.6;">
         Art: 게임마당 (한국콘텐츠진흥원/한국게임개발자협회) · Audio: Kenney.nl · OpenGameArt.org (CC0)
@@ -596,7 +640,7 @@ body{transition:background 2s ease;}
     <div class="game-top">
         <div class="game-top-left">
             <button class="back-btn" onclick="G.backToMenu()">←</button>
-            <button class="mute-btn" id="muteBtn" onclick="G.toggleMute()">🔊</button>
+            <button class="mute-btn" id="muteBtn" onclick="G.toggleMute()"><img src="assets/ui/icon-sound-on.png" alt="sound"></button>
             <div class="mode-label" id="modeLabel"></div>
         </div>
         <div class="score-area">
@@ -707,7 +751,7 @@ en: {
     bestScore:'Best: ',stageLevel:'Stage: ',
     goalTile:'Create a {n} tile',goalScore:'Score {n} points',
     goalTileMoves:'Create {n} in {m} moves',goalScoreMoves:'Score {n} in {m} moves',
-    helpContent:`<b>🎮 How to Play</b><br>Swipe or use arrow keys to move tiles.<br>Same numbers merge into one!<br><br><b>🔥 Power-ups</b><br>💣 <b>Bomb</b> — Remove tile + neighbors<br>❄️ <b>Freeze</b> — Lock tile for 3 turns<br>⚡ <b>Double</b> — Next merge = 4× value<br>🔄 <b>Undo</b> — Revert last move<br>🎯 <b>Sniper</b> — Remove single tile<br><br><b>💥 Combo</b><br>3 merges in a row = free power-up!<br><br><b>📋 Modes</b><br>Classic: Chase high score<br>Stage: Clear objectives<br>Daily: Same puzzle for everyone`,
+    helpContent:`<b>How to Play</b><br>Swipe or use arrow keys to move tiles.<br>Same numbers merge into one!<br><br><b>Power-ups</b><br><img src="assets/icons/bomb-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>Bomb</b> — Remove tile + neighbors<br><img src="assets/icons/freeze-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>Freeze</b> — Lock tile for 3 turns<br><img src="assets/icons/double-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>Double</b> — Next merge = 4× value<br><img src="assets/icons/undo-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>Undo</b> — Revert last move<br><img src="assets/icons/sniper-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>Sniper</b> — Remove single tile<br><br><b>Combo</b><br>3 merges in a row = free power-up!<br><br><b>Modes</b><br>Classic: Chase high score<br>Stage: Clear objectives<br>Daily: Same puzzle for everyone`,
     dailyBest:'Today\'s Best: ',
     noMoves:'No moves left!',stoneBlock:'Stone block',
 },
@@ -726,7 +770,7 @@ ko: {
     bestScore:'최고: ',stageLevel:'스테이지: ',
     goalTile:'{n} 타일 만들기',goalScore:'{n}점 달성',
     goalTileMoves:'{m}수 안에 {n} 만들기',goalScoreMoves:'{m}수 안에 {n}점 달성',
-    helpContent:`<b>🎮 플레이 방법</b><br>스와이프 또는 화살표 키로 타일을 이동하세요.<br>같은 숫자가 만나면 합쳐집니다!<br><br><b>🔥 파워업</b><br>💣 <b>폭탄</b> — 타일 + 주변 제거<br>❄️ <b>동결</b> — 3턴간 고정<br>⚡ <b>더블</b> — 다음 합치기 4배<br>🔄 <b>되돌리기</b> — 마지막 수 취소<br>🎯 <b>스나이퍼</b> — 단일 타일 제거<br><br><b>💥 콤보</b><br>3연속 합치기 = 무료 파워업!<br><br><b>📋 모드</b><br>클래식: 최고점수 도전<br>스테이지: 목표 달성<br>일일: 모두 같은 퍼즐`,
+    helpContent:`<b>플레이 방법</b><br>스와이프 또는 화살표 키로 타일을 이동하세요.<br>같은 숫자가 만나면 합쳐집니다!<br><br><b>파워업</b><br><img src="assets/icons/bomb-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>폭탄</b> — 타일 + 주변 제거<br><img src="assets/icons/freeze-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>동결</b> — 3턴간 고정<br><img src="assets/icons/double-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>더블</b> — 다음 합치기 4배<br><img src="assets/icons/undo-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>되돌리기</b> — 마지막 수 취소<br><img src="assets/icons/sniper-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>스나이퍼</b> — 단일 타일 제거<br><br><b>콤보</b><br>3연속 합치기 = 무료 파워업!<br><br><b>모드</b><br>클래식: 최고점수 도전<br>스테이지: 목표 달성<br>일일: 모두 같은 퍼즐`,
     dailyBest:'오늘 최고: ',
     noMoves:'이동 횟수 소진!',stoneBlock:'돌',
 },
@@ -745,7 +789,7 @@ ja: {
     bestScore:'ベスト: ',stageLevel:'ステージ: ',
     goalTile:'{n}タイルを作る',goalScore:'{n}点を達成',
     goalTileMoves:'{m}手以内に{n}を作る',goalScoreMoves:'{m}手以内に{n}点達成',
-    helpContent:`<b>🎮 遊び方</b><br>スワイプまたは矢印キーでタイルを移動。<br>同じ数字が合体します！<br><br><b>🔥 パワーアップ</b><br>💣 <b>ボム</b> — タイル+周囲を除去<br>❄️ <b>フリーズ</b> — 3ターン固定<br>⚡ <b>ダブル</b> — 次の合体4倍<br>🔄 <b>アンドゥ</b> — 1手戻す<br>🎯 <b>スナイパー</b> — 1タイル除去<br><br><b>💥 コンボ</b><br>3連続合体=無料パワーアップ！`,
+    helpContent:`<b>遊び方</b><br>スワイプまたは矢印キーでタイルを移動。<br>同じ数字が合体します！<br><br><b>パワーアップ</b><br><img src="assets/icons/bomb-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>ボム</b> — タイル+周囲を除去<br><img src="assets/icons/freeze-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>フリーズ</b> — 3ターン固定<br><img src="assets/icons/double-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>ダブル</b> — 次の合体4倍<br><img src="assets/icons/undo-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>アンドゥ</b> — 1手戻す<br><img src="assets/icons/sniper-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>スナイパー</b> — 1タイル除去<br><br><b>コンボ</b><br>3連続合体=無料パワーアップ！`,
     dailyBest:'今日のベスト: ',
     noMoves:'移動回数切れ！',stoneBlock:'石',
 },
@@ -764,7 +808,7 @@ zh: {
     bestScore:'最佳: ',stageLevel:'关卡: ',
     goalTile:'创建 {n} 方块',goalScore:'获得 {n} 分',
     goalTileMoves:'{m}步内创建{n}',goalScoreMoves:'{m}步内获得{n}分',
-    helpContent:`<b>🎮 玩法</b><br>滑动或方向键移动方块。<br>相同数字合并！<br><br><b>🔥 超能力</b><br>💣 <b>炸弹</b> — 消除方块+周围<br>❄️ <b>冰冻</b> — 固定3回合<br>⚡ <b>双倍</b> — 下次合并4倍<br>🔄 <b>撤销</b> — 撤回一步<br>🎯 <b>狙击</b> — 消除单个<br><br><b>💥 连击</b><br>连续3次合并=免费超能力！`,
+    helpContent:`<b>玩法</b><br>滑动或方向键移动方块。<br>相同数字合并！<br><br><b>超能力</b><br><img src="assets/icons/bomb-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>炸弹</b> — 消除方块+周围<br><img src="assets/icons/freeze-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>冰冻</b> — 固定3回合<br><img src="assets/icons/double-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>双倍</b> — 下次合并4倍<br><img src="assets/icons/undo-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>撤销</b> — 撤回一步<br><img src="assets/icons/sniper-64.png" style="width:20px;height:20px;vertical-align:middle"> <b>狙击</b> — 消除单个<br><br><b>连击</b><br>连续3次合并=免费超能力！`,
     dailyBest:'今日最佳: ',
     noMoves:'步数用完！',stoneBlock:'石头',
 }
@@ -790,7 +834,13 @@ const STAGES = [
 ];
 
 const POWERUP_TYPES = ['bomb','freeze','double','undo','sniper'];
-const PU_ICONS = {bomb:'💣',freeze:'❄️',double:'⚡',undo:'🔄',sniper:'🎯'};
+const PU_ICONS = {
+    bomb:'<img src="assets/icons/bomb-64.png" alt="bomb">',
+    freeze:'<img src="assets/icons/freeze-64.png" alt="freeze">',
+    double:'<img src="assets/icons/double-64.png" alt="double">',
+    undo:'<img src="assets/icons/undo-64.png" alt="undo">',
+    sniper:'<img src="assets/icons/sniper-64.png" alt="sniper">'
+};
 const BALANCE = {
     newTile4Chance: 0.1,
     comboThreshold: 3,
@@ -916,7 +966,7 @@ const SND = {
     toggleMute(){
         this.muted=!this.muted;
         var btn=document.getElementById('muteBtn');
-        if(btn){btn.textContent=this.muted?'🔇':'🔊';btn.classList.toggle('muted',this.muted);}
+        if(btn){btn.innerHTML=this.muted?'<img src="assets/ui/icon-sound-off.png" alt="muted">':'<img src="assets/ui/icon-sound-on.png" alt="sound">';btn.classList.toggle('muted',this.muted);}
         if(this.muted)this.stopBGM();else this.startBGM();
     }
 };
@@ -1764,7 +1814,7 @@ const G = {
             if(this.doubleActive){
                 this.powerUps.double--;
                 SND.double();
-                this.showToast('⚡',this.t('double')+' ON!');
+                this.showToast(PU_ICONS.double,this.t('double')+' ON!');
             }
             this.renderPowerUps();
             this.updateGameUI();
@@ -1841,7 +1891,7 @@ const G = {
         t.frozen=3;
         const el=this.tileElements[t.id];
         if(el)el.classList.add('tile-frozen');
-        this.showToast('❄️',this.t('freeze')+' (3)');
+        this.showToast(PU_ICONS.freeze,this.t('freeze')+' (3)');
     },
 
     useSniper(row,col){
@@ -1868,7 +1918,7 @@ const G = {
 
     showToast(icon,text){
         const toast=document.getElementById('toast');
-        document.getElementById('toastIcon').textContent=icon;
+        document.getElementById('toastIcon').innerHTML=icon;
         document.getElementById('toastText').textContent=text;
         toast.classList.add('show');
         setTimeout(()=>toast.classList.remove('show'),1500);
