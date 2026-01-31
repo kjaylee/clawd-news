@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📱 Screenshot Generator</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="top-bar">
+        <div class="logo">📱 Screenshot Generator</div>
+        <div class="top-actions">
+            <button class="btn btn-sm btn-ghost" onclick="resetAll()">🔄 Reset</button>
+        </div>
+    </header>
+
+    <main class="app-layout">
+        <!-- ─── Left Panel: Settings ─── -->
+        <aside class="panel settings-panel">
+            <!-- Upload Section -->
+            <section class="card">
+                <h3>📸 Screenshots</h3>
+                <div id="dropZone" class="drop-zone">
+                    <input type="file" id="fileInput" multiple accept="image/*" hidden>
+                    <div class="drop-zone-content">
+                        <span class="drop-icon">📁</span>
+                        <p>Drag & drop or <a href="#" onclick="document.getElementById('fileInput').click(); return false;">browse</a></p>
+                        <small>PNG, JPG, WEBP</small>
+                    </div>
+                </div>
+                <div id="uploadedFiles" class="uploaded-files"></div>
+            </section>
+
+            <!-- Device Selection -->
+            <section class="card">
+                <h3>📱 Device</h3>
+                <div id="deviceList" class="chip-group"></div>
+            </section>
+
+            <!-- Language Selection -->
+            <section class="card">
+                <h3>🌐 Language</h3>
+                <div id="langList" class="chip-group"></div>
+            </section>
+
+            <!-- Layout Selection -->
+            <section class="card">
+                <h3>🎨 Layout</h3>
+                <div id="layoutList" class="layout-grid"></div>
+            </section>
+
+            <!-- Background -->
+            <section class="card">
+                <h3>🖌️ Background</h3>
+                <div class="form-group">
+                    <label>Type</label>
+                    <select id="bgType" onchange="onBgTypeChange()">
+                        <option value="gradient">Gradient</option>
+                        <option value="solid">Solid Color</option>
+                    </select>
+                </div>
+                <div id="bgGradientSection">
+                    <div class="color-row">
+                        <label>Colors</label>
+                        <div class="color-inputs">
+                            <input type="color" id="bgColor1" value="#1a1a2e">
+                            <input type="color" id="bgColor2" value="#16213e">
+                            <input type="color" id="bgColor3" value="#0f3460">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Angle: <span id="bgAngleVal">135</span>°</label>
+                        <input type="range" id="bgAngle" min="0" max="360" value="135" oninput="document.getElementById('bgAngleVal').textContent=this.value; debouncedPreview()">
+                    </div>
+                </div>
+                <div id="bgSolidSection" style="display:none;">
+                    <div class="form-group">
+                        <label>Color</label>
+                        <input type="color" id="bgSolidColor" value="#1a1a2e">
+                    </div>
+                </div>
+                <!-- Presets -->
+                <div class="preset-row">
+                    <button class="preset-btn" onclick="applyBgPreset(['#1a1a2e','#16213e','#0f3460'],135)" title="Deep Navy">
+                        <span class="preset-swatch" style="background:linear-gradient(135deg,#1a1a2e,#0f3460)"></span>
+                    </button>
+                    <button class="preset-btn" onclick="applyBgPreset(['#0D0D0D','#1A1A2E','#0D0D1A'],180)" title="Dark Premium">
+                        <span class="preset-swatch" style="background:linear-gradient(180deg,#0D0D0D,#0D0D1A)"></span>
+                    </button>
+                    <button class="preset-btn" onclick="applyBgPreset(['#2D1B69','#1a1a4e','#0f2460'],135)" title="Purple Haze">
+                        <span class="preset-swatch" style="background:linear-gradient(135deg,#2D1B69,#0f2460)"></span>
+                    </button>
+                    <button class="preset-btn" onclick="applyBgPreset(['#0D1B2A','#1B2838','#2C3E50'],180)" title="Midnight Blue">
+                        <span class="preset-swatch" style="background:linear-gradient(180deg,#0D1B2A,#2C3E50)"></span>
+                    </button>
+                    <button class="preset-btn" onclick="applyBgPreset(['#1F1C2C','#928DAB'],45)" title="Violet Mist">
+                        <span class="preset-swatch" style="background:linear-gradient(45deg,#1F1C2C,#928DAB)"></span>
+                    </button>
+                    <button class="preset-btn" onclick="applyBgPreset(['#0f0c29','#302b63','#24243e'],180)" title="Deep Space">
+                        <span class="preset-swatch" style="background:linear-gradient(180deg,#0f0c29,#24243e)"></span>
+                    </button>
+                    <button class="preset-btn" onclick="applyBgPreset(['#141E30','#243B55'],135)" title="Royal Blue">
+                        <span class="preset-swatch" style="background:linear-gradient(135deg,#141E30,#243B55)"></span>
+                    </button>
+                    <button class="preset-btn" onclick="applyBgPreset(['#200122','#6f0000'],135)" title="Dark Red">
+                        <span class="preset-swatch" style="background:linear-gradient(135deg,#200122,#6f0000)"></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Text -->
+            <section class="card">
+                <h3>✏️ Caption</h3>
+                <div class="form-group">
+                    <label>Headline</label>
+                    <input type="text" id="headline" placeholder="더 나은 경험을 시작하세요" oninput="debouncedPreview()">
+                </div>
+                <div class="form-group">
+                    <label>Subheadline</label>
+                    <input type="text" id="subheadline" placeholder="AI가 당신의 일상을 더 스마트하게" oninput="debouncedPreview()">
+                </div>
+            </section>
+
+            <!-- Frame Options -->
+            <section class="card">
+                <h3>🖼️ Frame</h3>
+                <div class="toggle-row">
+                    <label>Show Frame</label>
+                    <input type="checkbox" id="frameShow" checked onchange="debouncedPreview()">
+                </div>
+                <div class="toggle-row">
+                    <label>Drop Shadow</label>
+                    <input type="checkbox" id="frameShadow" checked onchange="debouncedPreview()">
+                </div>
+            </section>
+
+            <!-- Generate -->
+            <section class="card generate-section">
+                <button class="btn btn-primary btn-lg btn-block" onclick="generateSingle()">
+                    ⬇️ Download (Single)
+                </button>
+                <button class="btn btn-accent btn-lg btn-block" onclick="generateBatch()">
+                    📦 Batch Download (ZIP)
+                </button>
+                <div id="progressContainer" class="progress-container" style="display:none;">
+                    <div class="progress-bar">
+                        <div id="progressFill" class="progress-fill"></div>
+                    </div>
+                    <span id="progressText" class="progress-text">Generating...</span>
+                </div>
+            </section>
+        </aside>
+
+        <!-- ─── Right Panel: Preview ─── -->
+        <section class="panel preview-panel">
+            <div class="preview-header">
+                <h3>Preview</h3>
+                <div class="preview-device-info" id="previewDeviceInfo">iPhone 16 Pro Max — 1290×2796</div>
+            </div>
+            <div class="preview-frame" id="previewFrame">
+                <div class="preview-placeholder" id="previewPlaceholder">
+                    <span class="placeholder-icon">📱</span>
+                    <p>Upload a screenshot and configure settings to see preview</p>
+                </div>
+                <img id="previewImage" class="preview-image" style="display:none;" alt="Preview">
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
