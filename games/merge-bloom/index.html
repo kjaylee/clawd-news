@@ -124,7 +124,7 @@ body{background:linear-gradient(180deg,#c8e6c9 0%,#a5d6a7 50%,#81c784 100%)}
     <div class="loading-title">Merge Bloom Garden</div>
     <div class="loading-bar"><div class="loading-fill" id="loadFill"></div></div>
     <div class="loading-text" id="loadText">Loading...</div>
-    <div class="loading-credit">Art: 게임마당 (한국콘텐츠진흥원 · KOCCA)</div>
+    <div class="loading-credit">UI: GUI PRO Kit – Casual · Icons: 2000 Fantasy Icons<br>Music: Fantasy Music Pack 2 · SFX: Cute UI SFX</div>
   </div>
 </div>
 <canvas id="particleBg"></canvas>
@@ -216,7 +216,7 @@ body{background:linear-gradient(180deg,#c8e6c9 0%,#a5d6a7 50%,#81c784 100%)}
 <button class="panel-close" onclick="S.hideOverlay('levelup')" data-i="great">좋아요!</button></div>
 </div>
 <div id="toast" class="toast"></div>
-<div class="attribution">Art: 게임마당 (한국콘텐츠진흥원/KOCCA)</div>
+<div class="attribution">UI: GUI PRO Kit · Icons: 2000 Fantasy Icons · Music: Fantasy Music Pack 2</div>
 </div>
 <script>
 // ============================================================
@@ -1655,19 +1655,24 @@ function gameLoop(ts) {
 // ============================================================
 const AUDIO_FILES = {
   bgm: 'assets/audio/bgm.mp3',
-  merge: 'assets/audio/merge.ogg',
-  bloom: 'assets/audio/bloom.ogg',
-  click: 'assets/audio/click.ogg',
-  levelup: 'assets/audio/levelup.ogg',
-  pop: 'assets/audio/pop.ogg',
-  select: 'assets/audio/select.ogg',
-  sparkle: 'assets/audio/sparkle.ogg',
+  merge: 'assets/audio/merge.mp3',
+  bloom: 'assets/audio/bloom.mp3',
+  click: 'assets/audio/click.mp3',
+  levelup: 'assets/audio/levelup.mp3',
+  pop: 'assets/audio/pop.mp3',
+  select: 'assets/audio/select.mp3',
+  sparkle: 'assets/audio/sparkle.mp3',
 };
 const IMG_FILES = {
   btn: 'assets/ui/btn.png',
   panelTop: 'assets/ui/panel-top.png',
   panelBottom: 'assets/ui/panel-bottom.png',
   iconSheet: 'assets/sprites/icon_sheet.png',
+  effectGlow: 'assets/sprites/effect-glow.png',
+  effectBurst: 'assets/sprites/effect-burst.png',
+  ribbon: 'assets/ui/ribbon.png',
+  cardFrame: 'assets/ui/card-frame.png',
+  slider: 'assets/ui/slider.png',
 };
 let audioContext = null;
 let audioBuffers = {};
