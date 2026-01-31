@@ -18,11 +18,12 @@
 2. 정지/에러 발생 시 → 즉시 주인님께 보고
 3. 완료된 작업 → `memory/subagent-log.md` 업데이트
 
-## 용량 체크 (매 heartbeat)
-1. 로그 용량 확인: `du -sh /tmp/clawdbot/`
-2. 100MB 초과 시 → 3일 이상 된 로그 삭제
-3. 디스크 용량 확인: `df -h /`
-4. 90% 초과 시 → 주인님께 경고
+## 용량 체크 — 신뢰성 최우선 (매 heartbeat)
+1. **체크:** `scripts/disk-cleanup.sh --check` → JSON (df만, 초경량, 정리 없음)
+2. level `ok` → 끝
+3. level `warn`/`critical` → `scripts/disk-cleanup.sh --json` 실행 (자동 정리, 80%+ 방어)
+4. **critical 또는 exit 2 → 주인님께 경고**
+5. **교훈:** 디스크 풀(ENOSPC)이면 게이트웨이 크래시 → 신뢰성 붕괴
 
 ## 🧠 자기 개선 (매 heartbeat 1회)
 매 heartbeat에서 아래 중 하나를 수행:
@@ -46,15 +47,12 @@
 
 ## 실행 명령어
 ```bash
-# 로그 용량
-LOG_SIZE=$(du -sm /tmp/clawdbot/ 2>/dev/null | cut -f1)
-if [ "$LOG_SIZE" -gt 100 ]; then
-  find /tmp/clawdbot -name '*.log' -mtime +3 -delete
-fi
+# 하트비트: 경량 체크 (JSON)
+scripts/disk-cleanup.sh --check
 
-# 디스크 용량
-DISK_USE=$(df -h / | tail -1 | awk '{print $5}' | tr -d '%')
-if [ "$DISK_USE" -gt 90 ]; then
-  echo "⚠️ 디스크 90% 초과!"
-fi
+# 80%+ 시 정리 (자동 임계치 방어 내장)
+scripts/disk-cleanup.sh --json
+
+# 테스트
+scripts/disk-cleanup.sh --dry-run
 ```
