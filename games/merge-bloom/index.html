@@ -96,9 +96,37 @@ body{background:linear-gradient(180deg,#c8e6c9 0%,#a5d6a7 50%,#81c784 100%)}
 .panel-close{background:linear-gradient(135deg,#66bb6a,#43a047,#2e7d32);box-shadow:0 3px 10px rgba(46,125,50,.25)}
 .screen{transition:opacity .4s ease,transform .4s cubic-bezier(.2,.8,.3,1)}
 .screen.hidden{opacity:0;pointer-events:none;transform:translateY(25px) scale(.97)}
+/* ============ Loading Screen ============ */
+#loading-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#e8f5e9 0%,#a5d6a7 50%,#66bb6a 100%);transition:opacity .6s ease}
+.loading-content{text-align:center;padding:30px}
+.loading-icon{font-size:4em;animation:float 2s ease-in-out infinite}
+.loading-title{font-size:1.8em;font-weight:900;color:#2e7d32;margin:12px 0;text-shadow:0 2px 4px rgba(0,0,0,.1)}
+.loading-bar{width:220px;height:8px;background:rgba(0,0,0,.12);border-radius:4px;overflow:hidden;margin:16px auto}
+.loading-fill{width:0%;height:100%;background:linear-gradient(90deg,#43a047,#66bb6a,#fff176);border-radius:4px;transition:width .3s ease}
+.loading-text{font-size:.9em;color:#2e7d32;font-weight:600;margin-top:4px}
+.loading-credit{margin-top:24px;font-size:.6em;color:rgba(46,125,50,.55);line-height:1.5}
+/* ============ UI Sprite Backgrounds ============ */
+.stats-bar{background:url('assets/ui/panel-top.png') center/100% 100% no-repeat,linear-gradient(135deg,rgba(255,255,255,.93),rgba(241,248,233,.93));color:#4a2f0a;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+.quest-bar{background:url('assets/ui/panel-top.png') center/100% 100% no-repeat,linear-gradient(135deg,rgba(255,255,255,.93),rgba(241,248,233,.93));color:#4a2f0a;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+.garden-info{background:url('assets/ui/panel-top.png') center/100% 100% no-repeat,linear-gradient(135deg,rgba(255,255,255,.93),rgba(241,248,233,.93));color:#4a2f0a;text-shadow:0 1px 0 rgba(255,255,255,.4)}
+.bottom-nav{background:url('assets/ui/panel-bottom.png') center/100% 100% no-repeat,linear-gradient(0deg,rgba(255,255,255,.96),rgba(241,248,233,.93));border-top:none}
+.bottom-nav .nav-btn{color:#5a3a1a;text-shadow:0 1px 0 rgba(255,255,255,.3)}
+.bottom-nav .nav-btn.active{color:#2e7d32;background:rgba(255,255,255,.35);border-radius:12px}
+/* ============ Attribution ============ */
+.attribution{position:fixed;bottom:2px;left:0;right:0;text-align:center;font-size:.5em;color:rgba(46,125,50,.4);pointer-events:none;z-index:5}
 </style>
 </head>
 <body>
+<!-- Loading Screen -->
+<div id="loading-screen">
+  <div class="loading-content">
+    <div class="loading-icon">🌸</div>
+    <div class="loading-title">Merge Bloom Garden</div>
+    <div class="loading-bar"><div class="loading-fill" id="loadFill"></div></div>
+    <div class="loading-text" id="loadText">Loading...</div>
+    <div class="loading-credit">Art: 게임마당 (한국콘텐츠진흥원 · KOCCA)</div>
+  </div>
+</div>
 <canvas id="particleBg"></canvas>
 <button class="mute-fab" id="muteFab" onclick="polishToggleMute()">🔊</button>
 <div id="app">
@@ -188,6 +216,7 @@ body{background:linear-gradient(180deg,#c8e6c9 0%,#a5d6a7 50%,#81c784 100%)}
 <button class="panel-close" onclick="S.hideOverlay('levelup')" data-i="great">좋아요!</button></div>
 </div>
 <div id="toast" class="toast"></div>
+<div class="attribution">Art: 게임마당 (한국콘텐츠진흥원/KOCCA)</div>
 </div>
 <script>
 // ============================================================
@@ -334,108 +363,32 @@ const G = {
 };
 
 // ============================================================
-// SECTION 4: SOUND SYSTEM (Web Audio API)
+// SECTION 4: SOUND SYSTEM (Real Audio Files — No Oscillators)
 // ============================================================
-let audioCtx = null;
-function getAudio() {
-  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  return audioCtx;
-}
 const SFX = {
-  merge(level) {
-    if (!G.soundOn) return;
-    const ctx = getAudio();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.type = 'sine';
-    const base = 400 + level * 100;
-    o.frequency.setValueAtTime(base, ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(base * 1.5, ctx.currentTime + 0.15);
-    g.gain.setValueAtTime(0.15, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-    o.start(); o.stop(ctx.currentTime + 0.25);
+  _play(name, volume) {
+    if (!G.soundOn) return null;
+    const buf = audioBuffers[name];
+    if (!buf || !audioContext) return null;
+    try {
+      if (audioContext.state === 'suspended') audioContext.resume();
+      const source = audioContext.createBufferSource();
+      const gain = audioContext.createGain();
+      source.buffer = buf;
+      gain.gain.value = volume || 0.5;
+      source.connect(gain);
+      gain.connect(audioContext.destination);
+      source.start();
+      return source;
+    } catch(e) { return null; }
   },
-  harvest() {
-    if (!G.soundOn) return;
-    const ctx = getAudio();
-    [523, 659, 784].forEach((f, i) => {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.type = 'sine';
-      o.frequency.value = f;
-      g.gain.setValueAtTime(0.12, ctx.currentTime + i * 0.08);
-      g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.08 + 0.3);
-      o.start(ctx.currentTime + i * 0.08);
-      o.stop(ctx.currentTime + i * 0.08 + 0.3);
-    });
-  },
-  levelUp() {
-    if (!G.soundOn) return;
-    const ctx = getAudio();
-    [440, 554, 659, 880].forEach((f, i) => {
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.connect(g); g.connect(ctx.destination);
-      o.type = 'triangle';
-      o.frequency.value = f;
-      g.gain.setValueAtTime(0.1, ctx.currentTime + i * 0.1);
-      g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + i * 0.1 + 0.4);
-      o.start(ctx.currentTime + i * 0.1);
-      o.stop(ctx.currentTime + i * 0.1 + 0.4);
-    });
-  },
-  error() {
-    if (!G.soundOn) return;
-    const ctx = getAudio();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.type = 'square';
-    o.frequency.value = 200;
-    g.gain.setValueAtTime(0.08, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
-    o.start(); o.stop(ctx.currentTime + 0.15);
-  },
-  click() {
-    if (!G.soundOn) return;
-    const ctx = getAudio();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.type = 'sine';
-    o.frequency.value = 800;
-    g.gain.setValueAtTime(0.08, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.06);
-    o.start(); o.stop(ctx.currentTime + 0.06);
-  },
-  combo() {
-    if (!G.soundOn) return;
-    const ctx = getAudio();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.type = 'sine';
-    o.frequency.setValueAtTime(600, ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.12);
-    g.gain.setValueAtTime(0.12, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
-    o.start(); o.stop(ctx.currentTime + 0.2);
-  },
-  plant() {
-    if (!G.soundOn) return;
-    const ctx = getAudio();
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.connect(g); g.connect(ctx.destination);
-    o.type = 'sine';
-    o.frequency.setValueAtTime(500, ctx.currentTime);
-    o.frequency.exponentialRampToValueAtTime(700, ctx.currentTime + 0.2);
-    g.gain.setValueAtTime(0.1, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-    o.start(); o.stop(ctx.currentTime + 0.3);
-  },
+  merge(level)  { this._play('merge', 0.25 + level * 0.05); },
+  harvest()     { this._play('pop', 0.5); },
+  levelUp()     { this._play('levelup', 0.6); },
+  error()       { this._play('click', 0.2); },
+  click()       { this._play('click', 0.4); },
+  combo()       { this._play('sparkle', 0.5); },
+  plant()       { this._play('select', 0.4); },
 };
 
 // ============================================================
@@ -1697,9 +1650,91 @@ function gameLoop(ts) {
 // ============================================================
 // SECTION 20: INITIALIZATION
 // ============================================================
-function init() {
-  const loaded = loadGame();
-  if (!loaded) {
+// ============================================================
+// ASSET DEFINITIONS & PRELOADER
+// ============================================================
+const AUDIO_FILES = {
+  bgm: 'assets/audio/bgm.mp3',
+  merge: 'assets/audio/merge.ogg',
+  bloom: 'assets/audio/bloom.ogg',
+  click: 'assets/audio/click.ogg',
+  levelup: 'assets/audio/levelup.ogg',
+  pop: 'assets/audio/pop.ogg',
+  select: 'assets/audio/select.ogg',
+  sparkle: 'assets/audio/sparkle.ogg',
+};
+const IMG_FILES = {
+  btn: 'assets/ui/btn.png',
+  panelTop: 'assets/ui/panel-top.png',
+  panelBottom: 'assets/ui/panel-bottom.png',
+  iconSheet: 'assets/sprites/icon_sheet.png',
+};
+let audioContext = null;
+let audioBuffers = {};
+let loadedImages = {};
+
+function getAudioCtx() {
+  if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  return audioContext;
+}
+
+async function loadAllAssets(progressCb) {
+  let ctx;
+  try { ctx = getAudioCtx(); } catch(e) { ctx = null; }
+  const audioEntries = Object.entries(AUDIO_FILES);
+  const imageEntries = Object.entries(IMG_FILES);
+  const total = audioEntries.length + imageEntries.length;
+  let loaded = 0;
+
+  const audioPromises = audioEntries.map(async ([key, url]) => {
+    try {
+      const resp = await fetch(url);
+      if (resp.ok && ctx) {
+        const buf = await resp.arrayBuffer();
+        audioBuffers[key] = await ctx.decodeAudioData(buf);
+      }
+    } catch(e) { console.warn('Audio load failed:', url); }
+    loaded++;
+    progressCb(loaded, total);
+  });
+
+  const imagePromises = imageEntries.map(([key, url]) => {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => { loadedImages[key] = img; loaded++; progressCb(loaded, total); resolve(); };
+      img.onerror = () => { loaded++; progressCb(loaded, total); resolve(); };
+      img.src = url;
+    });
+  });
+
+  await Promise.all([...audioPromises, ...imagePromises]);
+}
+
+async function init() {
+  // --- Asset Loading with progress ---
+  const loadScreen = document.getElementById('loading-screen');
+  const loadFill = document.getElementById('loadFill');
+  const loadText = document.getElementById('loadText');
+
+  try {
+    await loadAllAssets((done, total) => {
+      const pct = Math.round(done / total * 100);
+      if (loadFill) loadFill.style.width = pct + '%';
+      if (loadText) loadText.textContent = pct < 100 ? `Loading... ${pct}%` : '🌸 Ready!';
+    });
+  } catch(e) {
+    console.warn('Asset loading error:', e);
+  }
+
+  // Fade out loading screen
+  if (loadScreen) {
+    loadScreen.style.opacity = '0';
+    setTimeout(() => { loadScreen.style.display = 'none'; }, 600);
+  }
+
+  // --- Game Init ---
+  const saved = loadGame();
+  if (!saved) {
     initBoard();
     initGarden();
   }
@@ -1715,70 +1750,72 @@ function init() {
   S.updateAllText();
   S.updateUI();
 
-  // Resize handler
-  window.addEventListener('resize', () => {
-    resizeCanvases();
-  });
+  window.addEventListener('resize', () => { resizeCanvases(); });
 
   // Start game loop
   requestAnimationFrame(gameLoop);
 
   // Polish init
   GardenParticles.init();
-  SND.startBGM();
 
-  // Show menu
+  // Start BGM on first user interaction (autoplay policy)
+  const startBGMOnce = () => {
+    if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+    SND.startBGM();
+    document.removeEventListener('touchstart', startBGMOnce);
+    document.removeEventListener('click', startBGMOnce);
+  };
+  document.addEventListener('touchstart', startBGMOnce, { once: true });
+  document.addEventListener('click', startBGMOnce, { once: true });
+
   S.showScreen('menu');
 }
 
 // Start
 document.addEventListener('DOMContentLoaded', init);
 
-// ===== POLISH: Sound System =====
+// ===== POLISH: Sound System (Real Audio Files) =====
 const SND = (() => {
-  let ctx, muted = false, bgmGain, bgmStarted = false;
-  function ac() { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); return ctx; }
-  function play(freq, dur, type='sine', vol=0.15) {
-    if (muted) return;
-    const c = ac(), o = c.createOscillator(), g = c.createGain();
-    o.type = type; o.frequency.value = freq;
-    g.gain.setValueAtTime(vol, c.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
-    o.connect(g); g.connect(c.destination);
-    o.start(); o.stop(c.currentTime + dur);
-  }
+  let bgmSource = null, bgmGainNode = null, muted = false, bgmStarted = false;
   return {
     merge(level) {
-      play(300 + level * 80, 0.25, 'sine', 0.12);
-      if (level >= 4) { setTimeout(() => play(600 + level * 60, 0.15, 'triangle', 0.08), 80); }
-      if (level >= 5) {
-        setTimeout(() => play(800, 0.3, 'sine', 0.1), 50);
-        setTimeout(() => play(1000, 0.3, 'sine', 0.08), 150);
-        setTimeout(() => play(1200, 0.4, 'triangle', 0.06), 250);
-      }
+      if (muted) return;
+      if (level >= 5) SFX._play('bloom', 0.55);
     },
-    harvest() { play(500, 0.15); setTimeout(() => play(700, 0.1, 'triangle', 0.1), 80); },
-    plant() { play(200, 0.2, 'triangle', 0.1); setTimeout(() => play(350, 0.15, 'sine', 0.08), 100); },
-    energy() { play(800, 0.15, 'sine', 0.08); setTimeout(() => play(1000, 0.1, 'sine', 0.06), 100); },
-    combo(n) { for(let i=0;i<Math.min(n,5);i++) setTimeout(()=>play(400+i*100,0.12,'triangle',0.08),i*60); },
-    click() { play(600, 0.05, 'sine', 0.05); },
+    harvest() { if (!muted) SFX._play('pop', 0.35); },
+    plant() { if (!muted) SFX._play('select', 0.3); },
+    energy() { if (!muted) SFX._play('sparkle', 0.3); },
+    combo(n) { if (!muted) SFX._play('sparkle', Math.min(0.6, 0.25 + n * 0.07)); },
+    click() { if (!muted) SFX._play('click', 0.2); },
     startBGM() {
       if (bgmStarted || muted) return;
+      const buf = audioBuffers.bgm;
+      if (!buf || !audioContext) return;
       try {
-        const c = ac(); bgmGain = c.createGain(); bgmGain.gain.value = 0.04; bgmGain.connect(c.destination);
-        const chords = [[261,329,392],[220,261,329],[174,220,261],[196,246,329]];
-        let bar=0;
-        (function loop(){
-          if(muted||!bgmStarted)return;
-          const ch=chords[bar%4]; ch.forEach(f=>{const o=c.createOscillator();o.type='sine';o.frequency.value=f;o.connect(bgmGain);o.start();o.stop(c.currentTime+2.8);});
-          bar++; setTimeout(loop,3000);
-        })();
+        if (audioContext.state === 'suspended') audioContext.resume();
+        bgmSource = audioContext.createBufferSource();
+        bgmGainNode = audioContext.createGain();
+        bgmSource.buffer = buf;
+        bgmSource.loop = true;
+        bgmGainNode.gain.value = 0.12;
+        bgmSource.connect(bgmGainNode);
+        bgmGainNode.connect(audioContext.destination);
+        bgmSource.start();
         bgmStarted = true;
-      } catch(e) {}
+      } catch(e) { console.warn('BGM start failed:', e); }
     },
-    stopBGM() { bgmStarted = false; if(bgmGain) bgmGain.gain.value = 0; },
+    stopBGM() {
+      if (bgmSource) { try { bgmSource.stop(); } catch(e) {} bgmSource = null; }
+      bgmGainNode = null;
+      bgmStarted = false;
+    },
     get muted() { return muted; },
-    toggle() { muted = !muted; if(muted) this.stopBGM(); else this.startBGM(); return muted; }
+    toggle() {
+      muted = !muted;
+      if (muted) this.stopBGM();
+      else this.startBGM();
+      return muted;
+    }
   };
 })();
 
