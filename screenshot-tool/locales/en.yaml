@@ -1,0 +1,18 @@
+# English locale — Demo App
+app_name: "Demo App"
+screens:
+  screen_01:
+    headline: "Start a Better Experience"
+    subheadline: "AI makes your everyday life smarter"
+  screen_02:
+    headline: "Everything in One Place"
+    subheadline: "Manage photos, notes, and schedules together"
+  screen_03:
+    headline: "Real-Time Alerts"
+    subheadline: "Never miss an important moment"
+  screen_04:
+    headline: "Dark Mode Support"
+    subheadline: "Easy on your eyes with a beautiful dark theme"
+  screen_05:
+    headline: "Get Started Now"
+    subheadline: "Start free and use it your way"

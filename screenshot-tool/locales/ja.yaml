@@ -1,0 +1,18 @@
+# Japanese locale — Demo App
+app_name: "デモアプリ"
+screens:
+  screen_01:
+    headline: "より良い体験を始めよう"
+    subheadline: "AIがあなたの毎日をスマートに変えます"
+  screen_02:
+    headline: "すべてを一か所に"
+    subheadline: "写真、メモ、スケジュールをまとめて管理"
+  screen_03:
+    headline: "リアルタイム通知"
+    subheadline: "大切な瞬間を見逃しません"
+  screen_04:
+    headline: "ダークモード対応"
+    subheadline: "目に優しいダークテーマを体験してください"
+  screen_05:
+    headline: "今すぐ始めよう"
+    subheadline: "無料で始めて、あなたのスタイルで使おう"

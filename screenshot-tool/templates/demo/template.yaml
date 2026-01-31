@@ -1,0 +1,81 @@
+# Demo App Template — Multiple Layout Patterns
+# Shows 5 different layout styles for a complete App Store listing
+
+app_name: "Demo App"
+
+# Default style (can be overridden per screen)
+style:
+  layout: center-top-text
+  background:
+    type: gradient
+    colors: ["#1a1a2e", "#16213e", "#0f3460"]
+    angle: 135
+  frame:
+    show: true
+    color: "#1C1C1E"
+    shadow: true
+  text:
+    headline:
+      size_ratio: 0.04
+      color: "#FFFFFF"
+    subheadline:
+      size_ratio: 0.024
+      color: "#B0B0CC"
+  screenshot:
+    scale: 0.62
+    corner_radius: 50
+
+screens:
+  # Screen 1: Center device + top text (classic pattern)
+  - id: screen-01
+    screenshot: "screen-01.png"
+    text_key: "screen_01"
+
+  # Screen 2: Feature highlight (emphasizes a specific feature)
+  - id: screen-02
+    screenshot: "screen-02.png"
+    text_key: "screen_02"
+    style_override:
+      layout: feature-highlight
+      background:
+        type: gradient
+        colors: ["#0D1B2A", "#1B2838", "#2C3E50"]
+        angle: 180
+      screenshot:
+        scale: 0.55
+
+  # Screen 3: Full bleed (immersive, for games/media)
+  - id: screen-03
+    screenshot: "screen-03.png"
+    text_key: "screen_03"
+    style_override:
+      layout: full-bleed
+
+  # Screen 4: Dark premium (sleek dark theme)
+  - id: screen-04
+    screenshot: "screen-04.png"
+    text_key: "screen_04"
+    style_override:
+      layout: dark-premium
+      background:
+        type: gradient
+        colors: ["#0D0D0D", "#1A1A2E", "#0D0D1A"]
+        angle: 180
+
+  # Screen 5: Text-only (social proof / CTA)
+  - id: screen-05
+    screenshot: "screen-05.png"
+    text_key: "screen_05"
+    style_override:
+      layout: text-only
+      background:
+        type: gradient
+        colors: ["#2D1B69", "#1a1a4e", "#0f2460"]
+        angle: 135
+      text:
+        headline:
+          size_ratio: 0.055
+          color: "#FFFFFF"
+        subheadline:
+          size_ratio: 0.03
+          color: "#B0B0EE"

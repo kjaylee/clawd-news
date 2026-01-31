@@ -1,0 +1,97 @@
+# Device definitions for App Store / Google Play screenshots
+devices:
+  iphone-6.7:
+    name: "iPhone 6.7\""
+    display_name: "iPhone 16 Pro Max"
+    width: 1290
+    height: 2796
+    platform: apple
+    corner_radius: 55
+    bezel_width: 18
+    bezel_color: "#1C1C1E"
+
+  iphone-6.1:
+    name: "iPhone 6.1\""
+    display_name: "iPhone 16"
+    width: 1179
+    height: 2556
+    platform: apple
+    corner_radius: 50
+    bezel_width: 16
+    bezel_color: "#1C1C1E"
+
+  ipad-12.9:
+    name: "iPad 12.9\""
+    display_name: "iPad Pro 12.9\""
+    width: 2048
+    height: 2732
+    platform: apple
+    corner_radius: 30
+    bezel_width: 20
+    bezel_color: "#1C1C1E"
+
+  android-phone:
+    name: "Android Phone"
+    display_name: "Android Phone"
+    width: 1080
+    height: 1920
+    platform: google
+    corner_radius: 20
+    bezel_width: 14
+    bezel_color: "#1C1C1E"
+
+  android-tablet:
+    name: "Android Tablet"
+    display_name: "Android Tablet"
+    width: 1200
+    height: 1920
+    platform: google
+    corner_radius: 20
+    bezel_width: 16
+    bezel_color: "#1C1C1E"
+
+# Font configuration
+fonts:
+  ko:
+    regular:
+      path: "/System/Library/Fonts/AppleSDGothicNeo.ttc"
+      index: 0
+    bold:
+      path: "/System/Library/Fonts/AppleSDGothicNeo.ttc"
+      index: 6
+    semibold:
+      path: "/System/Library/Fonts/AppleSDGothicNeo.ttc"
+      index: 4
+
+  en:
+    regular:
+      path: "/Library/Fonts/SF-Pro-Display-Regular.otf"
+      index: 0
+    bold:
+      path: "/Library/Fonts/SF-Pro-Display-Bold.otf"
+      index: 0
+    semibold:
+      path: "/Library/Fonts/SF-Pro-Display-Semibold.otf"
+      index: 0
+
+  ja:
+    regular:
+      path: "/System/Library/Fonts/ヒラギノ角ゴシック W3.ttc"
+      index: 0
+    bold:
+      path: "/System/Library/Fonts/ヒラギノ角ゴシック W8.ttc"
+      index: 0
+    semibold:
+      path: "/System/Library/Fonts/ヒラギノ角ゴシック W6.ttc"
+      index: 0
+
+  default:
+    regular:
+      path: "/System/Library/Fonts/HelveticaNeue.ttc"
+      index: 0
+    bold:
+      path: "/System/Library/Fonts/HelveticaNeue.ttc"
+      index: 1
+    semibold:
+      path: "/System/Library/Fonts/HelveticaNeue.ttc"
+      index: 10
