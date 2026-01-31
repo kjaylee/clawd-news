@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing Speed Test — 타이핑 속도 측정 | East Sea Tools</title>
+<meta name="description" content="타이핑 속도를 측정하고 연습하세요. WPM, 정확도, 실시간 통계. 한국어/영어 텍스트 지원. 온라인 타자 연습.">
+<meta name="keywords" content="typing test, typing speed, WPM, 타이핑 테스트, 타자 연습, 타자 속도, 타이핑 속도 측정">
+<link rel="canonical" href="https://eastsea.monster/services/typing-test/">
+<meta property="og:title" content="⌨️ Typing Speed Test — 타이핑 속도 측정">
+<meta property="og:description" content="타이핑 속도를 측정하고 연습하세요. WPM, 정확도, 실시간 통계 제공.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/typing-test/">
+<meta property="og:site_name" content="East Sea Tools">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:800px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.stat-box{text-align:center;padding:16px 8px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius)}
+.stat-box .num{font-size:1.8rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-box .lbl{font-size:.7rem;color:var(--muted);margin-top:4px;text-transform:uppercase}
+.config-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.config-btn{padding:8px 16px;background:var(--bg);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:.8rem;color:var(--text);transition:all .2s}
+.config-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.config-label{font-size:.85rem;color:var(--muted);margin-bottom:8px;display:block}
+.text-display{font-size:1.15rem;line-height:2;padding:24px;background:var(--bg);border-radius:12px;position:relative;min-height:120px;user-select:none;margin-bottom:16px;border:2px solid transparent;transition:border-color .2s}
+.text-display.active{border-color:var(--accent)}
+.text-display .char{transition:color .05s}
+.text-display .char.correct{color:var(--green)}
+.text-display .char.incorrect{color:var(--red);text-decoration:underline;text-decoration-color:var(--red)}
+.text-display .char.current{background:rgba(102,126,234,.3);border-radius:2px}
+.text-display .char.pending{color:var(--dim)}
+.text-display .cursor{display:inline-block;width:2px;height:1.2em;background:var(--accent);vertical-align:text-bottom;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.input-area{width:100%;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:1rem;font-family:inherit;resize:none;outline:none}
+.input-area:focus{border-color:var(--accent)}
+.btn{padding:14px 28px;border:none;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text)}
+.btn-row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.timer-bar{height:4px;background:var(--border);border-radius:2px;margin-bottom:16px;overflow:hidden}
+.timer-fill{height:100%;background:linear-gradient(90deg,var(--green),var(--accent));border-radius:2px;transition:width .1s linear}
+.result-panel{display:none;text-align:center}
+.result-panel h2{font-size:1.5rem;margin-bottom:20px;color:var(--accent)}
+.result-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.result-item{padding:16px;background:var(--bg);border-radius:12px}
+.result-item .val{font-size:2rem;font-weight:800;color:var(--accent)}
+.result-item .lbl{font-size:.8rem;color:var(--muted);margin-top:4px}
+.grade{font-size:3rem;margin:20px 0}
+.history{margin-top:20px}
+.history h3{font-size:.9rem;color:var(--muted);margin-bottom:10px}
+.history-list{max-height:200px;overflow-y:auto}
+.history-row{display:flex;justify-content:space-between;padding:8px 12px;background:var(--bg);border-radius:8px;margin-bottom:4px;font-size:.8rem}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:24px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+@media(max-width:480px){.container{padding:20px 14px 40px}.stats-row{grid-template-columns:repeat(2,1fr)}.result-grid{grid-template-columns:1fr}.text-display{font-size:1rem;padding:16px}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<a href="/services/">← Tools</a>
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+<div class="container">
+<h1>⌨️ <span data-i18n="title">타이핑 속도 측정</span></h1>
+<p class="subtitle" data-i18n="subtitle">얼마나 빠르게 타이핑할 수 있나요?</p>
+
+<!-- Live Stats -->
+<div class="stats-row">
+<div class="stat-box"><div class="num" id="liveWpm">0</div><div class="lbl">WPM</div></div>
+<div class="stat-box"><div class="num" id="liveAcc">100<span style="font-size:.9rem">%</span></div><div class="lbl" data-i18n="accuracy">정확도</div></div>
+<div class="stat-box"><div class="num" id="liveTime">0<span style="font-size:.9rem">s</span></div><div class="lbl" data-i18n="time">시간</div></div>
+<div class="stat-box"><div class="num" id="liveChars">0</div><div class="lbl" data-i18n="chars">타수</div></div>
+</div>
+
+<!-- Config -->
+<div class="card" id="configPanel">
+<span class="config-label" data-i18n="duration">⏱️ 시간</span>
+<div class="config-row">
+<div class="config-btn" onclick="setDuration(15)">15s</div>
+<div class="config-btn active" onclick="setDuration(30)">30s</div>
+<div class="config-btn" onclick="setDuration(60)">60s</div>
+<div class="config-btn" onclick="setDuration(120)">120s</div>
+</div>
+<span class="config-label" data-i18n="textType">📝 텍스트</span>
+<div class="config-row">
+<div class="config-btn active" onclick="setTextType('en')" id="typeEn">English</div>
+<div class="config-btn" onclick="setTextType('ko')" id="typeKo">한국어</div>
+<div class="config-btn" onclick="setTextType('code')" id="typeCode">Code</div>
+<div class="config-btn" onclick="setTextType('numbers')" id="typeNum">Numbers</div>
+</div>
+</div>
+
+<!-- Timer Bar -->
+<div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+
+<!-- Text Display -->
+<div class="card" id="testPanel">
+<div class="text-display" id="textDisplay">
+<span class="char pending" data-i18n="clickToStart">타이핑을 시작하려면 아래 입력창을 클릭하세요...</span>
+</div>
+<textarea class="input-area" id="inputArea" rows="2" placeholder="" data-i18n-ph="inputPlaceholder" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></textarea>
+<div class="btn-row">
+<button class="btn btn-primary" onclick="resetTest()" data-i18n="restart">🔄 다시 시작</button>
+</div>
+</div>
+
+<!-- Results -->
+<div class="result-panel" id="resultPanel">
+<div class="grade" id="grade"></div>
+<h2 data-i18n="resultTitle">테스트 결과</h2>
+<div class="result-grid">
+<div class="result-item"><div class="val" id="resWpm">0</div><div class="lbl">WPM</div></div>
+<div class="result-item"><div class="val" id="resAcc">0%</div><div class="lbl" data-i18n="accuracy">정확도</div></div>
+<div class="result-item"><div class="val" id="resCpm">0</div><div class="lbl">CPM</div></div>
+<div class="result-item"><div class="val" id="resCorrect">0</div><div class="lbl" data-i18n="correctChars">정확 타수</div></div>
+</div>
+<div class="btn-row">
+<button class="btn btn-primary" onclick="resetTest()" data-i18n="tryAgain">🔄 다시 도전</button>
+</div>
+</div>
+
+<!-- History -->
+<div class="history" id="historyPanel" style="display:none">
+<h3 data-i18n="history">📊 기록</h3>
+<div class="history-list" id="historyList"></div>
+</div>
+
+<div class="ad-placeholder" data-i18n="ad">AD SPACE</div>
+</div>
+
+<footer>
+<p>© 2026 <a href="/">East Sea</a> · <a href="/services/">Tools</a></p>
+</footer>
+
+<script>
+const i18n={
+ko:{title:'타이핑 속도 측정',subtitle:'얼마나 빠르게 타이핑할 수 있나요?',accuracy:'정확도',time:'시간',chars:'타수',duration:'⏱️ 시간',textType:'📝 텍스트',clickToStart:'타이핑을 시작하려면 아래 입력창을 클릭하세요...',restart:'🔄 다시 시작',resultTitle:'테스트 결과',correctChars:'정확 타수',tryAgain:'🔄 다시 도전',history:'📊 기록',ad:'광고 영역',inputPlaceholder:'여기에 타이핑하세요...'},
+en:{title:'Typing Speed Test',subtitle:'How fast can you type?',accuracy:'Accuracy',time:'Time',chars:'Chars',duration:'⏱️ Duration',textType:'📝 Text',clickToStart:'Click the input below to start typing...',restart:'🔄 Restart',resultTitle:'Test Results',correctChars:'Correct',tryAgain:'🔄 Try Again',history:'📊 History',ad:'AD SPACE',inputPlaceholder:'Start typing here...'}
+};
+
+const texts={
+en:[
+"The quick brown fox jumps over the lazy dog near the riverbank where flowers bloom every spring season",
+"Programming is the art of telling a computer what to do through carefully written instructions and logic",
+"Success is not final failure is not fatal it is the courage to continue that counts in the end",
+"Every morning brings new potential but if you dwell on the misfortunes of the day before you tend to overlook",
+"The best way to predict the future is to create it with your own hands and determination",
+"A journey of a thousand miles begins with a single step taken in the right direction with confidence",
+"Technology is nothing what is important is that you have faith in people that they are basically good",
+"Innovation distinguishes between a leader and a follower you must think differently to succeed",
+"Life is what happens to you while you are busy making other plans for the distant future",
+"The only way to do great work is to love what you do and never settle for anything less"
+],
+ko:[
+"빠른 갈색 여우가 게으른 개 위를 뛰어넘었습니다 강가에는 봄마다 꽃이 피어납니다",
+"프로그래밍은 컴퓨터에게 무엇을 해야 하는지 알려주는 예술이며 논리적 사고가 필요합니다",
+"성공은 끝이 아니며 실패도 치명적이지 않습니다 중요한 것은 계속할 수 있는 용기입니다",
+"매일 아침은 새로운 가능성을 가져오지만 어제의 불행에 집착하면 기회를 놓치게 됩니다",
+"미래를 예측하는 가장 좋은 방법은 자신의 손으로 직접 만들어 나가는 것입니다",
+"천리 길도 한 걸음부터 시작됩니다 올바른 방향으로 자신감을 가지고 걸어가세요",
+"기술은 아무것도 아닙니다 중요한 것은 사람들이 기본적으로 선하다는 믿음을 갖는 것입니다",
+"혁신은 리더와 추종자를 구별합니다 성공하려면 다르게 생각해야 합니다",
+"인생은 당신이 먼 미래를 위한 다른 계획을 세우느라 바쁜 동안 일어나는 일입니다",
+"위대한 일을 하는 유일한 방법은 자신이 하는 일을 사랑하고 절대 타협하지 않는 것입니다"
+],
+code:[
+"function fibonacci(n) { if (n <= 1) return n; return fibonacci(n - 1) + fibonacci(n - 2); }",
+"const data = await fetch('/api/users').then(res => res.json()).catch(err => console.error(err));",
+"for (let i = 0; i < array.length; i++) { if (array[i] % 2 === 0) result.push(array[i]); }",
+"class Node { constructor(val) { this.val = val; this.next = null; } } let head = new Node(1);",
+"const map = new Map(); array.forEach(item => map.set(item.id, item)); return [...map.values()];",
+"export default function App() { const [count, setCount] = useState(0); return <div>{count}</div>; }",
+"SELECT users.name, COUNT(orders.id) FROM users LEFT JOIN orders ON users.id = orders.user_id GROUP BY users.id;",
+"const result = arr.filter(x => x > 0).map(x => x * 2).reduce((acc, val) => acc + val, 0);",
+"if (err != nil) { log.Printf(\"error: %v\", err); return fmt.Errorf(\"failed to process: %w\", err); }",
+"docker run -d --name web -p 8080:80 -v ./html:/usr/share/nginx/html:ro nginx:alpine"
+],
+numbers:[
+"3141592653 5897932384 6264338327 9502884197 1693993751 0582097494 4592307816 4062862089",
+"2718281828 4590452353 6028747135 2662497757 2470936999 5957496696 7627724076 6303535475",
+"1234567890 9876543210 1357924680 2468013579 5050505050 1212121212 9090909090 3636363636",
+"8675309142 7182818284 6180339887 1414213562 2236067977 1732050808 2449489743 3162277660",
+"0123456789 1029384756 5647382910 9081726354 4536271809 1827364509 7263549180 3645091827"
+]};
+
+let lang='ko',duration=30,textType='en',testText='',charIndex=0,startTime=null,timerInterval=null,isRunning=false,isFinished=false;
+let correctChars=0,incorrectChars=0,history=JSON.parse(localStorage.getItem('typingHistory')||'[]');
+
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]});document.querySelectorAll('[data-i18n-ph]').forEach(el=>{const k=el.getAttribute('data-i18n-ph');if(i18n[lang][k])el.placeholder=i18n[lang][k]})}
+
+function setDuration(d){duration=d;document.querySelectorAll('.config-row')[0].querySelectorAll('.config-btn').forEach(b=>b.classList.toggle('active',b.textContent===d+'s'));resetTest()}
+function setTextType(t){textType=t;document.querySelectorAll('.config-row')[1].querySelectorAll('.config-btn').forEach(b=>b.classList.remove('active'));
+  const id=t==='en'?'typeEn':t==='ko'?'typeKo':t==='code'?'typeCode':'typeNum';document.getElementById(id).classList.add('active');resetTest()}
+
+function getRandomText(){
+  const pool=texts[textType]||texts.en;
+  const shuffled=[...pool].sort(()=>Math.random()-.5);
+  return shuffled.slice(0,3).join(' ')}
+
+function resetTest(){
+  isRunning=false;isFinished=false;charIndex=0;correctChars=0;incorrectChars=0;startTime=null;
+  if(timerInterval)clearInterval(timerInterval);
+  testText=getRandomText();
+  document.getElementById('timerFill').style.width='100%';
+  document.getElementById('resultPanel').style.display='none';
+  document.getElementById('testPanel').style.display='block';
+  document.getElementById('configPanel').style.display='block';
+  document.getElementById('inputArea').value='';
+  document.getElementById('inputArea').disabled=false;
+  updateLiveStats();renderText();renderHistory()}
+
+function renderText(){
+  const display=document.getElementById('textDisplay');
+  let html='';
+  for(let i=0;i<testText.length;i++){
+    let cls='pending';
+    if(i<charIndex){cls=i<correctChars+incorrectChars?(testText[i]===testText[i]?'correct':'incorrect'):'pending'}
+    html+=`<span class="char ${cls}" data-idx="${i}">${testText[i]===' '?'&nbsp;':escapeHtml(testText[i])}</span>`}
+  display.innerHTML=html;
+  // Update char classes based on actual typing
+  updateCharDisplay()}
+
+function updateCharDisplay(){
+  const input=document.getElementById('inputArea').value;
+  const chars=document.querySelectorAll('#textDisplay .char');
+  let correct=0,incorrect=0;
+  chars.forEach((ch,i)=>{
+    ch.className='char';
+    if(i<input.length){
+      if(input[i]===testText[i]){ch.classList.add('correct');correct++}
+      else{ch.classList.add('incorrect');incorrect++}}
+    else if(i===input.length){ch.classList.add('current')}
+    else{ch.classList.add('pending')}});
+  correctChars=correct;incorrectChars=incorrect}
+
+function escapeHtml(t){return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function updateLiveStats(){
+  if(!startTime){
+    document.getElementById('liveWpm').textContent='0';
+    document.getElementById('liveAcc').innerHTML='100<span style="font-size:.9rem">%</span>';
+    document.getElementById('liveTime').innerHTML='0<span style="font-size:.9rem">s</span>';
+    document.getElementById('liveChars').textContent='0';return}
+  const elapsed=(Date.now()-startTime)/1000;
+  const totalTyped=correctChars+incorrectChars;
+  const wpm=elapsed>0?Math.round((correctChars/5)/(elapsed/60)):0;
+  const acc=totalTyped>0?Math.round((correctChars/totalTyped)*100):100;
+  const remaining=Math.max(0,duration-Math.floor(elapsed));
+  document.getElementById('liveWpm').textContent=wpm;
+  document.getElementById('liveAcc').innerHTML=acc+'<span style="font-size:.9rem">%</span>';
+  document.getElementById('liveTime').innerHTML=remaining+'<span style="font-size:.9rem">s</span>';
+  document.getElementById('liveChars').textContent=totalTyped;
+  document.getElementById('timerFill').style.width=(remaining/duration*100)+'%'}
+
+function startTimer(){
+  startTime=Date.now();isRunning=true;
+  document.getElementById('configPanel').style.display='none';
+  timerInterval=setInterval(()=>{
+    updateLiveStats();
+    const elapsed=(Date.now()-startTime)/1000;
+    if(elapsed>=duration)finishTest()},100)}
+
+function finishTest(){
+  isRunning=false;isFinished=true;
+  clearInterval(timerInterval);
+  document.getElementById('inputArea').disabled=true;
+  const elapsed=duration;
+  const totalTyped=correctChars+incorrectChars;
+  const wpm=Math.round((correctChars/5)/(elapsed/60));
+  const cpm=Math.round(correctChars/(elapsed/60));
+  const acc=totalTyped>0?Math.round((correctChars/totalTyped)*100):100;
+  const grade=getGrade(wpm);
+  // Show results
+  document.getElementById('resultPanel').style.display='block';
+  document.getElementById('testPanel').style.display='none';
+  document.getElementById('grade').textContent=grade.emoji;
+  document.getElementById('resWpm').textContent=wpm;
+  document.getElementById('resAcc').textContent=acc+'%';
+  document.getElementById('resCpm').textContent=cpm;
+  document.getElementById('resCorrect').textContent=correctChars+'/'+totalTyped;
+  // Save history
+  history.unshift({wpm,acc,cpm,duration,textType,date:new Date().toISOString()});
+  if(history.length>20)history=history.slice(0,20);
+  localStorage.setItem('typingHistory',JSON.stringify(history));renderHistory()}
+
+function getGrade(wpm){
+  if(wpm>=120)return{emoji:'🏆',label:'Legendary'};
+  if(wpm>=90)return{emoji:'⚡',label:'Expert'};
+  if(wpm>=70)return{emoji:'🔥',label:'Fast'};
+  if(wpm>=50)return{emoji:'👍',label:'Good'};
+  if(wpm>=30)return{emoji:'📝',label:'Average'};
+  return{emoji:'🐢',label:'Beginner'}}
+
+function renderHistory(){
+  const panel=document.getElementById('historyPanel');
+  const list=document.getElementById('historyList');
+  if(history.length===0){panel.style.display='none';return}
+  panel.style.display='block';
+  list.innerHTML=history.map(h=>`<div class="history-row">
+    <span>${new Date(h.date).toLocaleDateString()} ${h.textType} ${h.duration}s</span>
+    <span><strong>${h.wpm}</strong> WPM · ${h.acc}%</span>
+  </div>`).join('')}
+
+// Input handling
+const inputArea=document.getElementById('inputArea');
+inputArea.addEventListener('input',()=>{
+  if(isFinished)return;
+  if(!isRunning)startTimer();
+  updateCharDisplay();updateLiveStats();
+  // Check if all text typed
+  if(inputArea.value.length>=testText.length)finishTest()});
+inputArea.addEventListener('paste',e=>e.preventDefault());
+
+// Init
+resetTest();
+</script>
+</body>
+</html>
