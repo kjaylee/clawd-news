@@ -1,0 +1,9 @@
+misskim-skills/
+screenshot-tool/output/
+.clawdhub/
+.skillkit/
+assets/blender-test/
+rag/data/
+__pycache__/
+*.pyc
+.env
