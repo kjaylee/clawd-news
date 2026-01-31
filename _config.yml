@@ -3,10 +3,6 @@ description: "데일리 브리핑 · 게임 기획 · 게임 에셋"
 url: "https://eastsea.monster"
 baseurl: ""
 
-collections:
-  assets:
-    output: false
-
 future: true
 timezone: Asia/Seoul
 
@@ -22,12 +18,27 @@ defaults:
       layout: "post"
   - scope:
       path: ""
-      type: "assets"
-    values:
-      layout: "asset"
-  - scope:
-      path: ""
     values:
       layout: "default"
+
+exclude:
+  - _assets
+  - misskim-skills
+  - screenshot-tool
+  - tmp
+  - rag
+  - scripts
+  - specs
+  - skills
+  - node_modules
+  - Gemfile
+  - AGENTS.md
+  - SOUL.md
+  - USER.md
+  - TOOLS.md
+  - MEMORY.md
+  - HEARTBEAT.md
+  - IDENTITY.md
+  - PASSIVE_INCOME_PLAN.md
 
 permalink: /:categories/:year/:month/:day/:title/
