@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Sudoku Zen 🧘</title>
+<meta name="description" content="차분한 스도쿠 퍼즐. 9×9 그리드, 메모 모드, 힌트, 3단계 난이도. 모바일 최적화.">
+<meta property="og:title" content="Sudoku Zen 🧘 — East Sea Games">
+<meta property="og:description" content="미니멀 젠 스타일 스도쿠. 쉬움/보통/어려움 난이도, 메모 모드, 힌트 시스템. 텔레그램에서 무료 플레이!">
+<meta property="og:image" content="https://eastsea.monster/games/sudoku-zen/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/sudoku-zen/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/sudoku-zen/">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"VideoGame","name":"Sudoku Zen",
+  "url":"https://eastsea.monster/games/sudoku-zen/",
+  "description":"미니멀 젠 스타일 스도쿠 퍼즐. 3단계 난이도, 메모 모드, 힌트 시스템.",
+  "image":"https://eastsea.monster/games/sudoku-zen/og.png",
+  "gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+  "genre":"Puzzle","operatingSystem":"Any","inLanguage":["ko","en"],
+  "playMode":"SinglePlayer",
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},
+  "author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}
+}
+</script>
+<style>
+:root {
+  --zen-bg: #f5f0e8;
+  --zen-card: #faf8f3;
+  --zen-text: #2c2c2c;
+  --zen-text-light: #6b6b6b;
+  --zen-accent: #5a7d6a;
+  --zen-accent-light: #7fa88f;
+  --zen-grid-bold: #3a3a3a;
+  --zen-grid-thin: #c8c0b4;
+  --zen-cell-selected: rgba(90,125,106,0.15);
+  --zen-cell-same-num: rgba(90,125,106,0.08);
+  --zen-cell-highlight: rgba(90,125,106,0.06);
+  --zen-cell-error: rgba(220,80,60,0.12);
+  --zen-given: #2c2c2c;
+  --zen-filled: #5a7d6a;
+  --zen-error: #c0392b;
+  --zen-note: #8a8a8a;
+  --zen-btn: #5a7d6a;
+  --zen-btn-text: #fff;
+  --zen-shadow: rgba(0,0,0,0.06);
+  --safe-top: 0px;
+  --safe-bottom: 0px;
+}
+.dark {
+  --zen-bg: #1a1f2e;
+  --zen-card: #222838;
+  --zen-text: #e0ddd5;
+  --zen-text-light: #8a8a9a;
+  --zen-accent: #7fa88f;
+  --zen-accent-light: #9fc4ac;
+  --zen-grid-bold: #5a5a6a;
+  --zen-grid-thin: #3a3a4a;
+  --zen-cell-selected: rgba(127,168,143,0.2);
+  --zen-cell-same-num: rgba(127,168,143,0.1);
+  --zen-cell-highlight: rgba(127,168,143,0.06);
+  --zen-cell-error: rgba(220,80,60,0.15);
+  --zen-given: #d0cdc5;
+  --zen-filled: #9fc4ac;
+  --zen-error: #e74c3c;
+  --zen-note: #6a6a7a;
+  --zen-btn: #7fa88f;
+  --zen-btn-text: #1a1f2e;
+  --zen-shadow: rgba(0,0,0,0.2);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'SF Pro Display','Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:var(--zen-bg);color:var(--zen-text);display:flex;flex-direction:column;align-items:center;user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:background .3s,color .3s}
+
+/* Header */
+.header{width:100%;max-width:420px;padding:8px 16px;padding-top:calc(var(--safe-top) + 8px);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.header-left{display:flex;align-items:center;gap:8px}
+.header-title{font-size:18px;font-weight:700;letter-spacing:-0.3px;color:var(--zen-text)}
+.header-right{display:flex;align-items:center;gap:12px}
+.stat{display:flex;flex-direction:column;align-items:center;font-size:11px;color:var(--zen-text-light);line-height:1.2}
+.stat-val{font-size:15px;font-weight:600;color:var(--zen-text)}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:0.5px}
+.diff-badge{font-size:11px;padding:3px 8px;border-radius:10px;background:var(--zen-accent);color:var(--zen-btn-text);font-weight:600;cursor:pointer;border:none;transition:transform .15s}
+.diff-badge:active{transform:scale(0.95)}
+
+/* Board Container */
+.board-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;max-width:420px;padding:4px 10px;min-height:0}
+.board{position:relative;width:100%;aspect-ratio:1;max-height:100%;background:var(--zen-card);border-radius:12px;box-shadow:0 2px 20px var(--zen-shadow);overflow:hidden}
+.board-grid{display:grid;grid-template-columns:repeat(9,1fr);grid-template-rows:repeat(9,1fr);width:100%;height:100%;position:relative;z-index:1}
+
+/* Cells */
+.cell{display:flex;align-items:center;justify-content:center;font-size:clamp(16px,4.5vw,24px);font-weight:500;cursor:pointer;position:relative;transition:background .15s;border-right:1px solid var(--zen-grid-thin);border-bottom:1px solid var(--zen-grid-thin);-webkit-tap-highlight-color:transparent}
+.cell:nth-child(3n){border-right-color:var(--zen-grid-bold);border-right-width:2px}
+.cell:nth-child(9n){border-right:none}
+.cell:nth-child(n+19):nth-child(-n+27),
+.cell:nth-child(n+46):nth-child(-n+54),
+.cell:nth-child(n+73):nth-child(-n+81){border-bottom-color:var(--zen-grid-bold);border-bottom-width:2px}
+.cell:nth-child(n+73){border-bottom:none}
+
+.cell.given{font-weight:700;color:var(--zen-given)}
+.cell.filled{color:var(--zen-filled)}
+.cell.selected{background:var(--zen-cell-selected)}
+.cell.same-num{background:var(--zen-cell-same-num)}
+.cell.highlight{background:var(--zen-cell-highlight)}
+.cell.error{background:var(--zen-cell-error)}
+.cell.error .cell-val{color:var(--zen-error)}
+.cell:active:not(.given){background:var(--zen-cell-selected)}
+
+/* Notes */
+.cell-notes{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:100%;height:100%;position:absolute;top:0;left:0}
+.note-num{display:flex;align-items:center;justify-content:center;font-size:clamp(7px,1.8vw,10px);color:var(--zen-note);font-weight:500;line-height:1}
+.cell-val{position:relative;z-index:1}
+
+/* Outer border */
+.board::after{content:'';position:absolute;inset:0;border:2.5px solid var(--zen-grid-bold);border-radius:12px;pointer-events:none;z-index:2}
+
+/* Controls */
+.controls{width:100%;max-width:420px;padding:8px 10px;padding-bottom:calc(var(--safe-bottom) + 8px);flex-shrink:0}
+.numpad{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-bottom:8px}
+.num-btn{aspect-ratio:1;border:none;border-radius:10px;background:var(--zen-card);color:var(--zen-text);font-size:clamp(16px,4.5vw,22px);font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px var(--zen-shadow);transition:all .15s;-webkit-tap-highlight-color:transparent;position:relative}
+.num-btn:active{transform:scale(0.93)}
+.num-btn.active{background:var(--zen-accent);color:var(--zen-btn-text)}
+.num-btn.completed{opacity:0.3;pointer-events:none}
+.num-btn .count{position:absolute;top:2px;right:4px;font-size:8px;color:var(--zen-text-light);font-weight:400}
+.num-btn.active .count{color:var(--zen-btn-text);opacity:0.7}
+
+.actions{display:flex;gap:6px;justify-content:center}
+.act-btn{flex:1;max-width:100px;height:40px;border:none;border-radius:10px;background:var(--zen-card);color:var(--zen-text);font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;box-shadow:0 1px 4px var(--zen-shadow);transition:all .15s;-webkit-tap-highlight-color:transparent}
+.act-btn:active{transform:scale(0.95)}
+.act-btn.active{background:var(--zen-accent);color:var(--zen-btn-text)}
+.act-btn .icon{font-size:16px}
+
+/* Menu Overlay */
+.menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;z-index:100;opacity:0;transition:opacity .3s}
+.menu-overlay.show{display:flex;opacity:1}
+.menu-card{background:var(--zen-card);border-radius:20px;padding:32px 28px;text-align:center;min-width:280px;max-width:340px;width:85%;box-shadow:0 20px 60px rgba(0,0,0,0.15);transform:scale(0.9);transition:transform .3s cubic-bezier(0.34,1.56,0.64,1)}
+.menu-overlay.show .menu-card{transform:scale(1)}
+.menu-title{font-size:24px;font-weight:700;margin-bottom:4px;color:var(--zen-text)}
+.menu-sub{font-size:13px;color:var(--zen-text-light);margin-bottom:20px}
+.menu-btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:8px;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.menu-btn:active{transform:scale(0.97)}
+.menu-btn.primary{background:var(--zen-accent);color:var(--zen-btn-text)}
+.menu-btn.secondary{background:rgba(90,125,106,0.1);color:var(--zen-accent)}
+.menu-btn.tertiary{background:transparent;color:var(--zen-text-light);font-size:14px}
+
+/* Completion */
+.complete-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:200;opacity:0;transition:opacity .5s}
+.complete-overlay.show{display:flex;opacity:1}
+.complete-bg{position:absolute;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.complete-card{position:relative;background:var(--zen-card);border-radius:24px;padding:36px 28px;text-align:center;min-width:280px;max-width:340px;width:85%;box-shadow:0 20px 80px rgba(0,0,0,0.2);transform:scale(0.8) translateY(30px);transition:transform .5s cubic-bezier(0.34,1.56,0.64,1)}
+.complete-overlay.show .complete-card{transform:scale(1) translateY(0)}
+.complete-emoji{font-size:48px;margin-bottom:8px;animation:floatUp 2s ease-in-out infinite}
+.complete-title{font-size:26px;font-weight:700;color:var(--zen-text);margin-bottom:4px}
+.complete-sub{font-size:14px;color:var(--zen-text-light);margin-bottom:16px}
+.complete-stats{display:flex;justify-content:center;gap:24px;margin-bottom:20px}
+.complete-stat{text-align:center}
+.complete-stat-val{font-size:22px;font-weight:700;color:var(--zen-accent)}
+.complete-stat-label{font-size:11px;color:var(--zen-text-light);text-transform:uppercase;letter-spacing:0.5px}
+.complete-btns{display:flex;flex-direction:column;gap:8px}
+
+/* Confetti */
+.confetti{position:fixed;top:-10px;width:8px;height:8px;border-radius:2px;z-index:201;pointer-events:none;animation:confettiFall linear forwards}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(110vh) rotate(720deg);opacity:0}}
+@keyframes floatUp{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+/* Ripple */
+@keyframes cellPop{0%{transform:scale(0.5);opacity:0}50%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.cell-pop .cell-val{animation:cellPop .3s ease-out}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <span class="header-title">🧘 Sudoku Zen</span>
+    <button class="diff-badge" id="diffBadge"></button>
+  </div>
+  <div class="header-right">
+    <div class="stat">
+      <span class="stat-val" id="timerVal">0:00</span>
+      <span class="stat-label" id="timerLabel">TIME</span>
+    </div>
+    <div class="stat">
+      <span class="stat-val" id="mistakeVal">0/3</span>
+      <span class="stat-label" id="mistakeLabel">MISTAKES</span>
+    </div>
+  </div>
+</div>
+
+<!-- Board -->
+<div class="board-wrap">
+  <div class="board">
+    <div class="board-grid" id="boardGrid"></div>
+  </div>
+</div>
+
+<!-- Controls -->
+<div class="controls">
+  <div class="numpad" id="numpad"></div>
+  <div class="actions">
+    <button class="act-btn" id="btnUndo"><span class="icon">↩</span><span id="undoText">Undo</span></button>
+    <button class="act-btn" id="btnErase"><span class="icon">⌫</span><span id="eraseText">Erase</span></button>
+    <button class="act-btn" id="btnNotes"><span class="icon">✏️</span><span id="notesText">Notes</span></button>
+    <button class="act-btn" id="btnHint"><span class="icon">💡</span><span id="hintText">Hint</span> <span id="hintCount">3</span></button>
+    <button class="act-btn" id="btnNew"><span class="icon">🔄</span><span id="newText">New</span></button>
+  </div>
+</div>
+
+<!-- Difficulty Menu -->
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-card">
+    <div class="menu-title" id="menuTitle">Sudoku Zen</div>
+    <div class="menu-sub" id="menuSub">Choose difficulty</div>
+    <button class="menu-btn primary" data-diff="easy" id="menuEasy">Easy</button>
+    <button class="menu-btn secondary" data-diff="medium" id="menuMedium">Medium</button>
+    <button class="menu-btn secondary" data-diff="hard" id="menuHard">Hard</button>
+    <button class="menu-btn tertiary" id="menuResume" style="display:none">Resume</button>
+  </div>
+</div>
+
+<!-- Completion Overlay -->
+<div class="complete-overlay" id="completeOverlay">
+  <div class="complete-bg"></div>
+  <div class="complete-card">
+    <div class="complete-emoji">🎉</div>
+    <div class="complete-title" id="completeTitle">Congratulations!</div>
+    <div class="complete-sub" id="completeSub">Puzzle Complete</div>
+    <div class="complete-stats">
+      <div class="complete-stat">
+        <div class="complete-stat-val" id="completeTime">0:00</div>
+        <div class="complete-stat-label" id="completeTimeLabel">Time</div>
+      </div>
+      <div class="complete-stat">
+        <div class="complete-stat-val" id="completeMistakes">0</div>
+        <div class="complete-stat-label" id="completeMistakesLabel">Mistakes</div>
+      </div>
+      <div class="complete-stat">
+        <div class="complete-stat-val" id="completeDiff">Easy</div>
+        <div class="complete-stat-label" id="completeDiffLabel">Difficulty</div>
+      </div>
+    </div>
+    <div class="complete-btns">
+      <button class="menu-btn primary" id="completeNew">New Puzzle</button>
+      <button class="menu-btn secondary" id="completeShare">📢 Share</button>
+    </div>
+  </div>
+</div>
+
+<!-- Telegram SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<!-- TG SDK Wrapper (inline) -->
+<script>
+(function(){'use strict';const TG={app:window.Telegram?.WebApp,user:null,isReady:false,_backHandlers:[],init(){if(!this.app){console.log('[TG] Standalone mode');this.isReady=true;this._injectStandaloneCSS();return false}this.app.ready();this.app.expand();this.user=this.app.initDataUnsafe?.user||null;this._applyTheme();this._setupSafeArea();this._setupBackButton();this.app.onEvent('viewportChanged',({isStateStable})=>{if(isStateStable)this._updateViewport()});this.app.onEvent('themeChanged',()=>this._applyTheme());this.isReady=true;console.log(`[TG] Init — user:${this.getUserId()}`);return true},_applyTheme(){const tp=this.app?.themeParams;if(!tp)return;const r=document.documentElement.style;const m={'--tg-bg':tp.bg_color,'--tg-text':tp.text_color,'--tg-hint':tp.hint_color,'--tg-link':tp.link_color,'--tg-button':tp.button_color,'--tg-button-text':tp.button_text_color,'--tg-secondary-bg':tp.secondary_bg_color};for(const[p,v]of Object.entries(m)){if(v)r.setProperty(p,v)}if(tp.bg_color){const c=parseInt(tp.bg_color.slice(1),16);const lum=(((c>>16)&255)*299+((c>>8)&255)*587+(c&255)*114)/1000;if(lum<128)document.body.classList.add('dark');else document.body.classList.remove('dark')}},_setupSafeArea(){this._applySafeAreaValues();if(this.app?.onEvent){this.app.onEvent('safeAreaChanged',()=>this._applySafeAreaValues());this.app.onEvent('contentSafeAreaChanged',()=>this._applySafeAreaValues())}this._updateViewport()},_applySafeAreaValues(){const r=document.documentElement.style;const sa=this.app?.safeAreaInset||{top:0,bottom:0,left:0,right:0};const csa=this.app?.contentSafeAreaInset||{top:0,bottom:0,left:0,right:0};const totalTop=sa.top+csa.top;const totalBottom=sa.bottom+csa.bottom;r.setProperty('--safe-top',`${totalTop}px`);r.setProperty('--safe-bottom',`${totalBottom}px`)},_updateViewport(){const vh=this.app?.viewportStableHeight||window.innerHeight;document.documentElement.style.setProperty('--tg-viewport-height',`${vh}px`)},_setupBackButton(){if(!this.app?.BackButton)return;this.app.BackButton.show();this.app.BackButton.onClick(()=>{for(let i=this._backHandlers.length-1;i>=0;i--){if(this._backHandlers[i]())return}this.app.close()})},_injectStandaloneCSS(){document.documentElement.style.setProperty('--tg-viewport-height',`${window.innerHeight}px`)},getUserId(){return this.user?.id||'anonymous'},getUserName(){return this.user?.first_name||'Player'},getLang(){return this.user?.language_code||navigator.language?.slice(0,2)||'en'},isTelegram(){return!!this.app},haptic(type='impact',style='medium'){if(!this.app?.HapticFeedback)return;try{switch(type){case'impact':this.app.HapticFeedback.impactOccurred(style);break;case'notification':this.app.HapticFeedback.notificationOccurred(style);break;case'selection':this.app.HapticFeedback.selectionChanged();break}}catch{}},save(key,value){try{const uid=this.getUserId();localStorage.setItem(`tg_${uid}_${key}`,JSON.stringify(value))}catch(e){}},load(key,fallback=null){try{const uid=this.getUserId();const raw=localStorage.getItem(`tg_${uid}_${key}`);return raw?JSON.parse(raw):fallback}catch{return fallback}},remove(key){try{const uid=this.getUserId();localStorage.removeItem(`tg_${uid}_${key}`)}catch{}},onBack(handler){this._backHandlers.push(handler)},shareScore(score,gameName,gameId){const text=`🧘 ${gameName} — ${score}!\nTry it! 👇`;const url=`https://t.me/eastsea_games_bot?startapp=game_${gameId}`;if(this.app){this.app.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`)}}};window.TG=TG;function autoInit(){TG.init()}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',autoInit);else autoInit()})();
+</script>
+
+<!-- Game Logic -->
+<script>
+(function() {
+'use strict';
+
+// ═══════════════════════════════════════
+// i18n
+// ═══════════════════════════════════════
+const I18N = {
+  ko: {
+    title: 'Sudoku Zen', chooseDiff: '난이도를 선택하세요',
+    easy: '쉬움', medium: '보통', hard: '어려움', resume: '이어하기',
+    time: '시간', mistakes: '실수', undo: '되돌리기', erase: '지우기',
+    notes: '메모', hint: '힌트', newGame: '새 게임',
+    congrats: '축하합니다!', puzzleComplete: '퍼즐 완성!',
+    difficulty: '난이도', share: '공유하기', newPuzzle: '새 퍼즐',
+    mistakesLabel: '실수', timeLabel: '시간', diffLabel: '난이도',
+    gameOver: '게임 오버', tooManyMistakes: '실수가 너무 많습니다',
+    tryAgain: '다시 도전',
+  },
+  en: {
+    title: 'Sudoku Zen', chooseDiff: 'Choose difficulty',
+    easy: 'Easy', medium: 'Medium', hard: 'Hard', resume: 'Resume',
+    time: 'TIME', mistakes: 'MISTAKES', undo: 'Undo', erase: 'Erase',
+    notes: 'Notes', hint: 'Hint', newGame: 'New', 
+    congrats: 'Congratulations!', puzzleComplete: 'Puzzle Complete!',
+    difficulty: 'Difficulty', share: 'Share', newPuzzle: 'New Puzzle',
+    mistakesLabel: 'Mistakes', timeLabel: 'Time', diffLabel: 'Difficulty',
+    gameOver: 'Game Over', tooManyMistakes: 'Too many mistakes',
+    tryAgain: 'Try Again',
+  }
+};
+const lang = (window.TG?.getLang?.() || 'en').startsWith('ko') ? 'ko' : 'en';
+const t = (key) => I18N[lang][key] || I18N.en[key] || key;
+
+// ═══════════════════════════════════════
+// Sudoku Generator
+// ═══════════════════════════════════════
+function generateSudoku(difficulty) {
+  // Generate a complete valid board using backtracking
+  const board = Array.from({length:9}, () => Array(9).fill(0));
+  
+  function isValid(b, row, col, num) {
+    for (let i = 0; i < 9; i++) {
+      if (b[row][i] === num) return false;
+      if (b[i][col] === num) return false;
+    }
+    const br = Math.floor(row/3)*3, bc = Math.floor(col/3)*3;
+    for (let i = br; i < br+3; i++)
+      for (let j = bc; j < bc+3; j++)
+        if (b[i][j] === num) return false;
+    return true;
+  }
+
+  function fillBoard(b) {
+    for (let r = 0; r < 9; r++) {
+      for (let c = 0; c < 9; c++) {
+        if (b[r][c] === 0) {
+          const nums = shuffle([1,2,3,4,5,6,7,8,9]);
+          for (const n of nums) {
+            if (isValid(b, r, c, n)) {
+              b[r][c] = n;
+              if (fillBoard(b)) return true;
+              b[r][c] = 0;
+            }
+          }
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  // Count solutions (limit to 2 for uniqueness check)
+  function countSolutions(b, limit) {
+    let count = 0;
+    function solve(b) {
+      if (count >= limit) return;
+      for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (b[r][c] === 0) {
+            for (let n = 1; n <= 9; n++) {
+              if (isValid(b, r, c, n)) {
+                b[r][c] = n;
+                solve(b);
+                b[r][c] = 0;
+              }
+            }
+            return;
+          }
+        }
+      }
+      count++;
+    }
+    solve(b);
+    return count;
+  }
+
+  fillBoard(board);
+  const solution = board.map(r => [...r]);
+
+  // Remove cells based on difficulty
+  const clues = { easy: 42, medium: 32, hard: 25 };
+  const target = clues[difficulty] || 32;
+  const puzzle = board.map(r => [...r]);
+  const cells = shuffle([...Array(81).keys()]);
+  let removed = 0;
+
+  for (const idx of cells) {
+    if (81 - removed <= target) break;
+    const r = Math.floor(idx/9), c = idx%9;
+    const backup = puzzle[r][c];
+    puzzle[r][c] = 0;
+    
+    const test = puzzle.map(r => [...r]);
+    if (countSolutions(test, 2) !== 1) {
+      puzzle[r][c] = backup;
+    } else {
+      removed++;
+    }
+  }
+
+  return { puzzle, solution };
+}
+
+// ═══════════════════════════════════════
+// Game State
+// ═══════════════════════════════════════
+let state = {
+  puzzle: null,
+  solution: null,
+  board: null,      // current player board
+  notes: null,      // 9x9 array of Sets
+  given: null,      // 9x9 boolean
+  selected: null,   // {row, col}
+  selectedNum: 0,
+  noteMode: false,
+  difficulty: 'easy',
+  mistakes: 0,
+  maxMistakes: 3,
+  timer: 0,
+  timerInterval: null,
+  hints: 3,
+  history: [],      // undo stack
+  completed: false,
+  paused: false,
+};
+
+// ═══════════════════════════════════════
+// DOM refs
+// ═══════════════════════════════════════
+const $grid = document.getElementById('boardGrid');
+const $numpad = document.getElementById('numpad');
+const $timer = document.getElementById('timerVal');
+const $mistakes = document.getElementById('mistakeVal');
+const $diffBadge = document.getElementById('diffBadge');
+const $hintCount = document.getElementById('hintCount');
+const $menu = document.getElementById('menuOverlay');
+const $complete = document.getElementById('completeOverlay');
+
+// ═══════════════════════════════════════
+// Initialization
+// ═══════════════════════════════════════
+function init() {
+  applyI18N();
+  buildBoard();
+  buildNumpad();
+  bindEvents();
+  showMenu(true);
+}
+
+function applyI18N() {
+  document.getElementById('timerLabel').textContent = t('time');
+  document.getElementById('mistakeLabel').textContent = t('mistakes');
+  document.getElementById('undoText').textContent = t('undo');
+  document.getElementById('eraseText').textContent = t('erase');
+  document.getElementById('notesText').textContent = t('notes');
+  document.getElementById('hintText').textContent = t('hint');
+  document.getElementById('newText').textContent = t('newGame');
+  document.getElementById('menuTitle').textContent = t('title');
+  document.getElementById('menuSub').textContent = t('chooseDiff');
+  document.getElementById('menuEasy').textContent = t('easy');
+  document.getElementById('menuMedium').textContent = t('medium');
+  document.getElementById('menuHard').textContent = t('hard');
+  document.getElementById('menuResume').textContent = t('resume');
+}
+
+function buildBoard() {
+  $grid.innerHTML = '';
+  for (let i = 0; i < 81; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.idx = i;
+    cell.innerHTML = '<div class="cell-notes"></div><span class="cell-val"></span>';
+    $grid.appendChild(cell);
+  }
+}
+
+function buildNumpad() {
+  $numpad.innerHTML = '';
+  for (let n = 1; n <= 9; n++) {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn';
+    btn.dataset.num = n;
+    btn.innerHTML = `${n}<span class="count"></span>`;
+    $numpad.appendChild(btn);
+  }
+}
+
+function bindEvents() {
+  // Board clicks
+  $grid.addEventListener('click', (e) => {
+    const cell = e.target.closest('.cell');
+    if (!cell || state.completed) return;
+    const idx = parseInt(cell.dataset.idx);
+    const row = Math.floor(idx/9), col = idx%9;
+    selectCell(row, col);
+  });
+
+  // Numpad clicks
+  $numpad.addEventListener('click', (e) => {
+    const btn = e.target.closest('.num-btn');
+    if (!btn || state.completed) return;
+    const num = parseInt(btn.dataset.num);
+    inputNumber(num);
+  });
+
+  // Action buttons
+  document.getElementById('btnUndo').addEventListener('click', undo);
+  document.getElementById('btnErase').addEventListener('click', erase);
+  document.getElementById('btnNotes').addEventListener('click', toggleNotes);
+  document.getElementById('btnHint').addEventListener('click', useHint);
+  document.getElementById('btnNew').addEventListener('click', () => showMenu(false));
+  $diffBadge.addEventListener('click', () => showMenu(false));
+
+  // Menu buttons
+  document.querySelectorAll('[data-diff]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      state.difficulty = btn.dataset.diff;
+      startGame();
+    });
+  });
+  document.getElementById('menuResume').addEventListener('click', () => {
+    hideMenu();
+    resumeTimer();
+  });
+
+  // Complete buttons
+  document.getElementById('completeNew').addEventListener('click', () => {
+    hideComplete();
+    showMenu(true);
+  });
+  document.getElementById('completeShare').addEventListener('click', shareResult);
+
+  // Keyboard support
+  document.addEventListener('keydown', (e) => {
+    if (state.completed) return;
+    const num = parseInt(e.key);
+    if (num >= 1 && num <= 9) { inputNumber(num); return; }
+    if (e.key === 'Backspace' || e.key === 'Delete') { erase(); return; }
+    if (e.key === 'z' && (e.ctrlKey || e.metaKey)) { undo(); return; }
+    if (e.key === 'n') { toggleNotes(); return; }
+    
+    // Arrow keys
+    if (state.selected && ['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) {
+      e.preventDefault();
+      let {row, col} = state.selected;
+      if (e.key === 'ArrowUp') row = Math.max(0, row-1);
+      if (e.key === 'ArrowDown') row = Math.min(8, row+1);
+      if (e.key === 'ArrowLeft') col = Math.max(0, col-1);
+      if (e.key === 'ArrowRight') col = Math.min(8, col+1);
+      selectCell(row, col);
+    }
+  });
+
+  // TG back button
+  if (window.TG) {
+    TG.onBack(() => {
+      if ($complete.classList.contains('show')) { hideComplete(); return true; }
+      if ($menu.classList.contains('show')) return false;
+      showMenu(false); return true;
+    });
+  }
+}
+
+// ═══════════════════════════════════════
+// Game Logic
+// ═══════════════════════════════════════
+function startGame() {
+  hideMenu();
+  hideComplete();
+
+  // Generate puzzle
+  const {puzzle, solution} = generateSudoku(state.difficulty);
+  state.puzzle = puzzle;
+  state.solution = solution;
+  state.board = puzzle.map(r => [...r]);
+  state.notes = Array.from({length:9}, () => Array.from({length:9}, () => new Set()));
+  state.given = puzzle.map(r => r.map(v => v !== 0));
+  state.selected = null;
+  state.selectedNum = 0;
+  state.noteMode = false;
+  state.mistakes = 0;
+  state.hints = 3;
+  state.history = [];
+  state.completed = false;
+  state.timer = 0;
+  state.paused = false;
+
+  updateDiffBadge();
+  updateTimer();
+  updateMistakes();
+  updateHintCount();
+  updateNotesBtn();
+  renderBoard();
+  updateNumpadCounts();
+  startTimer();
+
+  if (window.TG) TG.haptic('impact', 'medium');
+}
+
+function selectCell(row, col) {
+  state.selected = {row, col};
+  state.selectedNum = state.board[row][col];
+  renderBoard();
+  if (window.TG) TG.haptic('selection');
+}
+
+function inputNumber(num) {
+  if (!state.selected || state.completed) return;
+  const {row, col} = state.selected;
+  if (state.given[row][col]) return;
+
+  if (state.noteMode) {
+    // Toggle note
+    const notes = state.notes[row][col];
+    state.history.push({type:'note', row, col, notes: new Set(notes), prevVal: state.board[row][col]});
+    if (notes.has(num)) notes.delete(num);
+    else notes.add(num);
+    state.board[row][col] = 0; // clear value if adding note
+    renderBoard();
+    updateNumpadCounts();
+    if (window.TG) TG.haptic('selection');
+    return;
+  }
+
+  // Normal input
+  if (state.board[row][col] === num) return; // same number, skip
+
+  state.history.push({
+    type: 'input', row, col,
+    prevVal: state.board[row][col],
+    notes: new Set(state.notes[row][col]),
+  });
+
+  state.board[row][col] = num;
+  state.notes[row][col].clear();
+  state.selectedNum = num;
+
+  // Check if correct
+  if (num !== state.solution[row][col]) {
+    state.mistakes++;
+    updateMistakes();
+    if (window.TG) TG.haptic('notification', 'error');
+    
+    if (state.mistakes >= state.maxMistakes) {
+      gameOver();
+      return;
+    }
+  } else {
+    // Remove this number from notes in same row/col/box
+    removeRelatedNotes(row, col, num);
+    if (window.TG) TG.haptic('impact', 'light');
+  }
+
+  // Animate
+  const idx = row * 9 + col;
+  const cell = $grid.children[idx];
+  cell.classList.add('cell-pop');
+  setTimeout(() => cell.classList.remove('cell-pop'), 300);
+
+  renderBoard();
+  updateNumpadCounts();
+
+  // Check completion
+  if (checkComplete()) {
+    state.completed = true;
+    stopTimer();
+    showComplete();
+  }
+}
+
+function removeRelatedNotes(row, col, num) {
+  // Same row
+  for (let c = 0; c < 9; c++) state.notes[row][c].delete(num);
+  // Same col
+  for (let r = 0; r < 9; r++) state.notes[r][col].delete(num);
+  // Same box
+  const br = Math.floor(row/3)*3, bc = Math.floor(col/3)*3;
+  for (let r = br; r < br+3; r++)
+    for (let c = bc; c < bc+3; c++)
+      state.notes[r][c].delete(num);
+}
+
+function erase() {
+  if (!state.selected || state.completed) return;
+  const {row, col} = state.selected;
+  if (state.given[row][col]) return;
+  if (state.board[row][col] === 0 && state.notes[row][col].size === 0) return;
+
+  state.history.push({
+    type: 'erase', row, col,
+    prevVal: state.board[row][col],
+    notes: new Set(state.notes[row][col]),
+  });
+
+  state.board[row][col] = 0;
+  state.notes[row][col].clear();
+  state.selectedNum = 0;
+  renderBoard();
+  updateNumpadCounts();
+  if (window.TG) TG.haptic('impact', 'light');
+}
+
+function undo() {
+  if (state.history.length === 0 || state.completed) return;
+  const action = state.history.pop();
+  const {row, col, prevVal, notes} = action;
+  
+  state.board[row][col] = prevVal;
+  state.notes[row][col] = notes;
+  
+  if (state.selected?.row === row && state.selected?.col === col) {
+    state.selectedNum = prevVal;
+  }
+  
+  renderBoard();
+  updateNumpadCounts();
+  if (window.TG) TG.haptic('impact', 'light');
+}
+
+function toggleNotes() {
+  state.noteMode = !state.noteMode;
+  updateNotesBtn();
+  if (window.TG) TG.haptic('selection');
+}
+
+function useHint() {
+  if (state.hints <= 0 || state.completed || !state.selected) return;
+  const {row, col} = state.selected;
+  if (state.given[row][col]) return;
+  if (state.board[row][col] === state.solution[row][col]) return;
+
+  state.hints--;
+  updateHintCount();
+
+  state.history.push({
+    type: 'hint', row, col,
+    prevVal: state.board[row][col],
+    notes: new Set(state.notes[row][col]),
+  });
+
+  state.board[row][col] = state.solution[row][col];
+  state.notes[row][col].clear();
+  state.selectedNum = state.solution[row][col];
+  
+  removeRelatedNotes(row, col, state.solution[row][col]);
+
+  const idx = row * 9 + col;
+  const cell = $grid.children[idx];
+  cell.classList.add('cell-pop');
+  setTimeout(() => cell.classList.remove('cell-pop'), 300);
+
+  renderBoard();
+  updateNumpadCounts();
+  if (window.TG) TG.haptic('notification', 'success');
+
+  if (checkComplete()) {
+    state.completed = true;
+    stopTimer();
+    showComplete();
+  }
+}
+
+function checkComplete() {
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++)
+      if (state.board[r][c] !== state.solution[r][c]) return false;
+  return true;
+}
+
+function isError(row, col) {
+  const val = state.board[row][col];
+  if (val === 0) return false;
+  return val !== state.solution[row][col];
+}
+
+function gameOver() {
+  state.completed = true;
+  stopTimer();
+  
+  // Show game over in complete overlay
+  document.getElementById('completeTitle').textContent = t('gameOver');
+  document.getElementById('completeSub').textContent = t('tooManyMistakes');
+  document.querySelector('.complete-emoji').textContent = '😔';
+  document.getElementById('completeTime').textContent = formatTime(state.timer);
+  document.getElementById('completeMistakes').textContent = state.mistakes;
+  document.getElementById('completeDiff').textContent = t(state.difficulty);
+  document.getElementById('completeNew').textContent = t('tryAgain');
+  document.getElementById('completeTimeLabel').textContent = t('timeLabel');
+  document.getElementById('completeMistakesLabel').textContent = t('mistakesLabel');
+  document.getElementById('completeDiffLabel').textContent = t('diffLabel');
+  
+  requestAnimationFrame(() => $complete.classList.add('show'));
+  if (window.TG) TG.haptic('notification', 'error');
+}
+
+// ═══════════════════════════════════════
+// Rendering
+// ═══════════════════════════════════════
+function renderBoard() {
+  if (!state.board) return;
+  const sel = state.selected;
+  const selVal = sel ? state.board[sel.row][sel.col] : 0;
+  const selBox = sel ? `${Math.floor(sel.row/3)},${Math.floor(sel.col/3)}` : '';
+
+  for (let r = 0; r < 9; r++) {
+    for (let c = 0; c < 9; c++) {
+      const idx = r * 9 + c;
+      const cell = $grid.children[idx];
+      const val = state.board[r][c];
+      const isGiven = state.given[r][c];
+      const box = `${Math.floor(r/3)},${Math.floor(c/3)}`;
+      const notes = state.notes[r][c];
+
+      // Classes
+      let cls = 'cell';
+      if (isGiven) cls += ' given';
+      else if (val) cls += ' filled';
+      
+      if (sel) {
+        if (r === sel.row && c === sel.col) cls += ' selected';
+        else if (r === sel.row || c === sel.col || box === selBox) cls += ' highlight';
+        if (selVal && val === selVal && val !== 0 && !(r === sel.row && c === sel.col)) cls += ' same-num';
+      }
+
+      if (!isGiven && val && isError(r, c)) cls += ' error';
+
+      cell.className = cls;
+
+      // Value
+      const $val = cell.querySelector('.cell-val');
+      $val.textContent = val || '';
+
+      // Notes
+      const $notes = cell.querySelector('.cell-notes');
+      if (val === 0 && notes.size > 0) {
+        $notes.style.display = 'grid';
+        $val.style.display = 'none';
+        $notes.innerHTML = '';
+        for (let n = 1; n <= 9; n++) {
+          const nd = document.createElement('span');
+          nd.className = 'note-num';
+          nd.textContent = notes.has(n) ? n : '';
+          $notes.appendChild(nd);
+        }
+      } else {
+        $notes.style.display = 'none';
+        $val.style.display = '';
+      }
+    }
+  }
+}
+
+function updateNumpadCounts() {
+  if (!state.board) return;
+  const counts = Array(10).fill(0);
+  for (let r = 0; r < 9; r++)
+    for (let c = 0; c < 9; c++)
+      if (state.board[r][c]) counts[state.board[r][c]]++;
+
+  const buttons = $numpad.querySelectorAll('.num-btn');
+  buttons.forEach(btn => {
+    const n = parseInt(btn.dataset.num);
+    const remaining = 9 - counts[n];
+    btn.querySelector('.count').textContent = remaining > 0 ? remaining : '';
+    btn.classList.toggle('completed', remaining <= 0);
+    btn.classList.toggle('active', state.selectedNum === n && state.selectedNum !== 0);
+  });
+}
+
+// ═══════════════════════════════════════
+// Timer
+// ═══════════════════════════════════════
+function startTimer() {
+  stopTimer();
+  state.paused = false;
+  state.timerInterval = setInterval(() => {
+    if (!state.paused) {
+      state.timer++;
+      updateTimer();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
+}
+
+function pauseTimer() { state.paused = true; }
+function resumeTimer() { state.paused = false; }
+
+function formatTime(s) {
+  const m = Math.floor(s/60);
+  const sec = s%60;
+  return `${m}:${sec.toString().padStart(2,'0')}`;
+}
+
+function updateTimer() {
+  $timer.textContent = formatTime(state.timer);
+}
+
+// ═══════════════════════════════════════
+// UI Updates
+// ═══════════════════════════════════════
+function updateMistakes() {
+  $mistakes.textContent = `${state.mistakes}/${state.maxMistakes}`;
+}
+
+function updateDiffBadge() {
+  $diffBadge.textContent = t(state.difficulty);
+}
+
+function updateHintCount() {
+  $hintCount.textContent = state.hints;
+  document.getElementById('btnHint').classList.toggle('completed', state.hints <= 0);
+}
+
+function updateNotesBtn() {
+  document.getElementById('btnNotes').classList.toggle('active', state.noteMode);
+}
+
+// ═══════════════════════════════════════
+// Menu
+// ═══════════════════════════════════════
+function showMenu(isNew) {
+  pauseTimer();
+  document.getElementById('menuResume').style.display = (state.board && !state.completed && !isNew) ? '' : 'none';
+  $menu.classList.add('show');
+}
+
+function hideMenu() {
+  $menu.classList.remove('show');
+}
+
+// ═══════════════════════════════════════
+// Completion
+// ═══════════════════════════════════════
+function showComplete() {
+  document.querySelector('.complete-emoji').textContent = '🎉';
+  document.getElementById('completeTitle').textContent = t('congrats');
+  document.getElementById('completeSub').textContent = t('puzzleComplete');
+  document.getElementById('completeTime').textContent = formatTime(state.timer);
+  document.getElementById('completeMistakes').textContent = state.mistakes;
+  document.getElementById('completeDiff').textContent = t(state.difficulty);
+  document.getElementById('completeNew').textContent = t('newPuzzle');
+  document.getElementById('completeShare').textContent = '📢 ' + t('share');
+  document.getElementById('completeTimeLabel').textContent = t('timeLabel');
+  document.getElementById('completeMistakesLabel').textContent = t('mistakesLabel');
+  document.getElementById('completeDiffLabel').textContent = t('diffLabel');
+
+  requestAnimationFrame(() => $complete.classList.add('show'));
+  spawnConfetti();
+  if (window.TG) TG.haptic('notification', 'success');
+}
+
+function hideComplete() {
+  $complete.classList.remove('show');
+}
+
+function shareResult() {
+  const text = lang === 'ko'
+    ? `🧘 Sudoku Zen — ${t(state.difficulty)} ${formatTime(state.timer)} (실수 ${state.mistakes}회)`
+    : `🧘 Sudoku Zen — ${t(state.difficulty)} ${formatTime(state.timer)} (${state.mistakes} mistakes)`;
+  
+  if (window.TG?.isTelegram()) {
+    TG.shareScore(text, 'Sudoku Zen', 'sudoku-zen');
+  }
+}
+
+// ═══════════════════════════════════════
+// Confetti
+// ═══════════════════════════════════════
+function spawnConfetti() {
+  const colors = ['#5a7d6a','#7fa88f','#c9a959','#e8a87c','#85cdca','#d5a6bd','#8ab6d6'];
+  for (let i = 0; i < 60; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti';
+      el.style.left = Math.random()*100 + 'vw';
+      el.style.background = colors[Math.floor(Math.random()*colors.length)];
+      el.style.width = (4 + Math.random()*6) + 'px';
+      el.style.height = (4 + Math.random()*6) + 'px';
+      el.style.animationDuration = (2 + Math.random()*2) + 's';
+      el.style.animationDelay = '0s';
+      el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }, i * 30);
+  }
+}
+
+// ═══════════════════════════════════════
+// Start
+// ═══════════════════════════════════════
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+})();
+</script>
+
+<!-- Cross-promo -->
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>
