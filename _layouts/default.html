@@ -204,14 +204,7 @@
                         🕹️ 게임 포털 (100종)
                         <div class="sub">퍼즐 · 아케이드 · 액션 · 리듬</div>
                     </a></li>
-                    {% if site.games %}
-                    {% assign sorted_games = site.games | sort: "order" %}
-                    {% for game in sorted_games %}
-                    <li><a href="{{ game.url | relative_url }}" {% if page.url == game.url %}class="active"{% endif %}>
-                        {{ game.title | default: game.name }}
-                    </a></li>
-                    {% endfor %}
-                    {% endif %}
+                    <!-- games collection 제거됨 -->
                 </ul>
             </div>
             
