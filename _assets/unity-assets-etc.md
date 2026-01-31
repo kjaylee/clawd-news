@@ -1,5 +1,9 @@
 ---
 title: "GUI/아이콘/기타 에셋"
+category: "GUI"
+count: 96
+icon: "🖼️"
+order: 6
 ---
 # 🖼️ GUI · 아이콘 · 스카이박스 · 기타
 

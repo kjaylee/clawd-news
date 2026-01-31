@@ -1,5 +1,9 @@
 ---
 title: "시각 효과 (VFX/셰이더)"
+category: "VFX"
+count: 26
+icon: "✨"
+order: 3
 ---
 # ✨ 시각 효과 (VFX/셰이더)
 

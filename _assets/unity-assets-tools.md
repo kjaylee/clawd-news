@@ -1,5 +1,9 @@
 ---
 title: "도구/에디터 에셋"
+category: "Tools"
+count: 55
+icon: "🛠️"
+order: 5
 ---
 # ⚙️ 도구/에디터/스크립팅 에셋
 

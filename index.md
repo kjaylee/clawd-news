@@ -104,17 +104,20 @@ title: 홈
 
 ---
 
-## 🎨 Unity 에셋
+## 🎨 Unity 에셋 (268개)
 
 <div class="card-grid">
-{% for asset in site.assets limit:4 %}
+{% assign sorted_assets = site.assets | sort: "order" %}
+{% for asset in sorted_assets %}
+{% if asset.category and asset.category != "All" %}
 <div class="card">
     <a href="{{ asset.url | relative_url }}">
-        <h3>{{ asset.title | default: asset.name }}</h3>
-        <p>{{ asset.excerpt | strip_html | truncate: 80 }}</p>
+        <h3>{{ asset.icon | default: "📄" }} {{ asset.title }}</h3>
+        <p>{{ asset.count }}개 에셋</p>
     </a>
 </div>
+{% endif %}
 {% endfor %}
 </div>
 
-[전체 에셋 보기 →]({{ '/assets/' | relative_url }})
+[📦 전체 에셋 라이브러리 보기 →]({{ '/assets/' | relative_url }})
