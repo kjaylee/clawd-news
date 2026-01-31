@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>🔨 Whack-a-Mole — East Sea Games</title>
+<meta name="description" content="Whack-a-Mole - Tap the moles before they hide! Special moles, combos, and increasing speed!">
+<link rel="canonical" href="https://eastsea.monster/games/whack-a-mole/">
+<meta property="og:title" content="🔨 Whack-a-Mole — East Sea Games">
+<meta property="og:description" content="두더지를 잡아라! 금색 두더지는 2배 점수, 폭탄은 주의! 60초 안에 최고 점수를 노려보세요!">
+<meta property="og:image" content="https://eastsea.monster/games/whack-a-mole/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/whack-a-mole/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"VideoGame","name":"Whack-a-Mole",
+  "url":"https://eastsea.monster/games/whack-a-mole/",
+  "description":"Classic whack-a-mole arcade game with special moles, combos, and increasing difficulty!",
+  "image":"https://eastsea.monster/games/whack-a-mole/og.png",
+  "gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+  "genre":"Arcade","operatingSystem":"Any","inLanguage":["ko","en"],"playMode":"SinglePlayer",
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},
+  "author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}
+}
+</script>
+<style>
+/* ═══════════════ RESET & BASE ═══════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;
+  background:linear-gradient(180deg,#87CEEB 0%,#5BA3D9 30%,#4A8C2A 30%,#3D7A22 100%);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+
+/* ═══════════════ SAFE AREA ═══════════════ */
+:root{
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-left:env(safe-area-inset-left,0px);
+  --safe-right:env(safe-area-inset-right,0px);
+}
+
+/* ═══════════════ GAME CONTAINER ═══════════════ */
+#game{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;height:100%;position:relative;overflow:hidden}
+
+/* ═══════════════ CLOUDS ═══════════════ */
+.cloud{position:absolute;background:#fff;border-radius:50px;opacity:.7;z-index:0}
+.cloud::before,.cloud::after{content:'';position:absolute;background:#fff;border-radius:50%}
+.cloud-1{width:100px;height:30px;top:5%;left:10%;animation:drift 25s linear infinite}
+.cloud-1::before{width:50px;height:50px;top:-25px;left:15px}
+.cloud-1::after{width:35px;height:35px;top:-15px;left:50px}
+.cloud-2{width:80px;height:25px;top:10%;right:15%;animation:drift 30s linear infinite reverse}
+.cloud-2::before{width:40px;height:40px;top:-20px;left:10px}
+.cloud-2::after{width:30px;height:30px;top:-12px;left:40px}
+.cloud-3{width:60px;height:20px;top:3%;left:55%;animation:drift 20s linear infinite}
+.cloud-3::before{width:30px;height:30px;top:-15px;left:8px}
+.cloud-3::after{width:22px;height:22px;top:-10px;left:30px}
+@keyframes drift{0%{transform:translateX(-120px)}100%{transform:translateX(calc(100vw + 120px))}}
+
+/* ═══════════════ HUD ═══════════════ */
+#hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
+  align-items:center;padding:8px 16px;padding-top:calc(8px + var(--safe-top));z-index:50;
+  background:linear-gradient(180deg,rgba(0,0,0,.35) 0%,transparent 100%);pointer-events:none}
+.hud-item{display:flex;flex-direction:column;align-items:center;color:#fff;
+  text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.hud-label{font-size:10px;opacity:.8;letter-spacing:1px;text-transform:uppercase}
+.hud-value{font-size:22px;font-weight:800}
+#hud-score .hud-value{color:#FFD700}
+#hud-timer .hud-value{color:#FF6B6B}
+#hud-combo{position:absolute;top:calc(50px + var(--safe-top));left:50%;transform:translateX(-50%);
+  font-size:18px;font-weight:800;color:#FF6B6B;text-shadow:0 0 10px rgba(255,107,107,.6);
+  opacity:0;transition:opacity .3s;pointer-events:none;z-index:50}
+#hud-combo.show{opacity:1}
+#hud-level{font-size:11px;color:#fff;background:rgba(0,0,0,.3);padding:2px 8px;
+  border-radius:8px;position:absolute;top:calc(48px + var(--safe-top));right:16px;z-index:50}
+
+/* ═══════════════ FIELD ═══════════════ */
+#field{position:relative;z-index:10;display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;padding:12px;max-width:360px;width:92vw;aspect-ratio:1/1}
+
+/* ═══════════════ HOLE ═══════════════ */
+.hole{position:relative;width:100%;aspect-ratio:1/.7;overflow:hidden;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.hole-front{position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;height:45%;background:radial-gradient(ellipse at center,#2D1A0E 0%,#1A0F07 70%);
+  border-radius:50%;z-index:3;pointer-events:none}
+.hole-rim{position:absolute;bottom:12%;left:50%;transform:translateX(-50%);
+  width:110%;height:35%;background:radial-gradient(ellipse at center,#6B4226 0%,#4A2E18 60%,#2D1A0E 100%);
+  border-radius:50%;z-index:2;pointer-events:none}
+.grass-l,.grass-r{position:absolute;bottom:28%;width:18px;height:28px;z-index:4;pointer-events:none}
+.grass-l{left:5%;background:linear-gradient(45deg,transparent 40%,#2D8C2A 40%,#2D8C2A 60%,transparent 60%);
+  transform:rotate(-15deg)}
+.grass-r{right:5%;background:linear-gradient(-45deg,transparent 40%,#3BA33A 40%,#3BA33A 60%,transparent 60%);
+  transform:rotate(15deg)}
+
+/* ═══════════════ MOLE ═══════════════ */
+.mole{position:absolute;bottom:10%;left:50%;transform:translateX(-50%) translateY(100%);
+  width:70%;z-index:1;transition:transform .15s cubic-bezier(.17,.67,.35,1.2);pointer-events:none}
+.mole.up{transform:translateX(-50%) translateY(15%);pointer-events:auto}
+.mole.hit{transform:translateX(-50%) translateY(100%) scale(.8);transition:transform .2s ease-in}
+
+/* ─── Mole body (CSS character) ─── */
+.mole-body{position:relative;width:100%;padding-bottom:90%;border-radius:50% 50% 45% 45%;
+  background:radial-gradient(ellipse at 40% 30%,#C8956B,#8B5E3C 70%);
+  box-shadow:inset 0 -8px 15px rgba(0,0,0,.2),0 4px 8px rgba(0,0,0,.3)}
+.mole-body::before{content:'';position:absolute;top:65%;left:50%;transform:translateX(-50%);
+  width:45%;height:25%;background:#E8C9A8;border-radius:50%;z-index:1}
+.mole-eye{position:absolute;top:35%;width:18%;height:22%;background:#1a1a1a;border-radius:50%;z-index:2}
+.mole-eye::after{content:'';position:absolute;top:15%;left:25%;width:40%;height:35%;
+  background:#fff;border-radius:50%}
+.mole-eye.left{left:22%}.mole-eye.right{right:22%}
+.mole-nose{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:16%;height:12%;background:#D4726A;border-radius:50%;z-index:3}
+.mole-mouth{position:absolute;top:62%;left:50%;transform:translateX(-50%);
+  width:22%;height:6%;border-bottom:2px solid #5C3A22;border-radius:0 0 50% 50%;z-index:2}
+.mole-cheek{position:absolute;top:48%;width:14%;height:10%;background:rgba(255,150,150,.35);
+  border-radius:50%;z-index:2}.mole-cheek.left{left:10%}.mole-cheek.right{right:10%}
+.mole-tooth{position:absolute;top:66%;left:50%;transform:translateX(-50%);
+  width:8%;height:8%;background:#fff;border-radius:0 0 3px 3px;z-index:4}
+
+/* ─── Special mole variants ─── */
+.mole.golden .mole-body{background:radial-gradient(ellipse at 40% 30%,#FFE066,#FFB700 70%);
+  box-shadow:inset 0 -8px 15px rgba(0,0,0,.15),0 4px 8px rgba(0,0,0,.2),0 0 20px rgba(255,200,0,.5)}
+.mole.golden .mole-body::before{background:#FFF3C4}
+.mole.golden .mole-nose{background:#FF9500}
+.mole.golden .mole-eye{background:#6B4226}
+
+.mole.bomb .mole-body{background:radial-gradient(ellipse at 40% 30%,#FF6B6B,#CC3333 70%);
+  box-shadow:inset 0 -8px 15px rgba(0,0,0,.2),0 4px 8px rgba(0,0,0,.3),0 0 15px rgba(255,50,50,.4)}
+.mole.bomb .mole-body::before{background:#FFA0A0}
+.mole.bomb .mole-nose{background:#990000}
+.mole.bomb .mole-eye{background:#fff}
+.mole.bomb .mole-eye::after{background:#FF0000}
+.mole.bomb .mole-mouth{border-bottom-color:#800000}
+
+.mole.heart .mole-body{background:radial-gradient(ellipse at 40% 30%,#FF9ECD,#E85D9F 70%);
+  box-shadow:inset 0 -8px 15px rgba(0,0,0,.15),0 4px 8px rgba(0,0,0,.2),0 0 15px rgba(255,100,180,.4)}
+.mole.heart .mole-body::before{background:#FFCCE5}
+.mole.heart .mole-nose{background:#CC2277}
+.mole.heart .mole-eye{background:#880055}
+.mole.heart .mole-eye::after{background:#FFB3D9}
+
+/* ─── Hit star CSS ─── */
+.mole.golden::after{content:'⭐';position:absolute;top:-5px;right:-5px;font-size:18px;
+  animation:starSpin 1s linear infinite;z-index:5}
+@keyframes starSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.mole.heart::after{content:'💗';position:absolute;top:-5px;right:-5px;font-size:16px;
+  animation:heartBeat .6s ease-in-out infinite alternate;z-index:5}
+@keyframes heartBeat{0%{transform:scale(1)}100%{transform:scale(1.3)}}
+.mole.bomb::after{content:'💣';position:absolute;top:-8px;right:-5px;font-size:16px;z-index:5}
+
+/* ═══════════════ TAP EFFECTS ═══════════════ */
+.tap-effect{position:fixed;pointer-events:none;z-index:1000;font-size:28px;font-weight:900;
+  animation:tapFloat .7s ease-out forwards;text-shadow:0 2px 4px rgba(0,0,0,.3)}
+@keyframes tapFloat{0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-60px) scale(1.3)}}
+
+.tap-ring{position:fixed;pointer-events:none;z-index:999;width:50px;height:50px;
+  border:3px solid #FFD700;border-radius:50%;animation:tapRing .4s ease-out forwards}
+@keyframes tapRing{0%{opacity:1;transform:translate(-50%,-50%) scale(.5)}
+  100%{opacity:0;transform:translate(-50%,-50%) scale(2)}}
+
+.star-burst{position:fixed;pointer-events:none;z-index:999;font-size:14px;
+  animation:starBurst .5s ease-out forwards}
+@keyframes starBurst{0%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+  100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0)}}
+
+/* ═══════════════ SCREEN SHAKE ═══════════════ */
+.shake{animation:shake .3s ease-out}
+@keyframes shake{0%,100%{transform:translate(0)}
+  10%{transform:translate(-6px,3px)}30%{transform:translate(5px,-4px)}
+  50%{transform:translate(-3px,5px)}70%{transform:translate(4px,-2px)}
+  90%{transform:translate(-2px,1px)}}
+
+.shake-hard{animation:shakeHard .5s ease-out}
+@keyframes shakeHard{0%,100%{transform:translate(0)}
+  10%{transform:translate(-12px,6px)}20%{transform:translate(10px,-8px)}
+  30%{transform:translate(-8px,10px)}40%{transform:translate(8px,-6px)}
+  50%{transform:translate(-6px,8px)}60%{transform:translate(6px,-4px)}
+  70%{transform:translate(-4px,5px)}80%{transform:translate(4px,-3px)}
+  90%{transform:translate(-2px,2px)}}
+
+/* ═══════════════ OVERLAY / MENUS ═══════════════ */
+#overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;background:rgba(0,0,0,.6);backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);z-index:100;transition:opacity .3s}
+#overlay.hidden{opacity:0;pointer-events:none}
+
+.menu-title{font-size:clamp(2rem,7vw,3.5rem);font-weight:900;
+  color:#FFD700;text-shadow:0 3px 6px rgba(0,0,0,.4),0 0 20px rgba(255,200,0,.3);
+  margin-bottom:4px;text-align:center}
+.menu-subtitle{color:rgba(255,255,255,.7);font-size:14px;margin-bottom:24px;text-align:center}
+.menu-emoji{font-size:clamp(3rem,10vw,5rem);margin-bottom:8px;
+  animation:hammerSwing 1s ease-in-out infinite alternate}
+@keyframes hammerSwing{0%{transform:rotate(-15deg)}100%{transform:rotate(15deg)}}
+
+.menu-highscore{color:#FFD700;font-size:14px;margin-bottom:20px;
+  display:flex;align-items:center;gap:6px}
+
+.btn{padding:16px 48px;font-size:18px;font-weight:800;border:none;border-radius:16px;
+  cursor:pointer;transition:transform .15s,box-shadow .15s;min-height:52px;
+  text-shadow:0 1px 2px rgba(0,0,0,.2)}
+.btn:active{transform:scale(.93)}
+.btn-play{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:#fff;
+  box-shadow:0 4px 15px rgba(76,175,80,.4)}
+.btn-play:active{box-shadow:0 2px 8px rgba(76,175,80,.3)}
+.btn-secondary{background:rgba(255,255,255,.15);color:#fff;border:2px solid rgba(255,255,255,.25);
+  font-size:15px;padding:12px 32px;margin-top:10px}
+
+.legend{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:20px;
+  margin-bottom:8px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:12px;color:rgba(255,255,255,.7);
+  background:rgba(0,0,0,.2);padding:4px 10px;border-radius:8px}
+
+/* ═══════════════ COUNTDOWN ═══════════════ */
+#countdown{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  z-index:90;background:rgba(0,0,0,.4);font-size:clamp(4rem,15vw,8rem);font-weight:900;
+  color:#FFD700;text-shadow:0 4px 12px rgba(0,0,0,.5);opacity:0;pointer-events:none;
+  transition:opacity .15s}
+#countdown.show{opacity:1}
+
+/* ═══════════════ FLASH ═══════════════ */
+.flash-red{animation:flashRed .3s}
+@keyframes flashRed{0%,100%{background-color:transparent}50%{background-color:rgba(255,0,0,.15)}}
+.flash-gold{animation:flashGold .3s}
+@keyframes flashGold{0%,100%{background-color:transparent}50%{background-color:rgba(255,215,0,.15)}}
+.flash-pink{animation:flashPink .3s}
+@keyframes flashPink{0%,100%{background-color:transparent}50%{background-color:rgba(255,105,180,.15)}}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(max-height:600px){
+  #field{max-width:280px;gap:6px;padding:8px}
+  .hud-value{font-size:18px}
+  .menu-title{font-size:1.8rem}
+}
+@media(min-width:500px){
+  #field{max-width:400px}
+}
+</style>
+
+<!-- Telegram Mini App SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- i18n -->
+<script src="../i18n.js"></script>
+</head>
+<body>
+<div id="game">
+  <!-- Clouds -->
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+  <div class="cloud cloud-3"></div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-item" id="hud-timer"><span class="hud-label" data-i18n="time">TIME</span><span class="hud-value" id="timer-val">60</span></div>
+    <div class="hud-item" id="hud-score"><span class="hud-label" data-i18n="score">SCORE</span><span class="hud-value" id="score-val">0</span></div>
+    <div class="hud-item"><span class="hud-label" data-i18n="best">BEST</span><span class="hud-value" id="best-val">0</span></div>
+  </div>
+  <div id="hud-combo"></div>
+  <div id="hud-level"></div>
+
+  <!-- Play Field -->
+  <div id="field"></div>
+
+  <!-- Countdown -->
+  <div id="countdown"></div>
+
+  <!-- Overlay -->
+  <div id="overlay">
+    <div class="menu-emoji">🔨</div>
+    <div class="menu-title" data-i18n="title">Whack-a-Mole</div>
+    <div class="menu-subtitle" data-i18n="subtitle">Tap the moles!</div>
+    <div class="menu-highscore">🏆 <span data-i18n="bestScore">Best</span>: <span id="menu-best">0</span></div>
+    <div class="legend">
+      <div class="legend-item">🐹 <span data-i18n="normalMole">+10</span></div>
+      <div class="legend-item">⭐ <span data-i18n="goldenMole">×2</span></div>
+      <div class="legend-item">💣 <span data-i18n="bombMole">-20</span></div>
+      <div class="legend-item">💗 <span data-i18n="heartMole">+5s</span></div>
+    </div>
+    <button class="btn btn-play" id="btn-start" data-i18n="startBtn">▶ START</button>
+  </div>
+</div>
+
+<!-- tg-sdk-wrapper (inline) -->
+<script>
+/* ═══════════════════════════════════════════════
+   TG SDK Wrapper — Inline version
+   ═══════════════════════════════════════════════ */
+(function(){
+'use strict';
+const TG={
+  app:window.Telegram?.WebApp,user:null,isReady:false,_backHandlers:[],
+  init(){
+    if(!this.app){this.isReady=true;this._injectStandaloneCSS();return false}
+    this.app.ready();this.app.expand();
+    this.user=this.app.initDataUnsafe?.user||null;
+    this._applyTheme();this._setupSafeArea();this._setupBackButton();
+    this.app.onEvent('viewportChanged',({isStateStable})=>{if(isStateStable)this._updateViewport()});
+    this.app.onEvent('themeChanged',()=>this._applyTheme());
+    this.isReady=true;return true;
+  },
+  _applyTheme(){
+    const tp=this.app?.themeParams;if(!tp)return;
+    const r=document.documentElement.style;
+    const m={'--tg-bg':tp.bg_color,'--tg-text':tp.text_color,'--tg-hint':tp.hint_color,
+      '--tg-link':tp.link_color,'--tg-button':tp.button_color,'--tg-button-text':tp.button_text_color,
+      '--tg-secondary-bg':tp.secondary_bg_color};
+    for(const[p,v]of Object.entries(m)){if(v)r.setProperty(p,v)}
+  },
+  _setupSafeArea(){
+    this._applySafeAreaValues();
+    if(this.app?.onEvent){
+      this.app.onEvent('safeAreaChanged',()=>this._applySafeAreaValues());
+      this.app.onEvent('contentSafeAreaChanged',()=>this._applySafeAreaValues());
+    }
+    this._updateViewport();
+  },
+  _applySafeAreaValues(){
+    const r=document.documentElement.style;
+    const sa=this.app?.safeAreaInset||{top:0,bottom:0,left:0,right:0};
+    const csa=this.app?.contentSafeAreaInset||{top:0,bottom:0,left:0,right:0};
+    const totalTop=sa.top+csa.top,totalBottom=sa.bottom+csa.bottom;
+    r.setProperty('--safe-top',totalTop+'px');r.setProperty('--safe-bottom',totalBottom+'px');
+    r.setProperty('--safe-left',sa.left+'px');r.setProperty('--safe-right',sa.right+'px');
+    document.body.style.paddingTop=totalTop+'px';document.body.style.paddingBottom=totalBottom+'px';
+  },
+  _updateViewport(){
+    const vh=this.app?.viewportStableHeight||window.innerHeight;
+    document.documentElement.style.setProperty('--tg-viewport-height',vh+'px');
+  },
+  _setupBackButton(){
+    if(!this.app?.BackButton)return;this.app.BackButton.show();
+    this.app.BackButton.onClick(()=>{
+      for(let i=this._backHandlers.length-1;i>=0;i--){if(this._backHandlers[i]())return}
+      this.app.close();
+    });
+  },
+  _injectStandaloneCSS(){
+    const r=document.documentElement.style;
+    r.setProperty('--tg-viewport-height',window.innerHeight+'px');
+    r.setProperty('--safe-top','0px');r.setProperty('--safe-bottom','0px');
+  },
+  getUserId(){return this.user?.id||'anonymous'},
+  getUserName(){return this.user?.first_name||'Player'},
+  getLang(){return this.user?.language_code||'en'},
+  isTelegram(){return!!this.app},
+  save(k,v){try{const u=this.getUserId();localStorage.setItem(`tg_${u}_${k}`,JSON.stringify(v))}catch{}},
+  load(k,fb=null){try{const u=this.getUserId();const r=localStorage.getItem(`tg_${u}_${k}`);return r?JSON.parse(r):fb}catch{return fb}},
+  haptic(type='impact',style='medium'){
+    if(!this.app?.HapticFeedback)return;
+    try{switch(type){
+      case'impact':this.app.HapticFeedback.impactOccurred(style);break;
+      case'notification':this.app.HapticFeedback.notificationOccurred(style);break;
+      case'selection':this.app.HapticFeedback.selectionChanged();break;
+    }}catch{}
+  },
+  shareScore(score,gameName,gameId){
+    const text=`🔨 ${gameName}: ${score.toLocaleString()}! 🎯`;
+    const url=`https://t.me/eastsea_games_bot?startapp=game_${gameId}`;
+    if(this.app)this.app.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+  },
+  onBack(h){this._backHandlers.push(h)},
+  offBack(h){this._backHandlers=this._backHandlers.filter(x=>x!==h)}
+};
+
+const GameScore={
+  save(gid,score){const k=`score_${gid}`;const best=this.getBest(gid);const isNew=score>best;
+    if(isNew)TG.save(`${k}_best`,score);
+    const h=TG.load(`${k}_history`,[]);h.unshift({score,date:Date.now()});if(h.length>20)h.pop();
+    TG.save(`${k}_history`,h);const p=TG.load(`${k}_plays`,0);TG.save(`${k}_plays`,p+1);
+    return{isNewBest:isNew,bestScore:isNew?score:best}},
+  getBest(gid){return TG.load(`score_${gid}_best`,0)},
+  getPlays(gid){return TG.load(`score_${gid}_plays`,0)}
+};
+
+window.TG=TG;window.GameScore=GameScore;
+function autoInit(){TG.init()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',autoInit);
+else autoInit();
+})();
+</script>
+
+<!-- Cross Promo -->
+<script src="/games/cross-promo.js"></script>
+
+<!-- GAME LOGIC -->
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════ i18n ═══════════════ */
+const STRINGS = {
+  title:      { en:'Whack-a-Mole', ko:'두더지잡기' },
+  subtitle:   { en:'Tap the moles before they hide!', ko:'두더지를 잡아라!' },
+  time:       { en:'TIME', ko:'시간' },
+  score:      { en:'SCORE', ko:'점수' },
+  best:       { en:'BEST', ko:'최고' },
+  bestScore:  { en:'Best', ko:'최고기록' },
+  normalMole: { en:'Normal +10', ko:'일반 +10' },
+  goldenMole: { en:'Golden ×2', ko:'금색 ×2' },
+  bombMole:   { en:'Bomb -20', ko:'폭탄 -20' },
+  heartMole:  { en:'Heart +5s', ko:'하트 +5초' },
+  startBtn:   { en:'▶ START', ko:'▶ 시작' },
+  level:      { en:'Level', ko:'레벨' },
+  combo:      { en:'Combo', ko:'콤보' },
+  miss:       { en:'Miss!', ko:'빗나감!' },
+  gameOver:   { en:'Game Over', ko:'게임 오버' },
+  newBest:    { en:'🏆 New Best!', ko:'🏆 새 기록!' },
+  replay:     { en:'🔄 Replay', ko:'🔄 다시하기' },
+  share:      { en:'📢 Share', ko:'📢 공유' },
+};
+
+let lang = 'en';
+try {
+  const tgLang = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code;
+  if (tgLang && tgLang.startsWith('ko')) lang = 'ko';
+  else if (navigator.language?.startsWith('ko')) lang = 'ko';
+} catch {}
+
+function T(key) { return STRINGS[key]?.[lang] || STRINGS[key]?.en || key; }
+
+// Apply i18n to DOM
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (STRINGS[key]) el.textContent = T(key);
+  });
+}
+
+/* ═══════════════ DOM ═══════════════ */
+const $field    = document.getElementById('field');
+const $overlay  = document.getElementById('overlay');
+const $countdown= document.getElementById('countdown');
+const $timerVal = document.getElementById('timer-val');
+const $scoreVal = document.getElementById('score-val');
+const $bestVal  = document.getElementById('best-val');
+const $comboEl  = document.getElementById('hud-combo');
+const $levelEl  = document.getElementById('hud-level');
+const $menuBest = document.getElementById('menu-best');
+const $btnStart = document.getElementById('btn-start');
+const $game     = document.getElementById('game');
+
+/* ═══════════════ GAME STATE ═══════════════ */
+const GAME_ID = 'whack-a-mole';
+const GRID = 9; // 3x3
+const BASE_TIME = 60;
+
+let holes = [];     // DOM refs
+let moles = [];     // mole elements
+let moleState = []; // {type, timer, isUp}
+let score = 0;
+let bestScore = 0;
+let combo = 0;
+let maxCombo = 0;
+let timeLeft = BASE_TIME;
+let level = 1;
+let gameRunning = false;
+let gameTimer = null;
+let spawnTimer = null;
+let molesWhacked = 0;
+let molesMissed = 0;
+
+/* ═══════════════ MOLE TYPES ═══════════════ */
+const MOLE_TYPES = {
+  normal: { weight: 70, points: 10, class: '' },
+  golden: { weight: 12, points: 20, class: 'golden' },
+  bomb:   { weight: 12, points: -20, class: 'bomb' },
+  heart:  { weight: 6,  points: 0,  class: 'heart' },
+};
+
+function pickMoleType() {
+  const roll = Math.random() * 100;
+  let cum = 0;
+  for (const [type, data] of Object.entries(MOLE_TYPES)) {
+    cum += data.weight;
+    if (roll < cum) return type;
+  }
+  return 'normal';
+}
+
+/* ═══════════════ LEVEL SYSTEM ═══════════════ */
+function getLevel() {
+  if (score < 50)  return 1;
+  if (score < 150) return 2;
+  if (score < 300) return 3;
+  if (score < 500) return 4;
+  return 5;
+}
+
+function getShowDuration() {
+  // Mole visible time (ms) — decreases with level
+  return Math.max(600, 1400 - (level - 1) * 180);
+}
+
+function getSpawnInterval() {
+  // Time between spawns — decreases with level
+  return Math.max(400, 1000 - (level - 1) * 130);
+}
+
+function getMaxMoles() {
+  // Max simultaneous moles
+  return Math.min(4, 1 + Math.floor(level / 2));
+}
+
+/* ═══════════════ BUILD FIELD ═══════════════ */
+function buildField() {
+  $field.innerHTML = '';
+  holes = [];
+  moles = [];
+  moleState = [];
+
+  for (let i = 0; i < GRID; i++) {
+    const hole = document.createElement('div');
+    hole.className = 'hole';
+    hole.dataset.idx = i;
+
+    // Mole character
+    const mole = document.createElement('div');
+    mole.className = 'mole';
+    mole.innerHTML = `
+      <div class="mole-body">
+        <div class="mole-eye left"></div>
+        <div class="mole-eye right"></div>
+        <div class="mole-nose"></div>
+        <div class="mole-cheek left"></div>
+        <div class="mole-cheek right"></div>
+        <div class="mole-mouth"></div>
+        <div class="mole-tooth"></div>
+      </div>`;
+
+    // Hole layers
+    const rim = document.createElement('div');
+    rim.className = 'hole-rim';
+    const front = document.createElement('div');
+    front.className = 'hole-front';
+    const grassL = document.createElement('div');
+    grassL.className = 'grass-l';
+    const grassR = document.createElement('div');
+    grassR.className = 'grass-r';
+
+    hole.appendChild(mole);
+    hole.appendChild(rim);
+    hole.appendChild(front);
+    hole.appendChild(grassL);
+    hole.appendChild(grassR);
+
+    $field.appendChild(hole);
+    holes.push(hole);
+    moles.push(mole);
+    moleState.push({ type: 'normal', isUp: false, timer: null });
+  }
+}
+
+/* ═══════════════ MOLE SPAWNING ═══════════════ */
+function showMole(idx) {
+  if (moleState[idx].isUp || !gameRunning) return;
+
+  const type = pickMoleType();
+  const m = moles[idx];
+  const s = moleState[idx];
+
+  // Reset classes
+  m.className = 'mole';
+  if (MOLE_TYPES[type].class) m.classList.add(MOLE_TYPES[type].class);
+
+  s.type = type;
+  s.isUp = true;
+
+  // Show
+  requestAnimationFrame(() => m.classList.add('up'));
+
+  // Auto-hide after duration
+  const dur = getShowDuration();
+  s.timer = setTimeout(() => {
+    if (s.isUp && gameRunning) {
+      hideMole(idx, false);
+    }
+  }, dur);
+}
+
+function hideMole(idx, wasHit) {
+  const m = moles[idx];
+  const s = moleState[idx];
+  if (!s.isUp) return;
+
+  s.isUp = false;
+  clearTimeout(s.timer);
+
+  if (wasHit) {
+    m.classList.remove('up');
+    m.classList.add('hit');
+  } else {
+    m.classList.remove('up');
+    if (s.type === 'normal' || s.type === 'golden') {
+      molesMissed++;
+      // Reset combo on miss
+      if (combo > 0) {
+        combo = 0;
+        updateComboUI();
+      }
+    }
+  }
+
+  // Reset after animation
+  setTimeout(() => {
+    m.className = 'mole';
+  }, 300);
+}
+
+function spawnLoop() {
+  if (!gameRunning) return;
+
+  // Count active moles
+  const activeCount = moleState.filter(s => s.isUp).length;
+  if (activeCount < getMaxMoles()) {
+    // Pick random empty hole
+    const empty = [];
+    for (let i = 0; i < GRID; i++) {
+      if (!moleState[i].isUp) empty.push(i);
+    }
+    if (empty.length > 0) {
+      const idx = empty[Math.floor(Math.random() * empty.length)];
+      showMole(idx);
+    }
+  }
+
+  spawnTimer = setTimeout(spawnLoop, getSpawnInterval());
+}
+
+/* ═══════════════ HIT HANDLING ═══════════════ */
+function handleTap(idx, e) {
+  if (!gameRunning) return;
+  const s = moleState[idx];
+  if (!s.isUp) return;
+
+  const type = s.type;
+  const data = MOLE_TYPES[type];
+
+  // Get tap position for effects
+  const touch = e.changedTouches ? e.changedTouches[0] : e;
+  const tx = touch.clientX || touch.pageX;
+  const ty = touch.clientY || touch.pageY;
+
+  hideMole(idx, true);
+  molesWhacked++;
+
+  switch (type) {
+    case 'normal':
+      combo++;
+      if (combo > maxCombo) maxCombo = combo;
+      const comboMult = combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
+      const pts = data.points * comboMult;
+      score += pts;
+      spawnTapEffect(tx, ty, `+${pts}`, '#FFD700');
+      spawnTapRing(tx, ty, '#FFD700');
+      if (combo >= 3) spawnStarBurst(tx, ty, 4);
+      TG.haptic('impact', 'light');
+      shakeScreen(false);
+      break;
+
+    case 'golden':
+      combo++;
+      if (combo > maxCombo) maxCombo = combo;
+      const goldMult = combo >= 10 ? 3 : combo >= 5 ? 2 : 1;
+      const goldPts = data.points * goldMult;
+      score += goldPts;
+      spawnTapEffect(tx, ty, `+${goldPts} ⭐`, '#FFE066');
+      spawnTapRing(tx, ty, '#FFE066');
+      spawnStarBurst(tx, ty, 8);
+      flashScreen('gold');
+      TG.haptic('impact', 'heavy');
+      shakeScreen(false);
+      break;
+
+    case 'bomb':
+      score = Math.max(0, score + data.points);
+      combo = 0;
+      spawnTapEffect(tx, ty, `${data.points} 💥`, '#FF4444');
+      spawnTapRing(tx, ty, '#FF4444');
+      flashScreen('red');
+      TG.haptic('notification', 'error');
+      shakeScreen(true);
+      break;
+
+    case 'heart':
+      combo++;
+      if (combo > maxCombo) maxCombo = combo;
+      timeLeft = Math.min(99, timeLeft + 5);
+      $timerVal.textContent = Math.ceil(timeLeft);
+      spawnTapEffect(tx, ty, '+5s 💗', '#FF69B4');
+      spawnTapRing(tx, ty, '#FF69B4');
+      flashScreen('pink');
+      TG.haptic('notification', 'success');
+      break;
+  }
+
+  // Update UI
+  const newLevel = getLevel();
+  if (newLevel !== level) {
+    level = newLevel;
+    $levelEl.textContent = `${T('level')} ${level}`;
+  }
+  updateScoreUI();
+  updateComboUI();
+}
+
+/* ═══════════════ UI UPDATES ═══════════════ */
+function updateScoreUI() {
+  $scoreVal.textContent = score;
+}
+
+function updateComboUI() {
+  if (combo >= 2) {
+    $comboEl.textContent = `🔥 ${combo} ${T('combo')}!`;
+    $comboEl.classList.add('show');
+  } else {
+    $comboEl.classList.remove('show');
+  }
+}
+
+/* ═══════════════ EFFECTS ═══════════════ */
+function spawnTapEffect(x, y, text, color) {
+  const el = document.createElement('div');
+  el.className = 'tap-effect';
+  el.textContent = text;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.color = color;
+  el.style.transform = 'translate(-50%, -50%)';
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+function spawnTapRing(x, y, color) {
+  const el = document.createElement('div');
+  el.className = 'tap-ring';
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.style.borderColor = color;
+  document.body.appendChild(el);
+  el.addEventListener('animationend', () => el.remove());
+}
+
+function spawnStarBurst(x, y, count) {
+  const emojis = ['✨', '⭐', '💫', '🌟'];
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'star-burst';
+    el.textContent = emojis[i % emojis.length];
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
+    const angle = (Math.PI * 2 / count) * i;
+    const dist = 40 + Math.random() * 30;
+    el.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+    el.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
+    document.body.appendChild(el);
+    el.addEventListener('animationend', () => el.remove());
+  }
+}
+
+function shakeScreen(hard) {
+  $game.classList.remove('shake', 'shake-hard');
+  void $game.offsetWidth; // reflow
+  $game.classList.add(hard ? 'shake-hard' : 'shake');
+}
+
+function flashScreen(type) {
+  const cls = type === 'red' ? 'flash-red' : type === 'gold' ? 'flash-gold' : 'flash-pink';
+  document.body.classList.remove('flash-red', 'flash-gold', 'flash-pink');
+  void document.body.offsetWidth;
+  document.body.classList.add(cls);
+  setTimeout(() => document.body.classList.remove(cls), 300);
+}
+
+/* ═══════════════ TIMER ═══════════════ */
+function startTimer() {
+  let lastTime = performance.now();
+  gameTimer = setInterval(() => {
+    const now = performance.now();
+    const delta = (now - lastTime) / 1000;
+    lastTime = now;
+    timeLeft -= delta;
+
+    if (timeLeft <= 0) {
+      timeLeft = 0;
+      $timerVal.textContent = '0';
+      endGame();
+      return;
+    }
+
+    $timerVal.textContent = Math.ceil(timeLeft);
+
+    // Flash timer when low
+    if (timeLeft <= 10) {
+      $timerVal.style.color = timeLeft % 1 < 0.5 ? '#FF4444' : '#FF8888';
+    }
+  }, 100);
+}
+
+/* ═══════════════ GAME FLOW ═══════════════ */
+function startGame() {
+  // Reset state
+  score = 0;
+  combo = 0;
+  maxCombo = 0;
+  timeLeft = BASE_TIME;
+  level = 1;
+  molesWhacked = 0;
+  molesMissed = 0;
+  gameRunning = false;
+
+  // Reset UI
+  updateScoreUI();
+  updateComboUI();
+  $timerVal.textContent = BASE_TIME;
+  $timerVal.style.color = '#FF6B6B';
+  $levelEl.textContent = `${T('level')} 1`;
+
+  // Hide overlay
+  $overlay.classList.add('hidden');
+
+  // Hide all moles
+  for (let i = 0; i < GRID; i++) {
+    moleState[i].isUp = false;
+    clearTimeout(moleState[i].timer);
+    moles[i].className = 'mole';
+  }
+
+  // Countdown
+  doCountdown(() => {
+    gameRunning = true;
+    startTimer();
+    spawnLoop();
+  });
+}
+
+function doCountdown(cb) {
+  const nums = ['3', '2', '1', '🔨'];
+  let i = 0;
+  $countdown.classList.add('show');
+
+  function next() {
+    if (i >= nums.length) {
+      $countdown.classList.remove('show');
+      cb();
+      return;
+    }
+    $countdown.textContent = nums[i];
+    $countdown.style.transform = 'scale(1.3)';
+    $countdown.style.transition = 'none';
+    void $countdown.offsetWidth;
+    $countdown.style.transition = 'transform 0.3s ease-out';
+    $countdown.style.transform = 'scale(1)';
+    TG.haptic('impact', 'light');
+    i++;
+    setTimeout(next, 700);
+  }
+  next();
+}
+
+function endGame() {
+  gameRunning = false;
+  clearInterval(gameTimer);
+  clearTimeout(spawnTimer);
+
+  // Hide all moles
+  for (let i = 0; i < GRID; i++) {
+    hideMole(i, false);
+  }
+
+  // Save score
+  const result = GameScore.save(GAME_ID, score);
+  bestScore = result.bestScore;
+  $bestVal.textContent = bestScore;
+  $menuBest.textContent = bestScore;
+
+  // Haptic
+  TG.haptic('notification', result.isNewBest ? 'success' : 'warning');
+
+  // Show game over overlay
+  setTimeout(() => showGameOver(result), 500);
+}
+
+function showGameOver(result) {
+  $overlay.innerHTML = `
+    <div class="menu-emoji" style="animation:none;font-size:3rem">${result.isNewBest ? '🏆' : '🔨'}</div>
+    <div class="menu-title">${T('gameOver')}</div>
+    ${result.isNewBest ? `<div style="color:#FFD700;font-size:16px;font-weight:700;margin:4px 0;animation:pulse 1s infinite">${T('newBest')}</div>` : ''}
+    <div style="font-size:48px;font-weight:900;color:#FFD700;text-shadow:0 2px 10px rgba(0,0,0,.3);margin:8px 0">${score.toLocaleString()}</div>
+    <div style="font-size:13px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:2px;margin-bottom:8px">${T('score')}</div>
+    <div style="font-size:14px;color:rgba(255,255,255,.6);margin-bottom:4px">🏅 ${T('best')}: ${bestScore.toLocaleString()}</div>
+    <div style="display:flex;gap:16px;justify-content:center;margin-bottom:16px;font-size:13px;color:rgba(255,255,255,.5)">
+      <span>🐹 ${molesWhacked}</span>
+      <span>🔥 ${T('combo')}: ${maxCombo}</span>
+      <span>📊 ${T('level')} ${level}</span>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+      <button class="btn btn-play" id="btn-replay">${T('replay')}</button>
+      <button class="btn btn-secondary" id="btn-share">${T('share')}</button>
+    </div>
+  `;
+  $overlay.classList.remove('hidden');
+
+  document.getElementById('btn-replay').addEventListener('click', () => startGame());
+  document.getElementById('btn-replay').addEventListener('touchend', (e) => { e.preventDefault(); startGame(); });
+  document.getElementById('btn-share').addEventListener('click', () => {
+    TG.shareScore(score, 'Whack-a-Mole', GAME_ID);
+  });
+}
+
+/* ═══════════════ INPUT ═══════════════ */
+function setupInput() {
+  // Touch events (primary for mobile)
+  $field.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    for (const touch of e.changedTouches) {
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (!el) continue;
+      const hole = el.closest('.hole');
+      if (hole) {
+        const idx = parseInt(hole.dataset.idx);
+        handleTap(idx, touch);
+      }
+    }
+  }, { passive: false });
+
+  // Mouse events (desktop fallback)
+  $field.addEventListener('mousedown', (e) => {
+    const hole = e.target.closest('.hole');
+    if (hole) {
+      const idx = parseInt(hole.dataset.idx);
+      handleTap(idx, e);
+    }
+  });
+
+  // Prevent context menu
+  $field.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+/* ═══════════════ INIT ═══════════════ */
+function init() {
+  applyI18n();
+  buildField();
+  setupInput();
+
+  // Load best score
+  bestScore = GameScore.getBest(GAME_ID);
+  $bestVal.textContent = bestScore;
+  $menuBest.textContent = bestScore;
+  $levelEl.textContent = `${T('level')} 1`;
+
+  // Start button
+  $btnStart.addEventListener('click', () => startGame());
+  $btnStart.addEventListener('touchend', (e) => { e.preventDefault(); startGame(); });
+
+  // Back button handler
+  TG.onBack(() => {
+    if (gameRunning) {
+      // Pause or end game
+      endGame();
+      return true;
+    }
+    return false;
+  });
+}
+
+// Auto-init
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+})();
+</script>
+</body>
+</html>
