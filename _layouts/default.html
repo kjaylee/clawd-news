@@ -201,7 +201,7 @@
                 <div class="sidebar-title">🎮 게임</div>
                 <ul class="sidebar-nav">
                     <li><a href="{{ '/games/' | relative_url }}" {% if page.url == '/games/' %}class="active"{% endif %} style="font-weight:600;color:#ff6b9d;">
-                        🕹️ 게임 포털 (28종)
+                        🕹️ 게임 포털 (71종)
                         <div class="sub">퍼즐 · 아케이드 · 액션 · 리듬</div>
                     </a></li>
                     {% if site.games %}
@@ -212,6 +212,34 @@
                     </a></li>
                     {% endfor %}
                     {% endif %}
+                </ul>
+            </div>
+            
+            <!-- 📚 문서 & 리서치 -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">📚 문서 & 리서치</div>
+                <ul class="sidebar-nav">
+                    <li><a href="{{ '/docs/' | relative_url }}" {% if page.url == '/docs/' %}class="active"{% endif %} style="font-weight:600;color:#00d4ff;">
+                        📚 전체 문서 (19개)
+                        <div class="sub">리서치 · 기획 · 전략 · 마케팅</div>
+                    </a></li>
+                    {% assign doc_posts = site.posts | where: "categories", "docs" %}
+                    {% for post in doc_posts limit:5 %}
+                    <li><a href="{{ post.url | relative_url }}" {% if page.url == post.url %}class="active"{% endif %}>
+                        {{ post.title | truncate: 28 }}
+                    </a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <!-- 🛠️ 서비스 -->
+            <div class="sidebar-section">
+                <div class="sidebar-title">🛠️ 서비스</div>
+                <ul class="sidebar-nav">
+                    <li><a href="{{ '/services/' | relative_url }}" {% if page.url == '/services/' %}class="active"{% endif %} style="font-weight:600;color:#4ecdc4;">
+                        🛠️ 서비스 목록
+                        <div class="sub">스크린샷 도구 · 게임 아케이드</div>
+                    </a></li>
                 </ul>
             </div>
             

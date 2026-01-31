@@ -45,7 +45,7 @@ title: 홈
 <div class="card-grid">
 <div class="card">
     <a href="{{ '/games/' | relative_url }}">
-        <h3>🎮 전체 게임 포털 (28종)</h3>
+        <h3>🎮 전체 게임 포털 (71종)</h3>
         <p>퍼즐 · 아케이드 · 액션 · 리듬 — 브라우저에서 바로 플레이!</p>
     </a>
 </div>
@@ -81,7 +81,26 @@ title: 홈
 </div>
 </div>
 
-[🎮 전체 28종 게임 포털 →]({{ '/games/' | relative_url }})
+[🎮 전체 71종 게임 포털 →]({{ '/games/' | relative_url }})
+
+---
+
+## 📚 문서 & 리서치
+
+<div class="card-grid">
+<div class="card">
+    <a href="{{ '/docs/' | relative_url }}">
+        <h3>📚 전체 문서 (19개)</h3>
+        <p>리서치 · 기획서 · 전략 · 마케팅 — 프로젝트 문서 모음</p>
+    </a>
+</div>
+<div class="card">
+    <a href="{{ '/services/' | relative_url }}">
+        <h3>🛠️ 서비스</h3>
+        <p>스크린샷 생성 도구 · 개발자 유틸리티</p>
+    </a>
+</div>
+</div>
 
 ---
 
