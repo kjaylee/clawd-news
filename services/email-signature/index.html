@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Signature Generator — 이메일 서명 생성기 | East Sea Tools</title>
+<meta name="description" content="전문적인 이메일 서명을 무료로 만들세요. 다양한 템플릿, 소셜 아이콘, HTML 복사. Gmail, Outlook, Apple Mail 호환.">
+<meta name="keywords" content="email signature generator, 이메일 서명 생성기, HTML email signature, Gmail signature, Outlook signature, 이메일 서명 만들기">
+<link rel="canonical" href="https://eastsea.monster/services/email-signature/">
+<meta property="og:title" content="✉️ Email Signature Generator — 이메일 서명 생성기">
+<meta property="og:description" content="전문적인 이메일 서명을 무료로 만들세요. Gmail, Outlook, Apple Mail 호환.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/email-signature/">
+<meta property="og:site_name" content="East Sea Tools">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:900px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.card h2{font-size:.95rem;margin-bottom:14px;color:var(--accent)}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:.82rem;color:var(--muted);margin-bottom:4px}
+.form-group input,.form-group select{width:100%;padding:9px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.85rem}
+.form-group input:focus{outline:none;border-color:var(--accent)}
+.row{display:flex;gap:10px}
+.row .form-group{flex:1}
+.color-input{display:flex;align-items:center;gap:8px}
+.color-input input[type=color]{width:36px;height:30px;border:none;border-radius:6px;cursor:pointer;background:transparent}
+.color-input input[type=text]{flex:1}
+.template-row{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tpl-btn{padding:8px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:.8rem;transition:all .2s}
+.tpl-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.social-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.social-field{display:flex;align-items:center;gap:6px}
+.social-field .icon{width:20px;text-align:center;font-size:.9rem}
+.social-field input{flex:1;padding:7px 10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.8rem}
+.social-field input:focus{outline:none;border-color:var(--accent)}
+.preview-frame{background:#fff;border-radius:8px;padding:20px;min-height:120px}
+.btn{width:100%;padding:12px;border:none;border-radius:10px;font-size:.9rem;font-weight:600;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text);margin-top:8px}
+.btn-row{display:flex;gap:8px;margin-top:14px}
+.btn-row .btn{flex:1}
+.photo-upload{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.photo-circle{width:60px;height:60px;border-radius:50%;background:var(--bg);border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;flex-shrink:0}
+.photo-circle img{width:100%;height:100%;object-fit:cover}
+.photo-circle .placeholder{font-size:1.5rem}
+.photo-info{font-size:.8rem;color:var(--muted)}
+.divider-options{display:flex;gap:8px}
+.div-btn{padding:6px 12px;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:.75rem;transition:all .2s}
+.div-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.code-area{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;font-family:'Courier New',monospace;font-size:.75rem;color:var(--muted);max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;display:none;margin-top:12px}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:24px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.instructions{font-size:.82rem;color:var(--muted);line-height:1.7;margin-top:12px}
+.instructions h3{color:var(--accent);font-size:.85rem;margin-bottom:6px}
+.instructions ol{padding-left:18px}
+@media(max-width:768px){.layout{grid-template-columns:1fr}.social-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<a href="/services/">← Tools</a>
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+<div class="container">
+<h1>✉️ <span data-i18n="title">이메일 서명 생성기</span></h1>
+<p class="subtitle" data-i18n="subtitle">전문적인 이메일 서명을 무료로 만드세요</p>
+
+<div class="layout">
+<!-- Left: Editor -->
+<div>
+<!-- Template -->
+<div class="card">
+<h2 data-i18n="template">🎨 템플릿</h2>
+<div class="template-row">
+<div class="tpl-btn active" onclick="setTemplate('classic')">Classic</div>
+<div class="tpl-btn" onclick="setTemplate('modern')">Modern</div>
+<div class="tpl-btn" onclick="setTemplate('minimal')">Minimal</div>
+<div class="tpl-btn" onclick="setTemplate('bold')">Bold</div>
+</div>
+<div class="row">
+<div class="form-group">
+<label data-i18n="primaryColor">주요 색상</label>
+<div class="color-input">
+<input type="color" id="primaryColor" value="#667eea" oninput="document.getElementById('primaryHex').value=this.value;render()">
+<input type="text" id="primaryHex" value="#667eea" oninput="document.getElementById('primaryColor').value=this.value;render()">
+</div>
+</div>
+<div class="form-group">
+<label data-i18n="fontSelect">글꼴</label>
+<select id="fontSelect" onchange="render()">
+<option value="Arial, sans-serif">Arial</option>
+<option value="'Helvetica Neue', sans-serif">Helvetica</option>
+<option value="Georgia, serif">Georgia</option>
+<option value="'Trebuchet MS', sans-serif">Trebuchet</option>
+<option value="Verdana, sans-serif">Verdana</option>
+</select>
+</div>
+</div>
+</div>
+
+<!-- Personal Info -->
+<div class="card">
+<h2 data-i18n="personalInfo">👤 개인 정보</h2>
+<div class="photo-upload">
+<div class="photo-circle" onclick="document.getElementById('photoInput').click()" id="photoCircle">
+<span class="placeholder">📷</span>
+</div>
+<div class="photo-info" data-i18n="photoHint">프로필 사진 (선택)<br>클릭하여 업로드</div>
+<input type="file" id="photoInput" accept="image/*" hidden>
+</div>
+<div class="row">
+<div class="form-group"><label data-i18n="fullName">이름</label><input type="text" id="fullName" value="홍길동" oninput="render()"></div>
+<div class="form-group"><label data-i18n="jobTitle">직함</label><input type="text" id="jobTitle" value="소프트웨어 엔지니어" oninput="render()"></div>
+</div>
+<div class="row">
+<div class="form-group"><label data-i18n="company">회사</label><input type="text" id="company" value="East Sea" oninput="render()"></div>
+<div class="form-group"><label data-i18n="department">부서</label><input type="text" id="department" value="" oninput="render()"></div>
+</div>
+</div>
+
+<!-- Contact -->
+<div class="card">
+<h2 data-i18n="contact">📞 연락처</h2>
+<div class="row">
+<div class="form-group"><label data-i18n="email">이메일</label><input type="email" id="email" value="hello@eastsea.monster" oninput="render()"></div>
+<div class="form-group"><label data-i18n="phone">전화</label><input type="tel" id="phone" value="+82-10-1234-5678" oninput="render()"></div>
+</div>
+<div class="row">
+<div class="form-group"><label data-i18n="website">웹사이트</label><input type="url" id="website" value="https://eastsea.monster" oninput="render()"></div>
+<div class="form-group"><label data-i18n="address">주소</label><input type="text" id="address" value="" oninput="render()"></div>
+</div>
+</div>
+
+<!-- Social -->
+<div class="card">
+<h2 data-i18n="social">🌐 소셜 미디어</h2>
+<div class="social-row">
+<div class="social-field"><span class="icon">🐦</span><input type="text" id="twitter" placeholder="@username" oninput="render()"></div>
+<div class="social-field"><span class="icon">💼</span><input type="text" id="linkedin" placeholder="LinkedIn URL" oninput="render()"></div>
+<div class="social-field"><span class="icon">📸</span><input type="text" id="instagram" placeholder="@username" oninput="render()"></div>
+<div class="social-field"><span class="icon">🐙</span><input type="text" id="github" placeholder="username" oninput="render()"></div>
+<div class="social-field"><span class="icon">📺</span><input type="text" id="youtube" placeholder="Channel URL" oninput="render()"></div>
+<div class="social-field"><span class="icon">💬</span><input type="text" id="kakao" placeholder="KakaoTalk ID" oninput="render()"></div>
+</div>
+</div>
+</div>
+
+<!-- Right: Preview & Export -->
+<div>
+<div class="card" style="position:sticky;top:60px">
+<h2 data-i18n="preview">👁️ 미리보기</h2>
+<div class="preview-frame" id="preview"></div>
+<div class="btn-row">
+<button class="btn btn-primary" onclick="copySignature()" data-i18n="copyHtml">📋 HTML 복사</button>
+<button class="btn btn-secondary" onclick="copyText()" data-i18n="copyText">📝 텍스트 복사</button>
+</div>
+<button class="btn btn-secondary" onclick="toggleCode()" data-i18n="showCode">🔧 HTML 코드 보기</button>
+<div class="code-area" id="codeArea"></div>
+
+<div class="instructions">
+<h3 data-i18n="howToUse">📖 사용법</h3>
+<ol>
+<li data-i18n="step1">"HTML 복사" 클릭</li>
+<li data-i18n="step2Gmail"><strong>Gmail:</strong> 설정 → 서명 → 입력란에 Ctrl+V</li>
+<li data-i18n="step3Outlook"><strong>Outlook:</strong> 설정 → 서명 → 새 서명 → 붙여넣기</li>
+<li data-i18n="step4Apple"><strong>Apple Mail:</strong> 환경설정 → 서명 → 새 서명</li>
+</ol>
+</div>
+</div>
+</div>
+</div>
+
+<div class="ad-placeholder" data-i18n="ad">AD SPACE</div>
+</div>
+
+<footer>
+<p>© 2026 <a href="/">East Sea</a> · <a href="/services/">Tools</a></p>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+const i18n={
+ko:{title:'이메일 서명 생성기',subtitle:'전문적인 이메일 서명을 무료로 만드세요',template:'🎨 템플릿',primaryColor:'주요 색상',fontSelect:'글꼴',personalInfo:'👤 개인 정보',photoHint:'프로필 사진 (선택)\n클릭하여 업로드',fullName:'이름',jobTitle:'직함',company:'회사',department:'부서',contact:'📞 연락처',email:'이메일',phone:'전화',website:'웹사이트',address:'주소',social:'🌐 소셜 미디어',preview:'👁️ 미리보기',copyHtml:'📋 HTML 복사',copyText:'📝 텍스트 복사',showCode:'🔧 HTML 코드 보기',howToUse:'📖 사용법',step1:'"HTML 복사" 클릭',step2Gmail:'Gmail: 설정 → 서명 → 입력란에 Ctrl+V',step3Outlook:'Outlook: 설정 → 서명 → 새 서명 → 붙여넣기',step4Apple:'Apple Mail: 환경설정 → 서명 → 새 서명',ad:'광고 영역',copied:'✅ 복사됨!'},
+en:{title:'Email Signature Generator',subtitle:'Create professional email signatures for free',template:'🎨 Template',primaryColor:'Primary color',fontSelect:'Font',personalInfo:'👤 Personal Info',photoHint:'Profile photo (optional)\nClick to upload',fullName:'Full name',jobTitle:'Job title',company:'Company',department:'Department',contact:'📞 Contact',email:'Email',phone:'Phone',website:'Website',address:'Address',social:'🌐 Social Media',preview:'👁️ Preview',copyHtml:'📋 Copy HTML',copyText:'📝 Copy Text',showCode:'🔧 Show HTML Code',howToUse:'📖 How to Use',step1:'Click "Copy HTML"',step2Gmail:'Gmail: Settings → Signature → Paste with Ctrl+V',step3Outlook:'Outlook: Settings → Signature → New → Paste',step4Apple:'Apple Mail: Preferences → Signatures → New',ad:'AD SPACE',copied:'✅ Copied!'}
+};
+let lang='ko',template='classic',photoDataUrl=null;
+
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]})}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+function setTemplate(t){template=t;document.querySelectorAll('.tpl-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===t));render()}
+
+document.getElementById('photoInput').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{
+    photoDataUrl=ev.target.result;
+    document.getElementById('photoCircle').innerHTML=`<img src="${photoDataUrl}">`;render()};r.readAsDataURL(f)});
+
+function getValues(){
+  return{
+    name:document.getElementById('fullName').value,
+    title:document.getElementById('jobTitle').value,
+    company:document.getElementById('company').value,
+    dept:document.getElementById('department').value,
+    email:document.getElementById('email').value,
+    phone:document.getElementById('phone').value,
+    website:document.getElementById('website').value,
+    address:document.getElementById('address').value,
+    twitter:document.getElementById('twitter').value,
+    linkedin:document.getElementById('linkedin').value,
+    instagram:document.getElementById('instagram').value,
+    github:document.getElementById('github').value,
+    youtube:document.getElementById('youtube').value,
+    kakao:document.getElementById('kakao').value,
+    color:document.getElementById('primaryColor').value,
+    font:document.getElementById('fontSelect').value,
+    photo:photoDataUrl}}
+
+function socialIcons(v,color){
+  const icons=[];
+  const style=`display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:${color};color:#fff;font-size:12px;text-decoration:none;margin-right:4px;font-family:Arial,sans-serif`;
+  if(v.twitter)icons.push(`<a href="https://x.com/${v.twitter.replace('@','')}" style="${style}" title="X/Twitter">𝕏</a>`);
+  if(v.linkedin)icons.push(`<a href="${v.linkedin.startsWith('http')?v.linkedin:'https://linkedin.com/in/'+v.linkedin}" style="${style}" title="LinkedIn">in</a>`);
+  if(v.instagram)icons.push(`<a href="https://instagram.com/${v.instagram.replace('@','')}" style="${style}" title="Instagram">📸</a>`);
+  if(v.github)icons.push(`<a href="https://github.com/${v.github}" style="${style}" title="GitHub">⌨</a>`);
+  if(v.youtube)icons.push(`<a href="${v.youtube}" style="${style}" title="YouTube">▶</a>`);
+  if(v.kakao)icons.push(`<a href="#" style="${style}" title="KakaoTalk">💬</a>`);
+  return icons.join('')}
+
+function buildSignature(v){
+  const sep=`<span style="color:${v.color}"> | </span>`;
+  const contactParts=[];
+  if(v.email)contactParts.push(`<a href="mailto:${v.email}" style="color:${v.color};text-decoration:none">${v.email}</a>`);
+  if(v.phone)contactParts.push(v.phone);
+  if(v.website)contactParts.push(`<a href="${v.website}" style="color:${v.color};text-decoration:none">${v.website.replace(/^https?:\/\//,'')}</a>`);
+  const contactLine=contactParts.join(' · ');
+  const social=socialIcons(v,v.color);
+  const photoHtml=v.photo?`<img src="${v.photo}" width="70" height="70" style="border-radius:50%;object-fit:cover;margin-right:14px" alt="${v.name}">`:
+    `<div style="width:70px;height:70px;border-radius:50%;background:${v.color};display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px;font-weight:bold;margin-right:14px">${v.name.charAt(0)}</div>`;
+
+  const templates={
+    classic:`<table cellpadding="0" cellspacing="0" style="font-family:${v.font};font-size:13px;color:#333">
+<tr>
+<td style="vertical-align:top;padding-right:14px;border-right:3px solid ${v.color}">${photoHtml}</td>
+<td style="vertical-align:top;padding-left:14px">
+<div style="font-size:16px;font-weight:bold;color:#222">${v.name}</div>
+${v.title?`<div style="color:${v.color};font-size:13px">${v.title}</div>`:''}
+${v.company?`<div style="font-size:12px;color:#666">${v.company}${v.dept?' · '+v.dept:''}</div>`:''}
+<div style="margin-top:8px;font-size:12px;color:#666">${contactLine}</div>
+${v.address?`<div style="font-size:12px;color:#666">${v.address}</div>`:''}
+${social?`<div style="margin-top:8px">${social}</div>`:''}
+</td></tr></table>`,
+
+    modern:`<table cellpadding="0" cellspacing="0" style="font-family:${v.font};font-size:13px;color:#333">
+<tr><td style="vertical-align:top">${photoHtml}</td>
+<td style="vertical-align:top">
+<div style="font-size:18px;font-weight:bold;color:${v.color}">${v.name}</div>
+${v.title||v.company?`<div style="font-size:12px;color:#999;margin-bottom:8px">${[v.title,v.company,v.dept].filter(Boolean).join(' · ')}</div>`:''}
+<div style="border-top:2px solid ${v.color};padding-top:8px;margin-top:4px">
+<div style="font-size:12px;color:#666">${contactLine}</div>
+${v.address?`<div style="font-size:12px;color:#666">${v.address}</div>`:''}
+</div>
+${social?`<div style="margin-top:8px">${social}</div>`:''}
+</td></tr></table>`,
+
+    minimal:`<div style="font-family:${v.font};font-size:13px;color:#333;border-top:1px solid #eee;padding-top:10px">
+<div style="font-weight:bold;color:#222">${v.name}${v.title?' — <span style="font-weight:normal;color:'+v.color+'">'+v.title+'</span>':''}</div>
+${v.company?`<div style="font-size:12px;color:#999">${v.company}${v.dept?' · '+v.dept:''}</div>`:''}
+<div style="font-size:12px;color:#666;margin-top:4px">${contactLine}</div>
+${social?`<div style="margin-top:6px">${social}</div>`:''}
+</div>`,
+
+    bold:`<table cellpadding="0" cellspacing="0" style="font-family:${v.font};font-size:13px;color:#fff;background:${v.color};border-radius:8px;padding:16px">
+<tr>
+<td style="vertical-align:top;padding-right:14px">${v.photo?`<img src="${v.photo}" width="70" height="70" style="border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.3)" alt="${v.name}">`:`<div style="width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold">${v.name.charAt(0)}</div>`}</td>
+<td style="vertical-align:top">
+<div style="font-size:18px;font-weight:bold">${v.name}</div>
+${v.title?`<div style="font-size:13px;opacity:.85">${v.title}</div>`:''}
+${v.company?`<div style="font-size:12px;opacity:.7">${v.company}${v.dept?' · '+v.dept:''}</div>`:''}
+<div style="margin-top:8px;font-size:12px;opacity:.85">${contactParts.map(p=>p.replace(/color:[^;"]*/g,'color:#fff')).join(' · ')}</div>
+${social?`<div style="margin-top:8px">${social.replace(/background:[^;"]*/g,'background:rgba(255,255,255,.2)')}</div>`:''}
+</td></tr></table>`};
+
+  return templates[template]||templates.classic}
+
+function render(){
+  const v=getValues();
+  const html=buildSignature(v);
+  document.getElementById('preview').innerHTML=html;
+  document.getElementById('codeArea').textContent=html}
+
+async function copySignature(){
+  const html=document.getElementById('preview').innerHTML;
+  try{
+    // Copy as rich HTML
+    const blob=new Blob([html],{type:'text/html'});
+    const textBlob=new Blob([html],{type:'text/plain'});
+    await navigator.clipboard.write([new ClipboardItem({'text/html':blob,'text/plain':textBlob})]);
+    toast(i18n[lang].copied)}
+  catch(e){
+    // Fallback
+    const ta=document.createElement('textarea');ta.value=html;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+    toast(i18n[lang].copied)}}
+
+function copyText(){
+  const v=getValues();
+  let text=v.name+'\n';
+  if(v.title)text+=v.title+'\n';
+  if(v.company)text+=v.company+(v.dept?' · '+v.dept:'')+'\n';
+  text+='\n';
+  if(v.email)text+=v.email+'\n';
+  if(v.phone)text+=v.phone+'\n';
+  if(v.website)text+=v.website+'\n';
+  if(v.address)text+=v.address+'\n';
+  navigator.clipboard.writeText(text).then(()=>toast(i18n[lang].copied))}
+
+function toggleCode(){
+  const el=document.getElementById('codeArea');
+  el.style.display=el.style.display==='none'?'block':'none'}
+
+// Init
+render();
+</script>
+</body>
+</html>

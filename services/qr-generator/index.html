@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Code Generator — QR코드 생성기 | East Sea Tools</title>
+<meta name="description" content="커스텀 QR코드를 무료로 생성하세요. 로고 삽입, 색상 변경, 다양한 크기 지원. URL, 텍스트, WiFi, 연락처 QR코드.">
+<meta name="keywords" content="QR code generator, QR코드 생성기, custom QR code, QR코드 만들기, WiFi QR code, vCard QR">
+<link rel="canonical" href="https://eastsea.monster/services/qr-generator/">
+<meta property="og:title" content="📱 QR Code Generator — QR코드 생성기">
+<meta property="og:description" content="커스텀 QR코드를 무료로 생성. 로고 삽입, 색상, 다양한 데이터 유형 지원.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://eastsea.monster/services/qr-generator/">
+<meta property="og:site_name" content="East Sea Tools">
+<meta name="twitter:card" content="summary">
+<style>
+:root{--bg:#0a0a12;--card:#12121f;--border:#1f1f2e;--accent:#667eea;--accent2:#764ba2;--pink:#ff6b9d;--text:#e0e0e0;--muted:#888;--dim:#555;--radius:14px;--green:#4ade80;--red:#ef4444;--yellow:#fbbf24}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.6}
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:10}
+.top-bar a{color:var(--muted);text-decoration:none;font-size:.85rem}.top-bar a:hover{color:var(--accent)}
+.lang-btn{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:4px 12px;border-radius:8px;cursor:pointer;font-size:.8rem}
+.container{max-width:700px;margin:0 auto;padding:30px 20px 60px}
+h1{font-size:clamp(1.5rem,4vw,2rem);font-weight:800;text-align:center;margin-bottom:8px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.subtitle{text-align:center;color:var(--muted);margin-bottom:30px;font-size:.9rem}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:20px}
+.card h2{font-size:.95rem;margin-bottom:14px;color:var(--accent)}
+.tabs{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap}
+.tab{padding:8px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:.8rem;transition:all .2s}
+.tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:.85rem;color:var(--muted);margin-bottom:6px}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.9rem;font-family:inherit}
+.form-group input:focus,.form-group textarea:focus{outline:none;border-color:var(--accent)}
+.form-group textarea{resize:vertical;min-height:60px}
+.row{display:flex;gap:12px}
+.row .form-group{flex:1}
+.color-input{display:flex;align-items:center;gap:10px}
+.color-input input[type=color]{width:40px;height:34px;border:none;border-radius:6px;cursor:pointer;background:transparent}
+.color-input input[type=text]{flex:1}
+.qr-preview{display:flex;justify-content:center;align-items:center;padding:30px;background:#fff;border-radius:12px;min-height:260px;position:relative}
+#qrCanvas{max-width:100%}
+.size-row{display:flex;gap:8px;margin-bottom:12px}
+.size-btn{flex:1;padding:8px;text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:.8rem;transition:all .2s}
+.size-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;transition:transform .15s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff}
+.btn-secondary{background:var(--card);border:1px solid var(--border);color:var(--text);margin-top:10px}
+.btn-row{display:flex;gap:10px;margin-top:16px}
+.btn-row .btn{flex:1}
+.logo-upload{display:flex;align-items:center;gap:10px}
+.logo-upload .mini-drop{flex:1;border:1px dashed var(--border);border-radius:8px;padding:10px;text-align:center;cursor:pointer;font-size:.8rem;color:var(--muted)}
+.logo-preview{width:40px;height:40px;border-radius:6px;object-fit:contain;background:var(--bg);border:1px solid var(--border)}
+.ecl-row{display:flex;gap:8px}
+.ecl-btn{flex:1;padding:8px;text-align:center;background:var(--bg);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:.8rem;transition:all .2s}
+.ecl-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.ad-placeholder{background:var(--card);border:1px dashed var(--border);border-radius:var(--radius);padding:30px;text-align:center;color:var(--dim);font-size:.8rem;margin-top:24px}
+footer{text-align:center;padding:20px;color:var(--dim);font-size:.8rem;border-top:1px solid var(--border);margin-top:40px}
+footer a{color:var(--accent);text-decoration:none}
+.toast{position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--green);color:#000;padding:10px 24px;border-radius:10px;font-weight:600;font-size:.9rem;opacity:0;transition:transform .3s,opacity .3s;z-index:99}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+@media(max-width:480px){.container{padding:20px 14px 40px}.row{flex-direction:column}.btn-row{flex-direction:column}.tabs{gap:4px}.tab{font-size:.75rem;padding:6px 10px}}
+</style>
+</head>
+<body>
+<div class="top-bar">
+<a href="/services/">← Tools</a>
+<button class="lang-btn" onclick="toggleLang()" id="langBtn">EN</button>
+</div>
+<div class="container">
+<h1>📱 <span data-i18n="title">QR코드 생성기</span></h1>
+<p class="subtitle" data-i18n="subtitle">커스텀 QR코드를 무료로 생성하세요</p>
+
+<!-- Data Type -->
+<div class="card">
+<h2 data-i18n="dataType">📝 데이터 유형</h2>
+<div class="tabs">
+<div class="tab active" onclick="setDataType('url')">🔗 URL</div>
+<div class="tab" onclick="setDataType('text')">📝 Text</div>
+<div class="tab" onclick="setDataType('wifi')">📶 WiFi</div>
+<div class="tab" onclick="setDataType('email')">✉️ Email</div>
+<div class="tab" onclick="setDataType('phone')">📞 Phone</div>
+<div class="tab" onclick="setDataType('sms')">💬 SMS</div>
+</div>
+
+<!-- URL -->
+<div id="panelUrl">
+<div class="form-group">
+<label>URL</label>
+<input type="url" id="inputUrl" value="https://eastsea.monster" oninput="generate()" placeholder="https://example.com">
+</div>
+</div>
+<!-- Text -->
+<div id="panelText" style="display:none">
+<div class="form-group">
+<label data-i18n="textLabel">텍스트</label>
+<textarea id="inputText" oninput="generate()" placeholder="Hello World!"></textarea>
+</div>
+</div>
+<!-- WiFi -->
+<div id="panelWifi" style="display:none">
+<div class="form-group">
+<label>SSID</label>
+<input type="text" id="wifiSsid" oninput="generate()" placeholder="MyWiFi">
+</div>
+<div class="row">
+<div class="form-group">
+<label data-i18n="wifiAuth">인증</label>
+<select id="wifiAuth" onchange="generate()">
+<option value="WPA">WPA/WPA2</option>
+<option value="WEP">WEP</option>
+<option value="nopass">None</option>
+</select>
+</div>
+<div class="form-group">
+<label data-i18n="wifiPass">비밀번호</label>
+<input type="text" id="wifiPass" oninput="generate()">
+</div>
+</div>
+<div class="form-group">
+<label><input type="checkbox" id="wifiHidden" onchange="generate()"> <span data-i18n="wifiHidden">숨김 네트워크</span></label>
+</div>
+</div>
+<!-- Email -->
+<div id="panelEmail" style="display:none">
+<div class="form-group"><label>Email</label><input type="email" id="emailAddr" oninput="generate()" placeholder="user@example.com"></div>
+<div class="form-group"><label data-i18n="emailSubject">제목</label><input type="text" id="emailSubject" oninput="generate()"></div>
+<div class="form-group"><label data-i18n="emailBody">내용</label><textarea id="emailBody" oninput="generate()"></textarea></div>
+</div>
+<!-- Phone -->
+<div id="panelPhone" style="display:none">
+<div class="form-group"><label data-i18n="phoneNum">전화번호</label><input type="tel" id="phoneNum" oninput="generate()" placeholder="+82-10-1234-5678"></div>
+</div>
+<!-- SMS -->
+<div id="panelSms" style="display:none">
+<div class="form-group"><label data-i18n="smsNum">전화번호</label><input type="tel" id="smsNum" oninput="generate()" placeholder="+82-10-1234-5678"></div>
+<div class="form-group"><label data-i18n="smsMsg">메시지</label><textarea id="smsMsg" oninput="generate()"></textarea></div>
+</div>
+</div>
+
+<!-- Customization -->
+<div class="card">
+<h2 data-i18n="customize">🎨 커스터마이즈</h2>
+<div class="row">
+<div class="form-group">
+<label data-i18n="fgColor">전경색</label>
+<div class="color-input">
+<input type="color" id="fgColor" value="#000000" oninput="document.getElementById('fgHex').value=this.value;generate()">
+<input type="text" id="fgHex" value="#000000" oninput="document.getElementById('fgColor').value=this.value;generate()">
+</div>
+</div>
+<div class="form-group">
+<label data-i18n="bgColor">배경색</label>
+<div class="color-input">
+<input type="color" id="bgColor" value="#ffffff" oninput="document.getElementById('bgHex').value=this.value;generate()">
+<input type="text" id="bgHex" value="#ffffff" oninput="document.getElementById('bgColor').value=this.value;generate()">
+</div>
+</div>
+</div>
+<div class="form-group">
+<label data-i18n="size">크기</label>
+<div class="size-row">
+<div class="size-btn" onclick="setSize(200)">200</div>
+<div class="size-btn active" onclick="setSize(400)">400</div>
+<div class="size-btn" onclick="setSize(600)">600</div>
+<div class="size-btn" onclick="setSize(800)">800</div>
+<div class="size-btn" onclick="setSize(1024)">1024</div>
+</div>
+</div>
+<div class="form-group">
+<label data-i18n="ecl">에러 보정 레벨</label>
+<div class="ecl-row">
+<div class="ecl-btn" onclick="setEcl('L')">L (7%)</div>
+<div class="ecl-btn active" onclick="setEcl('M')">M (15%)</div>
+<div class="ecl-btn" onclick="setEcl('Q')">Q (25%)</div>
+<div class="ecl-btn" onclick="setEcl('H')">H (30%)</div>
+</div>
+</div>
+<div class="form-group">
+<label data-i18n="logoLabel">로고 삽입 (선택)</label>
+<div class="logo-upload">
+<div class="mini-drop" onclick="document.getElementById('logoInput').click()" data-i18n="logoDrop">로고 이미지 선택</div>
+<img id="logoPreview" class="logo-preview" style="display:none">
+<button onclick="clearLogo()" style="background:none;border:none;color:var(--dim);cursor:pointer;font-size:.8rem" data-i18n="logoRemove">제거</button>
+</div>
+<input type="file" id="logoInput" accept="image/*" hidden>
+</div>
+</div>
+
+<!-- Preview -->
+<div class="card">
+<h2 data-i18n="previewLabel">👁️ 미리보기</h2>
+<div class="qr-preview">
+<canvas id="qrCanvas"></canvas>
+</div>
+</div>
+
+<!-- Download -->
+<div class="btn-row">
+<button class="btn btn-primary" onclick="downloadQR('png')">⬇️ PNG</button>
+<button class="btn btn-secondary" onclick="downloadQR('svg')">⬇️ SVG</button>
+<button class="btn btn-secondary" onclick="copyQR()" data-i18n="copy">📋 복사</button>
+</div>
+
+<div class="ad-placeholder" data-i18n="ad">AD SPACE</div>
+</div>
+
+<footer>
+<p>© 2026 <a href="/">East Sea</a> · <a href="/services/">Tools</a> · No Server Upload</p>
+</footer>
+<div class="toast" id="toast"></div>
+
+<script>
+// QR Code generator - pure JS implementation
+// Based on QR Code spec with Reed-Solomon error correction
+const QRCode=(function(){
+const ECL={L:1,M:0,Q:3,H:2};
+const MODE={Numeric:1,Alphanumeric:2,Byte:4};
+const ALPHANUM='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:';
+const ECC_CODEWORDS_PER_BLOCK=[[],
+[7,10,13,17],[10,16,22,28],[15,26,18,22],[20,18,26,16],[26,24,18,22],
+[18,28,24,28],[20,26,18,26],[24,26,22,26],[30,24,20,24],[18,28,24,28],
+[20,24,28,24],[24,28,26,28],[26,22,24,22],[30,24,20,24],[22,24,28,24],
+[24,28,24,30],[28,28,28,28],[30,26,28,28],[28,26,26,26],[28,26,28,28],
+[28,26,30,28],[28,28,24,30],[30,28,30,30],[30,28,30,30],[26,28,30,30],
+[28,28,28,30],[30,28,30,30],[30,28,30,30],[30,28,30,30],[30,28,30,30],
+[30,28,30,30],[30,28,30,30],[30,28,30,30],[30,28,30,30],[30,28,30,30],
+[30,28,30,30],[30,28,30,30],[30,28,30,30],[30,28,30,30],[30,28,30,30]];
+const NUM_ERROR_CORRECTION_BLOCKS=[[],
+[1,1,1,1],[1,1,1,1],[1,1,2,2],[1,2,2,4],[1,2,4,4],
+[2,4,4,4],[2,4,6,5],[2,4,6,6],[2,5,8,8],[4,5,8,8],
+[4,5,8,11],[4,8,10,11],[4,9,12,16],[4,10,16,16],[6,10,12,18],
+[6,10,17,16],[6,11,16,19],[6,13,18,21],[7,14,21,25],[8,16,20,25],
+[8,17,23,25],[9,17,23,34],[9,18,25,30],[10,20,27,32],[12,21,29,35],
+[12,23,34,37],[12,25,34,40],[13,26,35,42],[14,28,38,45],[15,29,40,48],
+[16,31,43,51],[17,33,45,54],[18,35,48,57],[19,37,51,60],[19,38,53,63],
+[20,40,56,66],[21,43,59,70],[22,45,62,74],[24,47,65,77],[25,49,68,81]];
+const NUM_DATA_CODEWORDS=[[],
+[19,16,13,9],[34,28,22,16],[55,44,34,26],[80,64,48,36],[108,86,62,46],
+[136,108,76,60],[156,124,88,66],[194,154,110,86],[232,182,132,100],[274,216,154,122],
+[324,254,180,140],[370,290,206,158],[428,334,244,180],[461,365,261,197],[523,415,295,223],
+[589,453,325,253],[647,507,367,283],[721,563,397,313],[795,627,445,341],[861,669,485,385],
+[932,714,512,406],[1006,782,568,442],[1094,860,614,464],[1174,914,664,514],[1276,1000,718,538],
+[1370,1062,754,596],[1468,1128,808,628],[1531,1193,871,661],[1631,1267,911,701],[1735,1373,985,745],
+[1843,1455,1033,793],[1955,1541,1115,845],[2071,1631,1171,901],[2191,1725,1231,961],[2306,1812,1286,986],
+[2434,1914,1354,1054],[2566,1992,1426,1096],[2702,2102,1502,1142],[2812,2216,1582,1222],[2956,2334,1666,1276]];
+
+function getMode(text){
+  if(/^\d+$/.test(text))return MODE.Numeric;
+  if(/^[0-9A-Z $%*+\-./:]+$/.test(text))return MODE.Alphanumeric;
+  return MODE.Byte}
+
+function getVersion(text,ecl){
+  const mode=getMode(text);
+  const dataLen=mode===MODE.Byte?new TextEncoder().encode(text).length:text.length;
+  for(let v=1;v<=40;v++){
+    const cap=NUM_DATA_CODEWORDS[v][ecl];
+    const headerBits=4+(v<10?(mode===1?10:mode===2?9:8):(v<27?(mode===1?12:mode===2?11:16):(mode===1?14:mode===2?13:16)));
+    let dataBits;
+    if(mode===MODE.Numeric)dataBits=Math.floor(dataLen/3)*10+[0,4,7][dataLen%3];
+    else if(mode===MODE.Alphanumeric)dataBits=Math.floor(dataLen/2)*11+(dataLen%2)*6;
+    else dataBits=dataLen*8;
+    if(Math.ceil((headerBits+dataBits)/8)<=cap)return v}
+  return -1}
+
+// Simplified QR generation using canvas
+function generate(text,options={}){
+  const ecl=ECL[options.ecl||'M'];
+  const fg=options.fg||'#000000';
+  const bg=options.bg||'#ffffff';
+  const size=options.size||400;
+  const version=getVersion(text,ecl);
+  if(version<0)return null;
+
+  // Use a simplified approach - encode to binary matrix
+  const modules=encodeToMatrix(text,version,ecl);
+  if(!modules)return null;
+  const moduleCount=modules.length;
+  const cellSize=Math.floor(size/moduleCount);
+  const actualSize=cellSize*moduleCount;
+
+  const canvas=document.createElement('canvas');
+  canvas.width=actualSize;canvas.height=actualSize;
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,actualSize,actualSize);
+  ctx.fillStyle=fg;
+  for(let r=0;r<moduleCount;r++){
+    for(let c=0;c<moduleCount;c++){
+      if(modules[r][c])ctx.fillRect(c*cellSize,r*cellSize,cellSize,cellSize)}}
+  return{canvas,moduleCount,cellSize,modules}}
+
+// Core QR encoding
+function encodeToMatrix(text,version,ecl){
+  const size=version*4+17;
+  const matrix=Array.from({length:size},()=>Array(size).fill(null));
+  const reserved=Array.from({length:size},()=>Array(size).fill(false));
+
+  // Place finder patterns
+  placeFinder(matrix,reserved,0,0);
+  placeFinder(matrix,reserved,0,size-7);
+  placeFinder(matrix,reserved,size-7,0);
+
+  // Place timing patterns
+  for(let i=8;i<size-8;i++){
+    matrix[6][i]=i%2===0;reserved[6][i]=true;
+    matrix[i][6]=i%2===0;reserved[i][6]=true}
+
+  // Place alignment patterns
+  const alignPos=getAlignmentPositions(version);
+  for(const r of alignPos)for(const c of alignPos){
+    if((r<9&&c<9)||(r<9&&c>size-9)||(r>size-9&&c<9))continue;
+    placeAlignment(matrix,reserved,r,c)}
+
+  // Dark module
+  matrix[size-8][8]=true;reserved[size-8][8]=true;
+
+  // Reserve version info areas
+  if(version>=7){
+    for(let i=0;i<6;i++)for(let j=0;j<3;j++){
+      reserved[i][size-11+j]=true;reserved[size-11+j][i]=true}}
+  // Reserve format info areas
+  for(let i=0;i<9;i++){reserved[8][i]=true;reserved[i][8]=true}
+  for(let i=0;i<8;i++){reserved[8][size-8+i]=true;reserved[size-8+i][8]=true}
+
+  // Encode data
+  const mode=getMode(text);
+  const bits=encodeData(text,mode,version,ecl);
+  if(!bits)return null;
+
+  // Place data bits
+  placeData(matrix,reserved,bits,size);
+
+  // Apply best mask
+  let bestMask=0,bestPenalty=Infinity;
+  for(let m=0;m<8;m++){
+    const test=matrix.map(r=>[...r]);
+    applyMask(test,reserved,m,size);
+    placeFormatInfo(test,ecl,m,size);
+    if(version>=7)placeVersionInfo(test,version,size);
+    const p=calcPenalty(test,size);
+    if(p<bestPenalty){bestPenalty=p;bestMask=m}}
+
+  applyMask(matrix,reserved,bestMask,size);
+  placeFormatInfo(matrix,ecl,bestMask,size);
+  if(version>=7)placeVersionInfo(matrix,version,size);
+
+  return matrix}
+
+function placeFinder(m,r,row,col){
+  for(let dr=-1;dr<=7;dr++)for(let dc=-1;dc<=7;dc++){
+    const rr=row+dr,cc=col+dc;
+    if(rr<0||rr>=m.length||cc<0||cc>=m.length)continue;
+    const outer=dr===-1||dr===7||dc===-1||dc===7;
+    const ring=dr===0||dr===6||dc===0||dc===6;
+    const inner=dr>=2&&dr<=4&&dc>=2&&dc<=4;
+    m[rr][cc]=!outer&&(ring||inner);r[rr][cc]=true}}
+
+function placeAlignment(m,r,row,col){
+  for(let dr=-2;dr<=2;dr++)for(let dc=-2;dc<=2;dc++){
+    const rr=row+dr,cc=col+dc;
+    m[rr][cc]=Math.abs(dr)===2||Math.abs(dc)===2||(!dr&&!dc);r[rr][cc]=true}}
+
+function getAlignmentPositions(v){
+  if(v===1)return[];
+  const n=Math.floor(v/7)+2;
+  const first=6,last=v*4+10;
+  const positions=[first];
+  if(n>2){
+    const step=Math.ceil((last-first)/(n-1));
+    const adj=step%2===0?step:step+1;
+    for(let i=1;i<n-1;i++)positions.push(last-adj*(n-1-i))}
+  positions.push(last);return positions}
+
+function encodeData(text,mode,version,ecl){
+  let bits='';
+  // Mode indicator
+  bits+=mode.toString(2).padStart(4,'0');
+  // Character count
+  const ccBits=version<10?(mode===1?10:mode===2?9:8):(version<27?(mode===1?12:mode===2?11:16):(mode===1?14:mode===2?13:16));
+  const dataBytes=mode===MODE.Byte?new TextEncoder().encode(text):null;
+  const dataLen=mode===MODE.Byte?dataBytes.length:text.length;
+  bits+=dataLen.toString(2).padStart(ccBits,'0');
+
+  // Data encoding
+  if(mode===MODE.Numeric){
+    for(let i=0;i<text.length;i+=3){
+      const g=text.substring(i,Math.min(i+3,text.length));
+      bits+=parseInt(g).toString(2).padStart(g.length===3?10:g.length===2?7:4,'0')}
+  }else if(mode===MODE.Alphanumeric){
+    for(let i=0;i<text.length;i+=2){
+      if(i+1<text.length){bits+=(ALPHANUM.indexOf(text[i])*45+ALPHANUM.indexOf(text[i+1])).toString(2).padStart(11,'0')}
+      else{bits+=ALPHANUM.indexOf(text[i]).toString(2).padStart(6,'0')}}
+  }else{
+    for(const b of dataBytes)bits+=b.toString(2).padStart(8,'0')}
+
+  // Terminator + padding
+  const totalDataBits=NUM_DATA_CODEWORDS[version][ecl]*8;
+  bits+='0'.repeat(Math.min(4,totalDataBits-bits.length));
+  if(bits.length%8!==0)bits+='0'.repeat(8-bits.length%8);
+  while(bits.length<totalDataBits){bits+='11101100';if(bits.length<totalDataBits)bits+='00010001'}
+
+  // Convert to codewords
+  const codewords=[];
+  for(let i=0;i<bits.length;i+=8)codewords.push(parseInt(bits.substring(i,i+8),2));
+
+  // Error correction
+  const numBlocks=NUM_ERROR_CORRECTION_BLOCKS[version][ecl];
+  const eccPerBlock=ECC_CODEWORDS_PER_BLOCK[version][ecl];
+  const totalData=NUM_DATA_CODEWORDS[version][ecl];
+  const shortBlocks=numBlocks-totalData%numBlocks;
+  const shortLen=Math.floor(totalData/numBlocks);
+
+  const dataBlocks=[];const eccBlocks=[];
+  let idx=0;
+  for(let i=0;i<numBlocks;i++){
+    const len=i<shortBlocks?shortLen:shortLen+1;
+    const block=codewords.slice(idx,idx+len);idx+=len;
+    dataBlocks.push(block);
+    eccBlocks.push(rsEncode(block,eccPerBlock))}
+
+  // Interleave
+  let result='';
+  for(let i=0;i<=shortLen;i++){
+    for(let j=0;j<numBlocks;j++){
+      if(i===shortLen&&j<shortBlocks)continue;
+      result+=dataBlocks[j][i].toString(2).padStart(8,'0')}}
+  for(let i=0;i<eccPerBlock;i++){
+    for(let j=0;j<numBlocks;j++){
+      result+=eccBlocks[j][i].toString(2).padStart(8,'0')}}
+
+  return result}
+
+// GF(256) arithmetic for Reed-Solomon
+const GF_EXP=new Uint8Array(512);const GF_LOG=new Uint8Array(256);
+(function(){let x=1;for(let i=0;i<255;i++){GF_EXP[i]=x;GF_LOG[x]=i;x<<=1;if(x>=256)x^=0x11D}
+  for(let i=255;i<512;i++)GF_EXP[i]=GF_EXP[i-255]})();
+function gfMul(a,b){if(!a||!b)return 0;return GF_EXP[GF_LOG[a]+GF_LOG[b]]}
+
+function rsEncode(data,eccLen){
+  const gen=rsGenPoly(eccLen);
+  const msg=new Uint8Array(data.length+eccLen);
+  msg.set(data);
+  for(let i=0;i<data.length;i++){
+    const coef=msg[i];if(coef===0)continue;
+    for(let j=0;j<=eccLen;j++)msg[i+j]^=gfMul(gen[j],coef)}
+  return Array.from(msg.slice(data.length))}
+
+function rsGenPoly(n){
+  let gen=[1];
+  for(let i=0;i<n;i++){
+    const factor=[1,GF_EXP[i]];
+    const result=new Array(gen.length+1).fill(0);
+    for(let j=0;j<gen.length;j++)for(let k=0;k<2;k++)result[j+k]^=gfMul(gen[j],factor[k]);
+    gen=result}
+  return gen}
+
+function placeData(matrix,reserved,bits,size){
+  let idx=0;
+  for(let right=size-1;right>=1;right-=2){
+    if(right===6)right=5;
+    for(let vert=0;vert<size;vert++){
+      for(let j=0;j<2;j++){
+        const col=right-j;
+        const upward=((right+1)&2)===0;
+        const row=upward?size-1-vert:vert;
+        if(reserved[row][col])continue;
+        matrix[row][col]=idx<bits.length&&bits[idx]==='1';idx++}}}}
+
+function applyMask(matrix,reserved,mask,size){
+  for(let r=0;r<size;r++)for(let c=0;c<size;c++){
+    if(reserved[r][c])continue;
+    let invert=false;
+    switch(mask){
+      case 0:invert=(r+c)%2===0;break;case 1:invert=r%2===0;break;
+      case 2:invert=c%3===0;break;case 3:invert=(r+c)%3===0;break;
+      case 4:invert=(Math.floor(r/2)+Math.floor(c/3))%2===0;break;
+      case 5:invert=(r*c)%2+(r*c)%3===0;break;
+      case 6:invert=((r*c)%2+(r*c)%3)%2===0;break;
+      case 7:invert=((r+c)%2+(r*c)%3)%2===0;break}
+    if(invert)matrix[r][c]=!matrix[r][c]}}
+
+function placeFormatInfo(matrix,ecl,mask,size){
+  const data=(ecl<<3)|mask;
+  let rem=data;for(let i=0;i<10;i++)rem=(rem<<1)^((rem>>9)*0x537);
+  const bits=((data<<10)|rem)^0x5412;
+  for(let i=0;i<6;i++)matrix[8][i]=(bits>>i)&1;
+  matrix[8][7]=(bits>>6)&1;matrix[8][8]=(bits>>7)&1;matrix[7][8]=(bits>>8)&1;
+  for(let i=9;i<15;i++)matrix[14-i][8]=(bits>>i)&1;
+  for(let i=0;i<8;i++)matrix[size-1-i][8]=(bits>>i)&1;
+  for(let i=8;i<15;i++)matrix[8][size-15+i]=(bits>>i)&1}
+
+function placeVersionInfo(matrix,version,size){
+  if(version<7)return;
+  let rem=version;for(let i=0;i<12;i++)rem=(rem<<1)^((rem>>11)*0x1F25);
+  const bits=(version<<12)|rem;
+  for(let i=0;i<18;i++){
+    const bit=(bits>>i)&1;
+    matrix[Math.floor(i/3)][size-11+i%3]=bit;
+    matrix[size-11+i%3][Math.floor(i/3)]=bit}}
+
+function calcPenalty(m,s){
+  let p=0;
+  // Rule 1: runs of same color
+  for(let r=0;r<s;r++){let run=1;for(let c=1;c<s;c++){if(m[r][c]===m[r][c-1])run++;else{if(run>=5)p+=run-2;run=1}}if(run>=5)p+=run-2}
+  for(let c=0;c<s;c++){let run=1;for(let r=1;r<s;r++){if(m[r][c]===m[r-1][c])run++;else{if(run>=5)p+=run-2;run=1}}if(run>=5)p+=run-2}
+  // Rule 2: 2x2 blocks
+  for(let r=0;r<s-1;r++)for(let c=0;c<s-1;c++){const v=m[r][c];if(v===m[r][c+1]&&v===m[r+1][c]&&v===m[r+1][c+1])p+=3}
+  return p}
+
+return{generate,ECL}})();
+
+// UI Logic
+const i18n={
+ko:{title:'QR코드 생성기',subtitle:'커스텀 QR코드를 무료로 생성하세요',dataType:'📝 데이터 유형',textLabel:'텍스트',wifiAuth:'인증',wifiPass:'비밀번호',wifiHidden:'숨김 네트워크',emailSubject:'제목',emailBody:'내용',phoneNum:'전화번호',smsNum:'전화번호',smsMsg:'메시지',customize:'🎨 커스터마이즈',fgColor:'전경색',bgColor:'배경색',size:'크기',ecl:'에러 보정 레벨',logoLabel:'로고 삽입 (선택)',logoDrop:'로고 이미지 선택',logoRemove:'제거',previewLabel:'👁️ 미리보기',copy:'📋 복사',ad:'광고 영역',copied:'✅ 복사됨!'},
+en:{title:'QR Code Generator',subtitle:'Create custom QR codes for free',dataType:'📝 Data Type',textLabel:'Text',wifiAuth:'Auth',wifiPass:'Password',wifiHidden:'Hidden network',emailSubject:'Subject',emailBody:'Body',phoneNum:'Phone number',smsNum:'Phone number',smsMsg:'Message',customize:'🎨 Customize',fgColor:'Foreground',bgColor:'Background',size:'Size',ecl:'Error Correction',logoLabel:'Logo (optional)',logoDrop:'Select logo image',logoRemove:'Remove',previewLabel:'👁️ Preview',copy:'📋 Copy',ad:'AD SPACE',copied:'✅ Copied!'}};
+let lang='ko',dataType='url',qrSize=400,eclLevel='M',logoImg=null;
+
+function toggleLang(){lang=lang==='ko'?'en':'ko';document.getElementById('langBtn').textContent=lang==='ko'?'EN':'KO';document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.getAttribute('data-i18n');if(i18n[lang][k])el.textContent=i18n[lang][k]})}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000)}
+
+function setDataType(t){
+  dataType=t;
+  document.querySelectorAll('.tabs .tab').forEach(b=>b.classList.remove('active'));
+  event.target.classList.add('active');
+  ['Url','Text','Wifi','Email','Phone','Sms'].forEach(p=>document.getElementById('panel'+p).style.display='none');
+  document.getElementById('panel'+t.charAt(0).toUpperCase()+t.slice(1)).style.display='block';generate()}
+
+function setSize(s){qrSize=s;document.querySelectorAll('.size-btn').forEach(b=>b.classList.toggle('active',parseInt(b.textContent)===s));generate()}
+function setEcl(e){eclLevel=e;document.querySelectorAll('.ecl-btn').forEach(b=>b.classList.toggle('active',b.textContent.startsWith(e)));generate()}
+
+function getData(){
+  switch(dataType){
+    case 'url':return document.getElementById('inputUrl').value;
+    case 'text':return document.getElementById('inputText').value;
+    case 'wifi':{const s=document.getElementById('wifiSsid').value;const p=document.getElementById('wifiPass').value;const a=document.getElementById('wifiAuth').value;const h=document.getElementById('wifiHidden').checked;return`WIFI:T:${a};S:${s};P:${p};H:${h};`}
+    case 'email':{const e=document.getElementById('emailAddr').value;const s=document.getElementById('emailSubject').value;const b=document.getElementById('emailBody').value;return`mailto:${e}?subject=${encodeURIComponent(s)}&body=${encodeURIComponent(b)}`}
+    case 'phone':return'tel:'+document.getElementById('phoneNum').value;
+    case 'sms':{const n=document.getElementById('smsNum').value;const m=document.getElementById('smsMsg').value;return`sms:${n}?body=${encodeURIComponent(m)}`}
+    default:return''}}
+
+function generate(){
+  const data=getData();if(!data)return;
+  const fg=document.getElementById('fgColor').value;
+  const bg=document.getElementById('bgColor').value;
+  const result=QRCode.generate(data,{ecl:eclLevel,fg,bg,size:qrSize});
+  if(!result)return;
+  const target=document.getElementById('qrCanvas');
+  target.width=result.canvas.width;target.height=result.canvas.height;
+  const ctx=target.getContext('2d');
+  ctx.drawImage(result.canvas,0,0);
+  // Draw logo if present
+  if(logoImg){
+    const logoSize=result.canvas.width*0.2;
+    const x=(result.canvas.width-logoSize)/2;const y=(result.canvas.height-logoSize)/2;
+    ctx.fillStyle=bg;
+    const pad=logoSize*0.1;
+    ctx.fillRect(x-pad,y-pad,logoSize+pad*2,logoSize+pad*2);
+    ctx.drawImage(logoImg,x,y,logoSize,logoSize)}}
+
+document.getElementById('logoInput').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();r.onload=ev=>{
+    const img=new Image();img.onload=()=>{logoImg=img;document.getElementById('logoPreview').src=ev.target.result;document.getElementById('logoPreview').style.display='block';generate()};
+    img.src=ev.target.result};r.readAsDataURL(f)});
+function clearLogo(){logoImg=null;document.getElementById('logoPreview').style.display='none';generate()}
+
+function downloadQR(format){
+  const canvas=document.getElementById('qrCanvas');
+  if(format==='png'){
+    canvas.toBlob(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='qrcode.png';a.click()},'image/png')}
+  else{
+    // SVG export from canvas data
+    const ctx=canvas.getContext('2d');
+    const size=canvas.width;
+    let svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">`;
+    svg+=`<rect width="${size}" height="${size}" fill="${document.getElementById('bgColor').value}"/>`;
+    const imgData=ctx.getImageData(0,0,size,size);
+    const fg=document.getElementById('fgColor').value;
+    // Sample at grid points
+    const data=getData();if(!data)return;
+    const result=QRCode.generate(data,{ecl:eclLevel,fg:document.getElementById('fgColor').value,bg:document.getElementById('bgColor').value,size:qrSize});
+    if(!result)return;
+    const cs=result.cellSize;
+    for(let r=0;r<result.moduleCount;r++){
+      for(let c=0;c<result.moduleCount;c++){
+        if(result.modules[r][c])svg+=`<rect x="${c*cs}" y="${r*cs}" width="${cs}" height="${cs}" fill="${fg}"/>`}}
+    svg+=`</svg>`;
+    const blob=new Blob([svg],{type:'image/svg+xml'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='qrcode.svg';a.click()}}
+
+async function copyQR(){
+  const canvas=document.getElementById('qrCanvas');
+  try{const blob=await new Promise(r=>canvas.toBlob(r,'image/png'));
+    await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+    toast(i18n[lang].copied)}catch(e){toast('Copy failed')}}
+
+// Init
+generate();
+</script>
+</body>
+</html>
