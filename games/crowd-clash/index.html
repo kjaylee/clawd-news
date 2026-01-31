@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Crowd Clash ⚔️</title>
+<meta name="description" content="군중을 모아서 적군과 충돌! 하이브리드 캐주얼 군중 전투 게임.">
+<meta property="og:title" content="Crowd Clash ⚔️ — East Sea Games">
+<meta property="og:description" content="군중을 모아서 적과 충돌! 더 많은 병력으로 승리하라!">
+<meta property="og:url" content="https://eastsea.monster/games/crowd-clash/">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://eastsea.monster/games/crowd-clash/">
+<link rel="manifest" href="/games/manifest.json">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;user-select:none}
+body{background:#1a1a2e;display:flex;flex-direction:column;align-items:center}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;color:#fff}
+.hdr .ttl{font-size:18px;font-weight:700;color:#4ea8ff}
+.hdr .info{text-align:center}
+.hdr .lbl{font-size:10px;opacity:0.6;text-transform:uppercase}
+.hdr .val{font-size:18px;font-weight:700;color:#fff}
+.arena{flex:1;position:relative;overflow:hidden;touch-action:none}
+canvas{width:100%;height:100%}
+.count-overlay{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;font-weight:800;color:#fff;text-shadow:0 4px 20px rgba(0,0,0,0.5);pointer-events:none;opacity:0;transition:opacity 0.3s}
+.count-overlay.show{opacity:1}
+.vs-display{display:flex;justify-content:center;align-items:center;gap:12px;padding:8px;color:#fff;font-size:14px}
+.vs-you{color:#4ea8ff;font-weight:700;font-size:20px}
+.vs-enemy{color:#e94560;font-weight:700;font-size:20px}
+.controls{padding:12px 16px 24px;display:flex;gap:8px;justify-content:center}
+.ctrl-btn{padding:12px 24px;border:none;border-radius:12px;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.15s;color:#fff}
+.ctrl-btn:active{transform:scale(0.95)}
+.ctrl-btn.blue{background:#4ea8ff}
+.ctrl-btn.red{background:#e94560}
+.ctrl-btn.gray{background:rgba(255,255,255,0.1);color:#aaa}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:#16213e;border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);color:#fff;border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px}
+.modal .big{font-size:52px;margin:12px 0}
+.modal p{opacity:0.7;margin:8px 0}
+.btn{padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;min-height:48px}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:#4ea8ff;color:#fff}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="hdr">
+<div class="ttl">⚔️ Crowd Clash</div>
+<div class="info"><div class="lbl">WAVE</div><div class="val" id="vWave">1</div></div>
+<div class="info"><div class="lbl" id="lScore">SCORE</div><div class="val" id="vScore">0</div></div>
+</div>
+<div class="vs-display"><span class="vs-you" id="yourCount">10</span><span>⚔️</span><span class="vs-enemy" id="enemyCount">5</span></div>
+<div class="arena"><canvas id="canvas"></canvas><div class="count-overlay" id="countOverlay"></div></div>
+<div class="controls">
+<button class="ctrl-btn blue" id="btnCharge">🏃 Charge!</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{score:'점수',charge:'돌격!',victory:'승리!',defeat:'패배!',wave:'웨이브',next:'다음 웨이브',replay:'다시하기',share:'공유',recruit:'터치로 병력 모으기!',total:'총 전투'},
+en:{score:'SCORE',charge:'Charge!',victory:'Victory!',defeat:'Defeat!',wave:'Wave',next:'Next Wave',replay:'Play Again',share:'Share',recruit:'Tap to recruit!',total:'Total Battles'},
+ja:{score:'スコア',charge:'突撃！',victory:'勝利！',defeat:'敗北！',wave:'ウェーブ',next:'次のウェーブ',replay:'もう一度',share:'シェア',recruit:'タップで兵力募集！',total:'総バトル'}
+};
+const ulang=(window.TG?.getLang?.()||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let cw,ch;
+let wave=1,score=0,phase='recruit'; // recruit, battle, result
+let allies=[],enemies=[],particles=[];
+let recruitCount=10,enemyCount=5;
+let battleTimer=null,touchActive=false;
+
+function resize(){
+const r=canvas.parentElement.getBoundingClientRect();
+cw=canvas.width=r.width;ch=canvas.height=r.height;
+}
+function init(){
+wave=window.TG?.load?.('cc_wave',1)||1;
+score=window.TG?.load?.('cc_score',0)||0;
+document.getElementById('vWave').textContent=wave;
+document.getElementById('vScore').textContent=score;
+resize();startWave();
+}
+function startWave(){
+phase='recruit';recruitCount=5+wave*2;
+enemyCount=Math.floor(3+wave*2.5+Math.random()*wave);
+allies=[];enemies=[];particles=[];
+// Spawn initial allies
+for(let i=0;i<recruitCount;i++){
+allies.push(makeUnit(cw*0.2+Math.random()*cw*0.3,ch*0.5+Math.random()*ch*0.3,'#4ea8ff'));
+}
+// Spawn enemies
+for(let i=0;i<enemyCount;i++){
+enemies.push(makeUnit(cw*0.6+Math.random()*cw*0.3,ch*0.2+Math.random()*ch*0.4,'#e94560'));
+}
+updateCounts();render();
+}
+function makeUnit(x,y,color){return{x,y,vx:0,vy:0,hp:1,color,r:6+Math.random()*3,alive:true}}
+function updateCounts(){
+document.getElementById('yourCount').textContent=allies.filter(a=>a.alive).length;
+document.getElementById('enemyCount').textContent=enemies.filter(e=>e.alive).length;
+}
+function render(){
+ctx.clearRect(0,0,cw,ch);
+// BG gradient
+const grd=ctx.createLinearGradient(0,0,0,ch);
+grd.addColorStop(0,'#16213e');grd.addColorStop(1,'#0f3460');
+ctx.fillStyle=grd;ctx.fillRect(0,0,cw,ch);
+// Ground
+ctx.fillStyle='#1a3a1a';ctx.fillRect(0,ch*0.85,cw,ch*0.15);
+// Grid lines
+ctx.strokeStyle='rgba(255,255,255,0.03)';ctx.lineWidth=1;
+for(let i=0;i<cw;i+=40){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,ch);ctx.stroke()}
+for(let i=0;i<ch;i+=40){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(cw,i);ctx.stroke()}
+// Units
+[...allies,...enemies].forEach(u=>{
+if(!u.alive)return;
+ctx.beginPath();ctx.arc(u.x,u.y,u.r,0,Math.PI*2);
+ctx.fillStyle=u.color;ctx.fill();
+ctx.strokeStyle='rgba(255,255,255,0.3)';ctx.lineWidth=1;ctx.stroke();
+// Eyes
+ctx.fillStyle='#fff';
+ctx.beginPath();ctx.arc(u.x-2,u.y-1,2,0,Math.PI*2);ctx.fill();
+ctx.beginPath();ctx.arc(u.x+2,u.y-1,2,0,Math.PI*2);ctx.fill();
+ctx.fillStyle='#000';
+ctx.beginPath();ctx.arc(u.x-2,u.y-1,1,0,Math.PI*2);ctx.fill();
+ctx.beginPath();ctx.arc(u.x+2,u.y-1,1,0,Math.PI*2);ctx.fill();
+});
+// Particles
+particles.forEach((p,i)=>{
+p.x+=p.vx;p.y+=p.vy;p.life--;p.vy+=0.1;
+ctx.beginPath();ctx.arc(p.x,p.y,p.r*(p.life/p.maxLife),0,Math.PI*2);
+ctx.fillStyle=p.color;ctx.globalAlpha=p.life/p.maxLife;ctx.fill();ctx.globalAlpha=1;
+});
+particles=particles.filter(p=>p.life>0);
+if(phase==='recruit'){
+ctx.fillStyle='rgba(255,255,255,0.4)';ctx.font='14px sans-serif';ctx.textAlign='center';
+ctx.fillText(t('recruit'),cw/2,ch-40);
+}
+}
+function addParticles(x,y,color,count=8){
+for(let i=0;i<count;i++){
+const angle=Math.random()*Math.PI*2;
+const speed=1+Math.random()*3;
+particles.push({x,y,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed,r:3,life:20,maxLife:20,color});
+}
+}
+canvas.addEventListener('pointerdown',e=>{
+if(phase!=='recruit')return;
+const r=canvas.getBoundingClientRect();
+const x=e.clientX-r.left,y=e.clientY-r.top;
+allies.push(makeUnit(x,y,'#4ea8ff'));
+addParticles(x,y,'#4ea8ff',4);
+updateCounts();render();
+window.TG?.haptic?.('impact','light');
+e.preventDefault();
+});
+canvas.addEventListener('pointermove',e=>{
+if(phase!=='recruit')return;
+const r=canvas.getBoundingClientRect();
+const x=e.clientX-r.left,y=e.clientY-r.top;
+if(e.buttons>0&&Math.random()>0.6){
+allies.push(makeUnit(x+Math.random()*20-10,y+Math.random()*20-10,'#4ea8ff'));
+updateCounts();render();
+}
+e.preventDefault();
+});
+document.getElementById('btnCharge').addEventListener('click',()=>{
+if(phase!=='recruit')return;
+phase='battle';startBattle();
+window.TG?.haptic?.('impact','heavy');
+});
+function startBattle(){
+function tick(){
+if(phase!=='battle')return;
+// Move allies toward enemies
+const livingEnemies=enemies.filter(e=>e.alive);
+const livingAllies=allies.filter(a=>a.alive);
+if(livingEnemies.length===0){waveWin();return}
+if(livingAllies.length===0){waveLose();return}
+livingAllies.forEach(a=>{
+const target=livingEnemies[Math.floor(Math.random()*livingEnemies.length)];
+const dx=target.x-a.x,dy=target.y-a.y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+if(dist>a.r+target.r+2){
+a.x+=dx/dist*2.5;a.y+=dy/dist*2.5;
+}else{
+// Fight
+if(Math.random()>0.4){target.alive=false;addParticles(target.x,target.y,'#e94560')}
+else{a.alive=false;addParticles(a.x,a.y,'#4ea8ff')}
+}
+a.x+=Math.random()*2-1;a.y+=Math.random()*2-1;
+});
+livingEnemies.forEach(e=>{
+const target=livingAllies[Math.floor(Math.random()*livingAllies.length)];
+if(!target)return;
+const dx=target.x-e.x,dy=target.y-e.y;
+const dist=Math.sqrt(dx*dx+dy*dy);
+if(dist>e.r+target.r+2){
+e.x+=dx/dist*1.8;e.y+=dy/dist*1.8;
+}
+e.x+=Math.random()*2-1;e.y+=Math.random()*2-1;
+});
+updateCounts();render();
+requestAnimationFrame(tick);
+}
+tick();
+}
+function waveWin(){
+phase='result';
+const survivors=allies.filter(a=>a.alive).length;
+const pts=survivors*50+wave*100;
+score+=pts;
+document.getElementById('vScore').textContent=score;
+wave++;
+window.TG?.save?.('cc_wave',wave);
+window.TG?.save?.('cc_score',score);
+document.getElementById('vWave').textContent=wave;
+if(window.GameScore)GameScore.save('crowd-clash',score);
+window.TG?.haptic?.('notification','success');
+const overlay=document.getElementById('countOverlay');
+overlay.textContent=t('victory')+` +${pts}`;overlay.classList.add('show');
+setTimeout(()=>{overlay.classList.remove('show');startWave()},1500);
+}
+function waveLose(){
+phase='result';
+window.TG?.haptic?.('notification','error');
+let m=document.querySelector('.modal-bg');if(m)m.remove();
+m=document.createElement('div');m.className='modal-bg';
+m.innerHTML=`<div class="modal"><h2>${t('defeat')}</h2><div class="big">⚔️</div><p>${t('wave')} ${wave} — ${t('score')}: ${score}</p><button class="btn btn-primary">${t('replay')}</button><button class="btn btn-secondary" style="margin-top:8px">${t('share')}</button></div>`;
+document.body.appendChild(m);
+m.querySelectorAll('.btn')[0].addEventListener('click',()=>{m.remove();wave=1;score=0;window.TG?.save?.('cc_wave',1);window.TG?.save?.('cc_score',0);document.getElementById('vWave').textContent=1;document.getElementById('vScore').textContent=0;startWave()});
+m.querySelectorAll('.btn')[1].addEventListener('click',()=>{window.TG?.shareScore?.(score,'Crowd Clash','crowd-clash')});
+}
+window.addEventListener('resize',()=>{resize();render()});
+init();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

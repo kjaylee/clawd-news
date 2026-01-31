@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Idle Hero ⚔️</title>
+<meta name="description" content="방치형 RPG 히어로! 자동 전투, 영웅 성장, 장비 수집. 무한 스테이지 돌파!">
+<meta property="og:title" content="Idle Hero ⚔️ — East Sea Games">
+<meta property="og:description" content="방치형 RPG! 자동 전투로 영웅을 성장시키고 무한 스테이지 돌파!">
+<meta property="og:url" content="https://eastsea.monster/games/idle-hero/">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://eastsea.monster/games/idle-hero/">
+<link rel="manifest" href="/games/manifest.json">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;user-select:none}
+body{background:#1a0a2e;display:flex;flex-direction:column;align-items:center}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column;color:#e0d0f0}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(0,0,0,0.3)}
+.hdr .ttl{font-size:16px;font-weight:700;color:#ffd700}
+.res-row{display:flex;gap:10px;font-size:12px;font-weight:600}
+.res-item{display:flex;align-items:center;gap:3px}
+.stage-info{text-align:center;padding:6px;font-size:13px;color:rgba(255,255,255,0.6)}
+.battle-area{flex:1;position:relative;display:flex;align-items:center;justify-content:space-around;padding:16px;background:linear-gradient(180deg,#1a0a2e 0%,#2d1b4e 50%,#1a2a1a 100%);min-height:200px}
+.char{text-align:center;transition:all 0.2s}
+.char .emoji{font-size:52px;display:block}
+.char .name{font-size:11px;margin-top:4px;font-weight:600}
+.char .hp-bar{width:80px;height:6px;background:rgba(255,255,255,0.15);border-radius:3px;margin:4px auto;overflow:hidden}
+.char .hp-fill{height:100%;border-radius:3px;transition:width 0.2s}
+.hero .hp-fill{background:#50c878}
+.enemy .hp-fill{background:#e94560}
+.char.attacking{animation:attackAnim 0.3s}
+@keyframes attackAnim{0%{transform:translateX(0)}50%{transform:translateX(20px)}100%{transform:translateX(0)}}
+.enemy.attacking{animation:enemyAttack 0.3s}
+@keyframes enemyAttack{0%{transform:translateX(0)}50%{transform:translateX(-20px)}100%{transform:translateX(0)}}
+.dmg-text{position:absolute;pointer-events:none;font-size:20px;font-weight:800;animation:dmgFloat 0.8s ease-out forwards;z-index:10}
+@keyframes dmgFloat{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-40px)}}
+.vs{font-size:32px;color:#ffd700;font-weight:800;text-shadow:0 2px 10px rgba(255,215,0,0.5)}
+.tabs{display:flex;background:rgba(0,0,0,0.3);border-top:1px solid rgba(255,255,255,0.05)}
+.tab{flex:1;padding:10px;text-align:center;font-size:12px;cursor:pointer;transition:all 0.15s;border-bottom:2px solid transparent}
+.tab.active{color:#ffd700;border-bottom-color:#ffd700;background:rgba(255,215,0,0.05)}
+.panel{padding:10px 12px;min-height:180px;max-height:200px;overflow-y:auto}
+.upgrade-row{display:flex;align-items:center;justify-content:space-between;padding:8px;background:rgba(255,255,255,0.04);border-radius:10px;margin-bottom:6px}
+.upgrade-info{flex:1}
+.upgrade-name{font-size:13px;font-weight:600}
+.upgrade-desc{font-size:11px;opacity:0.6}
+.upgrade-btn{padding:8px 14px;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;background:linear-gradient(135deg,#ffd700,#ff8c42);color:#333;min-width:70px}
+.upgrade-btn:disabled{background:#333;color:#666;cursor:default}
+.upgrade-btn:active:not(:disabled){transform:scale(0.95)}
+.log{font-size:11px;color:rgba(255,255,255,0.5);line-height:1.6}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="hdr">
+<div class="ttl">⚔️ Idle Hero</div>
+<div class="res-row">
+<div class="res-item">💰 <span id="vGold">0</span></div>
+<div class="res-item">💎 <span id="vGems">0</span></div>
+</div>
+</div>
+<div class="stage-info" id="stageInfo">Stage 1-1</div>
+<div class="battle-area" id="battleArea">
+<div class="char hero" id="heroChar">
+<span class="emoji">🦸</span>
+<div class="name" id="heroName">Hero Lv.1</div>
+<div class="hp-bar"><div class="hp-fill" id="heroHp" style="width:100%"></div></div>
+</div>
+<div class="vs">⚔️</div>
+<div class="char enemy" id="enemyChar">
+<span class="emoji">👹</span>
+<div class="name" id="enemyName">Slime</div>
+<div class="hp-bar"><div class="hp-fill" id="enemyHp" style="width:100%"></div></div>
+</div>
+</div>
+<div class="tabs">
+<div class="tab active" data-tab="upgrades">⬆️ 강화</div>
+<div class="tab" data-tab="skills">⚡ 스킬</div>
+<div class="tab" data-tab="log">📜 로그</div>
+</div>
+<div class="panel" id="panel"></div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{atk:'공격력',hp:'체력',speed:'속도',crit:'크리티컬',gold:'골드 보너스',upgrade:'강화',maxLvl:'MAX',stage:'스테이지',defeated:'처치!',heroDied:'영웅이 쓰러졌습니다...',revive:'부활 (3초)'},
+en:{atk:'Attack',hp:'HP',speed:'Speed',crit:'Critical',gold:'Gold Bonus',upgrade:'Upgrade',maxLvl:'MAX',stage:'Stage',defeated:'Defeated!',heroDied:'Hero has fallen...',revive:'Reviving (3s)'},
+ja:{atk:'攻撃',hp:'HP',speed:'速度',crit:'クリティカル',gold:'ゴールドボーナス',upgrade:'強化',maxLvl:'MAX',stage:'ステージ',defeated:'撃破！',heroDied:'ヒーローが倒れた…',revive:'復活中 (3秒)'}
+};
+const ulang=(window.TG?.getLang?.()||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+
+const ENEMIES=[
+{name:'Slime',emoji:'🟢',hpMult:1,atkMult:0.5,goldDrop:5},
+{name:'Goblin',emoji:'👺',hpMult:1.5,atkMult:0.8,goldDrop:8},
+{name:'Skeleton',emoji:'💀',hpMult:2,atkMult:1,goldDrop:12},
+{name:'Orc',emoji:'👹',hpMult:3,atkMult:1.2,goldDrop:20},
+{name:'Dragon',emoji:'🐉',hpMult:5,atkMult:2,goldDrop:50},
+{name:'Demon',emoji:'😈',hpMult:8,atkMult:2.5,goldDrop:80},
+{name:'Reaper',emoji:'💀',hpMult:12,atkMult:3,goldDrop:120},
+{name:'Titan',emoji:'🗿',hpMult:20,atkMult:4,goldDrop:200}
+];
+
+let hero={level:1,atk:10,maxHp:100,hp:100,speed:1,crit:0.05,goldBonus:1};
+let upgrades={atk:0,hp:0,speed:0,crit:0,gold:0};
+let gold=0,gems=0,stage=1,wave=1,maxStage=1;
+let enemy=null,battleInterval=null,logLines=[];
+let activeTab='upgrades';
+
+function save(){
+const data={hero,upgrades,gold,gems,stage,wave,maxStage};
+window.TG?.save?.('ih_data',data);
+}
+function load(){
+const d=window.TG?.load?.('ih_data',null);
+if(d){hero=d.hero;upgrades=d.upgrades;gold=d.gold||0;gems=d.gems||0;stage=d.stage||1;wave=d.wave||1;maxStage=d.maxStage||1;
+// Offline earnings
+}
+}
+function init(){
+load();recalcStats();updateUI();spawnEnemy();startBattle();
+document.querySelectorAll('.tab').forEach(tab=>{
+tab.addEventListener('click',()=>{
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+tab.classList.add('active');activeTab=tab.dataset.tab;renderPanel();
+});
+});
+renderPanel();
+setInterval(save,5000);
+}
+function recalcStats(){
+hero.atk=10+upgrades.atk*5+hero.level*2;
+hero.maxHp=100+upgrades.hp*20+hero.level*10;
+hero.speed=1+upgrades.speed*0.1;
+hero.crit=0.05+upgrades.crit*0.03;
+hero.goldBonus=1+upgrades.gold*0.2;
+}
+function updateUI(){
+document.getElementById('vGold').textContent=formatNum(gold);
+document.getElementById('vGems').textContent=gems;
+document.getElementById('stageInfo').textContent=`${t('stage')} ${stage}-${wave}`;
+document.getElementById('heroName').textContent=`Hero Lv.${hero.level}`;
+document.getElementById('heroHp').style.width=`${Math.max(0,hero.hp/hero.maxHp*100)}%`;
+if(enemy){
+document.getElementById('enemyHp').style.width=`${Math.max(0,enemy.hp/enemy.maxHp*100)}%`;
+}
+}
+function formatNum(n){if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(1)+'K';return Math.floor(n).toString()}
+function spawnEnemy(){
+const template=ENEMIES[Math.min(Math.floor((stage-1)/3),ENEMIES.length-1)];
+const mult=1+stage*0.3+wave*0.1;
+enemy={
+name:template.name,emoji:template.emoji,
+maxHp:Math.floor(template.hpMult*mult*50),
+hp:Math.floor(template.hpMult*mult*50),
+atk:Math.floor(template.atkMult*mult*5),
+goldDrop:Math.floor(template.goldDrop*mult*hero.goldBonus)
+};
+document.getElementById('enemyChar').querySelector('.emoji').textContent=enemy.emoji;
+document.getElementById('enemyName').textContent=`${enemy.name} Lv.${stage}`;
+updateUI();
+}
+function startBattle(){
+if(battleInterval)clearInterval(battleInterval);
+battleInterval=setInterval(()=>{
+if(!enemy||hero.hp<=0)return;
+// Hero attacks
+const isCrit=Math.random()<hero.crit;
+let dmg=hero.atk*(isCrit?2:1);
+dmg=Math.floor(dmg*(0.9+Math.random()*0.2));
+enemy.hp-=dmg;
+showDmg(dmg,isCrit,true);
+document.getElementById('heroChar').classList.add('attacking');
+setTimeout(()=>document.getElementById('heroChar').classList.remove('attacking'),300);
+if(enemy.hp<=0){
+enemyDefeated();return;
+}
+// Enemy attacks back
+setTimeout(()=>{
+if(!enemy||hero.hp<=0)return;
+let eDmg=Math.floor(enemy.atk*(0.9+Math.random()*0.2));
+hero.hp-=eDmg;
+showDmg(eDmg,false,false);
+document.getElementById('enemyChar').classList.add('attacking');
+setTimeout(()=>document.getElementById('enemyChar').classList.remove('attacking'),300);
+if(hero.hp<=0){heroDied()}
+updateUI();
+},500);
+updateUI();
+},Math.max(400,1200-hero.speed*100));
+}
+function showDmg(val,crit,isHero){
+const area=document.getElementById('battleArea');
+const el=document.createElement('div');
+el.className='dmg-text';
+el.textContent=(crit?'💥 ':'')+val;
+el.style.color=isHero?(crit?'#ffd700':'#50c878'):'#e94560';
+el.style.left=isHero?'65%':'25%';
+el.style.top='30%';
+area.appendChild(el);setTimeout(()=>el.remove(),800);
+}
+function enemyDefeated(){
+gold+=enemy.goldDrop;
+hero.level+=Math.random()>0.8?1:0;
+addLog(`${enemy.name} ${t('defeated')} +${enemy.goldDrop}💰`);
+wave++;
+if(wave>3){wave=1;stage++;if(stage>maxStage){maxStage=stage;gems+=1}}
+recalcStats();hero.hp=Math.min(hero.hp+hero.maxHp*0.3,hero.maxHp);
+spawnEnemy();updateUI();
+window.TG?.haptic?.('impact','light');
+if(window.GameScore)GameScore.save('idle-hero',stage*1000+gold);
+}
+function heroDied(){
+addLog(t('heroDied'));
+window.TG?.haptic?.('notification','error');
+clearInterval(battleInterval);
+setTimeout(()=>{
+hero.hp=hero.maxHp;wave=1;
+updateUI();spawnEnemy();startBattle();
+addLog(t('revive'));
+},3000);
+}
+function addLog(msg){logLines.unshift(`[${new Date().toLocaleTimeString().slice(0,5)}] ${msg}`);if(logLines.length>50)logLines.pop();if(activeTab==='log')renderPanel()}
+function renderPanel(){
+const panel=document.getElementById('panel');
+if(activeTab==='upgrades'){
+const stats=[
+{key:'atk',icon:'⚔️',name:t('atk'),desc:`+5 per level`,cost:()=>Math.floor(20*(1.3**upgrades.atk))},
+{key:'hp',icon:'❤️',name:t('hp'),desc:`+20 per level`,cost:()=>Math.floor(15*(1.3**upgrades.hp))},
+{key:'speed',icon:'💨',name:t('speed'),desc:`+0.1 per level`,cost:()=>Math.floor(30*(1.4**upgrades.speed))},
+{key:'crit',icon:'💥',name:t('crit'),desc:`+3% per level`,cost:()=>Math.floor(40*(1.5**upgrades.crit))},
+{key:'gold',icon:'💰',name:t('gold'),desc:`+20% per level`,cost:()=>Math.floor(25*(1.4**upgrades.gold))}
+];
+panel.innerHTML=stats.map(s=>{
+const c=s.cost();
+return`<div class="upgrade-row"><div class="upgrade-info"><div class="upgrade-name">${s.icon} ${s.name} <span style="color:#ffd700">Lv.${upgrades[s.key]}</span></div><div class="upgrade-desc">${s.desc}</div></div><button class="upgrade-btn" data-key="${s.key}" data-cost="${c}" ${gold<c?'disabled':''}>${c}💰</button></div>`;
+}).join('');
+panel.querySelectorAll('.upgrade-btn').forEach(btn=>{
+btn.addEventListener('click',()=>{
+const key=btn.dataset.key;const cost=parseInt(btn.dataset.cost);
+if(gold>=cost){gold-=cost;upgrades[key]++;recalcStats();updateUI();renderPanel();window.TG?.haptic?.('impact','light');save()}
+});
+});
+}else if(activeTab==='skills'){
+panel.innerHTML='<div style="text-align:center;padding:40px;opacity:0.5">🔮 스킬 — 곧 업데이트!</div>';
+}else{
+panel.innerHTML=`<div class="log">${logLines.join('<br>')}</div>`;
+}
+}
+init();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

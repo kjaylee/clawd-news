@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Draw Rescue ✏️</title>
+<meta name="description" content="선을 그려서 캐릭터를 구출하세요! Brain Out 스타일 물리 퍼즐.">
+<meta property="og:title" content="Draw Rescue ✏️ — East Sea Games">
+<meta property="og:description" content="선을 그려서 위험에서 구출! 창의적 물리 퍼즐 50+ 레벨.">
+<meta property="og:url" content="https://eastsea.monster/games/draw-rescue/">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://eastsea.monster/games/draw-rescue/">
+<link rel="manifest" href="/games/manifest.json">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;user-select:none}
+body{background:#f0f4f8;display:flex;flex-direction:column;align-items:center}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.hdr .ttl{font-size:18px;font-weight:700;color:#5b5ea6}
+.hdr .lvl{font-size:14px;color:#888}
+.hdr .val{font-size:20px;font-weight:700;color:#333}
+.hint-text{text-align:center;padding:8px;font-size:13px;color:#888;min-height:36px}
+.stage{flex:1;position:relative;overflow:hidden}
+canvas{width:100%;height:100%;touch-action:none}
+.ink-bar{padding:8px 16px;display:flex;align-items:center;gap:8px}
+.ink-label{font-size:12px;color:#888}
+.ink-track{flex:1;height:8px;background:#e0e0e0;border-radius:4px;overflow:hidden}
+.ink-fill{height:100%;background:linear-gradient(90deg,#5b5ea6,#e94560);border-radius:4px;transition:width 0.2s}
+.controls{display:flex;gap:8px;padding:8px 16px 20px;justify-content:center}
+.ctrl-btn{padding:10px 20px;border:none;border-radius:10px;font-size:14px;cursor:pointer;transition:all 0.15s;background:#fff;color:#333;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
+.ctrl-btn:active{transform:scale(0.95)}
+.ctrl-btn.primary{background:#5b5ea6;color:#fff}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+.modal{background:#fff;border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px)}
+.modal h2{font-size:24px;color:#5b5ea6}
+.modal .big{font-size:52px;margin:12px 0}
+.modal p{color:#888;margin:8px 0}
+.btn{padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;min-height:48px}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:#5b5ea6;color:#fff}
+.btn-secondary{background:#f0f4f8;color:#555}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="hdr">
+<div class="ttl">✏️ Draw Rescue</div>
+<div><div class="lvl" id="lLvl">Level</div><div class="val" id="vLvl">1</div></div>
+</div>
+<div class="hint-text" id="hintText"></div>
+<div class="stage"><canvas id="canvas"></canvas></div>
+<div class="ink-bar"><span class="ink-label">🖊️ Ink</span><div class="ink-track"><div class="ink-fill" id="inkFill" style="width:100%"></div></div></div>
+<div class="controls">
+<button class="ctrl-btn" id="btnClear">🗑️ <span data-i18n="clear">Clear</span></button>
+<button class="ctrl-btn primary" id="btnGo">▶️ <span data-i18n="go">Go!</span></button>
+<button class="ctrl-btn" id="btnSkip">⏭️ <span data-i18n="skip">Skip</span></button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{level:'레벨',clear:'지우기',go:'시작!',skip:'건너뛰기',rescued:'구출 성공!',failed:'실패!',next:'다음',replay:'다시',share:'공유',hint_rain:'비에서 캐릭터를 보호하세요!',hint_fire:'불에서 구출하세요!',hint_fall:'떨어지는 것을 막아주세요!',hint_river:'강을 건너게 도와주세요!',hint_spike:'가시를 막아주세요!'},
+en:{level:'Level',clear:'Clear',go:'Go!',skip:'Skip',rescued:'Rescued!',failed:'Failed!',next:'Next',replay:'Retry',share:'Share',hint_rain:'Protect from rain!',hint_fire:'Rescue from fire!',hint_fall:'Prevent the fall!',hint_river:'Help cross the river!',hint_spike:'Block the spikes!'},
+ja:{level:'レベル',clear:'クリア',go:'スタート!',skip:'スキップ',rescued:'救出成功！',failed:'失敗！',next:'次へ',replay:'リトライ',share:'シェア',hint_rain:'雨から守って！',hint_fire:'火から救出！',hint_fall:'落下を防いで！',hint_river:'川を渡る手助けを！',hint_spike:'トゲをブロック！'}
+};
+const ulang=(window.TG?.getLang?.()||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+document.getElementById('lLvl').textContent=t('level');
+
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+let cw,ch;
+const GRAVITY=0.3,MAX_INK=500;
+let level=1,drawLines=[],currentLine=null,isDrawing=false,simulating=false;
+let character={x:0,y:0,vx:0,vy:0,w:24,h:24,grounded:false,rescued:false,dead:false};
+let hazards=[],goal={x:0,y:0,w:30,h:30};
+let inkUsed=0,animFrame=0;
+
+const LEVEL_TYPES=['rain','fire','fall','river','spike'];
+function resize(){
+const r=canvas.parentElement.getBoundingClientRect();
+cw=canvas.width=r.width;ch=canvas.height=r.height;
+}
+function init(){
+level=window.TG?.load?.('dr_level',1)||1;
+document.getElementById('vLvl').textContent=level;
+resize();loadLevel(level);
+}
+function loadLevel(lv){
+drawLines=[];currentLine=null;simulating=false;inkUsed=0;
+document.getElementById('inkFill').style.width='100%';
+const type=LEVEL_TYPES[(lv-1)%LEVEL_TYPES.length];
+document.getElementById('hintText').textContent=t('hint_'+type);
+// Set up level
+character={x:cw*0.2,y:ch*0.5,vx:0,vy:0,w:24,h:24,grounded:false,rescued:false,dead:false};
+goal={x:cw*0.8,y:ch*0.7,w:30,h:30};
+hazards=[];
+const difficulty=Math.min(lv,20);
+if(type==='rain'){
+for(let i=0;i<5+difficulty;i++)hazards.push({type:'rain',x:Math.random()*cw,y:-Math.random()*ch*0.5,vy:2+Math.random()*2,w:4,h:20});
+character.y=ch*0.7;goal.y=ch*0.7;
+}else if(type==='fire'){
+hazards.push({type:'fire',x:cw*0.35,y:ch*0.65,w:cw*0.3,h:ch*0.15});
+character.y=ch*0.55;
+}else if(type==='fall'){
+character.y=ch*0.2;goal.y=ch*0.8;goal.x=cw*0.5;
+}else if(type==='river'){
+hazards.push({type:'river',x:cw*0.3,y:ch*0.6,w:cw*0.4,h:ch*0.15});
+character.y=ch*0.5;character.x=cw*0.15;goal.x=cw*0.85;goal.y=ch*0.5;
+}else if(type==='spike'){
+for(let i=0;i<3+Math.floor(difficulty/3);i++){
+hazards.push({type:'spike',x:cw*0.3+i*40,y:ch*0.7,w:20,h:30});
+}
+character.y=ch*0.4;
+}
+render();
+}
+function render(){
+ctx.clearRect(0,0,cw,ch);
+// BG
+ctx.fillStyle='#f8f9fa';ctx.fillRect(0,0,cw,ch);
+// Ground
+ctx.fillStyle='#8B7355';ctx.fillRect(0,ch*0.85,cw,ch*0.15);
+ctx.fillStyle='#6d8a4e';ctx.fillRect(0,ch*0.83,cw,ch*0.04);
+// Hazards
+hazards.forEach(h=>{
+if(h.type==='rain'){ctx.fillStyle='#4ea8ff';ctx.fillRect(h.x,h.y,h.w,h.h)}
+else if(h.type==='fire'){
+ctx.fillStyle='#e94560';ctx.fillRect(h.x,h.y,h.w,h.h);
+ctx.fillStyle='#ff8c42';ctx.fillRect(h.x+5,h.y+5,h.w-10,h.h-10);
+// Flame emoji
+ctx.font='24px serif';ctx.textAlign='center';
+for(let i=0;i<3;i++)ctx.fillText('🔥',h.x+h.w*0.2+i*(h.w*0.3),h.y+h.h*0.5);
+}else if(h.type==='river'){
+ctx.fillStyle='#4ea8ff88';ctx.fillRect(h.x,h.y,h.w,h.h);
+ctx.fillStyle='#3498db55';
+for(let i=0;i<5;i++){ctx.beginPath();ctx.arc(h.x+Math.random()*h.w,h.y+Math.random()*h.h,3,0,Math.PI*2);ctx.fill()}
+}else if(h.type==='spike'){
+ctx.fillStyle='#555';
+ctx.beginPath();ctx.moveTo(h.x,h.y+h.h);ctx.lineTo(h.x+h.w/2,h.y);ctx.lineTo(h.x+h.w,h.y+h.h);ctx.closePath();ctx.fill();
+}
+});
+// Goal
+ctx.font='28px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+ctx.fillText('⭐',goal.x+goal.w/2,goal.y+goal.h/2);
+// Draw lines
+ctx.strokeStyle='#5b5ea6';ctx.lineWidth=6;ctx.lineCap='round';ctx.lineJoin='round';
+drawLines.forEach(line=>{
+if(line.length<2)return;
+ctx.beginPath();ctx.moveTo(line[0].x,line[0].y);
+line.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+});
+if(currentLine&&currentLine.length>1){
+ctx.beginPath();ctx.moveTo(currentLine[0].x,currentLine[0].y);
+currentLine.forEach(p=>ctx.lineTo(p.x,p.y));ctx.stroke();
+}
+// Character
+ctx.font='28px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+ctx.fillText(character.dead?'😵':character.rescued?'😊':'😰',character.x+character.w/2,character.y+character.h/2);
+}
+function getPos(e){
+const r=canvas.getBoundingClientRect();
+const touch=e.touches?e.touches[0]:e;
+return{x:touch.clientX-r.left,y:touch.clientY-r.top};
+}
+canvas.addEventListener('pointerdown',e=>{
+if(simulating)return;
+isDrawing=true;currentLine=[getPos(e)];e.preventDefault();
+});
+canvas.addEventListener('pointermove',e=>{
+if(!isDrawing||simulating)return;
+const p=getPos(e);
+inkUsed+=Math.sqrt((p.x-currentLine[currentLine.length-1].x)**2+(p.y-currentLine[currentLine.length-1].y)**2);
+if(inkUsed>MAX_INK*(1+level*0.1)){isDrawing=false;return}
+document.getElementById('inkFill').style.width=`${Math.max(0,100-inkUsed/(MAX_INK*(1+level*0.1))*100)}%`;
+currentLine.push(p);render();e.preventDefault();
+});
+canvas.addEventListener('pointerup',e=>{
+if(!isDrawing)return;isDrawing=false;
+if(currentLine&&currentLine.length>1)drawLines.push(currentLine);
+currentLine=null;e.preventDefault();
+});
+function simulate(){
+if(!simulating)return;
+character.vy+=GRAVITY;
+character.x+=character.vx;character.y+=character.vy;
+character.grounded=false;
+// Collide with drawn lines
+drawLines.forEach(line=>{
+for(let i=1;i<line.length;i++){
+if(lineCollide(character,line[i-1],line[i])){
+character.vy=Math.min(character.vy,0);
+character.grounded=true;
+}
+}
+});
+// Ground
+if(character.y+character.h>=ch*0.83){character.y=ch*0.83-character.h;character.vy=0;character.grounded=true}
+// Hazard check
+hazards.forEach(h=>{
+if(h.type==='rain'){
+h.y+=h.vy;if(h.y>ch)h.y=-20;
+if(rectCollide(character,h)){character.dead=true}
+}else if(rectCollide(character,h)){character.dead=true}
+});
+// Goal check
+if(rectCollide(character,goal)){character.rescued=true}
+render();
+if(character.rescued){simulating=false;levelWin();return}
+if(character.dead||character.y>ch+50){simulating=false;levelFail();return}
+animFrame=requestAnimationFrame(simulate);
+}
+function lineCollide(char,a,b){
+const cx=char.x+char.w/2,cy=char.y+char.h;
+const dx=b.x-a.x,dy=b.y-a.y;
+const len=Math.sqrt(dx*dx+dy*dy);
+if(len<1)return false;
+const t=Math.max(0,Math.min(1,((cx-a.x)*dx+(cy-a.y)*dy)/(len*len)));
+const px=a.x+t*dx,py=a.y+t*dy;
+const dist=Math.sqrt((cx-px)**2+(cy-py)**2);
+if(dist<char.h*0.7&&cy<py+5&&character.vy>=0){character.y=py-char.h;return true}
+return false;
+}
+function rectCollide(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
+function levelWin(){
+window.TG?.haptic?.('notification','success');
+level++;window.TG?.save?.('dr_level',level);
+if(window.GameScore)GameScore.save('draw-rescue',level);
+showModal(t('rescued'),'🎉','',t('next'),()=>{document.getElementById('vLvl').textContent=level;loadLevel(level)});
+}
+function levelFail(){
+window.TG?.haptic?.('notification','error');
+showModal(t('failed'),'😢','',t('replay'),()=>loadLevel(level));
+}
+function showModal(title,emoji,desc,btnText,onBtn){
+let m=document.querySelector('.modal-bg');if(m)m.remove();
+m=document.createElement('div');m.className='modal-bg';
+m.innerHTML=`<div class="modal"><h2>${title}</h2><div class="big">${emoji}</div><p>${desc}</p><button class="btn btn-primary">${btnText}</button></div>`;
+document.body.appendChild(m);m.querySelector('.btn').addEventListener('click',()=>{m.remove();onBtn()});
+}
+document.getElementById('btnClear').addEventListener('click',()=>{drawLines=[];inkUsed=0;document.getElementById('inkFill').style.width='100%';render()});
+document.getElementById('btnGo').addEventListener('click',()=>{if(simulating)return;simulating=true;character.vx=1.5;simulate()});
+document.getElementById('btnSkip').addEventListener('click',()=>{cancelAnimationFrame(animFrame);simulating=false;level++;document.getElementById('vLvl').textContent=level;window.TG?.save?.('dr_level',level);loadLevel(level)});
+window.addEventListener('resize',()=>{resize();render()});
+init();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

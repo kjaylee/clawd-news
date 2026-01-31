@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>ASMR Slicer 🔪</title>
+<meta name="description" content="만족감 넘치는 ASMR 슬라이싱! 다양한 오브젝트를 깔끔하게 잘라보세요.">
+<meta property="og:title" content="ASMR Slicer 🔪 — East Sea Games">
+<meta property="og:description" content="ASMR 만족감! 오브젝트를 스와이프로 슬라이싱. 깔끔한 컷의 쾌감!">
+<meta property="og:url" content="https://eastsea.monster/games/asmr-slicer/">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://eastsea.monster/games/asmr-slicer/">
+<link rel="manifest" href="/games/manifest.json">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;user-select:none}
+body{background:linear-gradient(180deg,#ffecd2 0%,#fcb69f 100%);display:flex;flex-direction:column;align-items:center}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:12px 16px}
+.hdr .ttl{font-size:20px;font-weight:700;color:#e94560}
+.hdr .info{text-align:center}
+.hdr .lbl{font-size:10px;color:#666;text-transform:uppercase}
+.hdr .val{font-size:20px;font-weight:700;color:#333}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+canvas{border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,0.15);background:#fff;touch-action:none}
+.progress{padding:8px 16px}
+.progress-bar{height:8px;background:rgba(0,0,0,0.1);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#e94560,#ff6b9d);border-radius:4px;transition:width 0.3s}
+.bottom{padding:12px 16px 24px;text-align:center}
+.target{font-size:14px;color:#555;margin-bottom:8px}
+.satisfaction{font-size:36px;font-weight:800;color:#e94560;transition:all 0.2s}
+.perfect{color:#ffd700;animation:perf 0.5s}
+@keyframes perf{0%{transform:scale(1)}50%{transform:scale(1.3)}100%{transform:scale(1)}}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(4px)}
+.modal{background:#fff;border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px)}
+.modal h2{font-size:24px;color:#e94560}
+.modal .big{font-size:48px;margin:12px 0}
+.modal p{color:#666;margin:8px 0}
+.modal .stars{font-size:32px;margin:8px 0}
+.btn{padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;min-height:48px}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:#e94560;color:#fff}
+.btn-secondary{background:#f0f0f0;color:#333}
+.slice-line{position:absolute;pointer-events:none;z-index:10}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="hdr">
+<div class="ttl">🔪 ASMR Slicer</div>
+<div class="info"><div class="lbl" id="lLvl">LEVEL</div><div class="val" id="vLvl">1</div></div>
+<div class="info"><div class="lbl" id="lScore">SCORE</div><div class="val" id="vScore">0</div></div>
+</div>
+<div class="progress"><div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div></div>
+<div class="stage"><canvas id="canvas"></canvas></div>
+<div class="bottom">
+<div class="target" id="targetText"></div>
+<div class="satisfaction" id="satText">0%</div>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{level:'레벨',score:'점수',sliceTarget:'가이드라인을 따라 잘라보세요!',perfect:'퍼펙트!',great:'훌륭해!',good:'좋아!',ok:'괜찮아요',cleared:'레벨 클리어!',next:'다음',replay:'다시하기',share:'공유',accuracy:'정확도'},
+en:{level:'LEVEL',score:'SCORE',sliceTarget:'Follow the guide line to slice!',perfect:'Perfect!',great:'Great!',good:'Good!',ok:'OK',cleared:'Level Clear!',next:'Next',replay:'Play Again',share:'Share',accuracy:'Accuracy'},
+ja:{level:'レベル',score:'スコア',sliceTarget:'ガイドラインに沿って切りましょう！',perfect:'パーフェクト！',great:'素晴らしい！',good:'いいね！',ok:'OK',cleared:'レベルクリア！',next:'次へ',replay:'もう一度',share:'シェア',accuracy:'正確度'}
+};
+const ulang=(window.TG?.getLang?.()||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.getElementById('lLvl').textContent=t('level');
+document.getElementById('lScore').textContent=t('score');
+
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const OBJECTS=[
+{name:'🍎',shape:'circle',color:'#e74c3c',inner:'#c0392b',size:120},
+{name:'🍊',shape:'circle',color:'#f39c12',inner:'#e67e22',size:110},
+{name:'🧀',shape:'rect',color:'#f1c40f',inner:'#d4ac0d',size:100},
+{name:'🍞',shape:'roundrect',color:'#d4a574',inner:'#b08968',size:130},
+{name:'🎂',shape:'rect',color:'#ff9ff3',inner:'#f368e0',size:120},
+{name:'🧼',shape:'roundrect',color:'#74b9ff',inner:'#0984e3',size:100},
+{name:'🍰',shape:'triangle',color:'#fdcb6e',inner:'#e17055',size:110},
+{name:'🫧',shape:'circle',color:'#a29bfe',inner:'#6c5ce7',size:90},
+{name:'🧈',shape:'rect',color:'#ffeaa7',inner:'#fdcb6e',size:100},
+{name:'🍫',shape:'rect',color:'#6d4c41',inner:'#4e342e',size:130}
+];
+let level=1,score=0,sliceCount=0,totalSlices=3;
+let guideLine=null,isDrawing=false,drawPoints=[],currentObj=null;
+let cw,ch;
+
+function resize(){
+const w=Math.min(window.innerWidth-32,388);
+cw=canvas.width=w;ch=canvas.height=w;
+}
+function init(){
+level=window.TG?.load?.('asmr_level',1)||1;
+score=window.TG?.load?.('asmr_score',0)||0;
+document.getElementById('vLvl').textContent=level;
+document.getElementById('vScore').textContent=score;
+resize();
+startLevel();
+}
+function startLevel(){
+sliceCount=0;totalSlices=Math.min(2+Math.floor(level/3),5);
+document.getElementById('progFill').style.width='0%';
+document.getElementById('targetText').textContent=t('sliceTarget');
+document.getElementById('satText').textContent='';
+nextSlice();
+}
+function nextSlice(){
+currentObj=OBJECTS[(level+sliceCount)%OBJECTS.length];
+const angle=(Math.random()-0.5)*0.6;
+const cx=cw/2,cy=ch/2;
+guideLine={
+x1:cx+Math.cos(angle+Math.PI/2)*cw*0.4,
+y1:cy+Math.sin(angle+Math.PI/2)*ch*0.4,
+x2:cx-Math.cos(angle+Math.PI/2)*cw*0.4,
+y2:cy-Math.sin(angle+Math.PI/2)*ch*0.4
+};
+drawPoints=[];
+render();
+}
+function render(){
+ctx.clearRect(0,0,cw,ch);
+ctx.fillStyle='#fafafa';ctx.fillRect(0,0,cw,ch);
+// Draw cutting board texture
+ctx.strokeStyle='rgba(0,0,0,0.03)';ctx.lineWidth=1;
+for(let i=0;i<cw;i+=20){ctx.beginPath();ctx.moveTo(i,0);ctx.lineTo(i,ch);ctx.stroke()}
+for(let i=0;i<ch;i+=20){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(cw,i);ctx.stroke()}
+// Object
+const cx=cw/2,cy=ch/2,s=currentObj.size*(0.8+level*0.02);
+ctx.save();
+if(currentObj.shape==='circle'){
+ctx.beginPath();ctx.arc(cx,cy,s/2,0,Math.PI*2);ctx.fillStyle=currentObj.color;ctx.fill();
+ctx.beginPath();ctx.arc(cx,cy,s/2-8,0,Math.PI*2);ctx.fillStyle=currentObj.inner;ctx.globalAlpha=0.3;ctx.fill();
+ctx.globalAlpha=1;
+// Highlight
+ctx.beginPath();ctx.arc(cx-s*0.15,cy-s*0.15,s*0.12,0,Math.PI*2);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fill();
+}else if(currentObj.shape==='rect'){
+ctx.fillStyle=currentObj.color;
+ctx.fillRect(cx-s*0.6,cy-s*0.4,s*1.2,s*0.8);
+ctx.fillStyle=currentObj.inner;ctx.globalAlpha=0.3;
+ctx.fillRect(cx-s*0.5,cy-s*0.3,s*1.0,s*0.6);ctx.globalAlpha=1;
+}else if(currentObj.shape==='roundrect'){
+roundRect(ctx,cx-s*0.6,cy-s*0.4,s*1.2,s*0.8,16);ctx.fillStyle=currentObj.color;ctx.fill();
+}else if(currentObj.shape==='triangle'){
+ctx.beginPath();ctx.moveTo(cx,cy-s*0.5);ctx.lineTo(cx+s*0.5,cy+s*0.4);ctx.lineTo(cx-s*0.5,cy+s*0.4);ctx.closePath();ctx.fillStyle=currentObj.color;ctx.fill();
+}
+ctx.restore();
+// Guide line (dashed)
+ctx.setLineDash([8,8]);ctx.strokeStyle='rgba(233,69,96,0.4)';ctx.lineWidth=2;
+ctx.beginPath();ctx.moveTo(guideLine.x1,guideLine.y1);ctx.lineTo(guideLine.x2,guideLine.y2);ctx.stroke();
+ctx.setLineDash([]);
+// User draw
+if(drawPoints.length>1){
+ctx.strokeStyle='#e94560';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';
+ctx.beginPath();ctx.moveTo(drawPoints[0].x,drawPoints[0].y);
+for(let i=1;i<drawPoints.length;i++)ctx.lineTo(drawPoints[i].x,drawPoints[i].y);
+ctx.stroke();
+}
+}
+function roundRect(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath()}
+function getPos(e){
+const rect=canvas.getBoundingClientRect();
+const touch=e.touches?e.touches[0]:e;
+return{x:touch.clientX-rect.left,y:touch.clientY-rect.top};
+}
+canvas.addEventListener('pointerdown',e=>{isDrawing=true;drawPoints=[getPos(e)];e.preventDefault()});
+canvas.addEventListener('pointermove',e=>{if(!isDrawing)return;drawPoints.push(getPos(e));render();e.preventDefault()});
+canvas.addEventListener('pointerup',e=>{
+if(!isDrawing)return;isDrawing=false;
+if(drawPoints.length<5)return;
+const acc=calcAccuracy();
+const pts=Math.round(acc*100);
+score+=pts;
+document.getElementById('vScore').textContent=score;
+let label=t('ok'),cls='';
+if(acc>=0.9){label=t('perfect');cls='perfect'}
+else if(acc>=0.75)label=t('great');
+else if(acc>=0.5)label=t('good');
+document.getElementById('satText').textContent=`${pts}% ${label}`;
+if(cls)document.getElementById('satText').classList.add(cls);
+else document.getElementById('satText').classList.remove('perfect');
+window.TG?.haptic?.(acc>=0.9?'notification':'impact',acc>=0.9?'success':'medium');
+sliceCount++;
+document.getElementById('progFill').style.width=`${(sliceCount/totalSlices)*100}%`;
+if(sliceCount>=totalSlices){
+setTimeout(()=>{
+level++;
+window.TG?.save?.('asmr_level',level);
+window.TG?.save?.('asmr_score',score);
+document.getElementById('vLvl').textContent=level;
+if(window.GameScore)GameScore.save('asmr-slicer',score);
+startLevel();
+},800);
+}else{setTimeout(nextSlice,600)}
+e.preventDefault();
+});
+function calcAccuracy(){
+if(drawPoints.length<2)return 0;
+let totalDist=0;
+const gl=guideLine;
+const dx=gl.x2-gl.x1,dy=gl.y2-gl.y1;
+const len=Math.sqrt(dx*dx+dy*dy);
+drawPoints.forEach(p=>{
+const dist=Math.abs(dx*(gl.y1-p.y)-dy*(gl.x1-p.x))/len;
+totalDist+=dist;
+});
+const avgDist=totalDist/drawPoints.length;
+return Math.max(0,1-avgDist/(cw*0.15));
+}
+window.addEventListener('resize',()=>{resize();render()});
+init();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

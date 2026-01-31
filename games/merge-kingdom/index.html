@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Merge Kingdom 🏰</title>
+<meta name="description" content="아이템을 머지해서 왕국을 건설하세요! 머지 + 건설 하이브리드 게임.">
+<meta property="og:title" content="Merge Kingdom 🏰 — East Sea Games">
+<meta property="og:description" content="머지하여 왕국을 건설! 아이템 합성+건설 하이브리드.">
+<meta property="og:url" content="https://eastsea.monster/games/merge-kingdom/">
+<meta property="og:type" content="website">
+<link rel="canonical" href="https://eastsea.monster/games/merge-kingdom/">
+<link rel="manifest" href="/games/manifest.json">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;user-select:none}
+body{background:#2d1b69;display:flex;flex-direction:column;align-items:center}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column;color:#fff}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 16px;background:rgba(0,0,0,0.2)}
+.hdr .ttl{font-size:16px;font-weight:700;color:#ffd700}
+.res{display:flex;gap:12px}
+.res-item{display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600}
+.kingdom-view{padding:8px 16px;display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:60px}
+.building{font-size:28px;background:rgba(255,255,255,0.08);border-radius:10px;padding:4px 8px;border:1px solid rgba(255,255,255,0.1)}
+.merge-grid{flex:1;display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);gap:4px;padding:8px 12px}
+.merge-cell{background:rgba(255,255,255,0.05);border-radius:12px;border:2px solid rgba(255,255,255,0.08);display:flex;align-items:center;justify-content:center;font-size:32px;cursor:pointer;transition:all 0.15s;position:relative}
+.merge-cell:active{transform:scale(0.9)}
+.merge-cell.selected{border-color:#ffd700;background:rgba(255,215,0,0.15);box-shadow:0 0 15px rgba(255,215,0,0.3)}
+.merge-cell.merging{animation:mergeAnim 0.3s}
+.merge-cell .lvl{position:absolute;bottom:2px;right:4px;font-size:10px;color:#ffd700;font-weight:700}
+@keyframes mergeAnim{0%{transform:scale(1)}50%{transform:scale(1.3) rotate(10deg)}100%{transform:scale(1)}}
+.bottom-bar{padding:8px 16px 24px;display:flex;gap:8px;justify-content:center}
+.bar-btn{padding:10px 16px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;color:#fff}
+.bar-btn:active{transform:scale(0.95)}
+.bar-btn.gold{background:linear-gradient(135deg,#ffd700,#ff8c42);color:#333}
+.bar-btn.purple{background:linear-gradient(135deg,#9b59b6,#8e44ad)}
+.bar-btn.gray{background:rgba(255,255,255,0.1)}
+.toast{position:fixed;top:60px;left:50%;transform:translateX(-50%);background:#ffd700;color:#333;padding:8px 20px;border-radius:20px;font-size:14px;font-weight:600;z-index:50;animation:toastAnim 1.5s forwards}
+@keyframes toastAnim{0%{opacity:0;transform:translateX(-50%) translateY(-10px)}15%{opacity:1;transform:translateX(-50%) translateY(0)}80%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-20px)}}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:#1a1040;border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);color:#fff;border:1px solid rgba(255,215,0,0.2)}
+.modal h2{font-size:22px;color:#ffd700}
+.modal .big{font-size:48px;margin:12px 0}
+.modal p{opacity:0.7;margin:8px 0}
+.btn{padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;min-height:48px}
+.btn:active{transform:scale(0.95)}
+.btn-gold{background:linear-gradient(135deg,#ffd700,#ff8c42);color:#333}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="hdr">
+<div class="ttl">🏰 Merge Kingdom</div>
+<div class="res">
+<div class="res-item">💰 <span id="vGold">100</span></div>
+<div class="res-item">⭐ <span id="vLevel">1</span></div>
+</div>
+</div>
+<div class="kingdom-view" id="kingdom"></div>
+<div class="merge-grid" id="grid"></div>
+<div class="bottom-bar">
+<button class="bar-btn gold" id="btnSpawn">💰 <span data-i18n="spawn">Spawn</span> (10)</button>
+<button class="bar-btn purple" id="btnAuto">🔄 <span data-i18n="auto">Auto</span></button>
+<button class="bar-btn gray" id="btnSell">🗑️ <span data-i18n="sell">Sell</span></button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{spawn:'소환',auto:'자동 머지',sell:'판매',newBuilding:'새 건물!',kingdomGrew:'왕국이 성장했습니다!',replay:'새 왕국',share:'공유',gold:'골드',level:'레벨'},
+en:{spawn:'Spawn',auto:'Auto Merge',sell:'Sell',newBuilding:'New Building!',kingdomGrew:'Kingdom grew!',replay:'New Kingdom',share:'Share',gold:'Gold',level:'Level'},
+ja:{spawn:'召喚',auto:'自動マージ',sell:'売却',newBuilding:'新しい建物！',kingdomGrew:'王国が成長しました！',replay:'新しい王国',share:'シェア',gold:'ゴールド',level:'レベル'}
+};
+const ulang=(window.TG?.getLang?.()||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+
+const ITEMS=['🌱','🌿','🌳','🪨','⛏️','🧱','🏠','🏡','🏘️','🏰','👑'];
+const BUILDINGS=['🏠','🏡','🏘️','🏰','⛪','🏛️','🗼','🏯','🎪','🏟️'];
+const GRID_SIZE=25;
+let grid=new Array(GRID_SIZE).fill(null); // {level, emoji}
+let gold=100,kingdomLevel=1,buildings=[],selectedCell=-1;
+
+function save(){
+window.TG?.save?.('mk_gold',gold);
+window.TG?.save?.('mk_klvl',kingdomLevel);
+window.TG?.save?.('mk_grid',grid);
+window.TG?.save?.('mk_bld',buildings);
+}
+function load(){
+gold=window.TG?.load?.('mk_gold',100)||100;
+kingdomLevel=window.TG?.load?.('mk_klvl',1)||1;
+const sg=window.TG?.load?.('mk_grid',null);
+if(sg&&sg.length===GRID_SIZE)grid=sg;
+buildings=window.TG?.load?.('mk_bld',[])||[];
+}
+function init(){
+load();updateUI();renderGrid();renderKingdom();
+// Auto gold
+setInterval(()=>{
+gold+=buildings.length+1;
+updateUI();
+},3000);
+}
+function updateUI(){
+document.getElementById('vGold').textContent=gold;
+document.getElementById('vLevel').textContent=kingdomLevel;
+}
+function renderGrid(){
+const gridEl=document.getElementById('grid');
+gridEl.innerHTML='';
+grid.forEach((cell,i)=>{
+const el=document.createElement('div');
+el.className='merge-cell'+(selectedCell===i?' selected':'');
+if(cell){
+el.textContent=ITEMS[Math.min(cell.level,ITEMS.length-1)];
+const lvl=document.createElement('span');lvl.className='lvl';lvl.textContent=cell.level+1;
+el.appendChild(lvl);
+}
+el.addEventListener('click',()=>cellClick(i));
+gridEl.appendChild(el);
+});
+}
+function renderKingdom(){
+const el=document.getElementById('kingdom');
+el.innerHTML='';
+if(buildings.length===0){el.innerHTML='<span style="font-size:12px;opacity:0.5">머지하여 건물을 해금하세요!</span>';return}
+buildings.forEach(b=>{
+const d=document.createElement('div');d.className='building';d.textContent=b;
+el.appendChild(d);
+});
+}
+function cellClick(idx){
+if(selectedCell===idx){selectedCell=-1;renderGrid();return}
+if(selectedCell>=0){
+// Try merge
+if(grid[selectedCell]&&grid[idx]&&grid[selectedCell].level===grid[idx].level){
+const newLevel=grid[selectedCell].level+1;
+grid[idx]={level:newLevel};
+grid[selectedCell]=null;
+selectedCell=-1;
+gold+=newLevel*5;
+window.TG?.haptic?.('impact','medium');
+// Check building unlock
+if(newLevel>=5&&newLevel-5<BUILDINGS.length){
+const bldg=BUILDINGS[newLevel-5];
+if(!buildings.includes(bldg)){
+buildings.push(bldg);
+kingdomLevel=buildings.length;
+toast(t('newBuilding')+' '+bldg);
+window.TG?.haptic?.('notification','success');
+renderKingdom();
+}
+}
+if(newLevel>=ITEMS.length-1){
+if(window.GameScore)GameScore.save('merge-kingdom',kingdomLevel*1000+gold);
+}
+save();updateUI();renderGrid();
+return;
+}
+// Move
+if(grid[selectedCell]&&!grid[idx]){
+grid[idx]=grid[selectedCell];grid[selectedCell]=null;
+selectedCell=-1;save();renderGrid();return;
+}
+selectedCell=-1;renderGrid();return;
+}
+if(grid[idx]){selectedCell=idx;window.TG?.haptic?.('selection');renderGrid();return}
+selectedCell=-1;renderGrid();
+}
+document.getElementById('btnSpawn').addEventListener('click',()=>{
+const cost=10+kingdomLevel*2;
+if(gold<cost)return;
+const empty=[];grid.forEach((c,i)=>{if(!c)empty.push(i)});
+if(empty.length===0)return;
+gold-=cost;
+const idx=empty[Math.floor(Math.random()*empty.length)];
+grid[idx]={level:0};
+updateUI();save();renderGrid();
+window.TG?.haptic?.('impact','light');
+});
+document.getElementById('btnAuto').addEventListener('click',()=>{
+// Auto merge same-level adjacent items
+let merged=false;
+for(let i=0;i<GRID_SIZE;i++){
+if(!grid[i])continue;
+for(let j=i+1;j<GRID_SIZE;j++){
+if(!grid[j])continue;
+if(grid[i].level===grid[j].level){
+grid[j]={level:grid[i].level+1};
+grid[i]=null;
+gold+=grid[j].level*5;
+merged=true;
+break;
+}
+}
+if(merged)break;
+}
+if(merged){window.TG?.haptic?.('impact','medium');save();updateUI();renderGrid()}
+});
+document.getElementById('btnSell').addEventListener('click',()=>{
+if(selectedCell>=0&&grid[selectedCell]){
+gold+=grid[selectedCell].level*3+1;
+grid[selectedCell]=null;
+selectedCell=-1;
+save();updateUI();renderGrid();
+window.TG?.haptic?.('selection');
+}
+});
+function toast(msg){
+const t=document.createElement('div');t.className='toast';t.textContent=msg;
+document.body.appendChild(t);setTimeout(()=>t.remove(),1500);
+}
+init();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

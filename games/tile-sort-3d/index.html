@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Tile Sort 3D 🧊</title>
+<meta name="description" content="3D 타일을 탭해서 정리하세요! 같은 종류 3개를 모아 클리어하는 중독성 정렬 퍼즐.">
+<meta property="og:title" content="Tile Sort 3D 🧊 — East Sea Games">
+<meta property="og:description" content="3D 타일을 탭하여 같은 종류 3개를 모아 클리어! 50+ 레벨 정렬 퍼즐.">
+<meta property="og:url" content="https://eastsea.monster/games/tile-sort-3d/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/tile-sort-3d/">
+<link rel="manifest" href="/games/manifest.json">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;user-select:none}
+body{display:flex;flex-direction:column;align-items:center}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.hdr{display:flex;justify-content:space-between;align-items:center;padding:10px 16px}
+.hdr .ttl{font-size:18px;font-weight:700;color:#4ea8ff}
+.hdr .lbl{font-size:10px;opacity:0.6;text-transform:uppercase}
+.hdr .val{font-size:20px;font-weight:700}
+.field{flex:1;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:6px;padding:12px;perspective:800px}
+.tile{width:58px;height:58px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer;transition:all 0.2s;transform:rotateX(10deg) rotateY(-5deg);box-shadow:0 4px 12px rgba(0,0,0,0.3),inset 0 -3px 0 rgba(0,0,0,0.2),inset 0 2px 0 rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.1);position:relative}
+.tile:active{transform:scale(0.9) rotateX(10deg)}
+.tile.layer2{opacity:0.6;pointer-events:none;position:absolute;transform:rotateX(10deg) rotateY(-5deg) translateZ(-10px)}
+.tile.matched{animation:matchPop 0.4s ease-out forwards}
+@keyframes matchPop{0%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:0.5}100%{transform:scale(0);opacity:0}}
+.tray{padding:12px 16px 24px;display:flex;gap:4px;justify-content:center;align-items:center;min-height:80px}
+.tray-slot{width:58px;height:58px;border-radius:12px;background:rgba(255,255,255,0.05);border:2px dashed rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;font-size:28px;transition:all 0.2s}
+.tray-slot.filled{border-style:solid;border-color:rgba(255,255,255,0.2);background:rgba(255,255,255,0.08)}
+.tray-slot.match-glow{animation:glowPulse 0.3s}
+@keyframes glowPulse{0%{box-shadow:0 0 0 rgba(78,168,255,0)}50%{box-shadow:0 0 20px rgba(78,168,255,0.6)}100%{box-shadow:0 0 0 rgba(78,168,255,0)}}
+.tools{display:flex;gap:8px;justify-content:center;padding:0 16px 8px}
+.tool-btn{padding:8px 16px;border:none;border-radius:10px;background:rgba(255,255,255,0.08);color:#fff;font-size:13px;cursor:pointer;transition:all 0.15s}
+.tool-btn:active{transform:scale(0.95);background:rgba(255,255,255,0.15)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:#16213e;border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:#4ea8ff}
+.modal .big{font-size:48px;margin:12px 0}
+.modal p{color:rgba(255,255,255,0.7);margin:8px 0}
+.btn{padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;min-height:48px}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:#4ea8ff;color:#fff}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#e0e0e0}
+.lvl-text{text-align:center;font-size:12px;color:rgba(255,255,255,0.4);padding:4px}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="hdr">
+<div class="ttl">🧊 Tile Sort 3D</div>
+<div><div class="lbl" id="lLvl">LEVEL</div><div class="val" id="vLvl">1</div></div>
+<div><div class="lbl" id="lScore">SCORE</div><div class="val" id="vScore">0</div></div>
+</div>
+<div class="lvl-text" id="lvlText"></div>
+<div class="field" id="field"></div>
+<div class="tray" id="tray"></div>
+<div class="tools">
+<button class="tool-btn" id="btnUndo">↩️ <span data-i18n="undo">Undo</span></button>
+<button class="tool-btn" id="btnShuffle">🔀 <span data-i18n="shuffle">Shuffle</span></button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{level:'레벨',score:'점수',undo:'되돌리기',shuffle:'섞기',cleared:'클리어!',gameOver:'게임 오버',trayFull:'슬롯이 가득 찼습니다!',next:'다음 레벨',replay:'다시하기',share:'공유',tilesLeft:'남은 타일'},
+en:{level:'LEVEL',score:'SCORE',undo:'Undo',shuffle:'Shuffle',cleared:'Cleared!',gameOver:'Game Over',trayFull:'Tray is full!',next:'Next Level',replay:'Play Again',share:'Share',tilesLeft:'tiles left'},
+ja:{level:'レベル',score:'スコア',undo:'戻す',shuffle:'シャッフル',cleared:'クリア！',gameOver:'ゲームオーバー',trayFull:'スロットが一杯です！',next:'次のレベル',replay:'もう一度',share:'シェア',tilesLeft:'残りタイル'}
+};
+const ulang=(window.TG?.getLang?.()||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;if(t(k))el.textContent=t(k)});
+document.getElementById('lLvl').textContent=t('level');
+document.getElementById('lScore').textContent=t('score');
+
+const EMOJIS=['🍎','🍊','🍋','🍇','🫐','🍓','🍑','🥝','🍌','🥑','🍒','🥭','🍍','🥥'];
+const TILE_COLORS=['#e94560','#ff8c42','#ffd700','#9b59b6','#4ea8ff','#e94560','#ff6b9d','#50c878','#ffd700','#3498db','#e74c3c','#f39c12','#1abc9c','#e67e22'];
+const MAX_TRAY=7;
+let level=1,score=0,tiles=[],tray=[],undoStack=[],fieldEl,trayEl;
+
+function init(){
+level=window.TG?.load?.('ts3d_level',1)||1;
+score=window.TG?.load?.('ts3d_score',0)||0;
+document.getElementById('vLvl').textContent=level;
+document.getElementById('vScore').textContent=score;
+fieldEl=document.getElementById('field');
+trayEl=document.getElementById('tray');
+loadLevel(level);
+}
+function loadLevel(lv){
+tiles=[];tray=[];undoStack=[];
+const pairCount=Math.min(3+Math.floor(lv/2),8);
+const totalPairs=Math.min(4+lv,14);
+const emojis=EMOJIS.slice(0,pairCount);
+const pool=[];
+for(let i=0;i<totalPairs;i++){
+const e=emojis[i%emojis.length];
+pool.push(e,e,e);
+}
+shuffle(pool);
+tiles=pool.map((emoji,i)=>({id:i,emoji,color:TILE_COLORS[EMOJIS.indexOf(emoji)],matched:false}));
+document.getElementById('lvlText').textContent=`${t('level')} ${lv} — ${tiles.length} tiles`;
+renderField();renderTray();
+}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.random()*i+1|0;[arr[i],arr[j]]=[arr[j],arr[i]]}}
+function renderField(){
+fieldEl.innerHTML='';
+tiles.forEach((tile,i)=>{
+if(tile.matched)return;
+const el=document.createElement('div');
+el.className='tile';
+el.textContent=tile.emoji;
+el.style.background=tile.color+'33';
+el.style.borderColor=tile.color+'66';
+el.addEventListener('click',()=>pickTile(i));
+fieldEl.appendChild(el);
+});
+}
+function renderTray(){
+trayEl.innerHTML='';
+for(let i=0;i<MAX_TRAY;i++){
+const slot=document.createElement('div');
+slot.className='tray-slot'+(tray[i]?' filled':'');
+if(tray[i]){slot.textContent=tray[i].emoji;slot.style.background=tray[i].color+'22';slot.style.borderColor=tray[i].color+'44'}
+trayEl.appendChild(slot);
+}
+}
+function pickTile(idx){
+const tile=tiles[idx];
+if(tile.matched||tray.length>=MAX_TRAY)return;
+undoStack.push({type:'pick',idx,trayBefore:[...tray]});
+tray.push({...tile});
+tile.matched=true;
+window.TG?.haptic?.('impact','light');
+renderField();renderTray();
+checkTrayMatch();
+}
+function checkTrayMatch(){
+const counts={};
+tray.forEach(t=>{counts[t.emoji]=(counts[t.emoji]||0)+1});
+for(const[emoji,count]of Object.entries(counts)){
+if(count>=3){
+setTimeout(()=>{
+tray=tray.filter(t=>t.emoji!==emoji||(count-->3,false));
+// Actually remove exactly 3
+let removed=0;
+tray=tray.filter(t=>{if(t.emoji===emoji&&removed<3){removed++;return false}return true});
+score+=100*level;
+document.getElementById('vScore').textContent=score;
+window.TG?.haptic?.('notification','success');
+renderTray();
+if(tiles.every(t=>t.matched)){levelClear()}
+else if(tray.length>=MAX_TRAY){setTimeout(gameOver,300)}
+},200);
+return;
+}
+}
+if(tray.length>=MAX_TRAY){setTimeout(gameOver,500)}
+}
+function levelClear(){
+const bonus=Math.max(0,(MAX_TRAY-tray.length)*50);
+score+=bonus+200;
+document.getElementById('vScore').textContent=score;
+level++;
+window.TG?.save?.('ts3d_level',level);
+window.TG?.save?.('ts3d_score',score);
+if(window.GameScore)GameScore.save('tile-sort-3d',score);
+showModal(t('cleared'),'🎉',`${t('level')} ${level-1} ${t('cleared')}`,t('next'),()=>loadLevel(level));
+}
+function gameOver(){
+showModal(t('gameOver'),'😢',t('trayFull'),t('replay'),()=>{level=1;score=0;window.TG?.save?.('ts3d_level',1);window.TG?.save?.('ts3d_score',0);loadLevel(level)});
+window.TG?.haptic?.('notification','error');
+}
+function showModal(title,emoji,desc,btnText,onBtn){
+let m=document.querySelector('.modal-bg');
+if(m)m.remove();
+m=document.createElement('div');m.className='modal-bg';
+m.innerHTML=`<div class="modal"><h2>${title}</h2><div class="big">${emoji}</div><p>${desc}</p><button class="btn btn-primary">${btnText}</button></div>`;
+document.body.appendChild(m);
+m.querySelector('.btn').addEventListener('click',()=>{m.remove();onBtn()});
+}
+document.getElementById('btnUndo').addEventListener('click',()=>{
+if(!undoStack.length)return;
+const action=undoStack.pop();
+if(action.type==='pick'){tiles[action.idx].matched=false;tray=action.trayBefore;renderField();renderTray();window.TG?.haptic?.('selection')}
+});
+document.getElementById('btnShuffle').addEventListener('click',()=>{
+const remaining=tiles.filter(t=>!t.matched);
+const emojis=remaining.map(t=>t.emoji);
+shuffle(emojis);
+remaining.forEach((t,i)=>{t.emoji=emojis[i];t.color=TILE_COLORS[EMOJIS.indexOf(emojis[i])]});
+renderField();window.TG?.haptic?.('impact','medium');
+});
+init();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>
