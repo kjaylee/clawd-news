@@ -546,6 +546,17 @@
         .attribution { position:fixed; bottom:2px; left:0; right:0; text-align:center; font-size:.5em; color:rgba(0,255,136,.25); pointer-events:none; z-index:5; }
         /* Upgrade Sprite */
         .upgrade-sprite { width:52px; height:52px; border-radius:10px; object-fit:cover; margin-bottom:6px; filter:drop-shadow(0 0 6px rgba(0,255,136,.4)); }
+        /* === Real Asset Icons === */
+        .hud-icon { width:16px; height:16px; vertical-align:middle; margin-right:2px; filter:brightness(1.2); image-rendering:auto; }
+        .btn-icon { width:20px; height:20px; vertical-align:middle; margin-right:4px; filter:brightness(1.1); }
+        .title-icon { width:32px; height:32px; vertical-align:middle; margin-right:6px; filter:drop-shadow(0 0 8px rgba(0,255,136,0.5)); }
+        .char-icon-img { width:36px; height:36px; image-rendering:auto; filter:drop-shadow(0 0 4px rgba(255,255,255,0.3)); }
+        .upgrade-icon-img { width:52px; height:52px; border-radius:10px; filter:drop-shadow(0 0 6px rgba(0,255,136,.4)); margin-bottom:6px; }
+        .loading-icon-img { width:64px; height:64px; animation:titlePulse 2s ease-in-out infinite; filter:drop-shadow(0 0 12px rgba(0,255,136,0.6)); }
+        .medal-icon { width:20px; height:20px; vertical-align:middle; }
+        .stat-icon { width:18px; height:18px; vertical-align:middle; margin-right:2px; }
+        .fab-icon { width:24px; height:24px; filter:brightness(1.3); }
+        .pause-icon { width:22px; height:22px; filter:brightness(1.3); }
     </style>
     <!-- Telegram Mini App SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -592,12 +603,12 @@
 <!-- Loading Screen -->
 <div id="loadingScreen">
   <div class="loading-content">
-    <div class="loading-icon">🟢</div>
+    <div class="loading-icon"><img class="loading-icon-img" src="assets/icons/char_gem_green.png" alt=""></div>
     <div class="loading-title">슬라임 서바이버</div>
-    <div style="font-size:.75rem;color:var(--neon-gold);margin-bottom:12px;">✨ PREMIUM EDITION ✨</div>
+    <div style="font-size:.75rem;color:var(--neon-gold);margin-bottom:12px;"><img class="stat-icon" src="assets/icons/ui_star.png" alt=""> PREMIUM EDITION <img class="stat-icon" src="assets/icons/ui_star.png" alt=""></div>
     <div class="loading-bar"><div class="loading-fill" id="loadFill"></div></div>
     <div class="loading-text" id="loadText">Loading...</div>
-    <div class="loading-credit">Art: 게임마당 (한국콘텐츠진흥원 · KOCCA)</div>
+    <div class="loading-credit">Skills: 2000 Fantasy Icons · SFX: Epic Toon FX + Cute UI<br>Music: Fantasy Music Pack 2</div>
   </div>
 </div>
 
@@ -607,18 +618,18 @@
     <!-- HUD -->
     <div id="hud">
         <div class="hud-left">
-            <div class="hud-stat">⏱️ <span id="hudTime">0:00</span></div>
-            <div class="hud-stat">💀 <span id="hudKills">0</span></div>
-            <div class="hud-stat">⭐ Lv.<span id="hudLevel">1</span></div>
+            <div class="hud-stat"><img class="hud-icon" src="assets/icons/hud_timer.png" alt=""> <span id="hudTime">0:00</span></div>
+            <div class="hud-stat"><img class="hud-icon" src="assets/icons/hud_kills.png" alt=""> <span id="hudKills">0</span></div>
+            <div class="hud-stat"><img class="hud-icon" src="assets/icons/hud_level.png" alt=""> Lv.<span id="hudLevel">1</span></div>
         </div>
         <div class="hud-right">
-            <div class="hud-stat" style="text-align:right">🏆 <span id="hudScore">0</span></div>
-            <div class="hud-stat" style="text-align:right;color:var(--neon-gold)">🪙 <span id="hudCoins">0</span></div>
+            <div class="hud-stat" style="text-align:right"><img class="hud-icon" src="assets/icons/hud_score.png" alt=""> <span id="hudScore">0</span></div>
+            <div class="hud-stat" style="text-align:right;color:var(--neon-gold)"><img class="hud-icon" src="assets/icons/hud_coins.png" alt=""> <span id="hudCoins">0</span></div>
         </div>
     </div>
     <div id="xpBarOuter"><div id="xpBarInner"></div></div>
-    <button id="pauseBtn" style="display:none;">⏸️</button>
-    <button id="muteFab" onclick="toggleMuteFab()">🔊</button>
+    <button id="pauseBtn" style="display:none;"><img class="pause-icon" src="assets/icons/ui_pause.png" alt="pause"></button>
+    <button id="muteFab" onclick="toggleMuteFab()"><img class="fab-icon" id="muteFabIcon" src="assets/icons/ui_sound.png" alt="sound"></button>
 
     <!-- Combo Text Overlay -->
     <div id="comboTextOverlay"></div>
@@ -628,8 +639,8 @@
         <div class="boss-dim"></div>
         <div class="boss-scanlines"></div>
         <div class="boss-banner">
-            <div class="boss-warn">⚠️ BOSS INCOMING ⚠️</div>
-            <div class="boss-name" id="bossNamePlate">💀 SKULL LORD</div>
+            <div class="boss-warn"><img class="btn-icon" src="assets/icons/ui_shield_magic.png" alt=""> BOSS INCOMING <img class="btn-icon" src="assets/icons/ui_shield_magic.png" alt=""></div>
+            <div class="boss-name" id="bossNamePlate"><img class="btn-icon" src="assets/icons/ui_skull.png" alt=""> SKULL LORD</div>
         </div>
     </div>
 
@@ -644,40 +655,40 @@
 
     <!-- START SCREEN -->
     <div id="startScreen" class="screen-overlay">
-        <div class="screen-title">🟢 슬라임 서바이버</div>
-        <div style="font-size:0.75rem;color:var(--neon-gold);margin-bottom:12px;">✨ PREMIUM EDITION ✨</div>
+        <div class="screen-title"><img class="title-icon" src="assets/icons/char_gem_green.png" alt=""> 슬라임 서바이버</div>
+        <div style="font-size:0.75rem;color:var(--neon-gold);margin-bottom:12px;"><img class="stat-icon" src="assets/icons/ui_star.png" alt=""> PREMIUM EDITION <img class="stat-icon" src="assets/icons/ui_star.png" alt=""></div>
         <div class="meta-stats" id="metaStats"></div>
         <div style="font-size:0.8rem;margin:8px 0;color:#aaa;">캐릭터 선택</div>
         <div class="char-select" id="charSelect"></div>
         <div class="btn-row">
-            <button class="btn" onclick="startNormalGame()">🎮 게임 시작</button>
+            <button class="btn" onclick="startNormalGame()"><img class="btn-icon" src="assets/icons/ui_gamepad.png" alt=""> 게임 시작</button>
         </div>
         <div class="btn-row">
-            <button class="btn btn-daily" onclick="startDailyChallenge()" id="dailyBtn">📅 데일리 챌린지</button>
-            <button class="btn btn-secondary" onclick="showLeaderboard()">🏆 리더보드</button>
+            <button class="btn btn-daily" onclick="startDailyChallenge()" id="dailyBtn"><img class="btn-icon" src="assets/icons/ui_calendar.png" alt=""> 데일리 챌린지</button>
+            <button class="btn btn-secondary" onclick="showLeaderboard()"><img class="btn-icon" src="assets/icons/ui_trophy.png" alt=""> 리더보드</button>
         </div>
-        <div style="font-size:0.75rem;opacity:0.5;margin-top:12px;">🖱️ 마우스/터치로 이동 · ⚔️ 자동 공격</div>
+        <div style="font-size:0.75rem;opacity:0.5;margin-top:12px;"><img class="hud-icon" src="assets/icons/upg_boot.png" alt=""> 마우스/터치로 이동 · <img class="hud-icon" src="assets/icons/upg_sword.png" alt=""> 자동 공격</div>
     </div>
 
     <!-- GAME OVER SCREEN -->
     <div id="gameOverScreen" class="screen-overlay hidden">
-        <div class="screen-title" style="font-size:clamp(1.5rem,4vw,2.2rem);">💀 게임 오버</div>
-        <div id="goNewRecord" style="display:none;color:var(--neon-gold);font-weight:bold;margin:4px 0;">🎉 NEW RECORD!</div>
-        <div id="goDailyBadge" class="daily-badge" style="display:none;">📅 데일리 챌린지</div>
+        <div class="screen-title" style="font-size:clamp(1.5rem,4vw,2.2rem);"><img class="title-icon" src="assets/icons/ui_skull.png" alt=""> 게임 오버</div>
+        <div id="goNewRecord" style="display:none;color:var(--neon-gold);font-weight:bold;margin:4px 0;"><img class="stat-icon" src="assets/icons/ui_crown.png" alt=""> NEW RECORD!</div>
+        <div id="goDailyBadge" class="daily-badge" style="display:none;"><img class="stat-icon" src="assets/icons/ui_calendar.png" alt=""> 데일리 챌린지</div>
         <div class="go-stats" id="goStats"></div>
         <div class="btn-row">
-            <button class="btn" onclick="restartGame()" id="i18nRetry">🔄 Retry</button>
-            <button class="btn btn-share" onclick="shareScore()">📤 공유하기</button>
+            <button class="btn" onclick="restartGame()" id="i18nRetry"><img class="btn-icon" src="assets/icons/ui_refresh.png" alt=""> Retry</button>
+            <button class="btn btn-share" onclick="shareScore()"><img class="btn-icon" src="assets/icons/ui_share.png" alt=""> 공유하기</button>
         </div>
         <div class="btn-row">
-            <button class="btn btn-secondary" onclick="showLeaderboard()">🏆 리더보드</button>
-            <button class="btn btn-secondary" onclick="goToMenu()">🏠 메뉴</button>
+            <button class="btn btn-secondary" onclick="showLeaderboard()"><img class="btn-icon" src="assets/icons/ui_trophy.png" alt=""> 리더보드</button>
+            <button class="btn btn-secondary" onclick="goToMenu()"><img class="btn-icon" src="assets/icons/ui_home.png" alt=""> 메뉴</button>
         </div>
     </div>
 
     <!-- LEADERBOARD SCREEN -->
     <div id="leaderboardScreen" class="screen-overlay hidden">
-        <div class="screen-title" style="font-size:1.5rem;">🏆 리더보드</div>
+        <div class="screen-title" style="font-size:1.5rem;"><img class="title-icon" src="assets/icons/ui_trophy.png" alt=""> 리더보드</div>
         <div class="btn-row" style="margin:8px 0;">
             <button class="btn btn-secondary" style="padding:8px 16px;font-size:0.8rem;min-width:auto;" onclick="switchLB('normal')" id="lbTabNormal">일반</button>
             <button class="btn btn-secondary" style="padding:8px 16px;font-size:0.8rem;min-width:auto;" onclick="switchLB('daily')" id="lbTabDaily">데일리</button>
@@ -688,18 +699,18 @@
 
     <!-- UPGRADE SCREEN -->
     <div id="upgradeScreen" class="screen-overlay hidden">
-        <div style="font-size:1.3rem;color:var(--neon-green);font-weight:bold;margin-bottom:4px;">⬆️ 레벨 업!</div>
+        <div style="font-size:1.3rem;color:var(--neon-green);font-weight:bold;margin-bottom:4px;"><img class="btn-icon" src="assets/icons/ui_levelup.png" alt=""> 레벨 업!</div>
         <div style="font-size:0.8rem;color:#888;margin-bottom:12px;">업그레이드를 선택하세요</div>
         <div class="upgrade-options" id="upgradeOptions"></div>
     </div>
 
     <!-- PAUSE SCREEN -->
     <div id="pauseScreen" class="screen-overlay hidden">
-        <div class="screen-title" style="font-size:1.5rem;">⏸️ 일시정지</div>
+        <div class="screen-title" style="font-size:1.5rem;"><img class="title-icon" src="assets/icons/ui_pause.png" alt=""> 일시정지</div>
         <div class="btn-row" style="flex-direction:column;">
-            <button class="btn" onclick="resumeGame()">▶️ 계속하기</button>
-            <button class="btn btn-secondary" onclick="toggleSound()">🔊 사운드: <span id="soundToggle">ON</span></button>
-            <button class="btn btn-secondary" onclick="goToMenu()">🏠 메뉴로</button>
+            <button class="btn" onclick="resumeGame()"><img class="btn-icon" src="assets/icons/ui_play.png" alt=""> 계속하기</button>
+            <button class="btn btn-secondary" onclick="toggleSound()"><img class="btn-icon" id="soundToggleIcon" src="assets/icons/ui_sound.png" alt=""> 사운드: <span id="soundToggle">ON</span></button>
+            <button class="btn btn-secondary" onclick="goToMenu()"><img class="btn-icon" src="assets/icons/ui_home.png" alt=""> 메뉴로</button>
         </div>
     </div>
 </div>
@@ -716,6 +727,29 @@ const UPGRADE_SPRITE_MAP = {
     '🔮':'skill_3','🌀':'skill_2','📍':'skill_2','💫':'skill_7',
     '🧲':'skill_6','💚':'skill_5','💥':'skill_1','🛡️':'skill_5'
 };
+// Real asset icon paths for upgrades (emoji → PNG)
+const UPGRADE_ICON_MAP = {
+    '⚔️':'assets/icons/upg_sword.png',
+    '🔥':'assets/icons/upg_fire.png',
+    '👟':'assets/icons/upg_boot.png',
+    '❤️':'assets/icons/upg_heart.png',
+    '🔮':'assets/icons/upg_crystal.png',
+    '🌀':'assets/icons/upg_orbital.png',
+    '📍':'assets/icons/upg_range.png',
+    '💫':'assets/icons/upg_star.png',
+    '🧲':'assets/icons/upg_magnet.png',
+    '💚':'assets/icons/upg_regen.png',
+    '💥':'assets/icons/upg_crit.png',
+    '🛡️':'assets/icons/upg_shield.png',
+};
+// Character icon map (index → PNG)
+const CHAR_ICON_MAP = [
+    'assets/icons/char_gem_green.png',
+    'assets/icons/char_gem_red.png',
+    'assets/icons/char_gem_blue.png',
+    'assets/icons/char_gem_purple.png',
+    'assets/icons/char_crown.png',
+];
 
 const AudioManager = {
     ctx: null, enabled: true, masterGain: null, sfxGain: null,
@@ -749,10 +783,10 @@ const AudioManager = {
     async preload(onProgress) {
         this.init();
         const m = {
-            shoot:'assets/audio/shoot.ogg', hit:'assets/audio/hit.ogg',
-            death:'assets/audio/death.ogg', levelup:'assets/audio/levelup.ogg',
-            pickup:'assets/audio/pickup.ogg', click:'assets/audio/click.ogg',
-            select:'assets/audio/select.ogg', merge:'assets/audio/merge.ogg',
+            shoot:'assets/audio/shoot.mp3', hit:'assets/audio/hit.mp3',
+            death:'assets/audio/death.mp3', levelup:'assets/audio/levelup.mp3',
+            pickup:'assets/audio/pickup.mp3', click:'assets/audio/click.mp3',
+            select:'assets/audio/select.mp3', merge:'assets/audio/merge.mp3',
             bgm:'assets/audio/bgm.mp3'
         };
         const entries = Object.entries(m);
@@ -772,11 +806,12 @@ const AudioManager = {
         this.enabled = !this.enabled;
         if (this.masterGain) this.masterGain.gain.value = this.enabled ? 0.3 : 0;
         document.getElementById('soundToggle').textContent = this.enabled ? 'ON' : 'OFF';
+        const fabIcon = document.getElementById('muteFabIcon');
+        if (fabIcon) fabIcon.src = this.enabled ? 'assets/icons/ui_sound.png' : 'assets/icons/ui_mute.png';
         const fab = document.getElementById('muteFab');
-        if (fab) {
-            fab.textContent = this.enabled ? '🔊' : '🔇';
-            fab.classList.toggle('muted', !this.enabled);
-        }
+        if (fab) fab.classList.toggle('muted', !this.enabled);
+        const toggleIcon = document.getElementById('soundToggleIcon');
+        if (toggleIcon) toggleIcon.src = this.enabled ? 'assets/icons/ui_sound.png' : 'assets/icons/ui_mute.png';
     },
 
     _playBuf(name, vol, rate) {
@@ -887,10 +922,10 @@ const Progression = {
 
     checkUnlocks() {
         const lv = this.data.metaLevel;
-        if (lv >= 3 && !this.data.unlockedChars[1]) { this.data.unlockedChars[1] = true; showToast('🔓 파이어 슬라임 해금!'); }
-        if (lv >= 6 && !this.data.unlockedChars[2]) { this.data.unlockedChars[2] = true; showToast('🔓 아이스 슬라임 해금!'); }
-        if (lv >= 10 && !this.data.unlockedChars[3]) { this.data.unlockedChars[3] = true; showToast('🔓 다크 슬라임 해금!'); }
-        if (lv >= 15 && !this.data.unlockedChars[4]) { this.data.unlockedChars[4] = true; showToast('🔓 골드 슬라임 해금!'); }
+        if (lv >= 3 && !this.data.unlockedChars[1]) { this.data.unlockedChars[1] = true; showToast('파이어 슬라임 해금!'); }
+        if (lv >= 6 && !this.data.unlockedChars[2]) { this.data.unlockedChars[2] = true; showToast('아이스 슬라임 해금!'); }
+        if (lv >= 10 && !this.data.unlockedChars[3]) { this.data.unlockedChars[3] = true; showToast('다크 슬라임 해금!'); }
+        if (lv >= 15 && !this.data.unlockedChars[4]) { this.data.unlockedChars[4] = true; showToast('골드 슬라임 해금!'); }
     },
 
     permBonus(stat) {
@@ -948,14 +983,14 @@ const DailyChallenge = {
         const rng = this.seededRandom(seed);
 
         const modifierPool = [
-            { name: '⚡ 스피드런', desc: '적 속도 2배, 점수 1.5배', enemySpeedMult: 2, scoreMult: 1.5 },
-            { name: '🔥 미니건', desc: '공속 2배, 데미지 절반', fireRateMult: 0.5, damageMult: 0.5 },
-            { name: '💪 탱커 모드', desc: 'HP 3배, 이동속도 절반', hpMult: 3, speedMult: 0.5 },
-            { name: '🌀 오비탈 마스터', desc: '오비탈 3개 시작', startOrbitals: 3 },
-            { name: '💀 하드코어', desc: 'HP 절반, 점수 2배', hpMult: 0.5, scoreMult: 2 },
-            { name: '🎯 스나이퍼', desc: '공속 절반, 데미지 3배, 관통+2', fireRateMult: 2, damageMult: 3, startPiercing: 2 },
-            { name: '🏃 스프린터', desc: '이동속도 2배, HP 절반', speedMult: 2, hpMult: 0.5 },
-            { name: '💎 골드러시', desc: '코인 3배, 적 강화', coinMult: 3, enemyHpMult: 1.5 },
+            { name: '스피드런', desc: '적 속도 2배, 점수 1.5배', enemySpeedMult: 2, scoreMult: 1.5 },
+            { name: '미니건', desc: '공속 2배, 데미지 절반', fireRateMult: 0.5, damageMult: 0.5 },
+            { name: '탱커 모드', desc: 'HP 3배, 이동속도 절반', hpMult: 3, speedMult: 0.5 },
+            { name: '오비탈 마스터', desc: '오비탈 3개 시작', startOrbitals: 3 },
+            { name: '하드코어', desc: 'HP 절반, 점수 2배', hpMult: 0.5, scoreMult: 2 },
+            { name: '스나이퍼', desc: '공속 절반, 데미지 3배, 관통+2', fireRateMult: 2, damageMult: 3, startPiercing: 2 },
+            { name: '스프린터', desc: '이동속도 2배, HP 절반', speedMult: 2, hpMult: 0.5 },
+            { name: '골드러시', desc: '코인 3배, 적 강화', coinMult: 3, enemyHpMult: 1.5 },
         ];
 
         const idx = Math.floor(rng() * modifierPool.length);
@@ -1388,7 +1423,7 @@ function spawnBoss() {
 
     // Boss name variety based on wave
     const bossWave = Math.floor(game.time / 90) + 1;
-    const bossNames = ['💀 SKULL LORD', '👹 MEGA SLIME', '🔥 INFERNO KING', '❄️ FROST TITAN', '⚡ STORM BRINGER'];
+    const bossNames = ['SKULL LORD', 'MEGA SLIME', 'INFERNO KING', 'FROST TITAN', 'STORM BRINGER'];
     const bossName = bossNames[(bossWave - 1) % bossNames.length];
     const namePlate = document.getElementById('bossNamePlate');
     if (namePlate) namePlate.textContent = bossName;
@@ -1521,7 +1556,7 @@ function startDailyChallenge() {
     showMuteFab(true);
     AudioManager.startBGM();
     lastTime = performance.now();
-    showToast(`📅 데일리: ${dailyModifiers.name}`);
+    showToast(`데일리: ${dailyModifiers.name}`);
     requestAnimationFrame(gameLoop);
 }
 
@@ -2107,8 +2142,9 @@ function levelUp() {
         const tier = Math.max(0, upg.tier());
         const card = document.createElement('div');
         card.className = 'upgrade-card';
+        const _iconPath = UPGRADE_ICON_MAP[upg.icon];
         const _sk = UPGRADE_SPRITE_MAP[upg.icon];
-        const _si = _sk && SKILL_SPRITES[_sk] ? '<img class="upgrade-sprite" src="'+SKILL_SPRITES[_sk].src+'">' : '<div class="upgrade-icon">'+upg.icon+'</div>';
+        const _si = _iconPath ? '<img class="upgrade-icon-img" src="'+_iconPath+'">' : (_sk && SKILL_SPRITES[_sk] ? '<img class="upgrade-sprite" src="'+SKILL_SPRITES[_sk].src+'">' : '<div class="upgrade-icon">'+upg.icon+'</div>');
         card.innerHTML = `
             ${_si}
             <div class="upgrade-name">${upg.name}</div>
@@ -2192,12 +2228,12 @@ function gameOver() {
             <div class="go-stat"><div class="go-stat-val">${mins}:${String(secs).padStart(2,'0')}</div><div class="go-stat-label">생존 시간</div></div>
             <div class="go-stat"><div class="go-stat-val" style="color:var(--neon-red)">${game.kills}</div><div class="go-stat-label">처치 수</div></div>
             <div class="go-stat"><div class="go-stat-val" style="color:var(--neon-blue)">Lv.${game.level}</div><div class="go-stat-label">도달 레벨</div></div>
-            <div class="go-stat"><div class="go-stat-val" style="color:var(--neon-gold)">🪙 ${runCoins}</div><div class="go-stat-label">코인</div></div>
+            <div class="go-stat"><div class="go-stat-val" style="color:var(--neon-gold)"><img class="stat-icon" src="assets/icons/ui_coin.png" alt=""> ${runCoins}</div><div class="go-stat-label">코인</div></div>
             <div class="go-stat"><div class="go-stat-val" style="color:var(--neon-purple)">x${comboCount}</div><div class="go-stat-label">최대 콤보</div></div>
         `;
         document.getElementById('goNewRecord').style.display = isRecord ? 'block' : 'none';
         document.getElementById('goDailyBadge').style.display = isDaily ? 'block' : 'none';
-        if (leveledUp) showToast(`🎉 메타 레벨 ${Progression.data.metaLevel} 달성!`);
+        if (leveledUp) showToast(`메타 레벨 ${Progression.data.metaLevel} 달성!`);
         setJoystickEnabled(false);
         document.getElementById('gameOverScreen').classList.remove('hidden');
     }, 800);
@@ -2560,10 +2596,10 @@ function switchLB(tab) {
         return;
     }
 
-    const medals = ['🥇','🥈','🥉'];
+    const medalIcons = ['assets/icons/ui_medal_gold.png','assets/icons/ui_medal_silver.png','assets/icons/ui_medal_bronze.png'];
     div.innerHTML = entries.slice(0, 10).map((e, i) => `
         <div class="lb-entry ${i === 0 ? 'highlight' : ''}">
-            <span class="lb-rank">${medals[i] || (i+1)}</span>
+            <span class="lb-rank">${i < 3 ? '<img class="medal-icon" src="'+medalIcons[i]+'" alt="">' : (i+1)}</span>
             <span class="lb-name">${e.char || '슬라임'} Lv.${e.level}</span>
             <span class="lb-score">${e.score?.toLocaleString() || 0}</span>
             <span class="lb-date">${e.date || ''}</span>
@@ -2592,12 +2628,12 @@ function buildStartScreen() {
     const mins = Math.floor(d.bestTime / 60);
     const secs = Math.floor(d.bestTime % 60);
     metaDiv.innerHTML = `
-        <div class="meta-stat"><div class="meta-stat-value">⭐ ${d.metaLevel}</div><div class="meta-stat-label">메타 레벨</div></div>
+        <div class="meta-stat"><div class="meta-stat-value"><img class="stat-icon" src="assets/icons/ui_star.png" alt=""> ${d.metaLevel}</div><div class="meta-stat-label">메타 레벨</div></div>
         <div class="meta-stat"><div class="meta-stat-value">${d.totalRuns}</div><div class="meta-stat-label">총 플레이</div></div>
         <div class="meta-stat"><div class="meta-stat-value">${d.totalKills}</div><div class="meta-stat-label">총 처치</div></div>
         <div class="meta-stat"><div class="meta-stat-value">${d.bestScore.toLocaleString()}</div><div class="meta-stat-label">최고 점수</div></div>
         <div class="meta-stat"><div class="meta-stat-value">${mins}:${String(secs).padStart(2,'0')}</div><div class="meta-stat-label">최장 생존</div></div>
-        <div class="meta-stat"><div class="meta-stat-value">🪙 ${d.totalCoins}</div><div class="meta-stat-label">총 코인</div></div>
+        <div class="meta-stat"><div class="meta-stat-value"><img class="stat-icon" src="assets/icons/ui_coin.png" alt=""> ${d.totalCoins}</div><div class="meta-stat-label">총 코인</div></div>
     `;
 
     // Character select
@@ -2605,11 +2641,12 @@ function buildStartScreen() {
     charDiv.innerHTML = CHARACTERS.map((ch, i) => {
         const unlocked = d.unlockedChars[i];
         const selected = (d.selectedChar || 0) === i;
+        const iconSrc = CHAR_ICON_MAP[i] || 'assets/icons/char_gem_green.png';
         return `
             <div class="char-card ${selected ? 'selected' : ''} ${!unlocked ? 'locked' : ''}" onclick="selectChar(${i})">
-                <div class="char-icon">${ch.icon}</div>
+                <div class="char-icon"><img class="char-icon-img" src="${iconSrc}" alt="${ch.name}"></div>
                 <div class="char-name">${ch.name}</div>
-                ${!unlocked ? `<div class="char-req">🔒 Lv.${ch.reqLevel}</div>` : ''}
+                ${!unlocked ? `<div class="char-req"><img class="hud-icon" src="assets/icons/ui_lock.png" alt="lock"> Lv.${ch.reqLevel}</div>` : ''}
             </div>
         `;
     }).join('');
@@ -2618,7 +2655,7 @@ function buildStartScreen() {
     const dailyBtn = document.getElementById('dailyBtn');
     const mod = DailyChallenge.getModifiers();
     const completed = DailyChallenge.isCompleted();
-    dailyBtn.textContent = completed ? '✅ 데일리 완료' : `📅 ${mod.name}`;
+    dailyBtn.innerHTML = completed ? '<img class="btn-icon" src="assets/icons/ui_calendar.png" alt=""> 데일리 완료' : '<img class="btn-icon" src="assets/icons/ui_calendar.png" alt=""> '+mod.name;
     dailyBtn.style.opacity = completed ? 0.5 : 1;
 }
 
@@ -2692,8 +2729,8 @@ window.addEventListener('popstate', () => {
     <!-- Telegram Mini App Init -->
     <script>
     const T = GameI18n({
-      start:{en:'Start Game',ko:'게임 시작'}, retry:{en:'🔄 Retry',ko:'🔄 다시 하기'},
-      lvUp:{en:'⬆️ Level Up!',ko:'⬆️ 레벨 업!'}
+      start:{en:'Start Game',ko:'게임 시작'}, retry:{en:'Retry',ko:'다시 하기'},
+      lvUp:{en:'Level Up!',ko:'레벨 업!'}
     });
     (function(){var s=function(){
       var ids={i18nStart:'start',i18nRetry:'retry',i18nLvUp:'lvUp'};
