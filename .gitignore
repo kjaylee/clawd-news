@@ -7,3 +7,7 @@ rag/data/
 __pycache__/
 *.pyc
 .env
+# Godot WASM exports (too large for git, serve separately)
+*.wasm
+# Temp files
+tmp/
