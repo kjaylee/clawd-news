@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Sand Pour 🏖️</title>
+<meta name="description" content="알록달록 모래를 병에 부어 아름다운 레이어를 만드세요! ASMR 힐링 게임.">
+<meta property="og:title" content="Sand Pour 🏖️ — East Sea Games">
+<meta property="og:description" content="색 모래를 부어 완벽한 레이어를 만드세요! 힐링 ASMR 게임">
+<meta property="og:image" content="https://eastsea.monster/games/sand-pour/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/sand-pour/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/sand-pour/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Sand Pour",
+"url":"https://eastsea.monster/games/sand-pour/",
+"description":"색 모래를 부어 완벽한 레이어를 만드세요! 힐링 ASMR 게임",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Casual","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a1a2e;color:#e0e0e0;user-select:none}
+:root{--bg:#1a1a2e;--card:#16213e;--accent:#e94560;--safe-top:0px;--safe-bottom:0px}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px}
+.title{font-size:18px;font-weight:700;color:var(--accent)}
+.score-box{text-align:center;min-width:60px}
+.score-label{font-size:10px;opacity:0.6;text-transform:uppercase;letter-spacing:1px}
+.score-value{font-size:20px;font-weight:800;color:#fff}
+.level-info{text-align:center;padding:4px;font-size:13px;color:#aaa}
+.game-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;position:relative}
+canvas{border-radius:12px;touch-action:none}
+.color-palette{display:flex;gap:8px;padding:12px;justify-content:center;flex-wrap:wrap}
+.color-btn{width:44px;height:44px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:all 0.2s;box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.color-btn.active{border-color:#fff;transform:scale(1.15);box-shadow:0 0 15px rgba(255,255,255,0.3)}
+.controls{display:flex;gap:10px;padding:8px 16px;justify-content:center}
+.ctrl-btn{padding:10px 20px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;background:rgba(255,255,255,0.1);color:#fff;transition:all 0.15s;min-height:44px}
+.ctrl-btn:active{transform:scale(0.95)}
+.ctrl-btn.primary{background:var(--accent);color:#fff}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:var(--card);border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:var(--accent);margin-bottom:8px}
+.modal .big{font-size:48px;font-weight:800;color:#fff;margin:12px 0}
+.modal .sub{font-size:14px;opacity:0.7;margin-bottom:16px}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;min-height:48px}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+.particle{position:absolute;pointer-events:none;border-radius:50%;animation:fall 0.8s ease-in forwards}
+@keyframes fall{0%{opacity:1;transform:translateY(0) scale(1)}100%{opacity:0;transform:translateY(60px) scale(0.3)}}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">🏖️ Sand Pour</div>
+<div class="score-box"><div class="score-label" data-i18n="score">SCORE</div><div class="score-value" id="scoreVal">0</div></div>
+<div class="score-box"><div class="score-label" data-i18n="level">LEVEL</div><div class="score-value" id="levelVal">1</div></div>
+</div>
+<div class="level-info" id="levelInfo"></div>
+<div class="game-area" id="gameArea">
+<canvas id="canvas"></canvas>
+</div>
+<div class="color-palette" id="palette"></div>
+<div class="controls">
+<button class="ctrl-btn" id="undoBtn" data-i18n="undo">↩ Undo</button>
+<button class="ctrl-btn primary" id="pourBtn" data-i18n="pour">🫗 Pour</button>
+<button class="ctrl-btn" id="nextBtn" data-i18n="next">Next ➡</button>
+</div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="modalTitle">Level Complete!</h2>
+<div class="big" id="modalScore">★★★</div>
+<div class="sub" id="modalSub"></div>
+<button class="btn btn-primary" id="modalNext" data-i18n="nextLevel">Next Level</button>
+<button class="btn btn-secondary" id="modalRetry" data-i18n="retry">Retry</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{score:'점수',level:'레벨',undo:'↩ 되돌리기',pour:'🫗 붓기',next:'다음 ➡',nextLevel:'다음 레벨',retry:'다시하기',complete:'레벨 클리어!',perfect:'완벽한 매치!',good:'잘했어요!',ok:'괜찮아요',match:'일치율',share:'공유'},
+en:{score:'SCORE',level:'LEVEL',undo:'↩ Undo',pour:'🫗 Pour',next:'Next ➡',nextLevel:'Next Level',retry:'Retry',complete:'Level Complete!',perfect:'Perfect Match!',good:'Great Job!',ok:'Not Bad',match:'Match',share:'Share'},
+ja:{score:'スコア',level:'レベル',undo:'↩ 戻す',pour:'🫗 注ぐ',next:'次 ➡',nextLevel:'次のレベル',retry:'リトライ',complete:'レベルクリア！',perfect:'完璧！',good:'よくできました！',ok:'まあまあ',match:'一致率',share:'シェア'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;const v=t(k);if(v)el.textContent=v});
+
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const gameArea=document.getElementById('gameArea');
+const paletteEl=document.getElementById('palette');
+
+const SAND_COLORS=[
+'#e94560','#4ea8ff','#50c878','#ffd700','#e070d0','#ff8c42',
+'#00d2d3','#ff6348','#7bed9f','#eccc68','#a29bfe','#fd79a8',
+'#55efc4','#74b9ff','#dfe6e9','#636e72'
+];
+
+let W,H,score=0,level=1,currentColor=0;
+let jars=[],targetJar=null,history=[];
+const JAR_LAYERS=8;
+
+function resize(){
+const r=gameArea.getBoundingClientRect();
+W=Math.min(r.width-16,400);
+H=Math.min(r.height-16,500);
+canvas.width=W;canvas.height=H;
+canvas.style.width=W+'px';canvas.style.height=H+'px';
+}
+
+class Jar{
+constructor(x,y,w,h,layers){
+this.x=x;this.y=y;this.w=w;this.h=h;
+this.maxLayers=layers;
+this.layers=[];
+this.isTarget=false;
+}
+addLayer(color){
+if(this.layers.length<this.maxLayers){
+this.layers.push(color);return true;
+}
+return false;
+}
+removeTopLayer(){
+return this.layers.pop();
+}
+draw(ctx){
+const{x,y,w,h}=this;
+ctx.save();
+// Jar body
+ctx.beginPath();
+ctx.moveTo(x-w/2+5,y);
+ctx.lineTo(x-w/2,y+h*0.15);
+ctx.lineTo(x-w/2+3,y+h);
+ctx.lineTo(x+w/2-3,y+h);
+ctx.lineTo(x+w/2,y+h*0.15);
+ctx.lineTo(x+w/2-5,y);
+ctx.closePath();
+ctx.fillStyle='rgba(200,220,255,0.08)';
+ctx.fill();
+ctx.strokeStyle='rgba(200,220,255,0.35)';
+ctx.lineWidth=2;
+ctx.stroke();
+// Glass shine
+ctx.beginPath();
+ctx.moveTo(x-w/2+8,y+h*0.2);
+ctx.lineTo(x-w/2+8,y+h*0.8);
+ctx.strokeStyle='rgba(255,255,255,0.12)';
+ctx.lineWidth=3;
+ctx.stroke();
+// Sand layers
+const layerH=(h*0.85)/this.maxLayers;
+const baseY=y+h;
+this.layers.forEach((color,i)=>{
+const ly=baseY-layerH*(i+1);
+ctx.beginPath();
+const leftW=this._getWidth(ly-y,h,w);
+const rightW=this._getWidth(ly-y,h,w);
+const bottomLeftW=this._getWidth(ly+layerH-y,h,w);
+ctx.moveTo(x-leftW/2+4,ly);
+ctx.lineTo(x-bottomLeftW/2+4,ly+layerH);
+ctx.lineTo(x+bottomLeftW/2-4,ly+layerH);
+ctx.lineTo(x+rightW/2-4,ly);
+ctx.closePath();
+ctx.fillStyle=color;
+ctx.fill();
+// Sand texture
+for(let t=0;t<8;t++){
+const tx=x-leftW/2+10+Math.random()*(leftW-20);
+const ty=ly+Math.random()*layerH;
+ctx.fillStyle='rgba(0,0,0,0.1)';
+ctx.fillRect(tx,ty,1.5,1.5);
+}
+});
+// Top sand curve
+if(this.layers.length>0){
+const topY=baseY-layerH*this.layers.length;
+const topW=this._getWidth(topY-y,h,w);
+ctx.beginPath();
+ctx.ellipse(x,topY,topW/2-6,3,0,0,Math.PI*2);
+ctx.fillStyle=this.layers[this.layers.length-1];
+ctx.globalAlpha=0.3;
+ctx.fill();
+ctx.globalAlpha=1;
+}
+// Label
+if(this.isTarget){
+ctx.fillStyle='#ffd700';
+ctx.font='bold 11px sans-serif';
+ctx.textAlign='center';
+ctx.fillText('TARGET',x,y-8);
+ctx.fillText('🎯',x,y-22);
+}
+// Progress
+const pct=Math.round(this.layers.length/this.maxLayers*100);
+ctx.fillStyle='rgba(255,255,255,0.4)';
+ctx.font='10px sans-serif';
+ctx.textAlign='center';
+ctx.fillText(pct+'%',x,y+h+14);
+ctx.restore();
+}
+_getWidth(relY,h,w){
+if(relY<h*0.15)return w-10+relY/(h*0.15)*10;
+return w;
+}
+}
+
+function generateLevel(){
+history=[];
+const numColors=Math.min(3+Math.floor(level/3),8);
+const colors=SAND_COLORS.slice(0,numColors);
+// Generate target pattern
+targetJar=new Jar(W*0.25,40,70,H*0.55,JAR_LAYERS);
+targetJar.isTarget=true;
+const pattern=[];
+for(let i=0;i<JAR_LAYERS;i++){
+pattern.push(colors[Math.floor(Math.random()*numColors)]);
+}
+pattern.forEach(c=>targetJar.addLayer(c));
+// Player jar
+jars=[new Jar(W*0.7,40,70,H*0.55,JAR_LAYERS)];
+// Set palette colors
+setupPalette(colors);
+currentColor=0;
+updateInfo();
+draw();
+}
+
+function setupPalette(colors){
+paletteEl.innerHTML='';
+colors.forEach((c,i)=>{
+const btn=document.createElement('div');
+btn.className='color-btn'+(i===0?' active':'');
+btn.style.background=c;
+btn.addEventListener('click',()=>{
+currentColor=i;
+paletteEl.querySelectorAll('.color-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+window.TG?.haptic?.('selection');
+});
+paletteEl.appendChild(btn);
+});
+}
+
+function draw(){
+ctx.clearRect(0,0,W,H);
+// Background
+const grad=ctx.createLinearGradient(0,0,0,H);
+grad.addColorStop(0,'#1a1a2e');
+grad.addColorStop(1,'#16213e');
+ctx.fillStyle=grad;
+ctx.fillRect(0,0,W,H);
+// Draw jars
+targetJar.draw(ctx);
+jars.forEach(j=>j.draw(ctx));
+// Labels
+ctx.fillStyle='rgba(255,255,255,0.5)';
+ctx.font='12px sans-serif';
+ctx.textAlign='center';
+ctx.fillText(t('target')||'Target',W*0.25,H-10);
+ctx.fillText(t('yours')||'Yours',W*0.7,H-10);
+}
+
+function pourSand(){
+const jar=jars[0];
+const colors=paletteEl.querySelectorAll('.color-btn');
+if(!colors[currentColor])return;
+const color=SAND_COLORS[currentColor];
+if(jar.addLayer(color)){
+history.push(color);
+window.TG?.haptic?.('impact','light');
+spawnParticles(W*0.7,40+jar.h*0.3,color);
+draw();
+// Check completion
+if(jar.layers.length>=JAR_LAYERS){
+setTimeout(checkResult,400);
+}
+}
+}
+
+function undoSand(){
+const jar=jars[0];
+if(jar.layers.length>0){
+jar.removeTopLayer();
+history.pop();
+window.TG?.haptic?.('selection');
+draw();
+}
+}
+
+function checkResult(){
+const jar=jars[0];
+let matches=0;
+for(let i=0;i<JAR_LAYERS;i++){
+if(jar.layers[i]===targetJar.layers[i])matches++;
+}
+const pct=Math.round(matches/JAR_LAYERS*100);
+let stars=pct>=100?3:pct>=75?2:1;
+const pts=pct*10*level;
+score+=pts;
+document.getElementById('scoreVal').textContent=score;
+const msg=stars===3?t('perfect'):stars===2?t('good'):t('ok');
+document.getElementById('modalTitle').textContent=t('complete');
+document.getElementById('modalScore').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);
+document.getElementById('modalSub').textContent=msg+' — '+t('match')+': '+pct+'%';
+document.getElementById('modalBg').style.display='flex';
+window.TG?.haptic?.('notification',stars===3?'success':'warning');
+if(window.GameScore)GameScore.save('sand-pour',score);
+}
+
+function nextLevel(){
+level++;
+document.getElementById('levelVal').textContent=level;
+document.getElementById('modalBg').style.display='none';
+generateLevel();
+}
+
+function retryLevel(){
+document.getElementById('modalBg').style.display='none';
+jars=[new Jar(W*0.7,40,70,H*0.55,JAR_LAYERS)];
+history=[];
+draw();
+}
+
+function updateInfo(){
+const info=document.getElementById('levelInfo');
+info.textContent=(lang==='ko'?'타겟 패턴을 보고 같은 순서로 모래를 부으세요!':lang==='ja'?'ターゲットと同じ順番で砂を注いでください！':'Match the target pattern by pouring sand in the same order!');
+}
+
+function spawnParticles(x,y,color){
+const area=document.getElementById('gameArea');
+for(let i=0;i<6;i++){
+const p=document.createElement('div');
+p.className='particle';
+p.style.cssText=`left:${x+Math.random()*30-15}px;top:${y+Math.random()*20}px;width:${3+Math.random()*4}px;height:${3+Math.random()*4}px;background:${color};`;
+area.appendChild(p);
+setTimeout(()=>p.remove(),800);
+}
+}
+
+// Touch pour - tap canvas to pour
+canvas.addEventListener('click',e=>{
+const rect=canvas.getBoundingClientRect();
+const x=e.clientX-rect.left;
+if(x>W*0.5)pourSand();
+});
+
+document.getElementById('pourBtn').addEventListener('click',pourSand);
+document.getElementById('undoBtn').addEventListener('click',undoSand);
+document.getElementById('nextBtn').addEventListener('click',()=>{
+if(jars[0].layers.length>=JAR_LAYERS)return;
+nextLevel();
+});
+document.getElementById('modalNext').addEventListener('click',nextLevel);
+document.getElementById('modalRetry').addEventListener('click',retryLevel);
+
+window.addEventListener('resize',()=>{resize();draw()});
+resize();
+generateLevel();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

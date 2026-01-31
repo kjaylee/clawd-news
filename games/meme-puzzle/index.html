@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Meme Puzzle 🤣</title>
+<meta name="description" content="밈과 이모지 조합을 맞춰보세요! 인터넷 유머 퍼즐 게임.">
+<meta property="og:title" content="Meme Puzzle 🤣 — East Sea Games">
+<meta property="og:description" content="밈과 이모지로 문장을 완성하세요! 유머 퍼즐 게임">
+<meta property="og:image" content="https://eastsea.monster/games/meme-puzzle/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/meme-puzzle/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/meme-puzzle/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Meme Puzzle",
+"url":"https://eastsea.monster/games/meme-puzzle/",
+"description":"밈과 이모지로 문장을 완성하세요! 유머 퍼즐 게임",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Trivia","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a1a2e;color:#e0e0e0;user-select:none}
+:root{--bg:#1a1a2e;--card:#16213e;--accent:#e94560;--safe-top:0px;--safe-bottom:0px}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px}
+.title{font-size:18px;font-weight:700;color:var(--accent)}
+.score-box{text-align:center;min-width:55px}
+.score-label{font-size:10px;opacity:0.6;text-transform:uppercase;letter-spacing:1px}
+.score-value{font-size:18px;font-weight:800;color:#fff}
+.question-area{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px}
+.q-number{font-size:12px;color:#888;margin-bottom:8px}
+.q-category{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:12px}
+.q-meme{font-size:60px;margin:8px 0;line-height:1.2;text-align:center}
+.q-hint{font-size:22px;font-weight:700;color:#fff;text-align:center;margin:8px 0;line-height:1.4;min-height:60px}
+.q-blank{display:inline-block;min-width:60px;border-bottom:3px solid var(--accent);margin:0 4px;color:var(--accent);font-weight:800}
+.timer-bar{width:100%;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;margin:12px 0;overflow:hidden}
+.timer-fill{height:100%;background:var(--accent);transition:width 0.1s linear;border-radius:3px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 16px 16px;width:100%}
+.answer{padding:14px 8px;border:2px solid rgba(255,255,255,0.1);border-radius:14px;background:var(--card);text-align:center;font-size:15px;font-weight:600;cursor:pointer;transition:all 0.15s;min-height:50px;display:flex;align-items:center;justify-content:center;gap:4px}
+.answer:active{transform:scale(0.95)}
+.answer.correct{border-color:#50c878;background:rgba(80,200,120,0.15);color:#50c878}
+.answer.wrong{border-color:#ff4444;background:rgba(255,68,68,0.15);color:#ff4444}
+.answer.disabled{pointer-events:none;opacity:0.5}
+.streak-bar{text-align:center;padding:4px;font-size:12px;color:#ffd700;min-height:20px}
+.result{text-align:center;font-size:16px;font-weight:700;padding:8px;min-height:40px}
+.result.correct-text{color:#50c878}
+.result.wrong-text{color:#ff4444}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:var(--card);border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:var(--accent);margin-bottom:8px}
+.modal .big{font-size:48px;font-weight:800;color:#fff;margin:12px 0}
+.modal .sub{font-size:14px;opacity:0.7;margin-bottom:16px}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;min-height:48px}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">🤣 Meme Puzzle</div>
+<div class="score-box"><div class="score-label" data-i18n="score">SCORE</div><div class="score-value" id="scoreVal">0</div></div>
+<div class="score-box"><div class="score-label" data-i18n="best">BEST</div><div class="score-value" id="bestVal">0</div></div>
+<div class="score-box"><div class="score-label">❤️</div><div class="score-value" id="lives">3</div></div>
+</div>
+<div class="streak-bar" id="streak"></div>
+<div class="question-area">
+<div class="q-number" id="qNumber"></div>
+<div class="q-category" id="qCategory"></div>
+<div class="q-meme" id="qMeme"></div>
+<div class="q-hint" id="qHint"></div>
+<div class="timer-bar"><div class="timer-fill" id="timerFill"></div></div>
+</div>
+<div class="result" id="result"></div>
+<div class="answers" id="answers"></div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="modalTitle"></h2>
+<div class="big" id="modalScore"></div>
+<div class="sub" id="modalSub"></div>
+<button class="btn btn-primary" id="modalReplay" data-i18n="replay">Play Again</button>
+<button class="btn btn-secondary" id="modalShare" data-i18n="share">Share</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{score:'점수',best:'최고',replay:'다시하기',share:'공유',gameOver:'게임 오버',correct:'정답!',wrong:'오답!',streak:'연속',timeUp:'시간 초과!',answered:'문제 클리어',perfect:'완벽!'},
+en:{score:'SCORE',best:'BEST',replay:'Play Again',share:'Share',gameOver:'Game Over',correct:'Correct!',wrong:'Wrong!',streak:'Streak',timeUp:'Time\'s Up!',answered:'Answered',perfect:'Perfect!'},
+ja:{score:'スコア',best:'ベスト',replay:'もう一度',share:'シェア',gameOver:'ゲームオーバー',correct:'正解！',wrong:'不正解！',streak:'連続',timeUp:'時間切れ！',answered:'回答済み',perfect:'パーフェクト！'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;const v=t(k);if(v)el.textContent=v});
+
+// Meme questions database
+const QUESTIONS=[
+{cat:'🌍 Meme',meme:'🐶🔥☕',q:'This is fine. —',answers:['Dog in fire','Cat sleeping','Bird flying','Fish swimming'],correct:0,explain:'The "This is Fine" dog meme'},
+{cat:'🌍 Meme',meme:'🦋🤔👆',q:'Is this a ___?',answers:['Pigeon','Butterfly','Bird','Plane'],correct:0,explain:'Is this a pigeon? meme'},
+{cat:'🎬 Movie',meme:'🦁👑🌅',q:'___ King',answers:['Lion','Monkey','Tiger','Bear'],correct:0,explain:'The Lion King'},
+{cat:'🎬 Movie',meme:'🧙‍♂️💍🌋',q:'Lord of the ___',answers:['Rings','Flies','Dance','World'],correct:0,explain:'Lord of the Rings'},
+{cat:'🎬 Movie',meme:'🦖🏝️⚡',q:'___ Park',answers:['Jurassic','Central','Theme','Water'],correct:0,explain:'Jurassic Park'},
+{cat:'🎵 Music',meme:'🎤👸💃',q:'Queen: Bohemian ___',answers:['Rhapsody','Dance','Night','Dream'],correct:0,explain:'Bohemian Rhapsody'},
+{cat:'🎵 Music',meme:'🌧️☔😢',q:'Adele: Rolling in the ___',answers:['Deep','Rain','Mud','Snow'],correct:0,explain:'Rolling in the Deep'},
+{cat:'📺 TV',meme:'👽🔦🛸',q:'The ___ is out there',answers:['Truth','Alien','Light','Answer'],correct:0,explain:'X-Files: The Truth is Out There'},
+{cat:'📺 TV',meme:'❄️🐉⚔️',q:'___ of Thrones',answers:['Game','War','Battle','Song'],correct:0,explain:'Game of Thrones'},
+{cat:'🌍 Meme',meme:'💀💃🎺',q:'Coffin ___ meme',answers:['Dance','Song','Party','Music'],correct:0,explain:'Coffin Dance meme from Ghana'},
+{cat:'🌍 Meme',meme:'🐱😂📦',q:'I Can Has ___?',answers:['Cheezburger','Pizza','Hotdog','Taco'],correct:0,explain:'I Can Has Cheezburger cat meme'},
+{cat:'🌍 Meme',meme:'🗿🗿🗿',q:'Moai means ___',answers:['Bruh','Wow','Cool','Nice'],correct:0,explain:'🗿 = Bruh face meme'},
+{cat:'🎬 Movie',meme:'🕷️🦸‍♂️🏙️',q:'Spider-___',answers:['Man','Boy','Kid','Hero'],correct:0,explain:'Spider-Man'},
+{cat:'🎬 Movie',meme:'🚢❄️💑',q:'Draw me like your ___ girls',answers:['French','Italian','Spanish','English'],correct:0,explain:'Titanic - Draw me like your French girls'},
+{cat:'🎵 Music',meme:'🎹🐊👋',q:'See you later, ___!',answers:['Alligator','Crocodile','Lizard','Turtle'],correct:0,explain:'See You Later Alligator'},
+{cat:'📺 TV',meme:'🏠🔥🐕',q:'This is fine. I\'m ___',answers:['Okay','Fine','Good','Happy'],correct:0,explain:'This is fine dog meme'},
+{cat:'🌍 Meme',meme:'👁️👄👁️',q:'This face means ___',answers:['Staring','Crying','Laughing','Sleeping'],correct:0,explain:'The intense staring face meme'},
+{cat:'🌍 Meme',meme:'🧠📈✨',q:'Galaxy ___ meme',answers:['Brain','Heart','Eye','Hand'],correct:0,explain:'Expanding Brain meme'},
+{cat:'🎬 Movie',meme:'🟥💊🟦💊',q:'Red pill or ___ pill?',answers:['Blue','Green','Yellow','White'],correct:0,explain:'The Matrix - Red or Blue pill'},
+{cat:'🌍 Meme',meme:'🐸☕️😏',q:'But that\'s none of my ___',answers:['Business','Problem','Concern','Issue'],correct:0,explain:'Kermit sipping tea meme'},
+{cat:'🎵 Music',meme:'🎸👨‍🎤🤘',q:'We Will ___ You!',answers:['Rock','Love','Save','Find'],correct:0,explain:'Queen - We Will Rock You'},
+{cat:'🌍 Meme',meme:'🐕💰🎩',q:'Such wow. Much ___',answers:['Doge','Money','Rich','Cool'],correct:0,explain:'Doge meme - Such wow, much doge'},
+{cat:'📺 TV',meme:'🔴⬆️👆',q:'Among Us: That\'s ___',answers:['Sus','Fun','Cool','Bad'],correct:0,explain:'Among Us - That\'s sus (suspicious)'},
+{cat:'🎬 Movie',meme:'♾️🫰💎',q:'___ Stones',answers:['Infinity','Magic','Power','Soul'],correct:0,explain:'Avengers: Infinity Stones'},
+{cat:'🌍 Meme',meme:'😤💪🏋️',q:'Do you even ___?',answers:['Lift','Bro','Try','Care'],correct:0,explain:'Do you even lift, bro?'},
+{cat:'🎵 Music',meme:'🎵🙏✋',q:'Don\'t stop ___',answers:['Believin\'','Dreamin\'','Runnin\'','Dancin\''],correct:0,explain:'Journey - Don\'t Stop Believin\''},
+{cat:'🌍 Meme',meme:'🏃‍♂️👻😱',q:'Area ___',answers:['51','52','47','13'],correct:0,explain:'Area 51 raid meme'},
+{cat:'📺 TV',meme:'🧪👨‍🔬💰',q:'Breaking ___',answers:['Bad','Good','Free','Out'],correct:0,explain:'Breaking Bad'},
+{cat:'🌍 Meme',meme:'🐈‍⬛📦❓',q:'Schrödinger\'s ___',answers:['Cat','Box','Dog','Rat'],correct:0,explain:'Schrödinger\'s Cat - alive and dead'},
+{cat:'🎬 Movie',meme:'🌊🏄‍♂️🦈',q:'We\'re gonna need a bigger ___',answers:['Boat','Net','Gun','Fish'],correct:0,explain:'Jaws - We\'re gonna need a bigger boat'}
+];
+
+let score=0,best=0,lives=3,streak=0,qIndex=0;
+let currentQ=null,timer=null,timeLeft=100;
+let shuffled=[];
+let answered=0;
+
+function init(){
+score=0;lives=3;streak=0;qIndex=0;answered=0;
+best=window.TG?.load?.('meme_best',0)||parseInt(localStorage.getItem('meme_best')||'0');
+document.getElementById('bestVal').textContent=best;
+document.getElementById('scoreVal').textContent='0';
+document.getElementById('lives').textContent='3';
+// Shuffle questions
+shuffled=[...QUESTIONS];
+for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}
+showQuestion();
+}
+
+function showQuestion(){
+if(qIndex>=shuffled.length){
+// Reshuffle for endless play
+for(let i=shuffled.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[shuffled[i],shuffled[j]]=[shuffled[j],shuffled[i]];}
+qIndex=0;
+}
+currentQ=shuffled[qIndex];
+document.getElementById('qNumber').textContent=`Q${answered+1}`;
+const catEl=document.getElementById('qCategory');
+catEl.textContent=currentQ.cat;
+catEl.style.background=getCatColor(currentQ.cat);
+catEl.style.color='#fff';
+document.getElementById('qMeme').textContent=currentQ.meme;
+document.getElementById('qHint').innerHTML=currentQ.q.replace('___','<span class="q-blank">???</span>');
+document.getElementById('result').textContent='';
+document.getElementById('result').className='result';
+document.getElementById('streak').textContent=streak>1?`🔥 ${t('streak')} x${streak}!`:'';
+// Answers
+const answersEl=document.getElementById('answers');
+answersEl.innerHTML='';
+// Shuffle answer order
+const indices=[0,1,2,3];
+for(let i=3;i>0;i--){const j=Math.floor(Math.random()*(i+1));[indices[i],indices[j]]=[indices[j],indices[i]];}
+indices.forEach(idx=>{
+const btn=document.createElement('div');
+btn.className='answer';
+btn.textContent=currentQ.answers[idx];
+btn.dataset.idx=idx;
+btn.addEventListener('click',()=>selectAnswer(idx,btn));
+answersEl.appendChild(btn);
+});
+// Timer
+timeLeft=100;
+document.getElementById('timerFill').style.width='100%';
+clearInterval(timer);
+timer=setInterval(()=>{
+timeLeft-=1;
+document.getElementById('timerFill').style.width=timeLeft+'%';
+if(timeLeft<=0){
+clearInterval(timer);
+timeUp();
+}
+},100);
+}
+
+function selectAnswer(idx,btn){
+clearInterval(timer);
+const allBtns=document.querySelectorAll('.answer');
+allBtns.forEach(b=>b.classList.add('disabled'));
+if(idx===currentQ.correct){
+btn.classList.add('correct');
+document.getElementById('result').textContent='✅ '+t('correct')+' '+currentQ.explain;
+document.getElementById('result').className='result correct-text';
+streak++;
+const bonus=Math.ceil(timeLeft/10)*10*(1+Math.floor(streak/3));
+score+=bonus;
+document.getElementById('scoreVal').textContent=score;
+if(score>best){best=score;document.getElementById('bestVal').textContent=best;
+window.TG?.save?.('meme_best',best);localStorage.setItem('meme_best',best.toString());}
+window.TG?.haptic?.('notification','success');
+}else{
+btn.classList.add('wrong');
+allBtns.forEach(b=>{if(parseInt(b.dataset.idx)===currentQ.correct)b.classList.add('correct');});
+document.getElementById('result').textContent='❌ '+t('wrong')+' '+currentQ.explain;
+document.getElementById('result').className='result wrong-text';
+streak=0;
+lives--;
+document.getElementById('lives').textContent=lives;
+window.TG?.haptic?.('notification','error');
+if(lives<=0){setTimeout(gameOver,1200);return;}
+}
+answered++;
+qIndex++;
+setTimeout(showQuestion,1500);
+}
+
+function timeUp(){
+document.getElementById('result').textContent='⏰ '+t('timeUp');
+document.getElementById('result').className='result wrong-text';
+const allBtns=document.querySelectorAll('.answer');
+allBtns.forEach(b=>{b.classList.add('disabled');if(parseInt(b.dataset.idx)===currentQ.correct)b.classList.add('correct');});
+streak=0;lives--;
+document.getElementById('lives').textContent=lives;
+window.TG?.haptic?.('notification','error');
+if(lives<=0){setTimeout(gameOver,1200);return;}
+answered++;qIndex++;
+setTimeout(showQuestion,1500);
+}
+
+function getCatColor(cat){
+if(cat.includes('Meme'))return'#e94560';
+if(cat.includes('Movie'))return'#4ea8ff';
+if(cat.includes('Music'))return'#50c878';
+if(cat.includes('TV'))return'#ff8c42';
+return'#a29bfe';
+}
+
+function gameOver(){
+clearInterval(timer);
+document.getElementById('modalTitle').textContent=t('gameOver');
+document.getElementById('modalScore').textContent=score.toLocaleString();
+document.getElementById('modalSub').textContent=t('answered')+': '+answered;
+document.getElementById('modalBg').style.display='flex';
+if(window.GameScore)GameScore.save('meme-puzzle',score);
+}
+
+document.getElementById('modalReplay').addEventListener('click',()=>{document.getElementById('modalBg').style.display='none';init();});
+document.getElementById('modalShare').addEventListener('click',()=>{window.TG?.shareScore?.(score,'Meme Puzzle','meme-puzzle');});
+
+init();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>

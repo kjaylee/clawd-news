@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>Sticker Peel 🏷️</title>
+<meta name="description" content="스티커를 깔끔하게 떼어내세요! 중독성 ASMR 스티커 떼기 게임.">
+<meta property="og:title" content="Sticker Peel 🏷️ — East Sea Games">
+<meta property="og:description" content="스티커를 깔끔하게 떼어내는 쾌감! ASMR 힐링 게임">
+<meta property="og:image" content="https://eastsea.monster/games/sticker-peel/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/sticker-peel/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://eastsea.monster/games/sticker-peel/">
+<link rel="manifest" href="/games/manifest.json">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"VideoGame","name":"Sticker Peel",
+"url":"https://eastsea.monster/games/sticker-peel/",
+"description":"스티커를 깔끔하게 떼어내는 쾌감! ASMR 힐링 게임",
+"gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+"genre":"Casual","operatingSystem":"Any","inLanguage":["ko","en","ja"],
+"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+"author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}}
+</script>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#1a1a2e;color:#e0e0e0;user-select:none}
+:root{--bg:#1a1a2e;--card:#16213e;--accent:#e94560;--safe-top:0px;--safe-bottom:0px}
+body{display:flex;flex-direction:column;align-items:center;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+#app{width:100%;max-width:420px;height:100%;display:flex;flex-direction:column}
+.header{display:flex;justify-content:space-between;align-items:center;padding:10px 16px}
+.title{font-size:18px;font-weight:700;color:var(--accent)}
+.score-box{text-align:center;min-width:60px}
+.score-label{font-size:10px;opacity:0.6;text-transform:uppercase;letter-spacing:1px}
+.score-value{font-size:20px;font-weight:800;color:#fff}
+.hint{text-align:center;font-size:12px;color:#888;padding:4px}
+.game-area{flex:1;display:flex;align-items:center;justify-content:center;padding:8px;position:relative;overflow:hidden}
+canvas{border-radius:16px;touch-action:none;cursor:pointer}
+.progress-bar{height:6px;margin:0 16px;border-radius:3px;background:rgba(255,255,255,0.1);overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),#ff6b9d);transition:width 0.3s ease;width:0%}
+.controls{display:flex;gap:10px;padding:10px 16px 20px;justify-content:center}
+.ctrl-btn{padding:12px 24px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;background:var(--accent);color:#fff;transition:all 0.15s;min-height:44px}
+.ctrl-btn:active{transform:scale(0.95)}
+.ctrl-btn.secondary{background:rgba(255,255,255,0.1)}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(6px)}
+.modal{background:var(--card);border-radius:20px;padding:28px 24px;text-align:center;width:min(85vw,320px);border:1px solid rgba(255,255,255,0.1)}
+.modal h2{font-size:24px;color:var(--accent);margin-bottom:8px}
+.modal .big{font-size:48px;font-weight:800;color:#fff;margin:12px 0}
+.modal .sub{font-size:14px;opacity:0.7;margin-bottom:16px}
+.btn{padding:14px 24px;border:none;border-radius:12px;font-size:16px;font-weight:600;cursor:pointer;width:100%;margin-top:8px;min-height:48px}
+.btn:active{transform:scale(0.95)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:rgba(255,255,255,0.1);color:#fff}
+.peel-trail{position:absolute;pointer-events:none;border-radius:50%;opacity:0.6;animation:sparkle 0.6s ease-out forwards}
+@keyframes sparkle{0%{transform:scale(1);opacity:0.8}100%{transform:scale(0);opacity:0}}
+</style>
+</head>
+<body>
+<div id="app">
+<div class="header">
+<div class="title">🏷️ Sticker Peel</div>
+<div class="score-box"><div class="score-label" data-i18n="score">SCORE</div><div class="score-value" id="scoreVal">0</div></div>
+<div class="score-box"><div class="score-label" data-i18n="level">LEVEL</div><div class="score-value" id="levelVal">1</div></div>
+</div>
+<div class="hint" id="hint"></div>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<div class="game-area" id="gameArea">
+<canvas id="canvas"></canvas>
+</div>
+<div class="controls">
+<button class="ctrl-btn secondary" id="skipBtn" data-i18n="skip">Skip ⏭</button>
+</div>
+</div>
+<div class="modal-bg" id="modalBg" style="display:none">
+<div class="modal">
+<h2 id="modalTitle"></h2>
+<div class="big" id="modalScore"></div>
+<div class="sub" id="modalSub"></div>
+<button class="btn btn-primary" id="modalNext" data-i18n="next">Next</button>
+</div>
+</div>
+<script src="/games/tg-sdk-wrapper.js"></script>
+<script>
+(function(){
+'use strict';
+const I18N={
+ko:{score:'점수',level:'레벨',skip:'건너뛰기 ⏭',next:'다음 스티커',perfect:'완벽하게 떼었어요!',great:'잘 떼었어요!',ok:'괜찮아요!',hint:'스티커 모서리에서 드래그해서 떼세요!',clean:'깔끔도',complete:'스티커 완료!'},
+en:{score:'SCORE',level:'LEVEL',skip:'Skip ⏭',next:'Next Sticker',perfect:'Perfect Peel!',great:'Great Peel!',ok:'Not Bad!',hint:'Drag from the sticker corner to peel!',clean:'Cleanness',complete:'Sticker Done!'},
+ja:{score:'スコア',level:'レベル',skip:'スキップ ⏭',next:'次のステッカー',perfect:'完璧に剥がした！',great:'上手に剥がした！',ok:'まあまあ！',hint:'角からドラッグして剥がそう！',clean:'きれいさ',complete:'ステッカー完了！'}
+};
+const ulang=(window.TG?.getLang?.()||navigator.language||'en').slice(0,2);
+const lang=['ko','ja'].includes(ulang)?ulang:'en';
+const t=k=>I18N[lang]?.[k]||I18N.en[k]||k;
+document.querySelectorAll('[data-i18n]').forEach(el=>{const k=el.dataset.i18n;const v=t(k);if(v)el.textContent=v});
+document.getElementById('hint').textContent=t('hint');
+
+const canvas=document.getElementById('canvas');
+const ctx=canvas.getContext('2d');
+const gameArea=document.getElementById('gameArea');
+const progressFill=document.getElementById('progressFill');
+
+let W,H,score=0,level=1;
+let sticker=null,peeling=false,peelProgress=0;
+let peelStartX=0,peelStartY=0,lastX=0,lastY=0;
+let peelAngle=0,totalDist=0,smoothness=0,dragPoints=[];
+
+const STICKER_SHAPES=['circle','star','heart','hexagon','diamond','cloud','badge','tag'];
+const STICKER_COLORS=[
+['#e94560','#ff6b9d'],['#4ea8ff','#74b9ff'],['#50c878','#55efc4'],
+['#ffd700','#eccc68'],['#e070d0','#a29bfe'],['#ff8c42','#ff6348'],
+['#00d2d3','#01a3a4'],['#fd79a8','#e84393']
+];
+const STICKER_EMOJIS=['⭐','❤️','🔥','😎','🎵','🎮','🌈','🍀','🎯','💎','🦄','🎪','🎨','🌸','🍕','🎲'];
+const BG_PATTERNS=['dots','stripes','grid','waves'];
+
+function resize(){
+const r=gameArea.getBoundingClientRect();
+W=Math.min(r.width-16,400);
+H=Math.min(r.height-16,450);
+canvas.width=W;canvas.height=H;
+canvas.style.width=W+'px';canvas.style.height=H+'px';
+}
+
+function generateSticker(){
+const shape=STICKER_SHAPES[Math.floor(Math.random()*STICKER_SHAPES.length)];
+const colors=STICKER_COLORS[Math.floor(Math.random()*STICKER_COLORS.length)];
+const emoji=STICKER_EMOJIS[Math.floor(Math.random()*STICKER_EMOJIS.length)];
+const bg=BG_PATTERNS[Math.floor(Math.random()*BG_PATTERNS.length)];
+const size=Math.min(W,H)*0.55;
+sticker={
+shape,colors,emoji,bg,
+x:W/2,y:H/2,
+size,
+peelPct:0,
+cornerX:W/2-size/2,
+cornerY:H/2-size/2
+};
+peelProgress=0;totalDist=0;smoothness=100;dragPoints=[];
+progressFill.style.width='0%';
+draw();
+}
+
+function draw(){
+ctx.clearRect(0,0,W,H);
+// Background surface
+drawSurface();
+if(!sticker)return;
+const{x,y,size,colors,emoji,shape,peelPct}=sticker;
+// Shadow
+ctx.save();
+ctx.shadowColor='rgba(0,0,0,0.3)';
+ctx.shadowBlur=15;
+ctx.shadowOffsetY=5;
+// Sticker base (unpeeled portion)
+drawStickerShape(x,y,size,shape,colors,emoji,peelPct);
+ctx.restore();
+// Peel corner indicator
+if(peelPct<1){
+const cx=sticker.cornerX;
+const cy=sticker.cornerY;
+ctx.beginPath();
+ctx.arc(cx,cy,12,0,Math.PI*2);
+ctx.fillStyle='rgba(255,255,255,0.2)';
+ctx.fill();
+ctx.strokeStyle='rgba(255,255,255,0.5)';
+ctx.lineWidth=2;
+ctx.setLineDash([3,3]);
+ctx.stroke();
+ctx.setLineDash([]);
+// Peel curl effect
+if(peelPct>0){
+drawPeelCurl(x,y,size,shape,colors,peelPct);
+}
+}
+}
+
+function drawSurface(){
+ctx.fillStyle='#16213e';
+ctx.fillRect(0,0,W,H);
+// Surface texture
+ctx.globalAlpha=0.03;
+for(let i=0;i<W;i+=20){
+for(let j=0;j<H;j+=20){
+ctx.fillStyle=Math.random()>0.5?'#fff':'#000';
+ctx.fillRect(i,j,20,20);
+}
+}
+ctx.globalAlpha=1;
+}
+
+function drawStickerShape(x,y,size,shape,colors,emoji,peelPct){
+ctx.save();
+const r=size/2;
+// Clip to show only unpeeled portion
+if(peelPct>0){
+ctx.beginPath();
+const clipAngle=peelAngle||(-Math.PI/4);
+const clipDist=peelPct*size*1.5;
+const nx=Math.cos(clipAngle);
+const ny=Math.sin(clipAngle);
+const px=sticker.cornerX+nx*clipDist;
+const py=sticker.cornerY+ny*clipDist;
+// Create clip region (everything NOT peeled)
+ctx.rect(0,0,W,H);
+ctx.moveTo(px-ny*size*2,py+nx*size*2);
+ctx.lineTo(px+ny*size*2,py-nx*size*2);
+ctx.lineTo(px+ny*size*2-nx*size*3,py-nx*size*2-ny*size*3);
+ctx.lineTo(px-ny*size*2-nx*size*3,py+nx*size*2-ny*size*3);
+ctx.clip('evenodd');
+}
+// Gradient fill
+const grad=ctx.createRadialGradient(x-r*0.3,y-r*0.3,0,x,y,r);
+grad.addColorStop(0,colors[0]);
+grad.addColorStop(1,colors[1]);
+// Draw shape
+ctx.beginPath();
+switch(shape){
+case 'circle':ctx.arc(x,y,r,0,Math.PI*2);break;
+case 'star':drawStar(ctx,x,y,5,r,r*0.5);break;
+case 'heart':drawHeart(ctx,x,y,r);break;
+case 'hexagon':drawPoly(ctx,x,y,r,6);break;
+case 'diamond':drawPoly(ctx,x,y,r,4);break;
+case 'cloud':drawCloud(ctx,x,y,r);break;
+case 'badge':drawPoly(ctx,x,y,r,8);break;
+case 'tag':drawTag(ctx,x,y,r);break;
+default:ctx.arc(x,y,r,0,Math.PI*2);
+}
+ctx.fillStyle=grad;
+ctx.fill();
+// Inner pattern
+ctx.save();
+ctx.clip();
+drawPattern(ctx,x-r,y-r,r*2,r*2,sticker.bg,colors);
+ctx.restore();
+// Emoji center
+ctx.font=`${r*0.6}px sans-serif`;
+ctx.textAlign='center';
+ctx.textBaseline='middle';
+ctx.fillText(emoji,x,y);
+// Border
+ctx.strokeStyle='rgba(255,255,255,0.3)';
+ctx.lineWidth=2;
+ctx.stroke();
+// Glossy effect
+ctx.beginPath();
+ctx.ellipse(x-r*0.2,y-r*0.3,r*0.4,r*0.2,-0.3,0,Math.PI*2);
+ctx.fillStyle='rgba(255,255,255,0.15)';
+ctx.fill();
+ctx.restore();
+}
+
+function drawPeelCurl(x,y,size,shape,colors,pct){
+ctx.save();
+ctx.globalAlpha=0.6;
+const r=size/2;
+const angle=peelAngle||(-Math.PI/4);
+const dist=pct*size*0.8;
+const cx=sticker.cornerX+Math.cos(angle)*dist;
+const cy=sticker.cornerY+Math.sin(angle)*dist;
+// Curled part (lighter)
+ctx.beginPath();
+ctx.arc(cx,cy,r*pct*0.5,0,Math.PI*2);
+const grad=ctx.createRadialGradient(cx,cy,0,cx,cy,r*pct*0.5);
+grad.addColorStop(0,'#ddd');
+grad.addColorStop(1,colors[0]+'80');
+ctx.fillStyle=grad;
+ctx.fill();
+ctx.globalAlpha=1;
+ctx.restore();
+}
+
+function drawStar(ctx,x,y,n,ro,ri){
+ctx.moveTo(x,y-ro);
+for(let i=0;i<n;i++){
+const a1=Math.PI*2*i/n-Math.PI/2;
+const a2=a1+Math.PI/n;
+ctx.lineTo(x+Math.cos(a1)*ro,y+Math.sin(a1)*ro);
+ctx.lineTo(x+Math.cos(a2)*ri,y+Math.sin(a2)*ri);
+}
+ctx.closePath();
+}
+function drawHeart(ctx,x,y,r){
+const s=r*0.6;
+ctx.moveTo(x,y+s);
+ctx.bezierCurveTo(x-s*2,y-s*0.5,x-s*0.5,y-s*1.8,x,y-s*0.7);
+ctx.bezierCurveTo(x+s*0.5,y-s*1.8,x+s*2,y-s*0.5,x,y+s);
+}
+function drawPoly(ctx,x,y,r,n){
+for(let i=0;i<n;i++){
+const a=Math.PI*2*i/n-Math.PI/2;
+if(i===0)ctx.moveTo(x+Math.cos(a)*r,y+Math.sin(a)*r);
+else ctx.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r);
+}
+ctx.closePath();
+}
+function drawCloud(ctx,x,y,r){
+ctx.arc(x,y,r*0.5,0,Math.PI*2);
+ctx.arc(x-r*0.4,y+r*0.1,r*0.35,0,Math.PI*2);
+ctx.arc(x+r*0.4,y+r*0.1,r*0.35,0,Math.PI*2);
+ctx.arc(x-r*0.2,y-r*0.25,r*0.35,0,Math.PI*2);
+ctx.arc(x+r*0.2,y-r*0.25,r*0.35,0,Math.PI*2);
+}
+function drawTag(ctx,x,y,r){
+ctx.moveTo(x-r,y-r*0.6);ctx.lineTo(x+r*0.6,y-r*0.6);
+ctx.lineTo(x+r,y);ctx.lineTo(x+r*0.6,y+r*0.6);
+ctx.lineTo(x-r,y+r*0.6);ctx.closePath();
+}
+function drawPattern(ctx,x,y,w,h,pattern,colors){
+ctx.globalAlpha=0.08;
+ctx.fillStyle='#fff';
+switch(pattern){
+case 'dots':
+for(let i=x;i<x+w;i+=12)for(let j=y;j<y+h;j+=12){ctx.beginPath();ctx.arc(i,j,2,0,Math.PI*2);ctx.fill();}break;
+case 'stripes':
+for(let i=x;i<x+w+h;i+=10){ctx.beginPath();ctx.moveTo(i,y);ctx.lineTo(i-h,y+h);ctx.strokeStyle='#fff';ctx.lineWidth=1;ctx.stroke();}break;
+case 'grid':
+for(let i=x;i<x+w;i+=15){ctx.beginPath();ctx.moveTo(i,y);ctx.lineTo(i,y+h);ctx.strokeStyle='#fff';ctx.lineWidth=0.5;ctx.stroke();}
+for(let j=y;j<y+h;j+=15){ctx.beginPath();ctx.moveTo(x,j);ctx.lineTo(x+w,j);ctx.strokeStyle='#fff';ctx.lineWidth=0.5;ctx.stroke();}break;
+case 'waves':
+for(let j=y;j<y+h;j+=12){ctx.beginPath();for(let i=x;i<x+w;i+=2){ctx.lineTo(i,j+Math.sin(i*0.1)*4);}ctx.strokeStyle='#fff';ctx.lineWidth=0.5;ctx.stroke();}break;
+}
+ctx.globalAlpha=1;
+}
+
+// Input handling
+let isDragging=false;
+function getPos(e){
+const r=canvas.getBoundingClientRect();
+const touch=e.touches?e.touches[0]:e;
+return{x:touch.clientX-r.left,y:touch.clientY-r.top};
+}
+canvas.addEventListener('mousedown',startDrag);
+canvas.addEventListener('touchstart',e=>{e.preventDefault();startDrag(e);},{passive:false});
+canvas.addEventListener('mousemove',doDrag);
+canvas.addEventListener('touchmove',e=>{e.preventDefault();doDrag(e);},{passive:false});
+canvas.addEventListener('mouseup',endDrag);
+canvas.addEventListener('touchend',endDrag);
+
+function startDrag(e){
+if(!sticker||sticker.peelPct>=1)return;
+const p=getPos(e);
+const dx=p.x-sticker.cornerX;
+const dy=p.y-sticker.cornerY;
+if(Math.sqrt(dx*dx+dy*dy)<40){
+isDragging=true;
+peelStartX=p.x;peelStartY=p.y;
+lastX=p.x;lastY=p.y;
+dragPoints=[p];
+window.TG?.haptic?.('selection');
+}
+}
+
+function doDrag(e){
+if(!isDragging||!sticker)return;
+const p=getPos(e);
+const dx=p.x-sticker.cornerX;
+const dy=p.y-sticker.cornerY;
+const dist=Math.sqrt(dx*dx+dy*dy);
+const maxDist=sticker.size*1.2;
+sticker.peelPct=Math.min(dist/maxDist,1);
+peelAngle=Math.atan2(dy,dx);
+// Smoothness: penalize jerky movements
+const ddx=p.x-lastX;
+const ddy=p.y-lastY;
+const segDist=Math.sqrt(ddx*ddx+ddy*ddy);
+totalDist+=segDist;
+dragPoints.push(p);
+if(dragPoints.length>2){
+const prev=dragPoints[dragPoints.length-3];
+const curr=dragPoints[dragPoints.length-1];
+const angleChange=Math.abs(Math.atan2(curr.y-p.y,curr.x-p.x)-Math.atan2(p.y-prev.y,p.x-prev.x));
+if(angleChange>0.5)smoothness=Math.max(0,smoothness-2);
+}
+lastX=p.x;lastY=p.y;
+// Haptic
+if(Math.floor(sticker.peelPct*10)>Math.floor((sticker.peelPct-0.01)*10)){
+window.TG?.haptic?.('impact','light');
+}
+progressFill.style.width=(sticker.peelPct*100)+'%';
+// Sparkle trail
+if(segDist>5){
+const trail=document.createElement('div');
+trail.className='peel-trail';
+trail.style.cssText=`left:${e.clientX||e.touches[0].clientX}px;top:${e.clientY||e.touches[0].clientY}px;width:6px;height:6px;background:${sticker.colors[0]}`;
+document.body.appendChild(trail);
+setTimeout(()=>trail.remove(),600);
+}
+draw();
+}
+
+function endDrag(){
+if(!isDragging)return;
+isDragging=false;
+if(sticker&&sticker.peelPct>=0.85){
+sticker.peelPct=1;
+progressFill.style.width='100%';
+setTimeout(completeSticker,300);
+}
+draw();
+}
+
+function completeSticker(){
+const cleanPct=Math.round(Math.max(50,smoothness));
+const stars=cleanPct>=90?3:cleanPct>=70?2:1;
+const pts=cleanPct*level;
+score+=pts;
+document.getElementById('scoreVal').textContent=score;
+const msg=stars===3?t('perfect'):stars===2?t('great'):t('ok');
+document.getElementById('modalTitle').textContent=t('complete');
+document.getElementById('modalScore').textContent='★'.repeat(stars)+'☆'.repeat(3-stars);
+document.getElementById('modalSub').textContent=msg+' — '+t('clean')+': '+cleanPct+'%';
+document.getElementById('modalBg').style.display='flex';
+window.TG?.haptic?.('notification','success');
+if(window.GameScore)GameScore.save('sticker-peel',score);
+}
+
+function nextSticker(){
+level++;
+document.getElementById('levelVal').textContent=level;
+document.getElementById('modalBg').style.display='none';
+smoothness=100;
+generateSticker();
+}
+
+document.getElementById('skipBtn').addEventListener('click',()=>{
+level++;document.getElementById('levelVal').textContent=level;
+generateSticker();
+});
+document.getElementById('modalNext').addEventListener('click',nextSticker);
+
+window.addEventListener('resize',()=>{resize();if(sticker)draw()});
+resize();
+generateSticker();
+})();
+</script>
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>
