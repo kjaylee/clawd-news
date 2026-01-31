@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+/* ── Reset ── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: {{ vw }}px;
+  height: {{ vh }}px;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  {{ bg_css }}
+  font-family: {{ font_family }};
+  position: relative;
+}
+
+/* ── Text base styles ── */
+.headline {
+  font-size: {{ headline_size }}px;
+  color: {{ headline_color }};
+  font-weight: 800;
+  text-align: center;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.subheadline {
+  font-size: {{ subheadline_size }}px;
+  color: {{ subheadline_color }};
+  font-weight: 400;
+  text-align: center;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+  margin-top: {{ text_gap }}px;
+}
+
+.text-block {
+  width: 85%;
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* ── Device frame ── */
+.device-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.device-frame {
+  position: relative;
+  display: inline-block;
+  {% if show_frame %}
+  background: {{ bezel_color }};
+  border-radius: {{ outer_r }}px;
+  padding: {{ bezel_w }}px;
+  {% else %}
+  border-radius: {{ inner_r }}px;
+  {% endif %}
+  {% if show_shadow %}
+  box-shadow:
+    0 {{ shadow_y }}px {{ shadow_blur }}px rgba(0, 0, 0, {{ shadow_opacity }}),
+    0 {{ shadow_y2 }}px {{ shadow_blur2 }}px rgba(0, 0, 0, {{ shadow_opacity2 }});
+  {% endif %}
+}
+
+.device-frame img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: {{ inner_r }}px;
+  object-fit: cover;
+}
+
+/* =====================================================
+   Layout: center-top-text
+   Text at top ~8%, device screenshot centered at bottom
+   ===================================================== */
+{% if layout == 'center-top-text' or layout == 'dark-premium' %}
+.layout-center-top-text {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.layout-center-top-text .text-block {
+  position: absolute;
+  top: {{ text_top }}px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.layout-center-top-text .device-container {
+  position: absolute;
+  bottom: {{ device_bottom }}px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.layout-center-top-text .device-frame {
+  width: {{ ss_width_pct }}vw;
+}
+
+{% endif %}
+
+/* =====================================================
+   Layout: full-bleed
+   Full-screen screenshot with text overlay at top
+   ===================================================== */
+{% if layout == 'full-bleed' %}
+.layout-full-bleed {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.layout-full-bleed .ss-fullbleed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.layout-full-bleed .text-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding-top: {{ fb_text_top }}px;
+  padding-bottom: {{ fb_text_top }}px;
+  background: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.65) 0%,
+    rgba(0, 0, 0, 0.35) 60%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  z-index: 2;
+}
+
+.layout-full-bleed .text-block {
+  width: 90%;
+}
+
+{% endif %}
+
+/* =====================================================
+   Layout: feature-highlight
+   Text higher, smaller screenshot below
+   ===================================================== */
+{% if layout == 'feature-highlight' %}
+.layout-feature-highlight {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.layout-feature-highlight .text-block {
+  position: absolute;
+  top: {{ fh_text_top }}px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+.layout-feature-highlight .device-container {
+  position: absolute;
+  top: {{ fh_device_top }}px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.layout-feature-highlight .device-frame {
+  width: {{ fh_ss_width_pct }}vw;
+}
+
+{% endif %}
+
+/* =====================================================
+   Layout: text-only
+   Large text centered, no device screenshot
+   ===================================================== */
+{% if layout == 'text-only' %}
+.layout-text-only {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.layout-text-only .text-block {
+  width: 80%;
+}
+
+.layout-text-only .headline {
+  font-size: {{ to_headline_size }}px;
+}
+
+.layout-text-only .subheadline {
+  font-size: {{ to_subheadline_size }}px;
+  margin-top: {{ to_text_gap }}px;
+}
+
+{% endif %}
+</style>
+</head>
+<body>
+
+{# ── center-top-text / dark-premium ── #}
+{% if layout == 'center-top-text' or layout == 'dark-premium' %}
+<div class="layout-center-top-text">
+  <div class="text-block">
+    {% if headline %}<div class="headline">{{ headline }}</div>{% endif %}
+    {% if subheadline %}<div class="subheadline">{{ subheadline }}</div>{% endif %}
+  </div>
+  {% if has_screenshot %}
+  <div class="device-container">
+    <div class="device-frame">
+      <img src="{{ ss_data_uri }}" alt="screenshot">
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── full-bleed ── #}
+{% if layout == 'full-bleed' %}
+<div class="layout-full-bleed">
+  {% if has_screenshot %}
+  <img class="ss-fullbleed" src="{{ ss_data_uri }}" alt="screenshot">
+  {% endif %}
+  {% if headline %}
+  <div class="text-overlay">
+    <div class="text-block">
+      <div class="headline">{{ headline }}</div>
+      {% if subheadline %}<div class="subheadline">{{ subheadline }}</div>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── feature-highlight ── #}
+{% if layout == 'feature-highlight' %}
+<div class="layout-feature-highlight">
+  <div class="text-block">
+    {% if headline %}<div class="headline">{{ headline }}</div>{% endif %}
+    {% if subheadline %}<div class="subheadline">{{ subheadline }}</div>{% endif %}
+  </div>
+  {% if has_screenshot %}
+  <div class="device-container">
+    <div class="device-frame">
+      <img src="{{ ss_data_uri }}" alt="screenshot">
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+{# ── text-only ── #}
+{% if layout == 'text-only' %}
+<div class="layout-text-only">
+  <div class="text-block">
+    {% if headline %}<div class="headline">{{ headline }}</div>{% endif %}
+    {% if subheadline %}<div class="subheadline">{{ subheadline }}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
+
+</body>
+</html>

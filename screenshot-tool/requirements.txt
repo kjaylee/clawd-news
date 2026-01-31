@@ -2,3 +2,7 @@
 Pillow>=10.0
 PyYAML>=6.0
 Flask>=3.0
+
+# v2: HTML+Playwright rendering (high quality)
+playwright>=1.40.0
+Jinja2>=3.1.0

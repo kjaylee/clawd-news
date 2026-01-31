@@ -1,4 +1,8 @@
-"""Image composer — orchestrates background + screenshot + frame + text."""
+"""Image composer — orchestrates background + screenshot + frame + text.
+
+v2: HTML+Playwright pipeline (high quality, CSS-rendered)
+v1: PIL pipeline (fallback if Playwright unavailable)
+"""
 
 from PIL import Image
 
@@ -9,6 +13,24 @@ from .text_renderer import (
     FontDef,
 )
 from .config import DeviceConfig
+
+
+# ─── Playwright availability flag ───────────────────────────────────────────
+
+_PLAYWRIGHT_AVAILABLE: bool | None = None
+
+
+def _check_playwright() -> bool:
+    """Check if Playwright + Jinja2 are available (cached)."""
+    global _PLAYWRIGHT_AVAILABLE
+    if _PLAYWRIGHT_AVAILABLE is not None:
+        return _PLAYWRIGHT_AVAILABLE
+    try:
+        from . import renderer  # noqa: F401
+        _PLAYWRIGHT_AVAILABLE = True
+    except ImportError:
+        _PLAYWRIGHT_AVAILABLE = False
+    return _PLAYWRIGHT_AVAILABLE
 
 
 def compose_screenshot(
@@ -24,16 +46,54 @@ def compose_screenshot(
 ) -> Image.Image:
     """
     Compose a single App Store screenshot.
-    
-    Pipeline:
-    1. Create background
-    2. Load and resize screenshot
-    3. Apply device frame
-    4. Add shadow (optional)
-    5. Place on canvas
-    6. Render text
-    7. Return final RGB image
+
+    v2 (Playwright): HTML/CSS rendering → pixel-perfect vector text, smooth
+    gradients, CSS shadows. Used when playwright + jinja2 are installed.
+
+    v1 (PIL fallback): Bitmap rendering pipeline. Used when Playwright
+    is not available.
+
+    Returns:
+        PIL Image in RGB mode at canvas_width × canvas_height
     """
+    # ── Try Playwright pipeline first ──
+    if _check_playwright():
+        try:
+            from .renderer import render_screenshot
+            return render_screenshot(
+                canvas_width=canvas_width,
+                canvas_height=canvas_height,
+                screenshot_path=screenshot_path,
+                headline=headline,
+                subheadline=subheadline,
+                style=style,
+                device=device,
+                lang=lang,
+            )
+        except Exception as e:
+            import sys
+            print(f"⚠️  Playwright render failed, falling back to PIL: {e}", file=sys.stderr)
+
+    # ── PIL fallback ──
+    return _compose_pil(
+        canvas_width, canvas_height,
+        screenshot_path, headline, subheadline,
+        style, device, fonts, lang,
+    )
+
+
+def _compose_pil(
+    canvas_width: int,
+    canvas_height: int,
+    screenshot_path: str,
+    headline: str,
+    subheadline: str,
+    style: dict,
+    device: DeviceConfig,
+    fonts: dict,
+    lang: str,
+) -> Image.Image:
+    """PIL-based composition pipeline (v1 fallback)."""
     layout = style.get('layout', 'center-top-text')
 
     # 1. Create background
