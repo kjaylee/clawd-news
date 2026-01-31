@@ -180,22 +180,44 @@ body{
 }
 .tile-stone .tile-inner::after{content:'🪨';position:absolute;font-size:1.5rem;}
 
-/* Tile Colors - Neon Theme */
+/* Tile Colors - Jewel Theme with Real Sprites (게임마당 에셋) */
+.tile-inner{position:relative;overflow:hidden;}
+.tile-inner::before{
+    content:'';position:absolute;inset:0;
+    background-size:70% 70%;background-position:center;background-repeat:no-repeat;
+    opacity:0.35;pointer-events:none;z-index:0;
+    filter:brightness(1.5);
+}
+.tile-inner>span{position:relative;z-index:1;text-shadow:0 1px 3px rgba(0,0,0,0.5);}
 .tile-2{background:linear-gradient(135deg,#0d1b3e,#1a2a5e);color:#00d4ff;box-shadow:0 0 12px rgba(0,212,255,.25);}
+.tile-2 .tile-inner::before{background-image:url('assets/sprites/Yellow.png');}
 .tile-4{background:linear-gradient(135deg,#0d1b4e,#1a2a6e);color:#4d9fff;box-shadow:0 0 12px rgba(77,159,255,.25);}
+.tile-4 .tile-inner::before{background-image:url('assets/sprites/Yellow.png');opacity:0.4;}
 .tile-8{background:linear-gradient(135deg,#1a0d3e,#2e1a5e);color:#bb86fc;box-shadow:0 0 15px rgba(187,134,252,.3);}
+.tile-8 .tile-inner::before{background-image:url('assets/sprites/Orange.png');}
 .tile-16{background:linear-gradient(135deg,#2e0d2e,#4a1a3e);color:#ff6b9d;box-shadow:0 0 15px rgba(255,107,157,.35);}
+.tile-16 .tile-inner::before{background-image:url('assets/sprites/Orange.png');opacity:0.4;}
 .tile-32{background:linear-gradient(135deg,#2e0d1a,#4a1a2a);color:#ff4444;box-shadow:0 0 18px rgba(255,68,68,.4);}
+.tile-32 .tile-inner::before{background-image:url('assets/sprites/Red.png');}
 .tile-64{background:linear-gradient(135deg,#2e1a0d,#4a2a1a);color:#ff8800;box-shadow:0 0 18px rgba(255,136,0,.4);}
+.tile-64 .tile-inner::before{background-image:url('assets/sprites/Red.png');opacity:0.4;}
 .tile-128{background:linear-gradient(135deg,#2e2e0d,#4a4a1a);color:#ffd700;box-shadow:0 0 22px rgba(255,215,0,.45);font-size:1.4rem;}
+.tile-128 .tile-inner::before{background-image:url('assets/sprites/Green.png');}
 .tile-256{background:linear-gradient(135deg,#0d2e1a,#1a4a2a);color:#00ff88;box-shadow:0 0 22px rgba(0,255,136,.45);font-size:1.4rem;}
+.tile-256 .tile-inner::before{background-image:url('assets/sprites/Green.png');opacity:0.4;}
 .tile-512{background:linear-gradient(135deg,#0d2e2e,#1a4a4a);color:#00ffcc;box-shadow:0 0 25px rgba(0,255,204,.5);font-size:1.4rem;}
+.tile-512 .tile-inner::before{background-image:url('assets/sprites/Blue.png');}
 .tile-1024{background:linear-gradient(135deg,#2e0d2e,#5a1a5a);color:#ff00ff;box-shadow:0 0 28px rgba(255,0,255,.5);font-size:1.2rem;}
+.tile-1024 .tile-inner::before{background-image:url('assets/sprites/Purple.png');}
 .tile-2048{background:linear-gradient(135deg,#ffd700,#ff8800);color:#fff;box-shadow:0 0 35px rgba(255,215,0,.7);font-size:1.2rem;animation:glow2048 1.5s ease-in-out infinite;}
+.tile-2048 .tile-inner::before{background-image:url('assets/sprites/Purple.png');opacity:0.5;filter:brightness(2) saturate(1.5);}
 @keyframes glow2048{0%,100%{box-shadow:0 0 35px rgba(255,215,0,.7);}50%{box-shadow:0 0 50px rgba(255,215,0,1);}}
 .tile-4096{background:linear-gradient(135deg,#ff0080,#7b2ff7,#00d4ff);color:#fff;box-shadow:0 0 35px rgba(255,0,128,.5);font-size:1.1rem;}
+.tile-4096 .tile-inner::before{background-image:url('assets/sprites/crystal00.png');background-size:40% auto;opacity:0.5;}
 .tile-8192{background:linear-gradient(135deg,#00ff88,#00d4ff,#ff6b9d);color:#fff;box-shadow:0 0 40px rgba(0,255,136,.5);font-size:1.1rem;}
+.tile-8192 .tile-inner::before{background-image:url('assets/sprites/crystal01.png');background-size:40% auto;opacity:0.5;}
 .tile-super{background:linear-gradient(135deg,#ff0000,#ff8800,#ffd700,#00ff88,#00d4ff,#8800ff);color:#fff;box-shadow:0 0 40px rgba(255,255,255,.5);font-size:1rem;animation:rainbow 2s linear infinite;}
+.tile-super .tile-inner::before{background-image:url('assets/sprites/crystal02.png');background-size:40% auto;opacity:0.6;animation:rainbow 2s linear infinite;}
 @keyframes rainbow{0%{filter:hue-rotate(0deg);}100%{filter:hue-rotate(360deg);}}
 
 /* ===== POWER-UPS BAR ===== */
@@ -522,6 +544,15 @@ body{transition:background 2s ease;}
 </script>
 </head>
 <body>
+<!-- Loading Screen -->
+<div id="loadingScreen" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a0a1a;color:#e8e8ff;font-family:-apple-system,sans-serif;">
+    <div style="font-size:2.4rem;font-weight:900;background:linear-gradient(135deg,#00d4ff,#667eea,#ff6b9d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:20px;">⚡ POWER 2048 ⚡</div>
+    <div id="loadBar" style="width:200px;height:6px;background:#1e1e3e;border-radius:3px;overflow:hidden;margin-bottom:12px;">
+        <div id="loadFill" style="width:0%;height:100%;background:linear-gradient(90deg,#667eea,#ff6b9d);transition:width 0.3s;border-radius:3px;"></div>
+    </div>
+    <div id="loadText" style="font-size:0.8rem;color:#8888aa;">Loading assets...</div>
+    <div style="margin-top:30px;font-size:0.65rem;color:#555577;">Visual Assets: 게임마당 (한국콘텐츠진흥원/한국게임개발자협회)<br>Audio: Kenney.nl (CC0) · OpenGameArt.org (CC0)</div>
+</div>
 <div id="app">
 <canvas id="particleBg"></canvas>
 <!-- Menu Screen -->
@@ -538,6 +569,9 @@ body{transition:background 2s ease;}
     <div class="menu-bottom">
         <button class="menu-sm-btn" onclick="G.showSettings()">⚙ <span id="btnSettings"></span></button>
         <button class="menu-sm-btn" onclick="G.showHelp()">❓ <span id="btnHelp"></span></button>
+    </div>
+    <div style="margin-top:16px;font-size:0.55rem;color:#444466;text-align:center;line-height:1.6;">
+        Art: 게임마당 (한국콘텐츠진흥원/한국게임개발자협회) · Audio: Kenney.nl · OpenGameArt.org (CC0)
     </div>
 </div>
 
@@ -753,164 +787,86 @@ function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a
 function dailySeed(){const d=new Date().toISOString().slice(0,10);let h=0;for(let i=0;i<d.length;i++){h=((h<<5)-h)+d.charCodeAt(i);h&=h;}return Math.abs(h)||1;}
 
 // ==================== ENHANCED SOUND SYSTEM (Web Audio API) ====================
+// ===== REAL AUDIO SYSTEM (게임마당 + Kenney CC0 에셋) =====
 const SND = {
-    ctx:null, muted:false, bgmNodes:null,
-    init(){
-        if(!this.ctx)try{this.ctx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}
-        if(this.ctx&&this.ctx.state==='suspended')this.ctx.resume();
+    ctx:null, muted:false, buffers:{}, bgmAudio:null, loaded:false,
+    FILES: {
+        slide:'assets/audio/slide.ogg', merge:'assets/audio/merge.ogg',
+        combo:'assets/audio/combo.ogg', pop:'assets/audio/pop.ogg',
+        click:'assets/audio/click.ogg', powerup:'assets/audio/powerup.ogg',
+        select:'assets/audio/select.ogg', gameover:'assets/audio/gameover.ogg',
+        bgm:'assets/audio/bgm.mp3', clear:'assets/audio/clear.mp3',
+        fail:'assets/audio/fail.mp3'
     },
-    _t(){return this.ctx?this.ctx.currentTime:0;},
-    _createNoiseBuffer(dur){
-        var sr=this.ctx.sampleRate,len=sr*dur,buf=this.ctx.createBuffer(1,len,sr),d=buf.getChannelData(0);
-        for(var i=0;i<len;i++)d[i]=Math.random()*2-1;return buf;
-    },
-    // Slide whoosh (white noise + bandpass)
-    playSlide(){
-        if(!this.ctx||this.muted)return;
+    async init(){
         try{
-            var n=this.ctx.createBufferSource(),t=this._t();
-            n.buffer=this._createNoiseBuffer(0.08);
-            var bp=this.ctx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=2000;bp.Q.value=0.5;
-            var g=this.ctx.createGain();g.gain.setValueAtTime(0.06,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.08);
-            n.connect(bp);bp.connect(g);g.connect(this.ctx.destination);n.start();n.stop(t+0.08);
+            this.ctx=new(window.AudioContext||window.webkitAudioContext)();
+            if(this.ctx.state==='suspended')await this.ctx.resume();
+        }catch(e){}
+        await this.preload();
+    },
+    async preload(){
+        const entries=Object.entries(this.FILES);
+        let done=0;
+        for(const[name,url]of entries){
+            try{
+                const resp=await fetch(url);
+                if(resp.ok){
+                    const ab=await resp.arrayBuffer();
+                    this.buffers[name]=await this.ctx.decodeAudioData(ab);
+                }
+            }catch(e){}
+            done++;
+            if(window._updateLoadProgress)window._updateLoadProgress(done,entries.length);
+        }
+        this.loaded=true;
+    },
+    _play(name,vol,rate){
+        if(!this.ctx||this.muted||!this.buffers[name])return;
+        try{
+            var src=this.ctx.createBufferSource();
+            src.buffer=this.buffers[name];
+            if(rate)src.playbackRate.value=rate;
+            var g=this.ctx.createGain();
+            g.gain.value=vol||0.5;
+            src.connect(g);g.connect(this.ctx.destination);
+            src.start();return src;
         }catch(e){}
     },
-    // Merge sound — pitch rises with tile value (sine, freq=200+value*2)
+    playSlide(){this._play('slide',0.3);},
     playMerge(value){
-        if(!this.ctx||this.muted)return;
-        try{
-            var f=200+value*2,t=this._t();
-            var o=this.ctx.createOscillator(),g=this.ctx.createGain();
-            o.type='sine';o.frequency.setValueAtTime(f,t);o.frequency.exponentialRampToValueAtTime(f*1.5,t+0.15);
-            g.gain.setValueAtTime(0.12,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
-            o.connect(g);g.connect(this.ctx.destination);o.start();o.stop(t+0.15);
-            var o2=this.ctx.createOscillator(),g2=this.ctx.createGain();
-            o2.type='triangle';o2.frequency.value=f*2;
-            g2.gain.setValueAtTime(0.04,t);g2.gain.exponentialRampToValueAtTime(0.001,t+0.1);
-            o2.connect(g2);g2.connect(this.ctx.destination);o2.start();o2.stop(t+0.1);
-        }catch(e){}
+        // Pitch rises with tile value for variety
+        var rate=0.8+Math.min(value||2,2048)/2048*1.2;
+        this._play('merge',0.5,rate);
     },
-    // Bomb — low boom
-    bomb(){
-        if(!this.ctx||this.muted)return;
-        try{
-            var t=this._t();
-            var o=this.ctx.createOscillator(),g=this.ctx.createGain();
-            o.type='sawtooth';o.frequency.setValueAtTime(80,t);o.frequency.exponentialRampToValueAtTime(20,t+0.4);
-            g.gain.setValueAtTime(0.25,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.4);
-            o.connect(g);g.connect(this.ctx.destination);o.start();o.stop(t+0.4);
-            var o2=this.ctx.createOscillator(),g2=this.ctx.createGain();
-            o2.type='sine';o2.frequency.value=40;
-            g2.gain.setValueAtTime(0.3,t);g2.gain.exponentialRampToValueAtTime(0.001,t+0.3);
-            o2.connect(g2);g2.connect(this.ctx.destination);o2.start();o2.stop(t+0.3);
-        }catch(e){}
-    },
-    // Freeze — high crystallize
-    freeze(){
-        if(!this.ctx||this.muted)return;
-        try{var self=this;[0,40,80].forEach(function(d,i){setTimeout(function(){
-            var t=self._t(),o=self.ctx.createOscillator(),g=self.ctx.createGain();
-            o.type='sine';o.frequency.value=2000+i*500+Math.random()*300;
-            g.gain.setValueAtTime(0.06,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
-            o.connect(g);g.connect(self.ctx.destination);o.start();o.stop(t+0.15);
-        },d);});}catch(e){}
-    },
-    // Double — shimmer
-    double(){
-        if(!this.ctx||this.muted)return;
-        try{var self=this;[600,900,1200].forEach(function(f,i){setTimeout(function(){
-            var t=self._t(),o=self.ctx.createOscillator(),g=self.ctx.createGain();
-            o.type='sine';o.frequency.value=f;
-            g.gain.setValueAtTime(0.08,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
-            o.connect(g);g.connect(self.ctx.destination);o.start();o.stop(t+0.2);
-        },i*60);});}catch(e){}
-    },
-    // Undo — rewind (descending tone)
-    undo(){
-        if(!this.ctx||this.muted)return;
-        try{
-            var t=this._t(),o=this.ctx.createOscillator(),g=this.ctx.createGain();
-            o.type='triangle';o.frequency.setValueAtTime(800,t);o.frequency.exponentialRampToValueAtTime(300,t+0.2);
-            g.gain.setValueAtTime(0.1,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
-            o.connect(g);g.connect(this.ctx.destination);o.start();o.stop(t+0.2);
-        }catch(e){}
-    },
-    // Sniper — ping
-    sniper(){
-        if(!this.ctx||this.muted)return;
-        try{
-            var t=this._t(),o=this.ctx.createOscillator(),g=this.ctx.createGain();
-            o.type='sine';o.frequency.setValueAtTime(1500,t);o.frequency.exponentialRampToValueAtTime(3000,t+0.05);
-            g.gain.setValueAtTime(0.15,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.15);
-            o.connect(g);g.connect(this.ctx.destination);o.start();o.stop(t+0.15);
-        }catch(e){}
-    },
-    // New record — 3-note ascending fanfare (C5-E5-G5)
-    playNewRecord(){
-        if(!this.ctx||this.muted)return;
-        try{var self=this;[523,659,784].forEach(function(f,i){setTimeout(function(){
-            var t=self._t(),o=self.ctx.createOscillator(),g=self.ctx.createGain();
-            o.type='triangle';o.frequency.value=f;
-            g.gain.setValueAtTime(0.12,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.2);
-            o.connect(g);g.connect(self.ctx.destination);o.start();o.stop(t+0.25);
-        },i*120);});}catch(e){}
-    },
-    // Game over — descending tone
-    gameover(){
-        if(!this.ctx||this.muted)return;
-        try{var self=this;[400,300,200].forEach(function(f,i){setTimeout(function(){
-            var t=self._t(),o=self.ctx.createOscillator(),g=self.ctx.createGain();
-            o.type='sine';o.frequency.value=f;
-            g.gain.setValueAtTime(0.1,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.25);
-            o.connect(g);g.connect(self.ctx.destination);o.start();o.stop(t+0.3);
-        },i*180);});}catch(e){}
-    },
-    // Win fanfare — 4-note ascending (C5-E5-G5-C6)
-    win(){
-        if(!this.ctx||this.muted)return;
-        try{var self=this;[523,659,784,1047].forEach(function(f,i){setTimeout(function(){
-            var t=self._t(),o=self.ctx.createOscillator(),g=self.ctx.createGain();
-            o.type='triangle';o.frequency.value=f;
-            g.gain.setValueAtTime(0.12,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.3);
-            o.connect(g);g.connect(self.ctx.destination);o.start();o.stop(t+0.35);
-        },i*130);});}catch(e){}
-    },
-    // Keep backward compat — existing merge() call inside loop becomes no-op (sounds via playMerge)
+    bomb(){this._play('combo',0.6,0.5);},
+    freeze(){this._play('powerup',0.5,1.5);},
+    double(){this._play('powerup',0.5,1.2);},
+    undo(){this._play('select',0.4,0.7);},
+    sniper(){this._play('pop',0.5,1.3);},
+    playNewRecord(){this._play('clear',0.6);},
+    gameover(){this._play('gameover',0.6);},
+    win(){this._play('clear',0.7);},
     merge(){},
-    powerup(){this.double();},
-    // BGM — lo-fi loop (4-bar chord progression, soft sine pads)
+    powerup(){this._play('powerup',0.5);},
     startBGM(){
-        if(!this.ctx||this.muted)return;this.stopBGM();
+        if(this.muted||!this.buffers.bgm||!this.ctx)return;
+        this.stopBGM();
         try{
-            var chords=[[261.6,329.6,392.0],[220.0,277.2,329.6],[246.9,311.1,370.0],[196.0,246.9,293.7]];
-            var barDur=(60/70)*4,loopDur=barDur*4,self=this;
-            this.bgmNodes={oscs:[],master:null,iv:null};
-            var m=this.ctx.createGain();m.gain.value=0.03;m.connect(this.ctx.destination);
-            this.bgmNodes.master=m;
-            function sched(){
-                var now=self.ctx.currentTime;
-                chords.forEach(function(chord,ci){
-                    var st=now+ci*barDur;
-                    chord.forEach(function(freq){
-                        var o=self.ctx.createOscillator(),g=self.ctx.createGain();
-                        o.type='sine';o.frequency.value=freq;
-                        g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(1,st+0.3);
-                        g.gain.setValueAtTime(1,st+barDur-0.3);g.gain.linearRampToValueAtTime(0,st+barDur);
-                        o.connect(g);g.connect(m);o.start(st);o.stop(st+barDur);
-                        self.bgmNodes.oscs.push(o);
-                    });
-                });
-            }
-            sched();
-            this.bgmNodes.iv=setInterval(function(){if(!self.muted){self.bgmNodes.oscs=[];sched();}},loopDur*1000);
+            var src=this.ctx.createBufferSource();
+            src.buffer=this.buffers.bgm;
+            src.loop=true;
+            var g=this.ctx.createGain();g.gain.value=0.15;
+            src.connect(g);g.connect(this.ctx.destination);
+            src.start();
+            this.bgmAudio={src:src,gain:g};
         }catch(e){}
     },
     stopBGM(){
-        if(!this.bgmNodes)return;
-        if(this.bgmNodes.iv)clearInterval(this.bgmNodes.iv);
-        this.bgmNodes.oscs.forEach(function(o){try{o.stop();}catch(e){}});
-        if(this.bgmNodes.master)try{this.bgmNodes.master.disconnect();}catch(e){}
-        this.bgmNodes=null;
+        if(!this.bgmAudio)return;
+        try{this.bgmAudio.src.stop();}catch(e){}
+        try{this.bgmAudio.gain.disconnect();}catch(e){}
+        this.bgmAudio=null;
     },
     toggleMute(){
         this.muted=!this.muted;
@@ -1167,8 +1123,9 @@ const G = {
     },
 
     // ===== START GAME =====
-    startGame(mode, stageLevel){
-        SND.init();
+    async startGame(mode, stageLevel){
+        if(!SND.loaded){await SND.init();}
+        if(this.ctx&&this.ctx.state==='suspended')try{this.ctx.resume();}catch(e){}
         Particles.init();
         SND.startBGM();
         this._newRecordFired=false;
@@ -1231,7 +1188,7 @@ const G = {
         el.className='tile '+this.tileClass(value);
         el.style.width=cs+'px';el.style.height=cs+'px';
         el.style.transform=`translate(${col*(cs+gap)+gap}px,${row*(cs+gap)+gap}px)`;
-        el.innerHTML=`<div class="tile-inner">${value}</div>`;
+        el.innerHTML=`<div class="tile-inner"><span>${value}</span></div>`;
         el.dataset.id=id;
         if(animate)el.classList.add('tile-new');
 
@@ -1406,7 +1363,7 @@ const G = {
                             if(e2){e2.remove();delete self.tileElements[cid];}
                             if(e1){
                                 e1.className='tile '+self.tileClass(nv);
-                                e1.querySelector('.tile-inner').textContent=nv;
+                                e1.querySelector('.tile-inner').innerHTML='<span>'+nv+'</span>';
                                 e1.classList.add('tile-merged');
                                 setTimeout(()=>e1.classList.remove('tile-merged'),250);
                             }
@@ -1519,7 +1476,7 @@ const G = {
                 el.innerHTML=`<div class="tile-inner"></div>`;
             }else{
                 el.className='tile '+this.tileClass(t.value);
-                el.innerHTML=`<div class="tile-inner">${t.value}</div>`;
+                el.innerHTML=`<div class="tile-inner"><span>${t.value}</span></div>`;
                 if(t.frozen>0)el.classList.add('tile-frozen');
             }
             el.style.width=cs+'px';el.style.height=cs+'px';
@@ -2014,8 +1971,33 @@ const G = {
     }
 };
 
-// ===== BOOT =====
-G.init();
+// ===== BOOT (with asset preloading) =====
+window._updateLoadProgress = function(done, total){
+    var pct = Math.round(done/total*100);
+    var fill = document.getElementById('loadFill');
+    var text = document.getElementById('loadText');
+    if(fill) fill.style.width = pct+'%';
+    if(text) text.textContent = 'Loading assets... '+pct+'%';
+};
+(async function(){
+    // Preload audio
+    await SND.init();
+    // Preload sprite images
+    var sprites=['Yellow','Orange','Red','Green','Blue','Purple','crystal00','crystal01','crystal02'];
+    var loadedImgs=0;
+    await Promise.all(sprites.map(function(name){
+        return new Promise(function(resolve){
+            var img=new Image();
+            img.onload=img.onerror=function(){loadedImgs++;resolve();};
+            img.src='assets/sprites/'+name+'.png';
+        });
+    }));
+    // Hide loading screen
+    var ls=document.getElementById('loadingScreen');
+    if(ls){ls.style.opacity='0';ls.style.transition='opacity 0.5s';setTimeout(function(){ls.remove();},500);}
+    // Boot game
+    G.init();
+})();
 </script>
 <script src="../cross-promo.js"></script>
 </body>
