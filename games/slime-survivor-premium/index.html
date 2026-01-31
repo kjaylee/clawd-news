@@ -191,9 +191,9 @@
         .btn {
             padding: 12px 30px;
             font-size: 1rem;
-            background: linear-gradient(135deg, var(--neon-green), var(--neon-blue));
-            border: none;
-            border-radius: 30px;
+            border-image: url('assets/gui/btn_green.png') 21 20 21 20 fill / 16px / 0 stretch;
+            background: none;
+            border-radius: 0;
             cursor: pointer;
             color: #111;
             font-weight: bold;
@@ -207,12 +207,15 @@
             .btn:hover { box-shadow: 0 0 30px rgba(0,255,136,0.5); transform: scale(1.03); }
         }
         .btn-secondary {
+            border-image: none;
             background: rgba(255,255,255,0.1);
             color: #fff;
             border: 2px solid rgba(255,255,255,0.2);
+            border-radius: 30px;
         }
         .btn-daily {
-            background: linear-gradient(135deg, var(--neon-gold), #ff9900);
+            border-image: url('assets/gui/btn_yellow.png') 21 20 21 20 fill / 16px / 0 stretch;
+            background: none;
             color: #111;
         }
         .btn-share {

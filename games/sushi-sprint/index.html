@@ -66,8 +66,8 @@ cursor:pointer;transition:transform .12s,box-shadow .12s;min-width:200px;
 display:flex;align-items:center;justify-content:center;gap:8px;
 }
 .btn:active{transform:scale(.94)}
-.btn-play{background:linear-gradient(135deg,var(--red),#c62828);color:#fff;box-shadow:0 6px 20px rgba(230,57,70,.4);margin-bottom:12px;font-size:20px}
-.btn-shop{background:linear-gradient(135deg,var(--wood),var(--wood-dark));color:var(--cream);box-shadow:0 4px 12px rgba(0,0,0,.3);margin-bottom:8px}
+.btn-play{border-image:url('assets/ui/btn-yellow.png') 33 37 161 37 fill / 20px / 0 stretch;background:none;color:#fff;box-shadow:0 6px 20px rgba(230,57,70,.4);margin-bottom:12px;font-size:20px}
+.btn-shop{border-image:url('assets/ui/btn-blue.png') 134 37 58 36 fill / 20px / 0 stretch;background:none;color:var(--cream);box-shadow:0 4px 12px rgba(0,0,0,.3);margin-bottom:8px}
 .btn-sm{padding:10px 24px;font-size:15px;min-width:160px}
 
 /* ═══ HUD ═══ */
@@ -222,7 +222,8 @@ min-height:clamp(50px,12vw,68px);
 .shop-cat-title{font-size:14px;color:#c4a882;text-transform:uppercase;letter-spacing:2px;margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid rgba(255,255,255,.1)}
 .shop-item{
 display:flex;align-items:center;gap:12px;
-background:rgba(255,255,255,.06);border-radius:14px;padding:12px;margin-bottom:8px;
+border-image:url('assets/ui/card-orange.png') 23 18 37 18 fill / 18px / 0 stretch;
+background:rgba(255,255,255,.06);padding:12px;margin-bottom:8px;
 transition:transform .1s;
 }
 .shop-item-icon{font-size:28px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.08);border-radius:12px}
@@ -234,7 +235,7 @@ padding:8px 16px;border:none;border-radius:10px;font-size:13px;font-weight:700;c
 transition:transform .1s;white-space:nowrap;
 }
 .shop-item-btn:active{transform:scale(.93)}
-.shop-item-btn.buy{background:var(--gold);color:#1a0a00}
+.shop-item-btn.buy{border-image:url('assets/ui/btn-yellow.png') 33 37 161 37 fill / 12px / 0 stretch;background:none;color:#1a0a00}
 .shop-item-btn.owned{background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);pointer-events:none}
 .shop-item-btn.cant{background:rgba(255,255,255,.05);color:rgba(255,255,255,.25);pointer-events:none}
 
@@ -326,8 +327,8 @@ animation:comboBig 1.2s ease-out forwards;
 /* ═══ GAME OVER ═══ */
 #gameover-screen{background:rgba(0,0,0,.85);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 .go-card{
+border-image:url('assets/ui/popup.png') 28 23 36 23 fill / 20px / 0 stretch;
 background:linear-gradient(180deg,#2d1810,#1a0a00);
-border:2px solid rgba(255,215,0,.2);border-radius:24px;
 padding:28px 24px;text-align:center;width:85%;max-width:340px;
 box-shadow:0 20px 60px rgba(0,0,0,.5);
 }
@@ -404,10 +405,10 @@ transition:opacity .4s;
 #loading-text{font-size:12px;color:rgba(255,255,255,.4)}
 .loading-credits{position:absolute;bottom:24px;font-size:10px;color:rgba(255,255,255,.25);text-align:center;line-height:1.5}
 
-/* ═══ BUTTON IMAGE ASSETS ═══ */
+/* ═══ BUTTON IMAGE ASSETS (9-slice) ═══ */
 .btn-play{
-background:url('assets/ui/01_main%20screen-04.png') center/100% 100% no-repeat !important;
-color:#fff !important;text-shadow:0 2px 4px rgba(0,0,0,.5);
+border-image:url('assets/ui/btn-yellow.png') 33 37 161 37 fill / 20px / 0 stretch;
+background:none;color:#fff;text-shadow:0 2px 4px rgba(0,0,0,.5);
 box-shadow:0 6px 20px rgba(230,57,70,.4);
 }
 .btn-home-icon{width:22px;height:22px;vertical-align:middle;filter:brightness(0) invert(1);margin-right:2px}

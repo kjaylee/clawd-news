@@ -622,5 +622,79 @@
     "width": "10px",
     "confidence": 0.96,
     "suitable": true
+  },
+  "games/sushi-sprint/assets/ui/btn-yellow.png": {
+    "size": "82x244",
+    "slice": "33 37 161 37 fill",
+    "width": "20px",
+    "confidence": 0.477,
+    "suitable": true,
+    "applied": true
+  },
+  "games/sushi-sprint/assets/ui/btn-blue.png": {
+    "size": "82x244",
+    "slice": "134 37 58 36 fill",
+    "width": "20px",
+    "confidence": 0.511,
+    "suitable": true,
+    "applied": true
+  },
+  "games/sushi-sprint/assets/ui/popup.png": {
+    "size": "50x225",
+    "slice": "28 23 36 23 fill",
+    "width": "20px",
+    "confidence": 0.6,
+    "suitable": true,
+    "applied": true
+  },
+  "games/sushi-sprint/assets/ui/card-orange.png": {
+    "size": "65x130",
+    "slice": "23 18 37 18 fill",
+    "width": "18px",
+    "confidence": 1.0,
+    "suitable": true,
+    "applied": true
+  },
+  "games/slime-survivor-premium/assets/gui/btn_green.png": {
+    "size": "159x104",
+    "slice": "21 20 21 20 fill",
+    "width": "16px",
+    "confidence": 1.0,
+    "suitable": true,
+    "applied": true,
+    "note": "tolerance=10 required for detection"
+  },
+  "games/slime-survivor-premium/assets/gui/btn_yellow.png": {
+    "size": "159x104",
+    "slice": "21 20 21 20 fill",
+    "width": "16px",
+    "confidence": 1.0,
+    "suitable": true,
+    "applied": true,
+    "note": "tolerance=10 required for detection"
+  },
+  "games/slime-survivor-premium/assets/gui/btn_circle_green.png": {
+    "size": "148x148",
+    "slice": "49 49 49 49 fill",
+    "width": "20px",
+    "confidence": 0.3,
+    "suitable": false,
+    "note": "circular shape, not suitable for 9-slice"
+  },
+  "games/slime-survivor-premium/assets/gui/btn_circle_gray.png": {
+    "size": "148x148",
+    "slice": "49 49 49 49 fill",
+    "width": "20px",
+    "confidence": 0.3,
+    "suitable": false,
+    "note": "circular shape, not suitable for 9-slice"
+  },
+  "games/slime-survivor-premium/assets/gui/btn_circle_red.png": {
+    "size": "148x148",
+    "slice": "49 49 49 49 fill",
+    "width": "20px",
+    "confidence": 0.3,
+    "suitable": false,
+    "note": "circular shape, not suitable for 9-slice"
   }
 }
