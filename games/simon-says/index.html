@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>🎵 Simon Says — East Sea Games</title>
+<meta name="description" content="Simon Says - Classic memory game! Watch the pattern, repeat it. How far can you go?">
+<link rel="canonical" href="https://eastsea.monster/games/simon-says/">
+<meta property="og:title" content="🎵 Simon Says — East Sea Games">
+<meta property="og:description" content="사이먼 세즈! 색깔 순서를 기억하고 따라해 보세요. 라운드마다 하나씩 늘어납니다!">
+<meta property="og:image" content="https://eastsea.monster/games/simon-says/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/simon-says/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="/games/manifest.json">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"VideoGame","name":"Simon Says",
+  "url":"https://eastsea.monster/games/simon-says/",
+  "description":"Classic Simon Says memory game with colorful lights and sounds. Watch, remember, and repeat!",
+  "image":"https://eastsea.monster/games/simon-says/og.png",
+  "gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+  "genre":"Memory","operatingSystem":"Any","inLanguage":["ko","en"],"playMode":"SinglePlayer",
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},
+  "author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}
+}
+</script>
+
+<!-- Telegram Mini App SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+/* ═══════════════ RESET & BASE ═══════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;
+  background:radial-gradient(ellipse at center,#2a2a4a 0%,#1a1a2e 50%,#0f0f1f 100%);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  touch-action:none;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-left:env(safe-area-inset-left,0px);
+  --safe-right:env(safe-area-inset-right,0px);
+  --tg-bg:#1a1a2e;--tg-text:#eee;--tg-hint:#888;
+  --tg-button:#e94560;--tg-button-text:#fff;--tg-secondary-bg:#16213e;
+  --red:#ff1744;--green:#00e676;--blue:#2979ff;--yellow:#ffd600;
+  --red-dim:#7a1a1a;--green-dim:#1a5c2a;--blue-dim:#1a2a6a;--yellow-dim:#6a5a1a;
+  --red-glow:#ff5252;--green-glow:#69f0ae;--blue-glow:#82b1ff;--yellow-glow:#ffff00;
+}
+
+/* ═══════════════ GAME CONTAINER ═══════════════ */
+#game{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  width:100%;height:100%;position:relative;padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left)}
+
+/* ═══════════════ HUD ═══════════════ */
+.hud{position:absolute;top:calc(var(--safe-top) + 10px);left:0;right:0;
+  display:flex;justify-content:center;gap:24px;z-index:10}
+.hud-item{display:flex;flex-direction:column;align-items:center}
+.hud-label{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--tg-hint);text-transform:uppercase}
+.hud-value{font-size:22px;font-weight:900;color:#fff;text-shadow:0 0 10px rgba(233,69,96,.5)}
+
+/* ═══════════════ SIMON BOARD ═══════════════ */
+.board-wrap{position:relative;display:flex;align-items:center;justify-content:center}
+.board{position:relative;border-radius:50%;overflow:hidden;
+  box-shadow:0 0 40px rgba(0,0,0,.5),inset 0 0 30px rgba(0,0,0,.3);
+  border:6px solid #222}
+
+.quarter{position:absolute;cursor:pointer;transition:filter .1s}
+.quarter:active{filter:brightness(1.2)}
+.quarter.disabled{pointer-events:none;cursor:default}
+
+/* Quadrant shapes using clip-path */
+.q-green{top:0;left:0;background:var(--green-dim);clip-path:polygon(0 0,100% 0,100% 50%,50% 50%,50% 100%,0 100%);
+  border-radius:50% 0 0 0}
+.q-red{top:0;right:0;background:var(--red-dim);clip-path:polygon(0 0,100% 0,100% 100%,50% 100%,50% 50%,0 50%);
+  border-radius:0 50% 0 0}
+.q-yellow{bottom:0;left:0;background:var(--yellow-dim);clip-path:polygon(0 0,50% 0,50% 50%,100% 50%,100% 100%,0 100%);
+  border-radius:0 0 0 50%}
+.q-blue{bottom:0;right:0;background:var(--blue-dim);clip-path:polygon(50% 0,100% 0,100% 100%,0 100%,0 50%,50% 50%);
+  border-radius:0 0 50% 0}
+
+/* Glow animation */
+.q-green.lit{background:var(--green);box-shadow:0 0 40px var(--green-glow),inset 0 0 20px rgba(255,255,255,.3)}
+.q-red.lit{background:var(--red);box-shadow:0 0 40px var(--red-glow),inset 0 0 20px rgba(255,255,255,.3)}
+.q-yellow.lit{background:var(--yellow);box-shadow:0 0 40px var(--yellow-glow),inset 0 0 20px rgba(255,255,255,.3)}
+.q-blue.lit{background:var(--blue);box-shadow:0 0 40px var(--blue-glow),inset 0 0 20px rgba(255,255,255,.3)}
+
+/* Center circle */
+.center-circle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:28%;height:28%;border-radius:50%;
+  background:radial-gradient(circle,#2a2a4a,#1a1a2e);
+  border:4px solid #333;z-index:5;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 0 20px rgba(0,0,0,.5)}
+.center-title{font-size:11px;font-weight:900;letter-spacing:2px;color:var(--tg-hint);text-transform:uppercase}
+.center-round{font-size:28px;font-weight:900;color:#fff;line-height:1;
+  text-shadow:0 0 15px rgba(233,69,96,.6)}
+
+/* ═══════════════ MENU OVERLAY ═══════════════ */
+.overlay{position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;z-index:20;
+  background:rgba(15,15,31,.92);backdrop-filter:blur(8px);
+  transition:opacity .3s;padding:20px}
+.overlay.hidden{opacity:0;pointer-events:none}
+
+.menu-title{font-size:36px;font-weight:900;color:#fff;margin-bottom:6px;
+  text-shadow:0 0 20px rgba(233,69,96,.5);letter-spacing:2px}
+.menu-subtitle{font-size:14px;color:var(--tg-hint);margin-bottom:20px}
+.menu-highscore{font-size:16px;color:#ffd600;margin-bottom:20px}
+
+.legend{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;justify-content:center}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--tg-hint)}
+.legend-dot{width:16px;height:16px;border-radius:50%;display:inline-block}
+.dot-green{background:var(--green)}
+.dot-red{background:var(--red)}
+.dot-blue{background:var(--blue)}
+.dot-yellow{background:var(--yellow)}
+
+.btn{border:none;border-radius:12px;padding:14px 36px;font-size:18px;font-weight:700;
+  cursor:pointer;transition:all .15s;letter-spacing:1px}
+.btn-play{background:linear-gradient(135deg,#e94560,#c23152);color:#fff;
+  box-shadow:0 4px 20px rgba(233,69,96,.4)}
+.btn-play:hover{transform:scale(1.05);box-shadow:0 6px 30px rgba(233,69,96,.6)}
+.btn-play:active{transform:scale(.97)}
+
+/* ═══════════════ GAME OVER OVERLAY ═══════════════ */
+.go-score{font-size:48px;font-weight:900;color:#fff;margin:12px 0}
+.go-new-best{font-size:18px;color:#ffd600;animation:pulse 1s infinite}
+.go-stats{font-size:13px;color:var(--tg-hint);margin:8px 0 16px}
+.go-buttons{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+.btn-secondary{background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2)}
+.btn-secondary:hover{background:rgba(255,255,255,.2)}
+
+/* ═══════════════ STATUS TEXT ═══════════════ */
+.status{position:absolute;bottom:calc(var(--safe-bottom) + 60px);
+  font-size:14px;font-weight:700;color:var(--tg-hint);letter-spacing:1px;
+  text-transform:uppercase;z-index:10;transition:opacity .3s}
+.status.hidden{opacity:0}
+
+/* ═══════════════ ANIMATIONS ═══════════════ */
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.1)}100%{transform:scale(1)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes glow-ring{0%{box-shadow:0 0 20px rgba(233,69,96,.3)}50%{box-shadow:0 0 40px rgba(233,69,96,.6)}100%{box-shadow:0 0 20px rgba(233,69,96,.3)}}
+
+.pop{animation:pop .3s ease}
+.fade-in{animation:fadeIn .4s ease}
+
+/* ═══════════════ PARTICLES ═══════════════ */
+.particle{position:absolute;border-radius:50%;pointer-events:none;z-index:15}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(max-height:580px){
+  .hud-value{font-size:18px}
+  .menu-title{font-size:28px}
+  .center-round{font-size:22px}
+  .center-title{font-size:9px}
+}
+</style>
+</head>
+<body>
+
+<!-- tg-sdk-wrapper (inline) -->
+<script>
+/* ═══════════════════════════════════════════════
+   TG SDK Wrapper — Inline version
+   ═══════════════════════════════════════════════ */
+(function(){
+'use strict';
+const TG={
+  app:window.Telegram?.WebApp,user:null,isReady:false,_backHandlers:[],
+  init(){
+    if(!this.app){this.isReady=true;this._injectStandaloneCSS();return false}
+    this.app.ready();this.app.expand();
+    this.user=this.app.initDataUnsafe?.user||null;
+    this._applyTheme();this._setupSafeArea();this._setupBackButton();
+    this.app.onEvent('viewportChanged',({isStateStable})=>{if(isStateStable)this._updateViewport()});
+    this.app.onEvent('themeChanged',()=>this._applyTheme());
+    this.isReady=true;return true;
+  },
+  _applyTheme(){
+    const tp=this.app?.themeParams;if(!tp)return;
+    const r=document.documentElement.style;
+    const m={'--tg-bg':tp.bg_color,'--tg-text':tp.text_color,'--tg-hint':tp.hint_color,
+      '--tg-link':tp.link_color,'--tg-button':tp.button_color,'--tg-button-text':tp.button_text_color,
+      '--tg-secondary-bg':tp.secondary_bg_color};
+    for(const[p,v]of Object.entries(m)){if(v)r.setProperty(p,v)}
+  },
+  _setupSafeArea(){
+    this._applySafeAreaValues();
+    if(this.app?.onEvent){
+      this.app.onEvent('safeAreaChanged',()=>this._applySafeAreaValues());
+      this.app.onEvent('contentSafeAreaChanged',()=>this._applySafeAreaValues());
+    }
+    this._updateViewport();
+  },
+  _applySafeAreaValues(){
+    const r=document.documentElement.style;
+    const sa=this.app?.safeAreaInset||{top:0,bottom:0,left:0,right:0};
+    const csa=this.app?.contentSafeAreaInset||{top:0,bottom:0,left:0,right:0};
+    const totalTop=sa.top+csa.top,totalBottom=sa.bottom+csa.bottom;
+    r.setProperty('--safe-top',totalTop+'px');r.setProperty('--safe-bottom',totalBottom+'px');
+    r.setProperty('--safe-left',sa.left+'px');r.setProperty('--safe-right',sa.right+'px');
+    document.body.style.paddingTop=totalTop+'px';document.body.style.paddingBottom=totalBottom+'px';
+  },
+  _updateViewport(){
+    const vh=this.app?.viewportStableHeight||window.innerHeight;
+    document.documentElement.style.setProperty('--tg-viewport-height',vh+'px');
+  },
+  _setupBackButton(){
+    if(!this.app?.BackButton)return;this.app.BackButton.show();
+    this.app.BackButton.onClick(()=>{
+      for(let i=this._backHandlers.length-1;i>=0;i--){if(this._backHandlers[i]())return}
+      this.app.close();
+    });
+  },
+  _injectStandaloneCSS(){
+    const s=document.createElement('style');
+    s.textContent='body{background:var(--tg-bg,#1a1a2e);color:var(--tg-text,#eee)}';
+    document.head.appendChild(s);
+  },
+  onBack(fn){this._backHandlers.push(fn)},
+  getUserId(){return this.user?.id||'guest'},
+  getUserName(){return this.user?.first_name||'Player'},
+  getLang(){return this.user?.language_code||'en'},
+  haptic(type='impact',style='medium'){
+    try{
+      if(type==='impact')this.app?.HapticFeedback?.impactOccurred(style);
+      else if(type==='notification')this.app?.HapticFeedback?.notificationOccurred(style);
+      else if(type==='selection')this.app?.HapticFeedback?.selectionChanged();
+    }catch{}
+  },
+  share(text,url){
+    if(this.app){
+      const shareUrl=url||window.location.href;
+      const msg=encodeURIComponent(text);
+      this.app.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${msg}`);
+    }
+  }
+};
+
+const GameScore={
+  _key(id){return`esg_${id}_${TG.getUserId()}`},
+  getBest(id){return parseInt(localStorage.getItem(this._key(id)+'_best'))||0},
+  setBest(id,s){const k=this._key(id)+'_best';const old=parseInt(localStorage.getItem(k))||0;
+    if(s>old){localStorage.setItem(k,s);return true}return false},
+  getLast(id){return parseInt(localStorage.getItem(this._key(id)+'_last'))||0},
+  setLast(id,s){localStorage.setItem(this._key(id)+'_last',s)}
+};
+
+window.TG=TG;window.GameScore=GameScore;
+TG.init();
+})();
+</script>
+
+<div id="game">
+  <!-- HUD -->
+  <div class="hud">
+    <div class="hud-item"><span class="hud-label" data-i18n="round">ROUND</span><span class="hud-value" id="hud-round">0</span></div>
+    <div class="hud-item"><span class="hud-label" data-i18n="score">SCORE</span><span class="hud-value" id="hud-score">0</span></div>
+    <div class="hud-item"><span class="hud-label" data-i18n="best">BEST</span><span class="hud-value" id="hud-best">0</span></div>
+  </div>
+
+  <!-- Simon Board -->
+  <div class="board-wrap">
+    <div class="board" id="board">
+      <div class="quarter q-green disabled" data-color="0" id="q0"></div>
+      <div class="quarter q-red disabled" data-color="1" id="q1"></div>
+      <div class="quarter q-yellow disabled" data-color="2" id="q2"></div>
+      <div class="quarter q-blue disabled" data-color="3" id="q3"></div>
+      <div class="center-circle" id="center">
+        <div class="center-title" data-i18n="simon">SIMON</div>
+        <div class="center-round" id="center-round">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="status hidden" id="status"></div>
+
+  <!-- Menu Overlay -->
+  <div class="overlay" id="menu-overlay">
+    <div class="menu-title" data-i18n="title">Simon Says</div>
+    <div class="menu-subtitle" data-i18n="subtitle">Watch, Remember, Repeat!</div>
+    <div class="menu-highscore">🏆 <span data-i18n="bestScore">Best</span>: <span id="menu-best">0</span></div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot dot-green"></span> Do</div>
+      <div class="legend-item"><span class="legend-dot dot-red"></span> Re</div>
+      <div class="legend-item"><span class="legend-dot dot-yellow"></span> Mi</div>
+      <div class="legend-item"><span class="legend-dot dot-blue"></span> Fa</div>
+    </div>
+    <button class="btn btn-play" id="btn-start" data-i18n="startBtn">▶ START</button>
+  </div>
+
+  <!-- Game Over Overlay -->
+  <div class="overlay hidden" id="go-overlay">
+    <div class="menu-title" data-i18n="gameOver">Game Over</div>
+    <div class="go-score" id="go-score">0</div>
+    <div class="go-new-best hidden" id="go-new-best" data-i18n="newBest">🏆 New Best!</div>
+    <div class="go-stats" id="go-stats"></div>
+    <div class="go-buttons">
+      <button class="btn btn-play" id="btn-retry" data-i18n="replay">🔄 Replay</button>
+      <button class="btn btn-secondary" id="btn-share" data-i18n="share">📢 Share</button>
+    </div>
+  </div>
+</div>
+
+<!-- Cross-promo -->
+<script src="/games/cross-promo.js"></script>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════ i18n ═══════════════ */
+const STRINGS = {
+  title:     { en:'Simon Says', ko:'사이먼 세즈' },
+  subtitle:  { en:'Watch, Remember, Repeat!', ko:'보고, 기억하고, 따라하세요!' },
+  round:     { en:'ROUND', ko:'라운드' },
+  score:     { en:'SCORE', ko:'점수' },
+  best:      { en:'BEST', ko:'최고' },
+  bestScore: { en:'Best', ko:'최고기록' },
+  simon:     { en:'SIMON', ko:'사이먼' },
+  startBtn:  { en:'▶ START', ko:'▶ 시작' },
+  gameOver:  { en:'Game Over', ko:'게임 오버' },
+  newBest:   { en:'🏆 New Best!', ko:'🏆 새 기록!' },
+  replay:    { en:'🔄 Replay', ko:'🔄 다시하기' },
+  share:     { en:'📢 Share', ko:'📢 공유' },
+  watching:  { en:'WATCH...', ko:'잘 보세요...' },
+  yourTurn:  { en:'YOUR TURN!', ko:'당신 차례!' },
+  correct:   { en:'CORRECT!', ko:'정답!' },
+  wrong:     { en:'WRONG!', ko:'틀렸어요!' },
+  roundN:    { en:'Round', ko:'라운드' },
+  statsMsg:  { en:'You reached round {r} with {s} points!', ko:'{r}라운드, {s}점을 달성했어요!' },
+  shareMsg:  { en:'🎵 I reached round {r} in Simon Says! Can you beat {s} points?', ko:'🎵 사이먼 세즈에서 {r}라운드 달성! {s}점 깰 수 있어?' },
+};
+
+let lang = 'en';
+try {
+  const tgLang = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code;
+  if (tgLang && tgLang.startsWith('ko')) lang = 'ko';
+  else if (navigator.language?.startsWith('ko')) lang = 'ko';
+} catch {}
+
+function T(key, vars) {
+  let s = STRINGS[key]?.[lang] || STRINGS[key]?.en || key;
+  if (vars) { for (const [k,v] of Object.entries(vars)) s = s.replace(`{${k}}`, v); }
+  return s;
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (STRINGS[key]) el.textContent = T(key);
+  });
+}
+
+/* ═══════════════ DOM ═══════════════ */
+const $game       = document.getElementById('game');
+const $board      = document.getElementById('board');
+const $center     = document.getElementById('center');
+const $centerRound= document.getElementById('center-round');
+const $hudRound   = document.getElementById('hud-round');
+const $hudScore   = document.getElementById('hud-score');
+const $hudBest    = document.getElementById('hud-best');
+const $status     = document.getElementById('status');
+const $menuOverlay= document.getElementById('menu-overlay');
+const $goOverlay  = document.getElementById('go-overlay');
+const $goScore    = document.getElementById('go-score');
+const $goNewBest  = document.getElementById('go-new-best');
+const $goStats    = document.getElementById('go-stats');
+const $btnStart   = document.getElementById('btn-start');
+const $btnRetry   = document.getElementById('btn-retry');
+const $btnShare   = document.getElementById('btn-share');
+const $menuBest   = document.getElementById('menu-best');
+const quarters    = [
+  document.getElementById('q0'),
+  document.getElementById('q1'),
+  document.getElementById('q2'),
+  document.getElementById('q3')
+];
+
+/* ═══════════════ AUDIO ═══════════════ */
+let audioCtx = null;
+
+function ensureAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+// Classic Simon frequencies: E3, C#4, A4, E4
+const TONES = [329.63, 277.18, 440.00, 164.81];
+
+function playTone(colorIdx, duration = 0.3) {
+  ensureAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  const filter = audioCtx.createBiquadFilter();
+
+  // Rich tone with slight filtering
+  osc.type = 'square';
+  osc.frequency.value = TONES[colorIdx];
+
+  filter.type = 'lowpass';
+  filter.frequency.value = 1200;
+  filter.Q.value = 2;
+
+  gain.gain.setValueAtTime(0, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(0.25, audioCtx.currentTime + 0.01);
+  gain.gain.setValueAtTime(0.25, audioCtx.currentTime + duration - 0.05);
+  gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
+
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  osc.start(audioCtx.currentTime);
+  osc.stop(audioCtx.currentTime + duration);
+}
+
+function playErrorSound() {
+  ensureAudio();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'sawtooth';
+  osc.frequency.value = 80;
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.6);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.6);
+}
+
+function playSuccessSound() {
+  ensureAudio();
+  [0, 1, 2, 3].forEach((i, idx) => {
+    setTimeout(() => playTone(i, 0.15), idx * 80);
+  });
+}
+
+/* ═══════════════ GAME STATE ═══════════════ */
+const GAME_ID = 'simon-says';
+let sequence   = [];    // The generated sequence
+let playerIdx  = 0;     // Current position in player's input
+let round      = 0;
+let score      = 0;
+let bestScore  = 0;
+let gameActive = false;
+let inputLocked= true;
+let showingSeq = false;
+
+// Speed: base delay decreases as rounds increase
+function getDelay() {
+  const base = 600;
+  const min = 200;
+  const decrement = round * 15;
+  return Math.max(min, base - decrement);
+}
+
+function getLitDuration() {
+  const base = 500;
+  const min = 150;
+  const decrement = round * 12;
+  return Math.max(min, base - decrement);
+}
+
+/* ═══════════════ BOARD SIZING ═══════════════ */
+function sizeBoard() {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const safeTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-top')) || 0;
+  const safeBottom = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0;
+  const available = h - safeTop - safeBottom - 120; // HUD + status
+  const size = Math.min(w - 40, available, 400);
+
+  $board.style.width = size + 'px';
+  $board.style.height = size + 'px';
+
+  quarters.forEach(q => {
+    q.style.width = '50%';
+    q.style.height = '50%';
+  });
+}
+
+/* ═══════════════ LIGHT EFFECTS ═══════════════ */
+function lightUp(idx, duration) {
+  return new Promise(resolve => {
+    quarters[idx].classList.add('lit');
+    playTone(idx, duration / 1000);
+    setTimeout(() => {
+      quarters[idx].classList.remove('lit');
+      resolve();
+    }, duration);
+  });
+}
+
+function lightUpPlayer(idx) {
+  const dur = 250;
+  quarters[idx].classList.add('lit');
+  playTone(idx, dur / 1000);
+  setTimeout(() => quarters[idx].classList.remove('lit'), dur);
+}
+
+function flashAll(times = 1, color = 'error') {
+  return new Promise(resolve => {
+    let count = 0;
+    const interval = setInterval(() => {
+      if (count >= times * 2) { clearInterval(interval); resolve(); return; }
+      if (count % 2 === 0) {
+        quarters.forEach(q => q.classList.add('lit'));
+      } else {
+        quarters.forEach(q => q.classList.remove('lit'));
+      }
+      count++;
+    }, 150);
+  });
+}
+
+/* ═══════════════ PARTICLES ═══════════════ */
+function spawnParticles(x, y, color) {
+  const count = 8;
+  for (let i = 0; i < count; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = 4 + Math.random() * 6;
+    p.style.width = size + 'px';
+    p.style.height = size + 'px';
+    p.style.background = color;
+    p.style.left = x + 'px';
+    p.style.top = y + 'px';
+    const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.5;
+    const dist = 30 + Math.random() * 40;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    $game.appendChild(p);
+    p.animate([
+      { transform: 'translate(0,0) scale(1)', opacity: 1 },
+      { transform: `translate(${dx}px,${dy}px) scale(0)`, opacity: 0 }
+    ], { duration: 400, easing: 'ease-out', fill: 'forwards' })
+    .onfinish = () => p.remove();
+  }
+}
+
+/* ═══════════════ SHOW STATUS ═══════════════ */
+function showStatus(text) {
+  $status.textContent = text;
+  $status.classList.remove('hidden');
+}
+function hideStatus() {
+  $status.classList.add('hidden');
+}
+
+/* ═══════════════ SEQUENCE PLAYBACK ═══════════════ */
+async function playSequence() {
+  inputLocked = true;
+  showingSeq = true;
+  setQuartersDisabled(true);
+  showStatus(T('watching'));
+
+  // Pause before starting
+  await sleep(500);
+
+  const litDur = getLitDuration();
+  const gap = getDelay();
+
+  for (let i = 0; i < sequence.length; i++) {
+    await lightUp(sequence[i], litDur);
+    if (i < sequence.length - 1) await sleep(gap - litDur > 50 ? gap - litDur : 50);
+  }
+
+  await sleep(200);
+  showingSeq = false;
+  inputLocked = false;
+  setQuartersDisabled(false);
+  showStatus(T('yourTurn'));
+  playerIdx = 0;
+}
+
+/* ═══════════════ GAME FLOW ═══════════════ */
+function startGame() {
+  ensureAudio();
+  sequence = [];
+  round = 0;
+  score = 0;
+  playerIdx = 0;
+  gameActive = true;
+  inputLocked = true;
+
+  $menuOverlay.classList.add('hidden');
+  $goOverlay.classList.add('hidden');
+  updateHud();
+
+  nextRound();
+}
+
+function nextRound() {
+  round++;
+  // Add one random color
+  sequence.push(Math.floor(Math.random() * 4));
+
+  $centerRound.textContent = round;
+  $centerRound.classList.add('pop');
+  setTimeout(() => $centerRound.classList.remove('pop'), 300);
+
+  updateHud();
+  playSequence();
+}
+
+function handleCorrectStep() {
+  // Score: higher rounds = more points per step
+  const points = round * 10;
+  score += points;
+  updateHud();
+
+  if (playerIdx >= sequence.length) {
+    // Completed the round!
+    inputLocked = true;
+    setQuartersDisabled(true);
+    showStatus(T('correct'));
+    TG.haptic('notification', 'success');
+
+    // Bonus: completed round particle burst
+    const rect = $board.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const colors = ['var(--green)', 'var(--red)', 'var(--yellow)', 'var(--blue)'];
+    spawnParticles(cx, cy, colors[sequence[sequence.length - 1]] || '#fff');
+
+    setTimeout(() => nextRound(), 800);
+  }
+}
+
+function handleWrong() {
+  gameActive = false;
+  inputLocked = true;
+  setQuartersDisabled(true);
+  showStatus(T('wrong'));
+  TG.haptic('notification', 'error');
+  playErrorSound();
+
+  // Flash all red
+  flashAll(3).then(() => {
+    setTimeout(() => showGameOver(), 300);
+  });
+}
+
+function showGameOver() {
+  hideStatus();
+  const isNewBest = GameScore.setBest(GAME_ID, score);
+  GameScore.setLast(GAME_ID, score);
+
+  bestScore = GameScore.getBest(GAME_ID);
+  $goScore.textContent = score;
+  $goStats.textContent = T('statsMsg', { r: round, s: score });
+
+  if (isNewBest) {
+    $goNewBest.classList.remove('hidden');
+    playSuccessSound();
+  } else {
+    $goNewBest.classList.add('hidden');
+  }
+
+  $goOverlay.classList.remove('hidden');
+  $goOverlay.classList.add('fade-in');
+  updateHud();
+}
+
+/* ═══════════════ INPUT HANDLING ═══════════════ */
+function handleInput(colorIdx, event) {
+  if (inputLocked || !gameActive || showingSeq) return;
+
+  TG.haptic('impact', 'light');
+  lightUpPlayer(colorIdx);
+
+  // Particle at tap location
+  let px, py;
+  if (event?.touches?.[0]) {
+    px = event.touches[0].clientX;
+    py = event.touches[0].clientY;
+  } else if (event) {
+    px = event.clientX;
+    py = event.clientY;
+  } else {
+    const r = quarters[colorIdx].getBoundingClientRect();
+    px = r.left + r.width / 2;
+    py = r.top + r.height / 2;
+  }
+  const colors = ['#00e676', '#ff1744', '#ffd600', '#2979ff'];
+  spawnParticles(px, py, colors[colorIdx]);
+
+  if (sequence[playerIdx] === colorIdx) {
+    playerIdx++;
+    handleCorrectStep();
+  } else {
+    handleWrong();
+  }
+}
+
+function setQuartersDisabled(disabled) {
+  quarters.forEach(q => {
+    if (disabled) q.classList.add('disabled');
+    else q.classList.remove('disabled');
+  });
+}
+
+/* ═══════════════ HUD ═══════════════ */
+function updateHud() {
+  $hudRound.textContent = round;
+  $hudScore.textContent = score;
+  bestScore = GameScore.getBest(GAME_ID);
+  $hudBest.textContent = bestScore;
+  $menuBest.textContent = bestScore;
+}
+
+/* ═══════════════ UTIL ═══════════════ */
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ═══════════════ TOUCH & MOUSE ═══════════════ */
+function setupInput() {
+  // Touch events
+  $board.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    for (const touch of e.changedTouches) {
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      if (!el) continue;
+      const q = el.closest('.quarter');
+      if (q && !q.classList.contains('disabled')) {
+        handleInput(parseInt(q.dataset.color), e);
+      }
+    }
+  }, { passive: false });
+
+  // Mouse events (desktop)
+  quarters.forEach(q => {
+    q.addEventListener('mousedown', (e) => {
+      if (q.classList.contains('disabled')) return;
+      handleInput(parseInt(q.dataset.color), e);
+    });
+  });
+
+  // Prevent context menu
+  $board.addEventListener('contextmenu', e => e.preventDefault());
+}
+
+/* ═══════════════ INIT ═══════════════ */
+function init() {
+  applyI18n();
+  sizeBoard();
+  setupInput();
+
+  bestScore = GameScore.getBest(GAME_ID);
+  updateHud();
+
+  // Start button
+  $btnStart.addEventListener('click', () => startGame());
+  $btnStart.addEventListener('touchend', (e) => { e.preventDefault(); startGame(); });
+
+  // Retry
+  $btnRetry.addEventListener('click', () => startGame());
+  $btnRetry.addEventListener('touchend', (e) => { e.preventDefault(); startGame(); });
+
+  // Share
+  $btnShare.addEventListener('click', () => {
+    TG.share(T('shareMsg', { r: round, s: score }), 'https://eastsea.monster/games/simon-says/');
+  });
+  $btnShare.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    TG.share(T('shareMsg', { r: round, s: score }), 'https://eastsea.monster/games/simon-says/');
+  });
+
+  // Back button
+  TG.onBack(() => {
+    if (gameActive) {
+      handleWrong();
+      return true;
+    }
+    if (!$goOverlay.classList.contains('hidden')) {
+      $goOverlay.classList.add('hidden');
+      $menuOverlay.classList.remove('hidden');
+      return true;
+    }
+    return false;
+  });
+
+  // Resize
+  window.addEventListener('resize', sizeBoard);
+  window.addEventListener('orientationchange', () => setTimeout(sizeBoard, 100));
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+})();
+</script>
+</body>
+</html>
