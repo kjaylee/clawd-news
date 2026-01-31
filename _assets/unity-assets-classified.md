@@ -1029,3 +1029,883 @@ title: "유니티 에셋 다축 분류 카탈로그"
 | 21 | Stylized Bricks Materials | Rob luo | 153.7MB | 💾 | 스타일라이즈드 | 텍스처 | 범용 | 시점무관 | 범용 | 방향무관 | HD |
 | 22 | Tileable Pack 01 | Mafubash | 1.9MB | 💾 | 리얼리스틱 | 타일셋 | 범용 | 시점무관 | RPG | 방향무관 | SD |
 | 23 | Yughues Free Metal Materials | Nobiax Yughues | 259.3MB | 💾 | 리얼리스틱 | 텍스처 | 범용 | 시점무관 | 범용 | 방향무관 | HD |
+
+---
+# 🎨 아트 스타일 호환 분석
+
+> 에셋을 게임에 쓸 때 가장 중요한 건 **스타일 통일**.
+
+> 같은 '픽셀'이라도 16px과 64px는 혼용 불가. 이 섹션이 해결.
+
+## 📊 세부 아트 스타일 분포
+
+| 세부 스타일 | 수량 | 대표 퍼블리셔 |
+|-----------|------|------------|
+| 범용 | 237 | kubacho lab(6), Hippo(5), Redcode Games(5) |
+| 픽셀-클래식(32px) | 200 | Ansimuz(28), Luiz Melo(12), karsiori(12) |
+| 플랫-아이콘 | 75 | GoodDay(7), PONETI(4), LAYERLAB(4) |
+| 플랫-UI/GUI | 45 | LAYERLAB(11), PONETI(3), Mixall(1) |
+| 스타일라이즈드-클린 | 42 | Vefects(9), Kyeoms(5), SineVFX(3) |
+| 픽셀-HD(64px+) | 40 | Hippo(7), soonsoon(2), DA 2D(2) |
+| 스타일라이즈드-핸드페인팅 | 31 | Texture Me(10), Stylarts(4), Sahil Gandhi(3) |
+| 픽셀-마이크로(≤16px) | 23 | Henry Software(4), Aiden Art(2), Krishna Palacio(2) |
+| 카툰-셀셰이딩 | 21 | SICS Games(4), Jean Moreno(3), Synty Studios(2) |
+| 플랫-미니멀 | 17 | Kevin Iglesias(2), Joo Baltieri(1), OArielG(1) |
+| 스타일라이즈드-VFX특화 | 17 | Hovl Studio(6), Gabriel Aguiar Prod(5), Piloto Studio(3) |
+| 로우폴리-일반 | 16 | polyperfect(3), Meshr(1), CatBorg Studio(1) |
+| 리얼리스틱-하이폴리 | 15 | Ida Faber(15) |
+| 리얼리스틱-일반 | 14 | Art Equilibrium(2), NOT_Lonely(1), Gabro Media(1) |
+| 리얼리스틱-PBR | 14 | Leartes Studios(5), NatureManufacture(4), quiArt(1) |
+| 네온/사이버펑크 | 12 | Hivemind(1), Shumn1y(1), Maksim Bugrimov(1) |
+| 픽셀-레트로8비트 | 12 | hiro hamstone(4), soonsoon(1), Super Icon Ltd(1) |
+| 카툰-그라디언트 | 9 | Blue Goblin Store(5), App Advisory(2), Brackeys(1) |
+| 애니메-일반 | 6 | SURIYUN(1), BoZo(1), Smoky_Fox(1) |
+| 벡터/SVG | 6 | Pirate Parrot(2), Invector(2), GDev(1) |
+| 로우폴리-밀리터리 | 5 | CASTLE BRAVO(5) |
+| 로우폴리-파스텔 | 4 | POLYBOX(2), ithappy(1), JustCreate(1) |
+| 로우폴리-Synty스타일 | 4 | Synty Studios(3), Archanor VFX(1) |
+| 스타일라이즈드-파스텔 | 4 | N-hance Studio(4) |
+| 카툰-아웃라인 | 4 | Severin Baclet(3), Blackthornprod(1) |
+| 플랫-일반 | 4 | CapPlay(1), Bulat(1), N-hance Studio(1) |
+| 애니메-치비 | 2 | Helix Studio(1), HUBERTH ART 2D(1) |
+
+## 🎮 게임 레디 번들 — 이 조합으로 게임 완성 가능
+
+> 같은 세부 스타일 안에서 캐릭터+환경+UI+소품이 갖춰진 그룹
+
+
+### ⭐⭐⭐⭐ 그룹 1: 「픽셀-클래식(32px)」 (200개 에셋)
+
+**커버리지:** ✅ 캐릭터(73) | ✅ 환경/배경(52) | ✅ UI/아이콘(11) | ✅ 소품/무기(16)
+
+**캐릭터:**
+- 💾 2000 Faces (Unruly Games) — 434.8KB
+- 💾 2D Animated Skeletons (BluBlu Games) — 7.1MB
+- 💾 2D Art Maker - Casual Characters (LAYERLAB) — 10.2MB
+- 💾 2D Monster Wizard (JKTimmons) — 1.2MB
+- 💾 2D Pixel Spaceship - Two Small Ships (EVPO Games) — 86.6KB
+- 💾 2D Pixel art pack - Rousette (SiLenaART) — 3.3MB
+- 💾 2D Skeleton - Isometric PixelArt Character (PixelArt Studio) — 5.1MB
+- 💾 2D Spine Turner Set (FiveFinger) — 863.9KB
+- ... 외 65개
+
+**환경/배경:**
+- 💾 2D Background (Denvzla Estudio) — 1.3MB
+- 💾 2D Dungeon Pixel Art Tileset (Zhivko Minchev) — 64.7KB
+- 💾 2D Fantasy Forest Tileset (Hyper Luminal Games) — 19.6MB
+- 💾 2D Farm Game Grasslands 4 Seasons Tileset (ElvGames) — 3.2MB
+- 💾 2D Hex Sprites - Hexagonal Tile Setup (RRFreelance) — 6.9MB
+- 💾 2D Isometric Tile Starter Pack (Golden Skull Art) — 16.7MB
+- 💾 2D Isometric Village (Danil Chernyaev) — 4.6MB
+- 💾 2D Pixel Art Platformer Biome - American Forest (Superposition Principle) — 151.9KB
+- ... 외 44개
+
+**UI/아이콘:**
+- 💾 2D Pixel Art Icons Fruits (Superposition Principle) — 68.6KB
+- 💾 2D Pixel Art Icons Swords (Superposition Principle) — 68.8KB
+- 💾 Controller Buttons and Thumbstick (Spring) — 125.0KB
+- 💾 Free Minerals Pixel Art Icons (CraftPix) — 336.6KB
+- 💾 Free emojis pixel art (Arlan Trindade) — 414.3KB
+- ... 외 6개
+
+**소품/무기:**
+- 💾 2D Animated Coin - 2D RPK (Marco Siino) — 17.3KB
+- 💾 2D Pixel Art Icons Swords (Superposition Principle) — 68.8KB
+- 💾 2D Pixel Medieval Weapons (datDev26) — 99.4KB
+- 💾 Free Food Pixel Asset (usky) — 14.5MB
+- 💾 Free Game Items (AhNinniah) — 2.5MB
+- ... 외 11개
+
+### ⭐⭐⭐⭐ 그룹 2: 「픽셀-HD(64px+)」 (40개 에셋)
+
+**커버리지:** ✅ 캐릭터(21) | ✅ 환경/배경(5) | ✅ UI/아이콘(2) | ✅ 소품/무기(1)
+
+**캐릭터:**
+- 💾 2D Character - Astronaut (Lootzifr) — 39.7MB
+- 💾 2D Pixel - RPG Monsters Icon Pack (Layer Lab) — 5.0MB
+- 💾 2D Pixel Unit Maker - SPUM (soonsoon) — 5.8MB
+- 💾 Animated 2D characters monsters (PhilipBravo) — 468.5MB
+- ☁️ AnyPortrait - 2D 캐릭터 애니메이션 (RainyRizzle) — 88.8 MB
+- 💾 BATTY BUDDIES 2D Animated Character (ARTAPEX STUDIO) — 54.9MB
+- 💾 Character Editor Fantasy (Hippo) — 43.7MB
+- 💾 Character Maker 4D Fantasy (Hippo) — 93.7MB
+- ... 외 13개
+
+**환경/배경:**
+- 💾 2D Pixel Art - Distant Forest 64x64 (Lifty) — 735.5KB
+- 💾 2D Platformer Tileset (Danil Chernyaev) — 60.2MB
+- 💾 2D RPG topdown tilesets - pixelart assets MEGA BUNDLE (Gif) — 27.3MB
+- 💾 Isometric City Pack (Artyom Zagorskiy) — 36.5MB
+- 💾 Too Cube Forest the free 2D platformer game tile set (NEMO-MK2) — 20.3MB
+
+**UI/아이콘:**
+- 💾 2D Pixel - RPG Monsters Icon Pack (Layer Lab) — 5.0MB
+- 💾 Admurins Pixel Items (Admurin) — 23.9MB
+
+**소품/무기:**
+- 💾 Admurins Pixel Items (Admurin) — 23.9MB
+
+### ⭐⭐⭐⭐ 그룹 3: 「픽셀-마이크로(≤16px)」 (23개 에셋)
+
+**커버리지:** ✅ 캐릭터(9) | ✅ 환경/배경(7) | ✅ UI/아이콘(1) | ✅ 소품/무기(4)
+
+**캐릭터:**
+- 💾 Free Pixel Army - Platformer Pack (Aiden Art) — 192.7KB
+- 💾 Free Pixel Mob (Henry Software) — 27.1KB
+- 💾 Free Pixel Space Platform Pack (Aiden Art) — 111.3KB
+- 💾 Miniature Army 2D V1 Medieval Style (MiMU STUDIO) — 726.5KB
+- 💾 Pixel Hero Warrior 16x16 (Anton Karnomazov) — 53.8KB
+- 💾 Static Sprites 20 (Dunatos Studio) — 92.1KB
+- 💾 Tiny Platformer - Forest Asset Pack (Luiz Melo) — 211.3KB
+- 💾 Tiny RPG - Forest (Ansimuz) — 308.0KB
+- ... 외 1개
+
+**환경/배경:**
+- 💾 2D Pixel Art - Deep Caves 16x16 (Lifty) — 253.8KB
+- 💾 Classic Legacy Pack - Village (Anomaly Pixel) — 258.1KB
+- 💾 Dungeon Tale - Fantasy RPG Sprites FX Tileset (NullTale) — 310.7KB
+- 💾 MINIFANTASY - Dungeon (Krishna Palacio) — 363.4KB
+- 💾 Tiny Platformer - Forest Asset Pack (Luiz Melo) — 211.3KB
+- 💾 Tiny RPG - Forest (Ansimuz) — 308.0KB
+- 💾 Tiny RPG Town Environment (Ansimuz) — 134.7KB
+
+**UI/아이콘:**
+- 💾 2D Pixel Item Asset Pack (Startled Pixels) — 156.1KB
+
+**소품/무기:**
+- 💾 2D Pixel Item Asset Pack (Startled Pixels) — 156.1KB
+- 💾 Free Pixel Food (Henry Software) — 251.2KB
+- 💾 Pixel Potions with Animation (Porforever) — 17.3KB
+- 💾 Tiny Swords (Pixel Frog) — 6.0MB
+
+### ⭐⭐⭐⭐ 그룹 4: 「플랫-미니멀」 (17개 에셋)
+
+**커버리지:** ✅ 캐릭터(3) | ✅ 환경/배경(3) | ✅ UI/아이콘(1) | ✅ 소품/무기(1)
+
+**캐릭터:**
+- 💾 Mini Simple Characters Skeleton Free Demo (Joo Baltieri) — 960.5KB
+- 💾 2D Simple Character Swordman (Black Hammer) — 1.6MB
+- 💾 Simple 2D Platformer Assets Pack (Goldmetal) — 79.9KB
+
+**환경/배경:**
+- 💾 2D-Basic-Room-Assets (PixelChad) — 66.1KB
+- 💾 Simpleee Isometric House Pack (merrril) — 369.0MB
+- 💾 Farland Skies - Simple Cumulus (Borodar) — 57.5MB
+
+**UI/아이콘:**
+- 💾 Basic RPG Cursors (Poneti free) — 2.7MB
+
+**소품/무기:**
+- 💾 2D Simple Character Swordman (Black Hammer) — 1.6MB
+
+### ⭐⭐⭐⭐ 그룹 5: 「로우폴리-일반」 (16개 에셋)
+
+**커버리지:** ✅ 캐릭터(5) | ✅ 환경/배경(2) | ✅ UI/아이콘(2) | ✅ 소품/무기(3)
+
+**캐릭터:**
+- 💾 3D Characters Zombie City Streets Lowpoly Pack - Lite (CatBorg Studio) — 233.4KB
+- ☁️ GanzSe FREE Low Poly Modular Character (GanzSe) — 19.9 MB
+- ☁️ Kaiju: Low Poly Titans (Distant Lands) — 7.7 MB
+- 💾 Micro Monster Heroes Pack Low Poly (BitGem) — 54.1MB
+- 💾 RPG Monster BUNDLE Polyart (Dungeon Mason) — 167.6MB
+
+**환경/배경:**
+- 💾 3D Characters Zombie City Streets Lowpoly Pack - Lite (CatBorg Studio) — 233.4KB
+- ☁️ Interior Realistic - Low Poly 3D Models (ithappy) — 507.7 MB
+
+**UI/아이콘:**
+- 💾 Low Poly Coffee Icons (polyperfect) — 9.7MB
+- 💾 Low Poly Icon Pack (polyperfect) — 166.2MB
+
+**소품/무기:**
+- ☁️ 16 Low Poly Missiles - Bundle (Meshr) — 786.1 KB
+- 💾 3D Low-Poly Chest (Tridentcorp) — 8.5MB
+- ☁️ 900 Low Poly Fantasy RPG Weapons (Pure Poly) — 90.4 MB
+
+### ⭐⭐⭐ 그룹 6: 「플랫-아이콘」 (75개 에셋)
+
+**커버리지:** ✅ 캐릭터(2) | ❌ 환경/배경 | ✅ UI/아이콘(75) | ✅ 소품/무기(18)
+
+**캐릭터:**
+- 💾 Simple Avatar Icons (Little Sweet Daemon) — 16.1MB
+- 💾 Skill icons Warrior (GoodDay) — 2.2MB
+
+**UI/아이콘:**
+- 💾 110 Free Armor And Jewelry Icons (CaptainCatSparrow) — 47.2MB
+- 💾 150 Food Icon Pack (ERA Adventures) — 590.8MB
+- 💾 2000 Fantasy Icons (PONETI) — 291.5MB
+- 💾 2D Icons - 150 Space Rank (LAYERLAB) — 45.0MB
+- 💾 2D Icons - Medal2 (LAYERLAB) — 3.0MB
+- ... 외 70개
+
+**소품/무기:**
+- 💾 150 Food Icon Pack (ERA Adventures) — 590.8MB
+- 💾 2D Icons - Military Item (LAYERLAB) — 20.6MB
+- 💾 2D Icons - Sword (LAYERLAB) — 3.0MB
+- 💾 Coins Mega Pack (SheepFactory Studios) — 44.9MB
+- 💾 Elemental Potions (Maya Pantic) — 2.9MB
+- ... 외 13개
+
+### ⭐⭐⭐ 그룹 7: 「스타일라이즈드-클린」 (42개 에셋)
+
+**커버리지:** ✅ 캐릭터(3) | ✅ 환경/배경(6) | ❌ UI/아이콘 | ✅ 소품/무기(3)
+
+**캐릭터:**
+- ☁️ BoZo: Stylized Modular Characters (BoZo) — 134.6 MB
+- ☁️ Stylized Character Female - Vexa (Vefects) — 201.8 MB
+- 💾 Stylized Free Skeleton (ThunderForgeStudio) — 7.8MB
+
+**환경/배경:**
+- ☁️ Stylized Nature & Environment MEGA PACK (So Stylized) — 1021.7 MB
+- 💾 FREE Stylized Textures - RPG Environment (Blink) — 377.5MB
+- 💾 Stylized Stone Tile Texture (LowlyPoly) — 14.7MB
+- ☁️ Galaxy Materials (Skybox Update) (SineVFX) — 473.3 MB
+- 💾 LightningElectricity VFX Volume 1 (Just Labbing) — 15.3MB
+- 💾 Free Stylized Skybox (Yuki2022) — 26.0MB
+
+**소품/무기:**
+- 💾 Collectable item VFX (Paul Jewell) — 32.3MB
+- ☁️ Item Pickup VFX - URP (Vefects) — 25.4 MB
+- ☁️ Magic Missiles (Archanor VFX) — 31.0 MB
+
+### ⭐⭐⭐ 그룹 8: 「스타일라이즈드-VFX특화」 (17개 에셋)
+
+**커버리지:** ✅ 캐릭터(2) | ✅ 환경/배경(1) | ❌ UI/아이콘 | ✅ 소품/무기(2)
+
+**캐릭터:**
+- ☁️ Character Auras (Hovl Studio) — 28.7 MB
+- ☁️ Character Auras 3 (Hovl Studio) — 36.3 MB
+
+**환경/배경:**
+- ☁️ Master Stylized Projectile (Whitebox Studio) — 43.6 MB
+
+**소품/무기:**
+- ☁️ Sword slashes PRO (Hovl Studio) — 32.8 MB
+- ☁️ Ultimate Loot VFX Pack - 175 Effects (Piloto Studio) — 27.0 MB
+
+### ⭐⭐⭐ 그룹 9: 「리얼리스틱-PBR」 (14개 에셋)
+
+**커버리지:** ✅ 캐릭터(1) | ✅ 환경/배경(6) | ❌ UI/아이콘 | ✅ 소품/무기(1)
+
+**캐릭터:**
+- ☁️ Dragon for Boss Monster : PBR (Dungeon Mason) — 414.4 MB
+
+**환경/배경:**
+- ☁️ Colonial Convent Church Environment (Leartes Studios) — 3.5 GB
+- ☁️ Dwarven Dungeon (Throne Room) (Leartes Studios) — 2.4 GB
+- ☁️ Forest Environment - Dynamic Nature (NatureManufacture) — 3.4 GB
+- ☁️ Meadow Environment - Dynamic Nature (NatureManufacture) — 2.8 GB
+- ☁️ The Aftermath Environment (Leartes Studios) — 3.1 GB
+- ☁️ Will's Room Environment, Dormitory (Leartes Studios) — 2.3 GB
+
+**소품/무기:**
+- 💾 Animated PBR Chest Demo (quiArt) — 13.9MB
+
+### ⭐⭐⭐ 그룹 10: 「네온/사이버펑크」 (12개 에셋)
+
+**커버리지:** ✅ 캐릭터(3) | ✅ 환경/배경(3) | ✅ UI/아이콘(3) | ❌ 소품/무기
+
+**캐릭터:**
+- ☁️ Cyberpunk City (Hivemind) — 4.3 GB
+- ☁️ Sci-Fi Boss pack (Shumn1y) — 3.9 GB
+- ☁️ Sci-Fi SuperPack (21 Characters) (Maksim Bugrimov) — 6.4 GB
+
+**환경/배경:**
+- ☁️ Cyberpunk City (Hivemind) — 4.3 GB
+- ☁️ cyberpunk - High City (HDRP + BIP) (IL.Ranch) — 4.4 GB
+- 💾 Cyberpunk Street Environment (Ansimuz) — 16.2MB
+
+**UI/아이콘:**
+- 💾 80 Sci-Fi Irregular Frame In One (Duckweed Studio) — 45.7MB
+- ☁️ Blue Sci-fi GUI Kit + 250 icons! (Honeti) — 97.8 MB
+- 💾 Sci-fi GUI skin (3drina) — 2.5MB
+
+### ⭐⭐⭐ 그룹 11: 「픽셀-레트로8비트」 (12개 에셋)
+
+**커버리지:** ✅ 캐릭터(4) | ✅ 환경/배경(1) | ✅ UI/아이콘(2) | ❌ 소품/무기
+
+**캐릭터:**
+- 💾 2D Retro Heroes - SPUM Premium Addon Pack (soonsoon) — 1.7MB
+- 💾 Basic Pixel Art for Retro 2D Shooter (hiro hamstone) — 926.6KB
+- 💾 Retro ACT RPG Sprite Pack 01 (hiro hamstone) — 2.5MB
+- 💾 White Scape - 1bit asset pack characters and sprites (NullTale) — 443.2KB
+
+**환경/배경:**
+- 💾 The Japan Collection Japanese City Free Version (Gutty Kreum) — 258.1KB
+
+**UI/아이콘:**
+- 💾 Pixel Pack Retro Fruitz (CherryStack) — 23.7KB
+- 💾 Retro Sprite Font and Icons (hiro hamstone) — 1.5MB
+
+### ⭐⭐⭐ 그룹 12: 「로우폴리-파스텔」 (4개 에셋)
+
+**커버리지:** ✅ 캐릭터(1) | ✅ 환경/배경(2) | ❌ UI/아이콘 | ✅ 소품/무기(1)
+
+**캐릭터:**
+- 💾 Polyquest Heroes Adventurer I Explorer (POLYBOX) — 2.9GB
+
+**환경/배경:**
+- ☁️ Low Poly Fantasy Medieval Village (JustCreate) — 37.1 MB
+- 💾 Polyquest Islands Full Pack Vol2 (POLYBOX) — 1.4GB
+
+**소품/무기:**
+- ☁️ Furniture Cute - Low Poly 3D Models Pack (ithappy) — 156.0 MB
+
+### ⭐⭐ 그룹 13: 「리얼리스틱-하이폴리」 (15개 에셋)
+
+**커버리지:** ✅ 캐릭터(15) | ❌ 환경/배경 | ❌ UI/아이콘 | ✅ 소품/무기(1)
+
+**캐릭터:**
+- 💾 Beach Bundle Boys and Girls (Ida Faber) — 4.0GB
+- ☁️ Cosmo Collection (Ida Faber) — 4.6 GB
+- ☁️ Cosmo Dragon Girl (Ida Faber) — 2.3 GB
+- ☁️ Customizable School Girls (Ida Faber) — 513.3 MB
+- ☁️ Customizable Survivors Pack (Ida Faber) — 3.8 GB
+- 💾 Dress Up Maids (Ida Faber) — 881.1MB
+- ☁️ Fantasy Asian Girls Collection (Ida Faber) — 3.0 GB
+- ☁️ Fantasy Medieval Girls Collection (Ida Faber) — 3.7 GB
+- ... 외 7개
+
+**소품/무기:**
+- ☁️ Swordsman Girl - RPG Dark Fantasy Modular Female (Ida Faber) — 2.5 GB
+
+### ⭐⭐ 그룹 14: 「리얼리스틱-일반」 (14개 에셋)
+
+**커버리지:** ✅ 캐릭터(1) | ✅ 환경/배경(7) | ❌ UI/아이콘 | ❌ 소품/무기
+
+**캐릭터:**
+- ☁️ Realistic Boars (MalberS Animations) — 324.1 MB
+
+**환경/배경:**
+- ☁️ HQ Apocalyptic Environment (NOT_Lonely) — 630.5 MB
+- 💾 350 Realistic Nature Textures Megapack - Forest Desert Arctic More (Game Buffs) — 61.8KB
+- 💾 Alien Tile Set (ProjectMakers) — 26.9MB
+- 💾 ElectricityLightning Shader (Ori Hanegby) — 84.4KB
+- 💾 FREE Parallax Forest Background HQ (Digital Moons) — 4.5MB
+- 💾 Painted HQ 2D Forest Medieval Background (Super Brutal Assets) — 10.7MB
+- 💾 Tileable Pack 01 (Mafubash) — 1.9MB
+
+### ⭐⭐ 그룹 15: 「카툰-그라디언트」 (9개 에셋)
+
+**커버리지:** ✅ 캐릭터(6) | ❌ 환경/배경 | ✅ UI/아이콘(1) | ❌ 소품/무기
+
+**캐릭터:**
+- 💾 Customize Girl Type 0 (Blue Goblin Store) — 1.7MB
+- 💾 Customize Girl Type 3N0 (Blue Goblin Store) — 656.7KB
+- 💾 Dark Monsters Mega Pack (App Advisory) — 62.8MB
+- 💾 FancyDoll - C000 Little Cat Girl (Blue Goblin Store) — 512.4KB
+- 💾 FancyDoll C012D Two Faces Cat (Blue Goblin Store) — 3.0MB
+- 💾 FancyDoll C014D Dark Pig (Blue Goblin Store) — 3.0MB
+
+**UI/아이콘:**
+- 💾 Sweet Cakes Icon Pack (ricimi) — 455.4MB
+
+### ⭐⭐ 그룹 16: 「로우폴리-Synty스타일」 (4개 에셋)
+
+**커버리지:** ✅ 캐릭터(1) | ✅ 환경/배경(1) | ❌ UI/아이콘 | ❌ 소품/무기
+
+**캐릭터:**
+- 💾 POLYGON City Zombies - Low Poly 3D Art by Synty (Synty Studios) — 10.2MB
+
+**환경/배경:**
+- 💾 POLYGON City Zombies - Low Poly 3D Art by Synty (Synty Studios) — 10.2MB
+
+### ⭐⭐ 그룹 17: 「카툰-아웃라인」 (4개 에셋)
+
+**커버리지:** ✅ 캐릭터(4) | ✅ 환경/배경(2) | ❌ UI/아이콘 | ❌ 소품/무기
+
+**캐릭터:**
+- 💾 100 Fantasy Characters Mega Pack (Blackthornprod) — 6.3MB
+- 💾 Tasty Characters - Castle Pack (Severin Baclet) — 718.7KB
+- 💾 Tasty Characters - Forest Pack (Severin Baclet) — 664.7KB
+- 💾 Tasty Characters - Sea Pack (Severin Baclet) — 657.4KB
+
+**환경/배경:**
+- 💾 Tasty Characters - Castle Pack (Severin Baclet) — 718.7KB
+- 💾 Tasty Characters - Forest Pack (Severin Baclet) — 664.7KB
+
+### ⭐⭐ 그룹 18: 「플랫-일반」 (4개 에셋)
+
+**커버리지:** ✅ 캐릭터(1) | ✅ 환경/배경(1) | ❌ UI/아이콘 | ❌ 소품/무기
+
+**캐릭터:**
+- 💾 2D Flat Avatars - 30 Game Character Sprites (CapPlay) — 460.5KB
+
+**환경/배경:**
+- 💾 Planets with Space Background in Flat Style (DinV Studio) — 24.8MB
+
+## ✨ VFX 스타일별 추천 매칭
+
+> VFX는 대부분 범용이지만, 최적 매칭이 있음
+
+
+### 픽셀 계열 ← 레트로/픽셀 VFX
+- 💾 Arcade Pixel Retro Stylized VFX Starter Kit (Piloto Studio) — 28.4MB
+- 💾 Pixel-Perfect Fog Of War (MilkDrinker01) — 1.0MB
+- 💾 Retro Arsenal (Archanor VFX) — 68.0MB
+
+### 카툰 계열 ← 카툰 VFX
+- 💾 Break Items - Toon VFX (VFXmania) — 6.3MB
+- 💾 Cartoon FX 2 Remaster (Jean Moreno) — 12.9MB
+- ☁️ Cartoon FX Pack 3D (Saitama Studio) — 12.5 MB
+- 💾 Cartoon FX Remaster (Jean Moreno) — 11.0MB
+- 💾 Epic Toon FX (Archanor VFX) — 77.6MB
+- ☁️ Epic Toon VFX 2 (Hovl Studio) — 29.1 MB
+- 💾 Hyper Casual FX Pack Vol1 (Kyeoms) — 10.1MB
+- 💾 Hyper Casual FX Pack Vol2 (Kyeoms) — 9.7MB
+- 💾 Simple FX - Cartoon Particles (Synty Studios) — 266.8KB
+- ☁️ Toon Projectiles 2 (Hovl Studio) — 31.6 MB
+- 💾 Toony Colors Pro 2 (Jean Moreno) — 36.5MB
+
+### 로우폴리/스타일라이즈드 ← 스타일라이즈드 VFX
+- 💾 Anime Shading Plus (Eric Hu) — 151.0MB
+- 💾 Board Card Game Stylized VFX Magic (Piloto Studio) — 376.0MB
+- ☁️ Lumen: Stylized Light FX 2 (Distant Lands) — 1.5 MB
+- ☁️ Master Stylized FX (Whitebox Studio) — 78.2 MB
+- ☁️ Master Stylized Projectile (Whitebox Studio) — 43.6 MB
+- ☁️ New Stylized Explosion Package (Kyeoms) — 9.5 MB
+- ☁️ Stylized Explosion Package (Kyeoms) — 3.5 MB
+- ☁️ Stylized Fire - URP (Vefects) — 42.8 MB
+- 💾 Stylized Shoot Hit Vol1 (Kyeoms) — 4.3MB
+- ☁️ StylizedVFX Buff&Debuff vol.1 (Hun0FX) — 29.3 MB
+- ☁️ VFX Graph - Stylized Fire - Vol. 1 (Gabriel Aguiar Prod) — 39.7 MB
+- ☁️ VFX Graph - Stylized Laser Beams - Vol. 1 (Gabriel Aguiar Prod) — 49.1 MB
+
+### 리얼리스틱 계열 ← PBR/고품질 VFX
+- ☁️ War FX (Jean Moreno) — 9.2 MB
+
+### 범용 VFX (모든 스타일)
+- 💾 100 Special Skills Effects Pack (GAPH) — 373.2MB
+- ☁️ AAA 스타일라이즈드 투사체 Vol.1 (Hovl Studio) — 44.5 MB
+- 💾 All In 1 Sprite Shader (Seaside Studios) — 21.4MB
+- ☁️ Candle VFX (Vefects) — 15.4 MB
+- ☁️ Character Auras (Hovl Studio) — 28.7 MB
+- ☁️ Character Auras 3 (Hovl Studio) — 36.3 MB
+- 💾 Collectable item VFX (Paul Jewell) — 32.3MB
+- 💾 DL Fantasy RPG Effects (dreamlevel) — 631.7KB
+- ☁️ Easy Shockwaves VFX - URP (Vefects) — 35.3 MB
+- ☁️ Free Fire VFX (Vefects) — 8.0 MB
+- ☁️ Galaxy Materials (Skybox Update) (SineVFX) — 473.3 MB
+- ☁️ Glowing orbs pack (Hovl Studio) — 5.5 MB
+- 💾 Hit Effects FREE (Matthew Guz) — 12.3MB
+- ☁️ Interactive Dissolve Effects (Inab Studio) — 314.7 MB
+- ☁️ Item Pickup VFX - URP (Vefects) — 25.4 MB
+- ☁️ Lightning Systems (SineVFX) — 150.9 MB
+- 💾 LightningElectricity VFX Volume 1 (Just Labbing) — 15.3MB
+- 💾 Little Enchant Mesh VFX (Alphaime Corporation) — 1.6MB
+- ☁️ Magic Missiles (Archanor VFX) — 31.0 MB
+- ☁️ Master Explosion FX (Whitebox Studio) — 126.3 MB
+- 💾 Mini Shadow (Mingames) — 165.8KB
+- 💾 Mobile Force Field (Isle of Assets) — 1.5MB
+- 💾 Polygon Arsenal (Archanor VFX) — 104.3MB
+- 💾 RPG VFX Bundle (Hovl Studio) — 94.8MB
+- ☁️ Slash Barrage Wave VFX (Piloto Studio) — 29.5 MB
+- 💾 Sprite Shaders Ultimate (Ekincan Tas) — 15.3MB
+- ☁️ Sword slashes PRO (Hovl Studio) — 32.8 MB
+- ☁️ Tentacles VFX - HDRP (Vefects) — 27.2 MB
+- ☁️ Top Down Effects 2.0 (SineVFX) — 1.2 GB
+- ☁️ Trails VFX - URP (Vefects) — 28.6 MB
+- ☁️ Ultimate Loot VFX Pack - 175 Effects (Piloto Studio) — 27.0 MB
+- ☁️ Ultimate VFX (Mirza Beig) — 845.2 MB
+- 💾 Umbra Soft Shadows - Better Directional Contact Shadows for URP (Kronnect) — 778.8KB
+- ☁️ Unique Shields & Barriers Vol.1 (Gabriel Aguiar Prod) — 77.5 MB
+- ☁️ VFX - Impact and Hit - Light Version (Cartoon VFX by Wallcoeur) — 18.1 MB
+- ☁️ VFX Graph - Mega Pack - Vol. 1 (Gabriel Aguiar Prod) — 109.2 MB
+- ☁️ VFX Graph - Mega Pack - Vol. 2 (Gabriel Aguiar Prod) — 196.7 MB
+- ☁️ Zap VFX (Vefects) — 22.7 MB
+
+## 🏢 퍼블리셔별 스타일 통일성
+
+> 같은 퍼블리셔 에셋은 보통 스타일이 통일됨 → **안전한 조합**
+
+| 퍼블리셔 | 에셋수 | 통일성 | 세부 스타일 | 주요 용도 |
+|---------|--------|--------|-----------|----------|
+| Ansimuz | 31 | 🔴 혼합 | 네온/사이버펑크, 픽셀-마이크로(≤16px), 픽셀-클래식(32px) | 배경, 소품, 이펙트, 자연요소, 캐릭터 |
+| LAYERLAB | 16 | 🔴 혼합 | 플랫-UI/GUI, 플랫-아이콘, 픽셀-클래식(32px) | UI, 무기, 소품, 아이콘, 자연요소 |
+| Ida Faber | 15 | 🟢 완벽 | 리얼리스틱-하이폴리 | 무기, 이펙트, 캐릭터 |
+| Hippo | 14 | 🟡 높음 | 플랫-아이콘, 픽셀-HD(64px+) | 아이콘, 애니메이션, 에디터도구, 캐릭터, 텍스처 |
+| karsiori | 14 | 🟡 높음 | 픽셀-HD(64px+), 픽셀-클래식(32px) | 배경, 범용, 소품, 자연요소, 타일셋 |
+| Luiz Melo | 13 | 🟡 높음 | 픽셀-마이크로(≤16px), 픽셀-클래식(32px) | 캐릭터, 환경 |
+| Szadi Art | 11 | 🟢 완벽 | 픽셀-클래식(32px) | 애니메이션, 자연요소, 캐릭터, 타일셋, 텍스처 |
+| Texture Me | 10 | 🟢 완벽 | 스타일라이즈드-핸드페인팅 | 자연요소, 타일셋, 텍스처, 환경 |
+| Vefects | 9 | 🟢 완벽 | 스타일라이즈드-클린 | 소품, 이펙트, 캐릭터 |
+| PONETI | 8 | 🔴 혼합 | 플랫-UI/GUI, 플랫-아이콘, 픽셀-클래식(32px) | UI, 아이콘, 환경 |
+| Hovl Studio | 8 | 🟡 높음 | 스타일라이즈드-VFX특화, 카툰-셀셰이딩 | 무기, 범용, 이펙트, 캐릭터, 타일셋 |
+| Goldmetal | 7 | 🟡 높음 | 플랫-미니멀, 픽셀-클래식(32px) | 범용, 캐릭터 |
+| GoodDay | 7 | 🟢 완벽 | 플랫-아이콘 | 무기, 소품, 아이콘, 캐릭터 |
+| Kevin Iglesias | 6 | 🟢 완벽 | 플랫-미니멀 | 애니메이션, 캐릭터 |
+| N-hance Studio | 6 | 🔴 혼합 | 로우폴리-일반, 스타일라이즈드-파스텔, 플랫-일반 | 캐릭터, 텍스처 |
+| kubacho lab | 6 | 🟡 높음 | 범용 | 범용, 에디터도구 |
+| Leartes Studios | 5 | 🟢 완벽 | 리얼리스틱-PBR | 범용, 환경 |
+| CASTLE BRAVO | 5 | 🟢 완벽 | 로우폴리-밀리터리 | 무기 |
+| Synty Studios | 5 | 🟡 높음 | 로우폴리-Synty스타일, 카툰-셀셰이딩 | 범용, 애니메이션, 이펙트, 캐릭터, 환경 |
+| Superposition Principle | 5 | 🟢 완벽 | 픽셀-클래식(32px) | 무기, 아이콘, 텍스처, 환경 |
+| Blue Goblin Store | 5 | 🟢 완벽 | 카툰-그라디언트 | 캐릭터 |
+| Kin Ng | 5 | 🟢 완벽 | 픽셀-클래식(32px) | 캐릭터, 타일셋, 텍스처 |
+| Kyeoms | 5 | 🟢 완벽 | 스타일라이즈드-클린 | 범용, 이펙트 |
+| Gabriel Aguiar Prod | 5 | 🟢 완벽 | 스타일라이즈드-VFX특화 | 범용, 이펙트 |
+| Redcode Games | 5 | 🟡 높음 | 범용 | 범용 |
+| Carlos Wilkes | 5 | 🟢 완벽 | 플랫-UI/GUI | UI, 범용 |
+| NatureManufacture | 4 | 🟢 완벽 | 리얼리스틱-PBR | 범용, 자연요소, 환경 |
+| PixeliusVita | 4 | 🟡 높음 | 범용 | 애니메이션, 캐릭터 |
+| Stylarts | 4 | 🟢 완벽 | 스타일라이즈드-핸드페인팅 | 자연요소, 환경 |
+| SICS Games | 4 | 🟢 완벽 | 카툰-셀셰이딩 | 범용, 환경 |
+| Unruly Games | 4 | 🟡 높음 | 플랫-아이콘, 픽셀-클래식(32px) | 게임시스템, 아이콘, 캐릭터 |
+| Lifty | 4 | 🔴 혼합 | 픽셀-HD(64px+), 픽셀-마이크로(≤16px), 픽셀-클래식(32px) | 소품, 환경 |
+| hiro hamstone | 4 | 🟢 완벽 | 픽셀-레트로8비트 | 아이콘, 캐릭터, 폰트 |
+| Angelina Avgustova | 4 | 🟢 완벽 | 플랫-아이콘 | 소품, 아이콘 |
+| Eder | 4 | 🟢 완벽 | 픽셀-클래식(32px) | 타일셋, 텍스처, 환경 |
+| CraftPix | 4 | 🟡 높음 | 플랫-아이콘, 픽셀-클래식(32px) | 무기, 아이콘 |
+| Henry Software | 4 | 🟢 완벽 | 픽셀-마이크로(≤16px) | 소품, 이펙트, 캐릭터, 텍스처 |
+| Little Sweet Daemon | 4 | 🟡 높음 | 스타일라이즈드-핸드페인팅, 플랫-아이콘 | 아이콘, 자연요소, 캐릭터, 타일셋, 텍스처 |
+| Artyom Zagorskiy | 4 | 🟡 높음 | 픽셀-HD(64px+), 픽셀-클래식(32px) | 자연요소, 텍스처, 환경 |
+| Piloto Studio | 4 | 🟡 높음 | 스타일라이즈드-VFX특화, 픽셀-레트로8비트 | 소품, 이펙트 |
+| Jean Moreno | 4 | 🟡 높음 | 스타일라이즈드-클린, 카툰-셀셰이딩 | 범용, 이펙트 |
+| Archanor VFX | 4 | 🔴 혼합 | 로우폴리-Synty스타일, 스타일라이즈드-클린, 카툰-셀셰이딩 | 무기, 범용, 이펙트 |
+| More Mountains | 4 | 🟡 높음 | 범용 | 게임시스템, 범용 |
+| Maksim Bugrimov | 3 | 🟢 완벽 | 네온/사이버펑크 | 캐릭터 |
+| Dzeruza | 3 | 🟡 높음 | 범용 | 자연요소 |
+| BIPER | 3 | 🟡 높음 | 범용 | 무기, 캐릭터 |
+| Studio New Punch | 3 | 🟡 높음 | 범용 | 캐릭터 |
+| polyperfect | 3 | 🟢 완벽 | 로우폴리-일반 | 범용, 아이콘 |
+| POLYBOX | 3 | 🟡 높음 | 로우폴리-파스텔, 스타일라이즈드-클린 | 자연요소, 캐릭터, 환경 |
+| MalberS Animations | 3 | 🟢 완벽 | 리얼리스틱-일반 | 게임시스템, 캐릭터 |
+| UModeler, Inc. | 3 | 🟡 높음 | 범용 | 무기, 범용 |
+| bestgamekits | 3 | 🟡 높음 | 범용 | 이펙트, 자연요소, 텍스처 |
+| DinV Studio | 3 | 🟡 높음 | 카툰-셀셰이딩, 플랫-일반 | 배경, 타일셋, 환경 |
+| Sahil Gandhi | 3 | 🟢 완벽 | 스타일라이즈드-핸드페인팅 | 소품, 아이콘 |
+| Danil Chernyaev | 3 | 🔴 혼합 | 스타일라이즈드-핸드페인팅, 픽셀-HD(64px+), 픽셀-클래식(32px) | 타일셋, 텍스처, 환경 |
+| soonsoon | 3 | 🟡 높음 | 픽셀-HD(64px+), 픽셀-레트로8비트 | 캐릭터 |
+| Black Hammer | 3 | 🔴 혼합 | 플랫-UI/GUI, 플랫-미니멀, 픽셀-클래식(32px) | UI, 무기, 캐릭터 |
+| Game Buffs | 3 | 🟡 높음 | 리얼리스틱-일반, 스타일라이즈드-클린 | 자연요소, 텍스처, 환경 |
+| Sven Thole | 3 | 🟢 완벽 | 픽셀-클래식(32px) | 캐릭터 |
+| NYKNCK | 3 | 🟢 완벽 | 픽셀-클래식(32px) | 이펙트, 캐릭터, 환경 |
+| OccaSoftware | 3 | 🟢 완벽 | 플랫-아이콘 | UI, 배경, 아이콘, 애니메이션 |
+| SubCulture Dev | 3 | 🟢 완벽 | 픽셀-클래식(32px) | 캐릭터 |
+| CPasteGame | 3 | 🟡 높음 | 카툰-셀셰이딩, 플랫-미니멀 | 배경, 자연요소 |
+| Pixel Frog | 3 | 🟡 높음 | 픽셀-마이크로(≤16px), 픽셀-클래식(32px) | 무기, 캐릭터 |
+| Cainos | 3 | 🟢 완벽 | 픽셀-클래식(32px) | 소품, 아이콘, 텍스처, 환경 |
+| REXARD | 3 | 🟢 완벽 | 플랫-아이콘 | 아이콘, 텍스처 |
+| Render Knight | 3 | 🟢 완벽 | 픽셀-클래식(32px) | 배경, 캐릭터 |
+| Phat Phrog Studio | 3 | 🟡 높음 | 플랫-아이콘, 픽셀-HD(64px+) | 아이콘, 캐릭터 |
+| LowlyPoly | 3 | 🟡 높음 | 스타일라이즈드-클린, 스타일라이즈드-핸드페인팅 | 자연요소, 타일셋, 텍스처 |
+| Severin Baclet | 3 | 🟢 완벽 | 카툰-아웃라인 | 캐릭터, 환경 |
+| SineVFX | 3 | 🟢 완벽 | 스타일라이즈드-클린 | 게임시스템, 배경, 이펙트, 텍스처 |
+| Whitebox Studio | 3 | 🟢 완벽 | 스타일라이즈드-VFX특화 | 이펙트, 타일셋 |
+| Pixel Crushers | 3 | 🟡 높음 | 범용 | 게임시스템, 범용 |
+| Invector | 3 | 🟡 높음 | 벡터/SVG, 플랫-미니멀 | 게임시스템, 애니메이션 |
+| Fantacode Studios | 3 | 🟡 높음 | 범용 | 게임시스템 |
+| PULSAR BYTES | 3 | 🟡 높음 | 범용 | 배경 |
+
+### 🟢 완벽 통일 퍼블리셔 상세
+
+#### Ida Faber (15개) — 리얼리스틱-하이폴리
+
+- 💾 **Beach Bundle Boys and Girls** [캐릭터] 4.0GB
+- ☁️ **Cosmo Collection** [캐릭터] 4.6 GB
+- ☁️ **Cosmo Dragon Girl** [캐릭터] 2.3 GB
+- ☁️ **Customizable School Girls** [캐릭터] 513.3 MB
+- ☁️ **Customizable Survivors Pack** [캐릭터] 3.8 GB
+- 💾 **Dress Up Maids** [캐릭터] 881.1MB
+- ☁️ **Fantasy Asian Girls Collection** [캐릭터] 3.0 GB
+- ☁️ **Fantasy Medieval Girls Collection** [캐릭터] 3.7 GB
+- ☁️ **Feral Girl Roca** [캐릭터] 1.9 GB
+- 💾 **Gamer Girl** [캐릭터] 1.2GB
+- ☁️ **Heavy - Rapid Fire Military Character** [캐릭터,이펙트] 2.5 GB
+- ☁️ **Horned Knight - RPG Dark Fantasy Modular** [캐릭터] 3.0 GB
+- ☁️ **MMORPG Warriors - Bundle** [캐릭터] 4.2 GB
+- ☁️ **Swordsman Girl - RPG Dark Fantasy Modular Female** [캐릭터,무기] 2.5 GB
+- 💾 **Techwear Girls** [캐릭터] 1.2GB
+
+#### Szadi Art (11개) — 픽셀-클래식(32px)
+
+- 💾 **Crystal World Platformer** [텍스처] 1.1MB
+- 💾 **Hero nad Opponents Animation** [캐릭터,애니메이션] 1.7MB
+- 💾 **Pixel 2D Castle Tileset** [타일셋,환경] 1.2MB
+- 💾 **Pixel Dark Forest** [환경] 2.2MB
+- 💾 **Pixel Fantasy Caves** [환경] 1.4MB
+- 💾 **Pixel Lost Game Scene** [텍스처] 342.3KB
+- 💾 **Platformer Fantasy SET1** [텍스처] 1.1MB
+- 💾 **Platformer Set** [텍스처] 532.4KB
+- 💾 **RPG Worlds Caves** [환경] 2.3MB
+- 💾 **Rocky World Platformer** [텍스처,자연요소] 885.5KB
+- 💾 **Rogue Fantasy Castle** [환경] 324.8KB
+
+#### Texture Me (10개) — 스타일라이즈드-핸드페인팅
+
+- 💾 **Grass Forest Twilight - Free Texture A Hand-Painted** [환경,텍스처,자연요소] 3.6MB
+- 💾 **Grass Pine Forest - Free Texture A Hand-Painted** [환경,텍스처,자연요소] 5.3MB
+- 💾 **Ground Earth and Rocks - Free Texture A Hand-Painted** [텍스처,자연요소] 4.2MB
+- 💾 **Ground Earth and Rocks - Free Texture B Hand-Painted** [텍스처,자연요소] 5.1MB
+- 💾 **Dark Forest Flowers - Free Texture A Hand-painted Seamless** [환경,텍스처,자연요소] 3.9MB
+- 💾 **Grass Magic Forest Floor 10 Textures Hand-painted Seamless Tileable 10** [타일셋,환경,텍스처] 42.6MB
+- 💾 **Grass Magic Forest Floor 10 Textures Hand-painted Seamless Tileable 5** [타일셋,환경,텍스처] 32.2MB
+- 💾 **Lava Rocks Texture 1 Hand-painted Seamless Tileable** [타일셋,텍스처,자연요소] 2.9MB
+- 💾 **Lava Rocks Texture 2 Hand-painted Seamless Tileable** [타일셋,텍스처,자연요소] 2.9MB
+- 💾 **Magic Forest Floor A Hand-painted Seamless** [환경] 3.3MB
+
+#### Vefects (9개) — 스타일라이즈드-클린
+
+- ☁️ **Stylized Character Female - Vexa** [캐릭터] 201.8 MB
+- ☁️ **Candle VFX** [이펙트] 15.4 MB
+- ☁️ **Easy Shockwaves VFX - URP** [이펙트] 35.3 MB
+- ☁️ **Free Fire VFX** [이펙트] 8.0 MB
+- ☁️ **Item Pickup VFX - URP** [이펙트,소품] 25.4 MB
+- ☁️ **Stylized Fire - URP** [이펙트] 42.8 MB
+- ☁️ **Tentacles VFX - HDRP** [이펙트] 27.2 MB
+- ☁️ **Trails VFX - URP** [이펙트] 28.6 MB
+- ☁️ **Zap VFX** [이펙트] 22.7 MB
+
+#### GoodDay (7개) — 플랫-아이콘
+
+- 💾 **Item icons Armor** [아이콘,소품] 2.2MB
+- 💾 **Item icons Melee weapon** [아이콘,무기,소품] 1.7MB
+- 💾 **Item icons Ranged weapon** [아이콘,무기,소품] 1.5MB
+- 💾 **Skill icons Guardian** [아이콘] 2.3MB
+- 💾 **Skill icons Hunter** [아이콘] 2.4MB
+- 💾 **Skill icons Rogue** [아이콘] 2.2MB
+- 💾 **Skill icons Warrior** [캐릭터,아이콘] 2.2MB
+
+#### Kevin Iglesias (6개) — 플랫-미니멀
+
+- 💾 **Giant Monster Model - Golem** [캐릭터] 123.5MB
+- ☁️ **Human Basic Motions** [애니메이션] 60.2 MB
+- ☁️ **Human Basic Motions FREE** [애니메이션] 15.2 MB
+- ☁️ **Human Melee Animations** [애니메이션] 48.9 MB
+- ☁️ **Human Spellcasting Animations FREE** [애니메이션] 16.9 MB
+- ☁️ **Human Throwing Animations FREE** [애니메이션] 15.2 MB
+
+#### Leartes Studios (5개) — 리얼리스틱-PBR
+
+- ☁️ **Colonial Convent Church Environment** [환경] 3.5 GB
+- ☁️ **Dwarven Dungeon (Throne Room)** [환경] 2.4 GB
+- ☁️ **Future Slums Abandoned District** [범용] 2.3 GB
+- ☁️ **The Aftermath Environment** [환경] 3.1 GB
+- ☁️ **Will's Room Environment, Dormitory** [환경] 2.3 GB
+
+#### CASTLE BRAVO (5개) — 로우폴리-밀리터리
+
+- ☁️ **Low Poly AR Weapon Pack 3** [무기] 40.3 MB
+- ☁️ **Low Poly Pistol Weapon Pack 2** [무기] 2.6 MB
+- ☁️ **Low Poly Pistol Weapon Pack 3** [무기] 14.8 MB
+- ☁️ **Low Poly Weapon Series 4 MW 1** [무기] 35.4 MB
+- ☁️ **Low Poly Weapon Series 4 WWII 1** [무기] 13.9 MB
+
+#### Superposition Principle (5개) — 픽셀-클래식(32px)
+
+- 💾 **2D Pixel Art Icons Fruits** [아이콘] 68.6KB
+- 💾 **2D Pixel Art Icons Swords** [아이콘,무기] 68.8KB
+- 💾 **2D Pixel Art Platformer Biome - American Forest** [환경] 151.9KB
+- 💾 **2D Pixel Art Platformer Biome - Plains** [텍스처] 149.9KB
+- 💾 **Asset FTTGR Free Pixel Art Platformer** [텍스처] 88.6MB
+
+#### Blue Goblin Store (5개) — 카툰-그라디언트
+
+- 💾 **Customize Girl Type 0** [캐릭터] 1.7MB
+- 💾 **Customize Girl Type 3N0** [캐릭터] 656.7KB
+- 💾 **FancyDoll - C000 Little Cat Girl** [캐릭터] 512.4KB
+- 💾 **FancyDoll C012D Two Faces Cat** [캐릭터] 3.0MB
+- 💾 **FancyDoll C014D Dark Pig** [캐릭터] 3.0MB
+
+#### Kin Ng (5개) — 픽셀-클래식(32px)
+
+- 💾 **Dragon Warrior Free** [캐릭터] 2.2MB
+- 💾 **Knight Sprite Sheet Free** [캐릭터] 2.2MB
+- 💾 **Landscape Tiles Birds Free** [타일셋] 372.3KB
+- 💾 **Ninja Sprite Sheet Free** [캐릭터] 11.8MB
+- 💾 **Robot Shooting Game Sprite Free** [텍스처] 1.5MB
+
+#### Kyeoms (5개) — 스타일라이즈드-클린
+
+- 💾 **Hyper Casual FX Pack Vol1** [이펙트] 10.1MB
+- 💾 **Hyper Casual FX Pack Vol2** [이펙트] 9.7MB
+- ☁️ **New Stylized Explosion Package** [이펙트] 9.5 MB
+- ☁️ **Stylized Explosion Package** [이펙트] 3.5 MB
+- 💾 **Stylized Shoot Hit Vol1** [범용] 4.3MB
+
+#### Gabriel Aguiar Prod (5개) — 스타일라이즈드-VFX특화
+
+- ☁️ **Unique Shields & Barriers Vol.1** [범용] 77.5 MB
+- ☁️ **VFX Graph - Mega Pack - Vol. 1** [이펙트] 109.2 MB
+- ☁️ **VFX Graph - Mega Pack - Vol. 2** [이펙트] 196.7 MB
+- ☁️ **VFX Graph - Stylized Fire - Vol. 1** [이펙트] 39.7 MB
+- ☁️ **VFX Graph - Stylized Laser Beams - Vol. 1** [이펙트] 49.1 MB
+
+#### Carlos Wilkes (5개) — 플랫-UI/GUI
+
+- 💾 **Lean GUI** [UI] 1.0MB
+- 💾 **Lean Localization** [범용] 807.4KB
+- 💾 **Lean Pool** [범용] 556.5KB
+- 💾 **Lean Touch** [범용] 1.0MB
+- 💾 **Lean Transition** [범용] 648.0KB
+
+#### NatureManufacture (4개) — 리얼리스틱-PBR
+
+- ☁️ **Advanced Foliage Pack 2.0** [범용] 1.5 GB
+- ☁️ **Forest Environment - Dynamic Nature** [환경,자연요소] 3.4 GB
+- ☁️ **Ice World** [범용] 2.2 GB
+- ☁️ **Meadow Environment - Dynamic Nature** [환경,자연요소] 2.8 GB
+
+#### Stylarts (4개) — 스타일라이즈드-핸드페인팅
+
+- ☁️ **Modular Stylized Cyberpunk Street** [자연요소] 859.4 MB
+- ☁️ **Stylized House Interior** [환경] 2.1 GB
+- ☁️ **Stylized Lost Cave** [환경] 3.5 GB
+- ☁️ **Stylized Pirate Port City (Modular)** [환경] 1.3 GB
+
+#### SICS Games (4개) — 카툰-셀셰이딩
+
+- ☁️ **Toon Adventure Island** [환경] 713.5 MB
+- ☁️ **Toon City** [환경] 66.0 MB
+- ☁️ **Toon Deserted Temples** [범용] 562.9 MB
+- ☁️ **Toon Golden Valley** [범용] 1.6 GB
+
+#### hiro hamstone (4개) — 픽셀-레트로8비트
+
+- 💾 **Basic Pixel Art for Retro 2D Shooter** [캐릭터] 926.6KB
+- 💾 **Retro ACT RPG Sprite Pack 01** [캐릭터] 2.5MB
+- 💾 **Retro Sprite Font and Icons** [아이콘,폰트] 1.5MB
+- 💾 **Sprite Font - Japanese Kana** [폰트] 64.3KB
+
+#### Angelina Avgustova (4개) — 플랫-아이콘
+
+- 💾 **Food Icons Pack** [아이콘,소품] 43.3MB
+- 💾 **Free Food icons** [아이콘,소품] 6.9MB
+- 💾 **Free RPG Icons** [아이콘] 2.5MB
+- 💾 **Free icons set** [아이콘] 12.6MB
+
+#### Eder (4개) — 픽셀-클래식(32px)
+
+- 💾 **Free 1 Bit Forest** [환경] 564.8KB
+- 💾 **Free Pixel Art Forest** [환경] 1.9MB
+- 💾 **Free Pixel Art Hill** [텍스처] 1.7MB
+- 💾 **Free Pixel Art Overworld Tileset** [타일셋] 864.0KB
+
+#### Henry Software (4개) — 픽셀-마이크로(≤16px)
+
+- 💾 **Free Pixel Effect** [이펙트] 35.7KB
+- 💾 **Free Pixel Food** [소품] 251.2KB
+- 💾 **Free Pixel Gear** [텍스처] 53.4KB
+- 💾 **Free Pixel Mob** [캐릭터] 27.1KB
+
+#### Maksim Bugrimov (3개) — 네온/사이버펑크
+
+- ☁️ **27 NPC Characters Medieval** [캐릭터] 6.2 GB
+- ☁️ **66 Creatures Super Mega** [캐릭터] 3.9 GB
+- ☁️ **Sci-Fi SuperPack (21 Characters)** [캐릭터] 6.4 GB
+
+#### polyperfect (3개) — 로우폴리-일반
+
+- 💾 **Low Poly Ultimate Pack** [범용] 106.3MB
+- 💾 **Low Poly Coffee Icons** [아이콘] 9.7MB
+- 💾 **Low Poly Icon Pack** [아이콘] 166.2MB
+
+#### MalberS Animations (3개) — 리얼리스틱-일반
+
+- ☁️ **Realistic Boars** [캐릭터] 324.1 MB
+- ☁️ **Undead Horse & Knight** [캐릭터] 565.2 MB
+- ☁️ **Animal Controller (Malbers Character Controller)** [캐릭터,게임시스템] 68.0 MB
+
+#### Sahil Gandhi (3개) — 스타일라이즈드-핸드페인팅
+
+- 💾 **2D ITEMS SET - HANDPAINTED** [아이콘,소품] 1.8MB
+- 💾 **2D RANKS ICON SET - HANDPAINTED** [아이콘] 1.5MB
+- 💾 **2D SKILLS ICON SET - HANDPAINTED** [아이콘] 2.2MB
+
+#### Sven Thole (3개) — 픽셀-클래식(32px)
+
+- 💾 **Bandits - Pixel Art** [캐릭터] 71.0KB
+- 💾 **Hero Knight - Pixel Art** [캐릭터] 112.9KB
+- 💾 **Prototype Hero Demo - Pixel Art** [캐릭터] 314.8KB
+
+#### NYKNCK (3개) — 픽셀-클래식(32px)
+
+- 💾 **City Pack - Top Down - Pixel Art** [환경] 326.8KB
+- 💾 **Free Pixel Art FX Package** [이펙트] 41.8KB
+- 💾 **Slime Character** [캐릭터] 74.5KB
+
+#### OccaSoftware (3개) — 플랫-아이콘
+
+- 💾 **Crosshairs** [UI,아이콘] 1.1MB
+- ☁️ **Altos - Volumetric Clouds, Skybox, and Weather** [배경] 123.7 MB
+- ☁️ **Motion Blur - Object Motion Blur, Camera Motion Blur** [애니메이션] 83.4 MB
+
+#### SubCulture Dev (3개) — 픽셀-클래식(32px)
+
+- 💾 **Cute 2D Girl - Kindergartner** [캐릭터] 646.6KB
+- 💾 **Cute 2D Girl - Wizard** [캐릭터] 360.7KB
+- 💾 **Generic Cute 2D - 001 Student 1** [캐릭터] 1.3MB
+
+#### Cainos (3개) — 픽셀-클래식(32px)
+
+- 💾 **Pixel Art Icon Pack - RPG** [아이콘] 410.0KB
+- 💾 **Pixel Art Platformer - Village Props** [환경,소품] 1.1MB
+- 💾 **Pixel Art Top Down - Basic** [텍스처] 1.4MB
+
+#### REXARD (3개) — 플랫-아이콘
+
+- 💾 **RPG inventory icons** [아이콘] 2.0MB
+- 💾 **SpellBook Preface** [아이콘] 2.5MB
+- 💾 **TCG Cards Pack** [텍스처] 227.7MB
+
+#### Render Knight (3개) — 픽셀-클래식(32px)
+
+- 💾 **Sprite Pack 1 - Tap and Fly** [캐릭터] 767.1KB
+- 💾 **Fantasy Skybox** [배경] 1.1GB
+- 💾 **Fantasy Skybox FREE** [배경] 136.2MB
+
+#### Severin Baclet (3개) — 카툰-아웃라인
+
+- 💾 **Tasty Characters - Castle Pack** [캐릭터,환경] 718.7KB
+- 💾 **Tasty Characters - Forest Pack** [캐릭터,환경] 664.7KB
+- 💾 **Tasty Characters - Sea Pack** [캐릭터] 657.4KB
+
+#### SineVFX (3개) — 스타일라이즈드-클린
+
+- ☁️ **Galaxy Materials (Skybox Update)** [배경,텍스처] 473.3 MB
+- ☁️ **Lightning Systems** [이펙트,게임시스템] 150.9 MB
+- ☁️ **Top Down Effects 2.0** [이펙트] 1.2 GB
+
+#### Whitebox Studio (3개) — 스타일라이즈드-VFX특화
+
+- ☁️ **Master Explosion FX** [이펙트] 126.3 MB
+- ☁️ **Master Stylized FX** [이펙트] 78.2 MB
+- ☁️ **Master Stylized Projectile** [타일셋,이펙트] 43.6 MB
+
+
+## 🚨 혼용 불가 경고
+
+> 이 조합은 스타일이 절대 안 맞음. 한 게임에 섞어 쓰지 말 것!
+
+| 스타일 A | 스타일 B | 이유 |
+|---------|---------|------|
+| 픽셀-마이크로(≤16px) (23개) | 리얼리스틱-PBR (14개) | ⛔ 16px 픽셀과 PBR 리얼리스틱은 완전히 다른 세계 |
+| 픽셀-마이크로(≤16px) (23개) | 리얼리스틱-하이폴리 (15개) | ⛔ 타일 해상도와 폴리곤 밀도 충돌 |
+| 픽셀-클래식(32px) (200개) | 리얼리스틱-PBR (14개) | ⛔ 픽셀 그리드와 PBR 텍스처 부조화 |
+| 픽셀-클래식(32px) (200개) | 로우폴리-Synty스타일 (4개) | ⛔ 2D 픽셀과 3D 로우폴리 혼합 어색 |
+| 카툰-아웃라인 (4개) | 리얼리스틱-하이폴리 (15개) | ⛔ 아웃라인 스타일과 리얼리스틱 이질감 |
+| 로우폴리-Synty스타일 (4개) | 리얼리스틱-PBR (14개) | ⛔ Synty 로우폴리와 PBR 환경은 톤 불일치 |
+| 애니메-일반 (6개) | 리얼리스틱-PBR (14개) | ⛔ 애니메 셀셰이드와 PBR 머티리얼 충돌 |
+| 네온/사이버펑크 (12개) | 픽셀-마이크로(≤16px) (23개) | ⛔ 네온 이펙트가 마이크로 픽셀에서 해상도 부족 |
+| 플랫-UI/GUI (45개) | 리얼리스틱-PBR (14개) | ⛔ 플랫 UI는 리얼리스틱 게임에서 부조화 (의도적 제외) |
+
+## 🔀 스타일 호환성 매트릭스 (주요)
+
+> 🟢=완벽 🟡=가능 🟠=주의 🔴=불가
+
+| 스타일 | PX32 | 아이콘 | UI | S클린 | PXHD | S페인팅 | PX16 | C셀 | 미니멀 | SVFX | LP일반 | R하이 |
+|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **PX32** | 🟢 | 🟠 | 🟠 | 🔴 | 🟠 | 🔴 | 🟠 | 🔴 | 🔴 | 🔴 | 🔴 | 🔴 |
+| **아이콘** | 🟠 | 🟢 | 🟢 | 🟡 | 🔴 | 🔴 | 🔴 | 🟡 | 🟢 | 🔴 | 🔴 | 🟠 |
+| **UI** | 🟠 | 🟢 | 🟢 | 🟡 | 🔴 | 🔴 | 🔴 | 🟡 | 🟢 | 🔴 | 🔴 | 🔴 |
+| **S클린** | 🔴 | 🟡 | 🟡 | 🟢 | 🔴 | 🟠 | 🔴 | 🟡 | 🔴 | 🟢 | 🟠 | 🟠 |
+| **PXHD** | 🟠 | 🔴 | 🔴 | 🔴 | 🟢 | 🔴 | 🔴 | 🔴 | 🔴 | 🔴 | 🔴 | 🔴 |
+| **S페인팅** | 🔴 | 🔴 | 🔴 | 🟠 | 🔴 | 🟢 | 🔴 | 🔴 | 🔴 | 🟡 | 🔴 | 🔴 |
+| **PX16** | 🟠 | 🔴 | 🔴 | 🔴 | 🔴 | 🔴 | 🟢 | 🔴 | 🔴 | 🔴 | 🔴 | 🔴 |
+| **C셀** | 🔴 | 🟡 | 🟡 | 🟡 | 🔴 | 🔴 | 🔴 | 🟢 | 🔴 | 🟡 | 🟠 | 🔴 |
+| **미니멀** | 🔴 | 🟢 | 🟢 | 🔴 | 🔴 | 🔴 | 🔴 | 🔴 | 🟢 | 🔴 | 🔴 | 🔴 |
+| **SVFX** | 🔴 | 🔴 | 🔴 | 🟢 | 🔴 | 🟡 | 🔴 | 🟡 | 🔴 | 🟢 | 🟡 | 🟠 |
+| **LP일반** | 🔴 | 🔴 | 🔴 | 🟠 | 🔴 | 🔴 | 🔴 | 🟠 | 🔴 | 🟡 | 🟢 | 🔴 |
+| **R하이** | 🔴 | 🟠 | 🔴 | 🟠 | 🔴 | 🔴 | 🔴 | 🔴 | 🔴 | 🟠 | 🔴 | 🟢 |
+
+**범례:** PX=픽셀 LP=로우폴리 S=스타일라이즈드 C=카툰 R=리얼리스틱 ANI=애니메
