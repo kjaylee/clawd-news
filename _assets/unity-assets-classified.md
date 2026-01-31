@@ -238,6 +238,69 @@ title: "유니티 에셋 다축 분류 카탈로그"
 | 134 | [FreeTrial] Whisper Watcher (Rig + Animation) | PixeliusVita | 8.4 MB | ☁️ | 범용 | 캐릭터,애니메이션 | 범용 | 3D자유시점 | RPG,액션 | 전방향 | SD |
 | 135 | cyberpunk - High City (HDRP + BIP) | IL.Ranch | 4.4 GB | ☁️ | 네온/사이버 | 환경 | SF,현대 | 3D자유시점 | RPG | 전방향 | HD |
 
+### 🎨 3D 아트 스타일 호환 그룹
+
+#### 퍼블리셔 그룹 (같은 퍼블리셔 = 100% 호환)
+
+| 그룹 | 퍼블리셔 | 스타일 | 에셋 수 | 대표 에셋 |
+|------|---------|--------|---------|----------|
+| 3A-Synty | Synty Studios | POLYGON 로우폴리 스타일라이즈드 | 3 | POLYGON Casino, City Zombies, Simple Fantasy |
+| 3B-POLYBOX | POLYBOX | 로우폴리 스타일라이즈드 자연/판타지 | 3 | Polyquest Heroes, Polyquest Islands, Jungle Trees |
+| 3C-IdaFaber | Ida Faber | 리얼리스틱 HD 캐릭터 | 15 | Beach Bundle, Cosmo Collection, MMORPG Warriors 등 15개 |
+| 3D-Nhance | N-hance Studio | 스타일라이즈드 판타지 | 5 | Stylized Fantasy Dragons/Enemy/Girls NPC, Modular Female |
+| 3E-Stylarts | Stylarts | 스타일라이즈드 환경 | 4 | Cyberpunk Street, House Interior, Lost Cave, Pirate Port |
+| 3F-SICS | SICS Games | 카툰 환경 | 4 | Toon Adventure Island, City, Deserted Temples, Golden Valley |
+| 3G-NatureMfg | NatureManufacture | 리얼리스틱 자연환경 | 4 | Advanced Foliage, Forest, Ice World, Meadow |
+| 3H-Leartes | Leartes Studios | 리얼리스틱 건축/실내 | 5 | Colonial Church, Dwarven Dungeon, Future Slums, Will's Room |
+| 3I-CastleBravo | CASTLE BRAVO | 로우폴리 무기 | 5 | Low Poly AR/Pistol/Weapon Series (5개) |
+| 3J-NewPunch | Studio New Punch | 범용 좀비 | 3 | Shirtless Zombie, OldMan Zombie, Zombies Bundle |
+| 3K-BIPER | BIPER | 범용 전투 캐릭터 | 3 | CombatGirls Rifle, Katana (3개) |
+| 3L-Dzeruza | Dzeruza | 범용 자연 바위 | 3 | CliffStonePack L/M/S |
+| 3M-PixeliusVita | PixeliusVita | 범용 판타지 몬스터 | 4 | Fantasy Monster 01/08, Whisper Watcher |
+| 3N-DungeonMason | Dungeon Mason | 로우폴리~리얼 판타지 보스 | 2 | Dragon Boss, RPG Monster BUNDLE |
+| 3O-Bugrimov | Maksim Bugrimov | 범용 HD 메가팩 | 3 | 27 NPC Medieval, 66 Creatures, Sci-Fi SuperPack |
+| 3P-BoZo | BoZo | 애니메/스타일라이즈드 모듈러 | 2 | Modular Anime, Stylized Modular Characters |
+| 3Q-3DFORGE | 3DFORGE | 범용 환경 | 2 | Cave Adventure Kit, Village Interiors Kit |
+| 3R-Malbers | MalberS Animations | 리얼리스틱 동물/크리처 | 2 | Realistic Boars, Undead Horse & Knight |
+| 3S-Protofactor | Protofactor, Inc | 범용 HD 메가팩 | 2 | MONSTER FULL PACK, SCI FI CHARACTERS MEGA |
+| 3T-Sabao | Sabao3179 | 범용 모듈러 휴머노이드 | 2 | P09 Modular Humanoid / Lite |
+| 3U-BK | BK | 범용 자연환경 | 2 | Pure Nature 2 Islands / Oasis Desert |
+| 3V-JustCreate | JustCreate | 로우폴리 카툰 환경 | 2 | Low Poly Cartoon House, Fantasy Medieval Village |
+| 3W-ithappy | ithappy | 로우폴리 인테리어 | 2 | Furniture Cute, Interior Realistic |
+| 3X-Daelonik | Daelonik Artworks | 범용 | 2 | Demon Girl, Nature Worlds Bundle |
+| 3Z-단독 | (각 퍼블리셔 1개) | 혼합 | 51 | 개별 에셋 |
+
+#### 크로스 호환 (다른 퍼블리셔 간 호환)
+
+| 그룹 A | 그룹 B | 호환도 | 비고 |
+|--------|--------|--------|------|
+| 3G-NatureMfg | 3H-Leartes | 🟢 85% | 리얼리스틱 환경 조합 최적 |
+| 3C-IdaFaber | 3G-NatureMfg | 🟢 80% | 리얼리스틱 캐릭터+자연환경 |
+| 3C-IdaFaber | 3H-Leartes | 🟢 80% | 리얼리스틱 캐릭터+건축환경 |
+| 3D-Nhance | 3E-Stylarts | 🟢 80% | 스타일라이즈드 캐릭터+환경 최적 |
+| 3G-NatureMfg | 3L-Dzeruza | 🟢 80% | 리얼리스틱 자연 요소 |
+| 3C-IdaFaber | 3K-BIPER | 🟡 75% | 리얼리스틱 캐릭터, 텍스처 유사 |
+| 3A-Synty | 3B-POLYBOX | 🟡 70% | 로우폴리 스타일라이즈드, 색감 차이 |
+| 3N-DungeonMason | 3B-POLYBOX | 🟡 70% | 로우폴리 판타지 몬스터+환경 |
+| 3O-Bugrimov | 3S-Protofactor | 🟡 70% | HD 메가팩, 품질 유사 |
+| 3D-Nhance | 3B-POLYBOX | 🟡 65% | 스타일라이즈드 계열, 디테일 차이 |
+| 3A-Synty | 3V-JustCreate | 🟡 65% | 로우폴리 환경, 정제도 차이 |
+| 3P-BoZo | 3D-Nhance | 🟡 65% | 애니메/스타일라이즈드 일부 호환 |
+| 3A-Synty | 3I-CastleBravo | 🟠 60% | 로우폴리 무기+환경, 후보정 필요 |
+| 3J-NewPunch | 3M-PixeliusVita | 🟠 60% | 몬스터/좀비, 스타일 차이 |
+| 3F-SICS | 3A-Synty | 🟠 55% | 카툰 vs 로우폴리, 후보정 필요 |
+
+#### 🏆 추천 조합 (프로젝트별)
+
+| 프로젝트 유형 | 캐릭터 그룹 | 환경 그룹 | 소품/무기 | 호환도 |
+|-------------|-----------|----------|----------|--------|
+| **리얼리스틱 RPG** | 3C-IdaFaber | 3G-NatureMfg + 3H-Leartes | 범용 무기 | 🟢 80-85% |
+| **스타일라이즈드 RPG** | 3D-Nhance | 3E-Stylarts | 범용 소품 | 🟢 80% |
+| **로우폴리 판타지** | 3B-POLYBOX + 3N-DungeonMason | 3A-Synty | 3I-CastleBravo | 🟡 65-70% |
+| **카툰 어드벤처** | 3F-SICS (자체) | 3F-SICS (자체) | 3A-Synty Simple Fantasy | 🟡 55-65% |
+| **좀비 서바이벌** | 3J-NewPunch | 범용 환경 | 3K-BIPER 무기 | 🟡 60-70% |
+| **사이버펑크** | 3O-Bugrimov SF | 3E-Stylarts Cyberpunk | 3I-CastleBravo | 🟡 60-65% |
+
 ---
 ## 📦 2D스프라이트 (485개)
 
