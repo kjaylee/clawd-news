@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<title>🏳️ Flag Quiz — East Sea Games</title>
+<meta name="description" content="Flag Quiz - Can you name the country from its flag? 50+ countries, 4 choices, streak bonuses!">
+<link rel="canonical" href="https://eastsea.monster/games/flag-quiz/">
+<meta property="og:title" content="🏳️ Flag Quiz — East Sea Games">
+<meta property="og:description" content="국기 퀴즈! 국기를 보고 나라를 맞혀보세요. 50개국 이상, 연속 정답 보너스!">
+<meta property="og:image" content="https://eastsea.monster/games/flag-quiz/og.png">
+<meta property="og:url" content="https://eastsea.monster/games/flag-quiz/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="manifest" href="/games/manifest.json">
+<meta name="theme-color" content="#1565c0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"VideoGame","name":"Flag Quiz",
+  "url":"https://eastsea.monster/games/flag-quiz/",
+  "description":"Can you name the country from its flag? Test your knowledge with 50+ countries!",
+  "image":"https://eastsea.monster/games/flag-quiz/og.png",
+  "gamePlatform":["Web Browser","Mobile Browser"],"applicationCategory":"Game",
+  "genre":"Quiz","operatingSystem":"Any","inLanguage":["ko","en"],"playMode":"SinglePlayer",
+  "offers":{"@type":"Offer","price":"0","priceCurrency":"USD","availability":"https://schema.org/InStock"},
+  "author":{"@type":"Person","name":"Jay Lee","url":"https://eastsea.monster"}
+}
+</script>
+
+<!-- Telegram Mini App SDK -->
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+<style>
+/* ═══════════════ RESET & BASE ═══════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;
+  background:linear-gradient(135deg,#e3f2fd 0%,#bbdefb 30%,#90caf9 60%,#64b5f6 100%);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --safe-top:env(safe-area-inset-top,0px);
+  --safe-bottom:env(safe-area-inset-bottom,0px);
+  --safe-left:env(safe-area-inset-left,0px);
+  --safe-right:env(safe-area-inset-right,0px);
+  --tg-bg:#e3f2fd;--tg-text:#1a237e;--tg-hint:#5c6bc0;
+  --tg-button:#1565c0;--tg-button-text:#fff;--tg-secondary-bg:#bbdefb;
+  --primary:#1565c0;--primary-light:#42a5f5;--primary-dark:#0d47a1;
+  --correct:#2e7d32;--correct-bg:#c8e6c9;--correct-light:#66bb6a;
+  --wrong:#c62828;--wrong-bg:#ffcdd2;--wrong-light:#ef5350;
+  --gold:#f9a825;--card-bg:rgba(255,255,255,0.95);--shadow:0 4px 20px rgba(0,0,0,0.12);
+}
+
+/* ═══════════════ GAME CONTAINER ═══════════════ */
+#game{display:flex;flex-direction:column;align-items:center;
+  width:100%;height:100%;position:relative;
+  padding:var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+  overflow:hidden}
+
+/* ═══════════════ HUD ═══════════════ */
+.hud{width:100%;max-width:420px;display:flex;justify-content:space-between;align-items:center;
+  padding:8px 16px;margin-top:4px;gap:8px;flex-shrink:0}
+.hud-item{display:flex;flex-direction:column;align-items:center;min-width:50px}
+.hud-label{font-size:10px;font-weight:700;letter-spacing:0.5px;color:var(--tg-hint);text-transform:uppercase}
+.hud-value{font-size:20px;font-weight:900;color:var(--primary-dark)}
+.hud-progress{flex:1;height:6px;background:rgba(255,255,255,0.6);border-radius:3px;overflow:hidden;
+  margin:0 4px;min-width:60px;max-width:180px}
+.hud-progress-bar{height:100%;background:linear-gradient(90deg,var(--primary-light),var(--primary));
+  border-radius:3px;transition:width 0.4s ease}
+.streak-badge{display:inline-flex;align-items:center;gap:2px;
+  background:linear-gradient(135deg,#ff6f00,#ff8f00);color:#fff;
+  font-size:11px;font-weight:800;padding:2px 8px;border-radius:10px;
+  animation:streakPulse 0.8s ease infinite;min-height:20px}
+@keyframes streakPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ═══════════════ QUESTION AREA ═══════════════ */
+.question-area{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;width:100%;max-width:420px;padding:0 16px;gap:12px;min-height:0}
+
+.flag-display{font-size:clamp(80px,20vw,130px);line-height:1.1;text-align:center;
+  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+  transition:transform 0.3s ease;padding:8px 0}
+.flag-display.bounce{animation:flagBounce 0.5s cubic-bezier(0.34,1.56,0.64,1)}
+@keyframes flagBounce{0%{transform:scale(0.3) rotate(-10deg)}50%{transform:scale(1.1) rotate(3deg)}100%{transform:scale(1) rotate(0)}}
+
+.question-text{font-size:16px;font-weight:600;color:var(--primary-dark);text-align:center;
+  margin-bottom:4px}
+
+/* ═══════════════ CHOICES ═══════════════ */
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;max-width:400px;padding:0 4px}
+.choice-btn{
+  background:var(--card-bg);border:2.5px solid rgba(21,101,192,0.15);border-radius:14px;
+  padding:14px 10px;font-size:15px;font-weight:600;color:var(--tg-text);
+  cursor:pointer;transition:all 0.2s ease;text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.06);min-height:52px;
+  display:flex;align-items:center;justify-content:center;line-height:1.2;
+  -webkit-tap-highlight-color:transparent;position:relative;overflow:hidden}
+.choice-btn:active:not(.disabled){transform:scale(0.96);background:#e8eaf6}
+.choice-btn.correct{background:var(--correct-bg)!important;border-color:var(--correct)!important;
+  color:var(--correct)!important;animation:correctPop 0.4s ease}
+.choice-btn.wrong{background:var(--wrong-bg)!important;border-color:var(--wrong)!important;
+  color:var(--wrong)!important;animation:wrongShake 0.4s ease}
+.choice-btn.reveal{background:#fff3e0!important;border-color:var(--gold)!important;color:#e65100!important}
+.choice-btn.disabled{pointer-events:none;opacity:0.6}
+.choice-btn .choice-icon{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:20px}
+
+@keyframes correctPop{0%{transform:scale(1)}30%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes wrongShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* ═══════════════ FEEDBACK OVERLAY ═══════════════ */
+.feedback{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);
+  font-size:80px;z-index:100;pointer-events:none;opacity:0}
+.feedback.show{animation:feedbackPop 0.7s cubic-bezier(0.34,1.56,0.64,1) forwards}
+@keyframes feedbackPop{0%{transform:translate(-50%,-50%) scale(0);opacity:0}
+  30%{transform:translate(-50%,-50%) scale(1.3);opacity:1}
+  60%{transform:translate(-50%,-50%) scale(1);opacity:1}
+  100%{transform:translate(-50%,-50%) scale(0.8);opacity:0}}
+
+.streak-popup{position:fixed;top:35%;left:50%;transform:translate(-50%,-50%) scale(0);
+  background:linear-gradient(135deg,#ff6f00,#ff8f00);color:#fff;
+  font-size:18px;font-weight:800;padding:8px 20px;border-radius:16px;
+  z-index:101;pointer-events:none;white-space:nowrap;
+  box-shadow:0 4px 20px rgba(255,111,0,0.4)}
+.streak-popup.show{animation:streakFly 1s cubic-bezier(0.34,1.56,0.64,1) forwards}
+@keyframes streakFly{0%{transform:translate(-50%,-50%) scale(0);opacity:0}
+  20%{transform:translate(-50%,-50%) scale(1.2);opacity:1}
+  50%{transform:translate(-50%,-50%) scale(1);opacity:1}
+  100%{transform:translate(-50%,-80%) scale(0.8);opacity:0}}
+
+/* ═══════════════ CONFETTI ═══════════════ */
+.confetti-container{position:fixed;inset:0;pointer-events:none;z-index:99;overflow:hidden}
+.confetti-piece{position:absolute;width:10px;height:10px;top:-10px;border-radius:2px;
+  animation:confettiFall linear forwards}
+@keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1}
+  100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+
+/* ═══════════════ SCREENS ═══════════════ */
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:20px;transition:opacity 0.3s,transform 0.3s;
+  padding-top:calc(var(--safe-top) + 20px);padding-bottom:calc(var(--safe-bottom) + 20px)}
+.screen.hidden{opacity:0;pointer-events:none;transform:scale(0.95)}
+
+/* ── Menu Screen ── */
+.menu-icon{font-size:80px;margin-bottom:8px;filter:drop-shadow(0 4px 12px rgba(0,0,0,0.15))}
+.menu-title{font-size:32px;font-weight:900;color:var(--primary-dark);margin-bottom:4px;text-align:center}
+.menu-subtitle{font-size:15px;color:var(--tg-hint);margin-bottom:16px;text-align:center}
+.menu-stats{display:flex;gap:20px;margin-bottom:20px}
+.menu-stat{display:flex;flex-direction:column;align-items:center;
+  background:var(--card-bg);border-radius:14px;padding:12px 18px;box-shadow:var(--shadow)}
+.menu-stat-value{font-size:24px;font-weight:800;color:var(--primary)}
+.menu-stat-label{font-size:11px;font-weight:600;color:var(--tg-hint);text-transform:uppercase}
+
+.btn{border:none;border-radius:14px;font-size:17px;font-weight:700;
+  cursor:pointer;padding:15px 40px;transition:all 0.2s;min-width:200px;min-height:52px}
+.btn:active{transform:scale(0.96)}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-light));
+  color:#fff;box-shadow:0 4px 15px rgba(21,101,192,0.35)}
+.btn-secondary{background:var(--card-bg);color:var(--primary);
+  border:2px solid rgba(21,101,192,0.2);box-shadow:var(--shadow);margin-top:10px}
+
+/* ── Result Screen ── */
+.result-emoji{font-size:64px;margin-bottom:8px}
+.result-title{font-size:28px;font-weight:900;color:var(--primary-dark);margin-bottom:4px}
+.result-score{font-size:48px;font-weight:900;color:var(--primary);margin:4px 0}
+.result-detail{font-size:14px;color:var(--tg-hint);margin-bottom:4px;text-align:center;line-height:1.6}
+.result-newbest{font-size:16px;font-weight:800;color:var(--gold);
+  animation:streakPulse 0.8s ease infinite;margin-bottom:8px}
+.result-bar{width:80%;max-width:300px;height:10px;background:rgba(255,255,255,0.6);
+  border-radius:5px;overflow:hidden;margin:8px 0 16px}
+.result-bar-fill{height:100%;border-radius:5px;transition:width 1s ease}
+.result-buttons{display:flex;flex-direction:column;gap:8px;align-items:center}
+
+/* ═══════════════ RESPONSIVE ═══════════════ */
+@media(max-height:600px){
+  .flag-display{font-size:70px;padding:4px 0}
+  .choice-btn{padding:10px 8px;font-size:14px;min-height:44px}
+  .choices{gap:8px}
+  .question-area{gap:6px}
+  .hud{padding:4px 12px}
+}
+@media(max-height:500px){
+  .flag-display{font-size:56px}
+  .choice-btn{padding:8px 6px;font-size:13px;min-height:38px}
+  .menu-icon{font-size:50px}
+  .menu-title{font-size:24px}
+}
+@media(min-width:500px){
+  .choices{max-width:420px}
+  .choice-btn{font-size:16px;padding:16px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- tg-sdk-wrapper (inline) -->
+<script>
+(function(){
+'use strict';
+const TG={
+  app:window.Telegram?.WebApp,user:null,isReady:false,_backHandlers:[],
+  init(){
+    if(!this.app){this.isReady=true;this._injectStandaloneCSS();return false}
+    this.app.ready();this.app.expand();
+    this.user=this.app.initDataUnsafe?.user||null;
+    this._applyTheme();this._setupSafeArea();this._setupBackButton();
+    this.app.onEvent('viewportChanged',({isStateStable})=>{if(isStateStable)this._updateViewport()});
+    this.app.onEvent('themeChanged',()=>this._applyTheme());
+    this.isReady=true;return true;
+  },
+  _applyTheme(){
+    const tp=this.app?.themeParams;if(!tp)return;
+    const r=document.documentElement.style;
+    const m={'--tg-bg':tp.bg_color,'--tg-text':tp.text_color,'--tg-hint':tp.hint_color,
+      '--tg-link':tp.link_color,'--tg-button':tp.button_color,'--tg-button-text':tp.button_text_color,
+      '--tg-secondary-bg':tp.secondary_bg_color};
+    for(const[p,v]of Object.entries(m)){if(v)r.setProperty(p,v)}
+  },
+  _setupSafeArea(){
+    this._applySafeAreaValues();
+    if(this.app?.onEvent){
+      this.app.onEvent('safeAreaChanged',()=>this._applySafeAreaValues());
+      this.app.onEvent('contentSafeAreaChanged',()=>this._applySafeAreaValues());
+    }
+    this._updateViewport();
+  },
+  _applySafeAreaValues(){
+    const r=document.documentElement.style;
+    const sa=this.app?.safeAreaInset||{top:0,bottom:0,left:0,right:0};
+    const csa=this.app?.contentSafeAreaInset||{top:0,bottom:0,left:0,right:0};
+    const totalTop=sa.top+csa.top,totalBottom=sa.bottom+csa.bottom;
+    r.setProperty('--safe-top',totalTop+'px');r.setProperty('--safe-bottom',totalBottom+'px');
+    r.setProperty('--safe-left',sa.left+'px');r.setProperty('--safe-right',sa.right+'px');
+    document.body.style.paddingTop=totalTop+'px';document.body.style.paddingBottom=totalBottom+'px';
+  },
+  _updateViewport(){
+    const vh=this.app?.viewportStableHeight||window.innerHeight;
+    document.documentElement.style.setProperty('--tg-viewport-height',vh+'px');
+  },
+  _setupBackButton(){
+    if(!this.app?.BackButton)return;this.app.BackButton.show();
+    this.app.BackButton.onClick(()=>{
+      for(let i=this._backHandlers.length-1;i>=0;i--){if(this._backHandlers[i]())return}
+      this.app.close();
+    });
+  },
+  _injectStandaloneCSS(){
+    const s=document.createElement('style');
+    s.textContent='body{background:linear-gradient(135deg,#e3f2fd,#bbdefb,#90caf9);color:#1a237e}';
+    document.head.appendChild(s);
+  },
+  onBack(fn){this._backHandlers.push(fn)},
+  getUserId(){return this.user?.id||'guest'},
+  getUserName(){return this.user?.first_name||'Player'},
+  getLang(){return this.user?.language_code||'en'},
+  haptic(type='impact',style='medium'){
+    try{
+      if(type==='impact')this.app?.HapticFeedback?.impactOccurred(style);
+      else if(type==='notification')this.app?.HapticFeedback?.notificationOccurred(style);
+      else if(type==='selection')this.app?.HapticFeedback?.selectionChanged();
+    }catch{}
+  },
+  share(text,url){
+    if(this.app){
+      const shareUrl=url||window.location.href;
+      this.app.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(shareUrl)+'&text='+encodeURIComponent(text));
+    }
+  },
+  save(key,value){try{localStorage.setItem('tg_'+this.getUserId()+'_'+key,JSON.stringify(value))}catch{}},
+  load(key,fb=null){try{const r=localStorage.getItem('tg_'+this.getUserId()+'_'+key);return r?JSON.parse(r):fb}catch{return fb}},
+};
+function autoInit(){TG.init()}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',autoInit);
+else autoInit();
+window.TG=TG;
+})();
+</script>
+
+<div id="game">
+  <!-- ═══ HUD (shown during gameplay) ═══ -->
+  <div class="hud" id="hud" style="display:none">
+    <div class="hud-item">
+      <span class="hud-label" data-i18n="question">Q</span>
+      <span class="hud-value" id="hud-qnum">1/10</span>
+    </div>
+    <div class="hud-progress">
+      <div class="hud-progress-bar" id="hud-progress" style="width:10%"></div>
+    </div>
+    <div class="hud-item">
+      <span class="hud-label" data-i18n="score">SCORE</span>
+      <span class="hud-value" id="hud-score">0</span>
+    </div>
+    <div class="hud-item" id="hud-streak-wrap" style="display:none">
+      <span class="streak-badge" id="hud-streak">🔥 0</span>
+    </div>
+  </div>
+
+  <!-- ═══ Question Area ═══ -->
+  <div class="question-area" id="question-area" style="display:none">
+    <div class="flag-display" id="flag-display">🇰🇷</div>
+    <div class="question-text" data-i18n="whichCountry">Which country's flag is this?</div>
+    <div class="choices" id="choices"></div>
+  </div>
+
+  <!-- ═══ Menu Screen ═══ -->
+  <div class="screen" id="screen-menu">
+    <div class="menu-icon">🏳️‍🌈</div>
+    <div class="menu-title" data-i18n="title">Flag Quiz</div>
+    <div class="menu-subtitle" data-i18n="subtitle">Can you name the country?</div>
+    <div class="menu-stats">
+      <div class="menu-stat">
+        <span class="menu-stat-value" id="menu-best">0</span>
+        <span class="menu-stat-label" data-i18n="bestScore">Best</span>
+      </div>
+      <div class="menu-stat">
+        <span class="menu-stat-value" id="menu-plays">0</span>
+        <span class="menu-stat-label" data-i18n="gamesPlayed">Played</span>
+      </div>
+      <div class="menu-stat">
+        <span class="menu-stat-value" id="menu-accuracy">0%</span>
+        <span class="menu-stat-label" data-i18n="accuracy">Accuracy</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btn-start" data-i18n="startBtn">🌍 Start Quiz</button>
+  </div>
+
+  <!-- ═══ Result Screen ═══ -->
+  <div class="screen hidden" id="screen-result">
+    <div class="result-emoji" id="result-emoji">🏆</div>
+    <div class="result-title" data-i18n="roundComplete">Round Complete!</div>
+    <div class="result-newbest hidden" id="result-newbest" data-i18n="newBest">🏆 New Best Score!</div>
+    <div class="result-score" id="result-score">0</div>
+    <div class="result-detail" id="result-detail"></div>
+    <div class="result-bar"><div class="result-bar-fill" id="result-bar-fill"></div></div>
+    <div class="result-buttons">
+      <button class="btn btn-primary" id="btn-replay" data-i18n="playAgain">🔄 Play Again</button>
+      <button class="btn btn-secondary" id="btn-share" data-i18n="shareScore">📢 Share Score</button>
+    </div>
+  </div>
+
+  <!-- ═══ Feedback ═══ -->
+  <div class="feedback" id="feedback"></div>
+  <div class="streak-popup" id="streak-popup"></div>
+  <div class="confetti-container" id="confetti"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   Flag Quiz — Game Logic
+   ═══════════════════════════════════════════════ */
+(function(){
+'use strict';
+
+// ── i18n ──
+const STRINGS = {
+  title:         { en: 'Flag Quiz',               ko: '국기 퀴즈' },
+  subtitle:      { en: 'Can you name the country?', ko: '국기를 보고 나라를 맞혀보세요!' },
+  startBtn:      { en: '🌍 Start Quiz',           ko: '🌍 퀴즈 시작' },
+  question:      { en: 'Q',                        ko: '문제' },
+  score:         { en: 'SCORE',                    ko: '점수' },
+  bestScore:     { en: 'Best',                     ko: '최고' },
+  gamesPlayed:   { en: 'Played',                   ko: '게임' },
+  accuracy:      { en: 'Accuracy',                 ko: '정답률' },
+  whichCountry:  { en: "Which country's flag is this?", ko: '어느 나라의 국기일까요?' },
+  roundComplete: { en: 'Round Complete!',           ko: '라운드 완료!' },
+  newBest:       { en: '🏆 New Best Score!',       ko: '🏆 새로운 최고 기록!' },
+  playAgain:     { en: '🔄 Play Again',            ko: '🔄 다시 하기' },
+  shareScore:    { en: '📢 Share Score',           ko: '📢 점수 공유' },
+  correct:       { en: 'Correct!',                 ko: '정답!' },
+  wrong:         { en: 'Wrong!',                   ko: '오답!' },
+  theAnswer:     { en: 'The answer was',           ko: '정답은' },
+  streak:        { en: 'streak',                   ko: '연속' },
+  perfectRound:  { en: '🎉 Perfect Round!',        ko: '🎉 퍼펙트!' },
+  greatJob:      { en: '🌟 Great Job!',            ko: '🌟 잘했어요!' },
+  goodTry:       { en: '👍 Good Try!',             ko: '👍 좋은 시도!' },
+  keepLearning:  { en: '📚 Keep Learning!',        ko: '📚 계속 도전!' },
+  correctCount:  { en: '{n}/10 correct',           ko: '{n}/10 정답' },
+  bestStreak:    { en: 'Best streak: {n}',         ko: '최대 연속: {n}' },
+  bonusPoints:   { en: '+{n} streak bonus!',       ko: '+{n} 연속 보너스!' },
+};
+
+let lang = 'en';
+{
+  const tgLang = window.Telegram?.WebApp?.initDataUnsafe?.user?.language_code;
+  if (tgLang && tgLang.startsWith('ko')) lang = 'ko';
+  else if (navigator.language?.startsWith('ko')) lang = 'ko';
+}
+
+function t(key, params) {
+  let s = STRINGS[key]?.[lang] || STRINGS[key]?.en || key;
+  if (params) { for (const [k,v] of Object.entries(params)) s = s.replace(`{${k}}`, v); }
+  return s;
+}
+
+function applyI18n() {
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    const s = STRINGS[key]?.[lang] || STRINGS[key]?.en;
+    if (s) el.textContent = s;
+  });
+}
+
+// ── Country Data: {emoji, en, ko} ──
+const COUNTRIES = [
+  // East Asia
+  { flag: '🇰🇷', en: 'South Korea',      ko: '대한민국' },
+  { flag: '🇯🇵', en: 'Japan',             ko: '일본' },
+  { flag: '🇨🇳', en: 'China',             ko: '중국' },
+  { flag: '🇹🇼', en: 'Taiwan',            ko: '대만' },
+  { flag: '🇲🇳', en: 'Mongolia',          ko: '몽골' },
+  // Southeast Asia
+  { flag: '🇹🇭', en: 'Thailand',          ko: '태국' },
+  { flag: '🇻🇳', en: 'Vietnam',           ko: '베트남' },
+  { flag: '🇵🇭', en: 'Philippines',       ko: '필리핀' },
+  { flag: '🇮🇩', en: 'Indonesia',         ko: '인도네시아' },
+  { flag: '🇲🇾', en: 'Malaysia',          ko: '말레이시아' },
+  { flag: '🇸🇬', en: 'Singapore',         ko: '싱가포르' },
+  { flag: '🇲🇲', en: 'Myanmar',           ko: '미얀마' },
+  { flag: '🇰🇭', en: 'Cambodia',          ko: '캄보디아' },
+  { flag: '🇱🇦', en: 'Laos',              ko: '라오스' },
+  // South Asia
+  { flag: '🇮🇳', en: 'India',             ko: '인도' },
+  { flag: '🇵🇰', en: 'Pakistan',          ko: '파키스탄' },
+  { flag: '🇧🇩', en: 'Bangladesh',        ko: '방글라데시' },
+  { flag: '🇱🇰', en: 'Sri Lanka',         ko: '스리랑카' },
+  { flag: '🇳🇵', en: 'Nepal',             ko: '네팔' },
+  // Middle East
+  { flag: '🇸🇦', en: 'Saudi Arabia',      ko: '사우디아라비아' },
+  { flag: '🇦🇪', en: 'UAE',               ko: '아랍에미리트' },
+  { flag: '🇮🇱', en: 'Israel',            ko: '이스라엘' },
+  { flag: '🇹🇷', en: 'Turkey',            ko: '튀르키예' },
+  { flag: '🇮🇷', en: 'Iran',              ko: '이란' },
+  { flag: '🇶🇦', en: 'Qatar',             ko: '카타르' },
+  // Europe
+  { flag: '🇬🇧', en: 'United Kingdom',    ko: '영국' },
+  { flag: '🇫🇷', en: 'France',            ko: '프랑스' },
+  { flag: '🇩🇪', en: 'Germany',           ko: '독일' },
+  { flag: '🇮🇹', en: 'Italy',             ko: '이탈리아' },
+  { flag: '🇪🇸', en: 'Spain',             ko: '스페인' },
+  { flag: '🇵🇹', en: 'Portugal',          ko: '포르투갈' },
+  { flag: '🇳🇱', en: 'Netherlands',       ko: '네덜란드' },
+  { flag: '🇧🇪', en: 'Belgium',           ko: '벨기에' },
+  { flag: '🇨🇭', en: 'Switzerland',       ko: '스위스' },
+  { flag: '🇦🇹', en: 'Austria',           ko: '오스트리아' },
+  { flag: '🇸🇪', en: 'Sweden',            ko: '스웨덴' },
+  { flag: '🇳🇴', en: 'Norway',            ko: '노르웨이' },
+  { flag: '🇩🇰', en: 'Denmark',           ko: '덴마크' },
+  { flag: '🇫🇮', en: 'Finland',           ko: '핀란드' },
+  { flag: '🇵🇱', en: 'Poland',            ko: '폴란드' },
+  { flag: '🇬🇷', en: 'Greece',            ko: '그리스' },
+  { flag: '🇷🇺', en: 'Russia',            ko: '러시아' },
+  { flag: '🇺🇦', en: 'Ukraine',           ko: '우크라이나' },
+  { flag: '🇨🇿', en: 'Czech Republic',    ko: '체코' },
+  { flag: '🇷🇴', en: 'Romania',           ko: '루마니아' },
+  { flag: '🇭🇺', en: 'Hungary',           ko: '헝가리' },
+  { flag: '🇮🇪', en: 'Ireland',           ko: '아일랜드' },
+  { flag: '🇮🇸', en: 'Iceland',           ko: '아이슬란드' },
+  // Americas
+  { flag: '🇺🇸', en: 'United States',     ko: '미국' },
+  { flag: '🇨🇦', en: 'Canada',            ko: '캐나다' },
+  { flag: '🇲🇽', en: 'Mexico',            ko: '멕시코' },
+  { flag: '🇧🇷', en: 'Brazil',            ko: '브라질' },
+  { flag: '🇦🇷', en: 'Argentina',         ko: '아르헨티나' },
+  { flag: '🇨🇴', en: 'Colombia',          ko: '콜롬비아' },
+  { flag: '🇨🇱', en: 'Chile',             ko: '칠레' },
+  { flag: '🇵🇪', en: 'Peru',              ko: '페루' },
+  { flag: '🇨🇺', en: 'Cuba',              ko: '쿠바' },
+  { flag: '🇯🇲', en: 'Jamaica',           ko: '자메이카' },
+  // Africa
+  { flag: '🇿🇦', en: 'South Africa',      ko: '남아프리카' },
+  { flag: '🇪🇬', en: 'Egypt',             ko: '이집트' },
+  { flag: '🇳🇬', en: 'Nigeria',           ko: '나이지리아' },
+  { flag: '🇰🇪', en: 'Kenya',             ko: '케냐' },
+  { flag: '🇪🇹', en: 'Ethiopia',          ko: '에티오피아' },
+  { flag: '🇲🇦', en: 'Morocco',           ko: '모로코' },
+  { flag: '🇬🇭', en: 'Ghana',             ko: '가나' },
+  // Oceania
+  { flag: '🇦🇺', en: 'Australia',         ko: '호주' },
+  { flag: '🇳🇿', en: 'New Zealand',       ko: '뉴질랜드' },
+  // Challenging ones
+  { flag: '🇱🇮', en: 'Liechtenstein',     ko: '리히텐슈타인' },
+  { flag: '🇱🇺', en: 'Luxembourg',        ko: '룩셈부르크' },
+  { flag: '🇧🇹', en: 'Bhutan',            ko: '부탄' },
+  { flag: '🇲🇨', en: 'Monaco',            ko: '모나코' },
+  { flag: '🇵🇦', en: 'Panama',            ko: '파나마' },
+  { flag: '🇧🇳', en: 'Brunei',            ko: '브루나이' },
+];
+
+// ── Game State ──
+const QUESTIONS_PER_ROUND = 10;
+const BASE_POINTS = 100;
+const STREAK_BONUS = 50;
+
+let state = {
+  questions: [],
+  currentQ: 0,
+  score: 0,
+  correctCount: 0,
+  streak: 0,
+  bestStreak: 0,
+  answered: false,
+};
+
+// ── DOM refs ──
+const $ = id => document.getElementById(id);
+const hud = $('hud');
+const hudQnum = $('hud-qnum');
+const hudProgress = $('hud-progress');
+const hudScore = $('hud-score');
+const hudStreakWrap = $('hud-streak-wrap');
+const hudStreak = $('hud-streak');
+const questionArea = $('question-area');
+const flagDisplay = $('flag-display');
+const choicesEl = $('choices');
+const screenMenu = $('screen-menu');
+const screenResult = $('screen-result');
+const feedbackEl = $('feedback');
+const streakPopup = $('streak-popup');
+const confettiEl = $('confetti');
+const menuBest = $('menu-best');
+const menuPlays = $('menu-plays');
+const menuAccuracy = $('menu-accuracy');
+const resultEmoji = $('result-emoji');
+const resultScore = $('result-score');
+const resultDetail = $('result-detail');
+const resultNewBest = $('result-newbest');
+const resultBarFill = $('result-bar-fill');
+
+// ── Utility ──
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function countryName(c) { return c[lang] || c.en; }
+
+// ── Stats (localStorage) ──
+function loadStats() {
+  return TG.load('flagquiz_stats', { best: 0, plays: 0, totalCorrect: 0, totalQuestions: 0 });
+}
+
+function saveStats(stats) {
+  TG.save('flagquiz_stats', stats);
+}
+
+function updateMenuStats() {
+  const stats = loadStats();
+  menuBest.textContent = stats.best;
+  menuPlays.textContent = stats.plays;
+  const pct = stats.totalQuestions > 0 ? Math.round(stats.totalCorrect / stats.totalQuestions * 100) : 0;
+  menuAccuracy.textContent = pct + '%';
+}
+
+// ── Generate Round ──
+function generateRound() {
+  const pool = shuffle(COUNTRIES);
+  const selected = pool.slice(0, QUESTIONS_PER_ROUND);
+  const questions = selected.map(correct => {
+    // pick 3 wrong answers (not the same as correct)
+    const wrongPool = COUNTRIES.filter(c => c.flag !== correct.flag);
+    const wrongs = shuffle(wrongPool).slice(0, 3);
+    const options = shuffle([correct, ...wrongs]);
+    return { correct, options };
+  });
+  return questions;
+}
+
+// ── Show Question ──
+function showQuestion() {
+  const q = state.questions[state.currentQ];
+  state.answered = false;
+
+  // Update HUD
+  hudQnum.textContent = `${state.currentQ + 1}/${QUESTIONS_PER_ROUND}`;
+  hudProgress.style.width = `${((state.currentQ + 1) / QUESTIONS_PER_ROUND) * 100}%`;
+  hudScore.textContent = state.score;
+
+  // Update streak display
+  if (state.streak >= 2) {
+    hudStreakWrap.style.display = '';
+    hudStreak.textContent = `🔥 ${state.streak}`;
+  } else {
+    hudStreakWrap.style.display = 'none';
+  }
+
+  // Flag animation
+  flagDisplay.textContent = q.correct.flag;
+  flagDisplay.classList.remove('bounce');
+  void flagDisplay.offsetWidth;
+  flagDisplay.classList.add('bounce');
+
+  // Build choices
+  choicesEl.innerHTML = '';
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = countryName(opt);
+    btn.dataset.flag = opt.flag;
+    btn.addEventListener('click', () => handleAnswer(btn, opt, q.correct));
+    choicesEl.appendChild(btn);
+  });
+}
+
+// ── Handle Answer ──
+function handleAnswer(btn, selected, correct) {
+  if (state.answered) return;
+  state.answered = true;
+
+  const isCorrect = selected.flag === correct.flag;
+
+  // Disable all buttons
+  document.querySelectorAll('.choice-btn').forEach(b => b.classList.add('disabled'));
+
+  if (isCorrect) {
+    // Correct!
+    btn.classList.add('correct');
+    btn.innerHTML = countryName(selected) + '<span class="choice-icon">✅</span>';
+    state.correctCount++;
+    state.streak++;
+    if (state.streak > state.bestStreak) state.bestStreak = state.streak;
+
+    // Calculate points
+    let points = BASE_POINTS;
+    let bonus = 0;
+    if (state.streak >= 3) {
+      bonus = STREAK_BONUS * (state.streak - 2);
+      points += bonus;
+    }
+    state.score += points;
+
+    showFeedback('✅', true);
+    TG.haptic('notification', 'success');
+
+    // Streak popup
+    if (state.streak >= 3) {
+      showStreakPopup(`🔥 ${state.streak} ${t('streak')}! +${bonus}`);
+    }
+  } else {
+    // Wrong!
+    btn.classList.add('wrong');
+    btn.innerHTML = countryName(selected) + '<span class="choice-icon">❌</span>';
+    state.streak = 0;
+
+    // Reveal correct answer
+    document.querySelectorAll('.choice-btn').forEach(b => {
+      if (b.dataset.flag === correct.flag) {
+        b.classList.add('reveal');
+        b.innerHTML = countryName(correct) + '<span class="choice-icon">⭐</span>';
+      }
+    });
+
+    showFeedback('❌', false);
+    TG.haptic('notification', 'error');
+  }
+
+  // Update HUD
+  hudScore.textContent = state.score;
+  if (state.streak >= 2) {
+    hudStreakWrap.style.display = '';
+    hudStreak.textContent = `🔥 ${state.streak}`;
+  } else {
+    hudStreakWrap.style.display = 'none';
+  }
+
+  // Next question after delay
+  const delay = isCorrect ? 1000 : 1800;
+  setTimeout(() => {
+    state.currentQ++;
+    if (state.currentQ < QUESTIONS_PER_ROUND) {
+      showQuestion();
+    } else {
+      endRound();
+    }
+  }, delay);
+}
+
+// ── Feedback Animation ──
+function showFeedback(emoji, isCorrect) {
+  feedbackEl.textContent = emoji;
+  feedbackEl.className = 'feedback';
+  void feedbackEl.offsetWidth;
+  feedbackEl.classList.add('show');
+  setTimeout(() => feedbackEl.classList.remove('show'), 700);
+
+  if (isCorrect && state.streak >= 5) {
+    spawnConfetti();
+  }
+}
+
+function showStreakPopup(text) {
+  streakPopup.textContent = text;
+  streakPopup.className = 'streak-popup';
+  void streakPopup.offsetWidth;
+  streakPopup.classList.add('show');
+  setTimeout(() => streakPopup.classList.remove('show'), 1000);
+}
+
+// ── Confetti ──
+function spawnConfetti() {
+  confettiEl.innerHTML = '';
+  const colors = ['#ff1744','#00e676','#2979ff','#ffd600','#e040fb','#ff9100','#00e5ff'];
+  for (let i = 0; i < 30; i++) {
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random() * 100 + '%';
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+    piece.style.animationDelay = Math.random() * 0.5 + 's';
+    piece.style.width = (6 + Math.random() * 8) + 'px';
+    piece.style.height = (6 + Math.random() * 8) + 'px';
+    confettiEl.appendChild(piece);
+  }
+  setTimeout(() => confettiEl.innerHTML = '', 4000);
+}
+
+// ── End Round ──
+function endRound() {
+  hud.style.display = 'none';
+  questionArea.style.display = 'none';
+
+  // Update stats
+  const stats = loadStats();
+  const isNewBest = state.score > stats.best;
+  if (isNewBest) stats.best = state.score;
+  stats.plays++;
+  stats.totalCorrect += state.correctCount;
+  stats.totalQuestions += QUESTIONS_PER_ROUND;
+  saveStats(stats);
+
+  // Result emoji & title
+  const pct = state.correctCount / QUESTIONS_PER_ROUND;
+  if (pct === 1) {
+    resultEmoji.textContent = '🎉';
+    screenResult.querySelector('.result-title').textContent = t('perfectRound');
+    spawnConfetti();
+  } else if (pct >= 0.7) {
+    resultEmoji.textContent = '🌟';
+    screenResult.querySelector('.result-title').textContent = t('greatJob');
+  } else if (pct >= 0.4) {
+    resultEmoji.textContent = '👍';
+    screenResult.querySelector('.result-title').textContent = t('goodTry');
+  } else {
+    resultEmoji.textContent = '📚';
+    screenResult.querySelector('.result-title').textContent = t('keepLearning');
+  }
+
+  resultScore.textContent = state.score;
+  resultDetail.innerHTML = `${t('correctCount', {n: state.correctCount})}<br>${t('bestStreak', {n: state.bestStreak})}`;
+
+  if (isNewBest) {
+    resultNewBest.classList.remove('hidden');
+    TG.haptic('notification', 'success');
+  } else {
+    resultNewBest.classList.add('hidden');
+  }
+
+  // Accuracy bar
+  const barColor = pct >= 0.7 ? 'linear-gradient(90deg,#66bb6a,#2e7d32)' :
+                   pct >= 0.4 ? 'linear-gradient(90deg,#ffa726,#f57c00)' :
+                                'linear-gradient(90deg,#ef5350,#c62828)';
+  resultBarFill.style.width = '0%';
+  resultBarFill.style.background = barColor;
+  setTimeout(() => resultBarFill.style.width = (pct * 100) + '%', 100);
+
+  screenResult.classList.remove('hidden');
+}
+
+// ── Start Game ──
+function startGame() {
+  state = {
+    questions: generateRound(),
+    currentQ: 0,
+    score: 0,
+    correctCount: 0,
+    streak: 0,
+    bestStreak: 0,
+    answered: false,
+  };
+
+  screenMenu.classList.add('hidden');
+  screenResult.classList.add('hidden');
+  hud.style.display = 'flex';
+  questionArea.style.display = 'flex';
+
+  showQuestion();
+}
+
+// ── Show Menu ──
+function showMenu() {
+  hud.style.display = 'none';
+  questionArea.style.display = 'none';
+  screenResult.classList.add('hidden');
+  screenMenu.classList.remove('hidden');
+  updateMenuStats();
+}
+
+// ── Share ──
+function shareScore() {
+  const pct = Math.round(state.correctCount / QUESTIONS_PER_ROUND * 100);
+  const text = lang === 'ko'
+    ? `🏳️ 국기 퀴즈에서 ${state.score}점 (${pct}% 정답)! 도전해보세요! 👇`
+    : `🏳️ I scored ${state.score} (${pct}% correct) in Flag Quiz! Can you beat it? 👇`;
+  TG.share(text, 'https://t.me/eastsea_games_bot?startapp=game_flag-quiz');
+}
+
+// ── Event Listeners ──
+$('btn-start').addEventListener('click', () => { TG.haptic('impact','medium'); startGame(); });
+$('btn-replay').addEventListener('click', () => { TG.haptic('impact','medium'); startGame(); });
+$('btn-share').addEventListener('click', () => { TG.haptic('impact','light'); shareScore(); });
+
+// Back button
+TG.onBack(() => {
+  if (!screenMenu.classList.contains('hidden')) return false;
+  showMenu();
+  return true;
+});
+
+// ── Init ──
+applyI18n();
+updateMenuStats();
+
+})();
+</script>
+
+<!-- Cross Promo -->
+<script src="/games/cross-promo.js"></script>
+</body>
+</html>
