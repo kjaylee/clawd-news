@@ -181,21 +181,9 @@ permalink: /assets/
 
 ---
 
-## 📚 에셋 카테고리 페이지
+## 📚 에셋 카테고리
 
-<div class="card-grid">
-{% assign sorted_assets = site.assets | sort: "order" %}
-{% for asset in sorted_assets %}
-{% if asset.category %}
-<div class="card">
-    <a href="{{ asset.url | relative_url }}">
-        <h3>{{ asset.icon | default: "📄" }} {{ asset.title | default: asset.name }}</h3>
-        <p>{{ asset.count | default: "?" }}개 에셋</p>
-    </a>
-</div>
-{% endif %}
-{% endfor %}
-</div>
+에셋 컬렉션이 정적 페이지로 이전되었습니다. 위의 카테고리별 표를 참조하세요.
 
 ---
 

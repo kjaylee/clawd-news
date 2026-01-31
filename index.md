@@ -119,17 +119,7 @@ title: 홈
         <p>2D 그래픽 150개 · 3D 모델 8개 (432GB)</p>
     </a>
 </div>
-{% assign sorted_assets = site.assets | sort: "order" %}
-{% for asset in sorted_assets %}
-{% if asset.category and asset.category != "All" %}
-<div class="card">
-    <a href="{{ asset.url | relative_url }}">
-        <h3>{{ asset.icon | default: "📄" }} {{ asset.title }}</h3>
-        <p>{{ asset.count }}개 에셋</p>
-    </a>
-</div>
-{% endif %}
-{% endfor %}
+<!-- 에셋 컬렉션 제거됨 — 정적 카테고리는 /assets/ 페이지에서 확인 -->
 </div>
 
 [📦 전체 에셋 라이브러리 보기 →]({{ '/assets/' | relative_url }})
